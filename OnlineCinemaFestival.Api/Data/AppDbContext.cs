@@ -9,4 +9,7 @@ public class AppDbContext : DbContext
         : base(options) { }
 
     public DbSet<Festival> Festivals => Set<Festival>();
+    public DbSet<Filme> Filmes { get; set; }
+    public DbSet<Avaliacao> Avaliacoes { get; set; }
+    public DbSet<Comentario> Comentarios { get; set; }
 }
