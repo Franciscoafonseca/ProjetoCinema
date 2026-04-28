@@ -1,0 +1,55 @@
+# Build artifacts
+**/bin/
+**/obj/
+**/out/
+
+bin/
+obj/
+.vs/
+
+*.db
+*.db-shm
+*.db-wal
+
+*.user
+*.suo
+*.rsuser
+
+.env
+.env.local
+*.log
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+
+# Rider
+.idea/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NuGet
+*.nupkg
+.nuget/NuGet.Config
+.nuget/NuGet.exe
+.nuget/NuGet.targets
+
+# Publish output
+**/publish/
+
+# Dotnet tools
+.dotnet/
+
+# Test results
+TestResults/

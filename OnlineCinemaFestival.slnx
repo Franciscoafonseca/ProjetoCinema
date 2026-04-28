@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="OnlineCinemaFestival.Api/OnlineCinemaFestival.Api.csproj" />
+  <Project Path="OnlineCinemaFestival.Client/OnlineCinemaFestival.Client.csproj" />
+</Solution>
