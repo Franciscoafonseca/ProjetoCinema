@@ -1,7 +1,59 @@
-﻿@page "/"
+@page "/"
+@inject FilmeService FilmeService
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Online Cinema Festival</PageTitle>
 
-<h1>Hello, world!</h1>
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-icon">🎬</div>
+        <h1 class="hero-titulo">O Melhor Cinema Online</h1>
+        <p class="hero-subtitulo">Descobre os melhores filmes do festival. Vê onde e quando quiseres.</p>
+        <a href="/catalogo" class="btn-hero">Ver Catálogo</a>
+    </div>
+</section>
 
-Welcome to your new app.
+<section class="secao-destaques">
+    <div class="secao-header">
+        <h2 class="secao-titulo">Filmes em Destaque</h2>
+        <a href="/catalogo" class="ver-todos">Ver todos →</a>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>A carregar filmes...</p>
+        </div>
+    }
+    else if (_filmes.Count == 0)
+    {
+        <p class="empty-state">Nenhum filme disponível de momento.</p>
+    }
+    else
+    {
+        <div class="filmes-grid">
+            @foreach (var filme in _filmes)
+            {
+                <FilmeCard Filme="filme" />
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private List<FilmeDto> _filmes = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var todos = await FilmeService.GetFilmesAsync();
+            _filmes = todos.OrderByDescending(f => f.Popularidade).Take(6).ToList();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}
