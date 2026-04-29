@@ -2,18 +2,24 @@
 
 <div class="filme-card" @onclick="Navegar">
     <div class="filme-card-poster">
-        <img src="@Filme.UrlCartaz" alt="@Filme.Titulo" />
+        <img src="@Filme.CapaUrl" alt="@Filme.Titulo" />
         <div class="filme-card-overlay">
             <span class="ver-detalhes">Ver Detalhes</span>
         </div>
     </div>
     <div class="filme-card-info">
-        <span class="filme-card-genero">@Filme.Genero</span>
+        @if (!string.IsNullOrWhiteSpace(Filme.Genero))
+        {
+            <span class="filme-card-genero">@Filme.Genero</span>
+        }
         <h6 class="filme-card-titulo">@Filme.Titulo</h6>
-        <div class="filme-card-rating">
-            <span class="star">★</span>
-            <span>@Filme.ClassificacaoMedia.ToString("0.0")</span>
-        </div>
+        @if (!string.IsNullOrWhiteSpace(Filme.Classificacao))
+        {
+            <div class="filme-card-rating">
+                <span class="star">★</span>
+                <span>@Filme.Classificacao</span>
+            </div>
+        }
     </div>
 </div>
 
