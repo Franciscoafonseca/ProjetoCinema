@@ -6,7 +6,7 @@ namespace OnlineCinemaFestival.Client.Services;
 public class FilmeService
 {
     private readonly HttpClient _http;
-    private const bool UseMock = true;
+    private readonly bool UseMock = true;
 
     public FilmeService(HttpClient http)
     {

@@ -1,2 +1,86 @@
-"asdasdadasdasda"
-@page "/catalogo"   
+@page "/catalogo"
+@inherits FilmePageBase
+@inject FilmeService FilmeService
+
+<PageTitle>Catálogo — Online Cinema Festival</PageTitle>
+
+<div class="catalogo-container">
+    <h1 class="catalogo-titulo">Catálogo</h1>
+
+    <div class="catalogo-filtros">
+        <input class="pesquisa-input"
+               type="text"
+               placeholder="Pesquisar por título ou realizador..."
+               value="@_pesquisa"
+               @oninput="OnPesquisaAlterada" />
+
+        <div class="generos-chips">
+            <button class="chip @(_generoSelecionado == null ? "chip-ativo" : "")"
+                    @onclick="() => SelecionarGenero(null)">
+                Todos
+            </button>
+            @foreach (var genero in _generos)
+            {
+                <button class="chip @(_generoSelecionado == genero ? "chip-ativo" : "")"
+                        @onclick="() => SelecionarGenero(genero)">
+                    @genero
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>A carregar filmes...</p>
+        </div>
+    }
+    else if (_erro != null)
+    {
+        <p class="erro-state">@_erro</p>
+    }
+    else if (_filmes.Count == 0)
+    {
+        <p class="empty-state">Nenhum filme encontrado.</p>
+    }
+    else
+    {
+        <div class="catalogo-grid">
+            @foreach (var filme in _filmes)
+            {
+                <FilmeCard Filme="filme" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<FilmeDto> _filmes = new();
+    private List<string> _generos = new();
+    private string? _generoSelecionado;
+    private string? _pesquisa;
+
+    protected override async Task CarregarDadosAsync()
+    {
+        _generos = await FilmeService.GetGenerosAsync();
+        _filmes = await FilmeService.GetFilmesAsync();
+    }
+
+    private async Task SelecionarGenero(string? genero)
+    {
+        _generoSelecionado = genero;
+        await AplicarFiltros();
+    }
+
+    private async Task OnPesquisaAlterada(ChangeEventArgs e)
+    {
+        _pesquisa = e.Value?.ToString();
+        await AplicarFiltros();
+    }
+
+    private async Task AplicarFiltros()
+    {
+        _filmes = await FilmeService.GetFilmesAsync(_generoSelecionado, _pesquisa);
+    }
+}

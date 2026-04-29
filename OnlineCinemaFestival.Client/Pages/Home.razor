@@ -1,4 +1,5 @@
 @page "/"
+@inherits FilmePageBase
 @inject FilmeService FilmeService
 
 <PageTitle>Online Cinema Festival</PageTitle>
@@ -25,6 +26,10 @@
             <p>A carregar filmes...</p>
         </div>
     }
+    else if (_erro != null)
+    {
+        <p class="erro-state">@_erro</p>
+    }
     else if (_filmes.Count == 0)
     {
         <p class="empty-state">Nenhum filme disponível de momento.</p>
@@ -41,19 +46,12 @@
 </section>
 
 @code {
+    private const int MaxDestaques = 6;
     private List<FilmeDto> _filmes = new();
-    private bool _loading = true;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task CarregarDadosAsync()
     {
-        try
-        {
-            var todos = await FilmeService.GetFilmesAsync();
-            _filmes = todos.OrderByDescending(f => f.Popularidade).Take(6).ToList();
-        }
-        finally
-        {
-            _loading = false;
-        }
+        var todos = await FilmeService.GetFilmesAsync();
+        _filmes = todos.OrderByDescending(f => f.Popularidade).Take(MaxDestaques).ToList();
     }
 }

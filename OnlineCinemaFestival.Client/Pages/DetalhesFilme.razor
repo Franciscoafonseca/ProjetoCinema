@@ -1,0 +1,91 @@
+@page "/filmes/{Id:int}"
+@inherits FilmePageBase
+@inject FilmeService FilmeService
+@inject NavigationManager Nav
+
+<PageTitle>@(_filme?.Titulo ?? "Detalhes") — Online Cinema Festival</PageTitle>
+
+@if (_loading)
+{
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>A carregar filme...</p>
+    </div>
+}
+else if (_erro != null)
+{
+    <div class="nao-encontrado">
+        <p class="erro-msg">@_erro</p>
+        <button class="btn-voltar" @onclick="Voltar">← Voltar ao Catálogo</button>
+    </div>
+}
+else if (_filme == null)
+{
+    <div class="nao-encontrado">
+        <h2>Filme não encontrado</h2>
+        <p>O filme que procuras não existe ou foi removido.</p>
+        <button class="btn-voltar" @onclick="Voltar">← Voltar ao Catálogo</button>
+    </div>
+}
+else
+{
+    <div class="detalhes-container">
+        <button class="btn-voltar" @onclick="Voltar">← Voltar ao Catálogo</button>
+
+        <div class="detalhes-hero">
+            <div class="detalhes-poster">
+                <img src="@_filme.UrlCartaz" alt="@_filme.Titulo" />
+            </div>
+
+            <div class="detalhes-info">
+                <span class="detalhes-genero">@_filme.Genero</span>
+                <h1 class="detalhes-titulo">@_filme.Titulo</h1>
+
+                <div class="detalhes-meta">
+                    <div class="meta-item">
+                        <span class="star">★</span>
+                        <span>@_filme.ClassificacaoMedia.ToString("0.0")</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Popularidade</span>
+                        <span>@_filme.Popularidade.ToString("0.0")</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Preço</span>
+                        <span>@_filme.Preco.ToString("0.00") €</span>
+                    </div>
+                </div>
+
+                <p class="detalhes-realizador">
+                    Realizador: <strong>@_filme.Realizador</strong>
+                </p>
+
+                <p class="detalhes-sinopse">@_filme.Sinopse</p>
+
+                @if (!string.IsNullOrWhiteSpace(_filme.TrailerUrl))
+                {
+                    <div class="trailer-wrapper">
+                        <iframe src="@_filme.TrailerUrl"
+                                title="Trailer de @_filme.Titulo"
+                                allowfullscreen
+                                frameborder="0">
+                        </iframe>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private FilmeDto? _filme;
+
+    protected override async Task CarregarDadosAsync()
+    {
+        _filme = await FilmeService.GetFilmeByIdAsync(Id);
+    }
+
+    private void Voltar() => Nav.NavigateTo("/catalogo");
+}
