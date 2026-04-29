@@ -4,7 +4,7 @@ public class Comentario
 {
     public int Id {get; set;}
     public int FilmeId { get; set; }
-    public Filme Filme {get; set;} // para obter os outros dados do filme
+    public Filme Filme {get; set;} = null!;// para obter os outros dados do filme
     // Até fazerem a autenticação, tenho de usar o id do usuario
     // Quando tiver pronto, mudar para o token de autenticação
     public int? UsuarioId { get; set; }

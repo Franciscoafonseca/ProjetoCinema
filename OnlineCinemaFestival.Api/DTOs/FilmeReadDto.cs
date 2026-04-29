@@ -10,5 +10,6 @@ namespace OnlineCinemaFestival.Api.DTOs
         public string? Genero { get; set; } 
         public string? Classificacao { get; set; } 
         public string CapaUrl { get; set; } = "";
+        public int Popularidade { get; set; }
     }
 }

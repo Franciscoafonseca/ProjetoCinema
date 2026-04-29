@@ -24,8 +24,8 @@ public class FilmeService : IFilmeService
 
     public async Task<IEnumerable<FilmeReadDto>> SearchFilmesTmdbAsync(string query)
     {
-        var filmesTmdb = await _tmdbService.SearchFilmesTmbdAsync(query);
-        return filmesTmdb.Select(FilmeMapper.MapToReadDto);
+        var filmesTmdb = await _tmdbService.SearchFilmesTmdbAsync(query);
+        return filmesTmdb.Select(FilmeMapper.MapToReadDtoFromTmdb);
     }
 
     public async Task<FilmeReadDto> ImportFilmeFromTmdbAsync(int tmdbId)

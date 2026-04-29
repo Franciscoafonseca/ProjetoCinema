@@ -32,6 +32,9 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<FestivalRepository>();
 builder.Services.AddScoped<FestivalService>();
+builder.Services.AddScoped<IFilmeRepository, FilmeRepository>();
+builder.Services.AddScoped<IFilmeService, FilmeService>();
+builder.Services.AddHttpClient<ITmdbService, TmdbService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
