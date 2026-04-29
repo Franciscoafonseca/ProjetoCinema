@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineCinemaFestival.Api.Data;
 
@@ -10,9 +11,11 @@ using OnlineCinemaFestival.Api.Data;
 namespace OnlineCinemaFestival.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260429020630_AtualizarModeloFilmeTmdb")]
+    partial class AtualizarModeloFilmeTmdb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
@@ -112,15 +115,18 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Classificacao")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DataLancamento")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Genero")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Sinopse")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Titulo")
