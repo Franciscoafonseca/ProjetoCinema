@@ -17,10 +17,18 @@ public class FilmeService
         var filmes = await _http.GetFromJsonAsync<List<FilmeDto>>("api/filmes") ?? new();
 
         if (!string.IsNullOrWhiteSpace(genero))
-            filmes = filmes.Where(f => string.Equals(f.Genero, genero, StringComparison.OrdinalIgnoreCase)).ToList();
+        {
+            filmes = filmes
+                .Where(f => string.Equals(f.Genero, genero, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
 
         if (!string.IsNullOrWhiteSpace(search))
-            filmes = filmes.Where(f => f.Titulo.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+        {
+            filmes = filmes
+                .Where(f => f.Titulo.Contains(search, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
 
         return filmes;
     }
@@ -28,12 +36,14 @@ public class FilmeService
     public async Task<FilmeDto?> GetFilmeByIdAsync(int id)
     {
         var filmes = await _http.GetFromJsonAsync<List<FilmeDto>>("api/filmes") ?? new();
+
         return filmes.FirstOrDefault(f => f.Id == id);
     }
 
     public async Task<List<string>> GetGenerosAsync()
     {
         var filmes = await GetFilmesAsync();
+
         return filmes
             .Where(f => !string.IsNullOrWhiteSpace(f.Genero))
             .Select(f => f.Genero!)

@@ -19,7 +19,7 @@ else if (_erro != null)
         <button class="btn-voltar" @onclick="Voltar">← Voltar ao Catálogo</button>
     </div>
 }
-else if (_filme == null)
+else if (_filme?.Titulo == null)
 {
     <div class="nao-encontrado">
         <h2>Filme não encontrado</h2>
@@ -34,7 +34,7 @@ else
 
         <div class="detalhes-hero">
             <div class="detalhes-poster">
-                <img src="@_filme.CapaUrl" alt="@_filme.Titulo" />
+                <img src="@_filme.UrlCartaz" alt="@_filme.Titulo" />
             </div>
 
             <div class="detalhes-info">
