@@ -7,8 +7,8 @@ namespace OnlineCinemaFestival.Api.DTOs
         public string Titulo { get; set; } = "";
         public string? Sinopse { get; set; }
         public DateTime DataLancamento { get; set; }
-        public string? Genero { get; set; } 
-        public string? Classificacao { get; set; } 
+        public string? Genero { get; set; }
+        public string? Classificacao { get; set; }
         public string CapaUrl { get; set; } = "";
         public int Popularidade { get; set; }
     }

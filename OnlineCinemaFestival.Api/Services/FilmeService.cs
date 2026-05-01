@@ -1,7 +1,7 @@
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
-using OnlineCinemaFestival.Api.Mappers;
 
 namespace OnlineCinemaFestival.Api.Services;
 
@@ -32,13 +32,13 @@ public class FilmeService : IFilmeService
     {
         // Verificar se o filme já existe na base de dados
         var filmeExistente = await _filmeRepository.GetByTmdbIdAsync(tmdbId);
-        if (filmeExistente != null) return FilmeMapper.MapToReadDto(filmeExistente);
-    
+        if (filmeExistente != null)
+            return FilmeMapper.MapToReadDto(filmeExistente);
 
         // Buscar os dados do filme no TMDb
         var filmeTmdb = await _tmdbService.GetFilmeByTmdbIdAsync(tmdbId);
-        if (filmeTmdb == null) throw new Exception($"Filme com TMDb ID {tmdbId} não encontrado.");
-        
+        if (filmeTmdb == null)
+            throw new Exception($"Filme com TMDb ID {tmdbId} não encontrado.");
 
         // Criar um novo filme com os dados do TMDb
         var novoFilme = FilmeMapper.MapFromTmdbDto(filmeTmdb);
@@ -48,7 +48,5 @@ public class FilmeService : IFilmeService
         await _filmeRepository.SaveChangesAsync();
 
         return FilmeMapper.MapToReadDto(novoFilme);
-        
     }
-    
 }

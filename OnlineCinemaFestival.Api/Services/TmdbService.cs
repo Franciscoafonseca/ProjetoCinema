@@ -1,8 +1,8 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using OnlineCinemaFestival.Api.DTOs;
-using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Api.Mappers;
+using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Services;
 
@@ -35,8 +35,8 @@ public class TmdbService : ITmdbService
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var tmdbResult = JsonSerializer.Deserialize<TmdbSearchResponse>(jsonString, options);
 
-        return tmdbResult?.Results?.Select(FilmeMapper.MapFromTmdbResult) ?? Enumerable.Empty<TmdbFilmeDto>();
-
+        return tmdbResult?.Results?.Select(FilmeMapper.MapFromTmdbResult)
+            ?? Enumerable.Empty<TmdbFilmeDto>();
     }
 
     public async Task<TmdbFilmeDto?> GetFilmeByTmdbIdAsync(int tmdbId)
@@ -50,14 +50,16 @@ public class TmdbService : ITmdbService
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await _httpClient.SendAsync(request);
-        if (!response.IsSuccessStatusCode) return null;
+        if (!response.IsSuccessStatusCode)
+            return null;
 
         var jsonString = await response.Content.ReadAsStringAsync();
 
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var filmeTmdb = JsonSerializer.Deserialize<TmdbMovieDetails>(jsonString, options);
 
-        if (filmeTmdb == null) return null;
+        if (filmeTmdb == null)
+            return null;
 
         return new TmdbFilmeDto
         {
@@ -72,12 +74,10 @@ public class TmdbService : ITmdbService
                 : "",
             Classificacao = filmeTmdb.Classificacao?.ToString("0.0"),
             // 2. Transforma a lista de generos numa string separada por virgulas
-            Genero = filmeTmdb.Genres != null && filmeTmdb.Genres.Any()
-                ? string.Join(", ", filmeTmdb.Genres.Select(g => g.Name))
-                : "Geral"
+            Genero =
+                filmeTmdb.Genres != null && filmeTmdb.Genres.Any()
+                    ? string.Join(", ", filmeTmdb.Genres.Select(g => g.Name))
+                    : "Geral",
         };
-
     }
-
-
 }

@@ -1,4 +1,7 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
@@ -32,11 +35,56 @@ builder.Services.AddCors(options =>
     );
 });
 
+// JWT
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var jwtKey = jwtSettings["Key"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException("JWT Key não configurada no appsettings.json.");
+}
+
+builder
+    .Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// Serviços já existentes
 builder.Services.AddScoped<FestivalRepository>();
 builder.Services.AddScoped<FestivalService>();
+
 builder.Services.AddScoped<IFilmeRepository, FilmeRepository>();
 builder.Services.AddScoped<IFilmeService, FilmeService>();
+
 builder.Services.AddHttpClient<ITmdbService, TmdbService>();
+
+// Novos repositories
+builder.Services.AddScoped<IUtilizadorRepository, UtilizadorRepository>();
+builder.Services.AddScoped<IGeneroRepository, GeneroRepository>();
+
+// Novos services de autenticação/perfil
+builder.Services.AddScoped<IPasswordHashingStrategy, PasswordHashingStrategy>();
+builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -47,6 +95,9 @@ app.UseCors("BlazorClient");
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
