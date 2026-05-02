@@ -63,6 +63,15 @@ public class AppDbContext : DbContext
             .HasOne(a => a.Usuario)
             .WithMany(u => u.Avaliacoes)
             .HasForeignKey(a => a.UsuarioId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<Avaliacao>()
+            .HasOne(a => a.Filme)
+            .WithMany(f => f.Avaliacoes)
+            .HasForeignKey(a => a.FilmeId)
+            .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Avaliacao>().HasIndex(a => new { a.UsuarioId, a.FilmeId }).IsUnique();
@@ -72,7 +81,16 @@ public class AppDbContext : DbContext
             .HasOne(c => c.Usuario)
             .WithMany(u => u.Comentarios)
             .HasForeignKey(c => c.UsuarioId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<Comentario>()
+            .HasOne(c => c.Comunidade)
+            .WithMany(c => c.Comentarios)
+            .HasForeignKey(c => c.ComunidadeId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder
             .Entity<ListaPessoal>()
@@ -102,7 +120,7 @@ public class AppDbContext : DbContext
             .HasOne(c => c.CreatedByUser)
             .WithMany()
             .HasForeignKey(c => c.CreatedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder
             .Entity<ComunidadeMembro>()

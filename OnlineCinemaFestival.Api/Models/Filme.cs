@@ -12,7 +12,6 @@ public class Filme
     public string CapaUrl { get; set; } = "";
 
     public ICollection<Avaliacao> Avaliacoes { get; set; } = new List<Avaliacao>();
-    public ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
 
     public int Popularidade => Avaliacoes.Count;
 }
