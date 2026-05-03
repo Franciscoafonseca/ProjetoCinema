@@ -31,7 +31,13 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddScoped<FestivalRepository>();
+builder.Services.AddScoped<AcessoRepository>();
+builder.Services.AddScoped<RewardsRepository>();
 builder.Services.AddScoped<FestivalService>();
+builder.Services.AddScoped<CompraService>();
+builder.Services.AddScoped<CinemaFacade>();
+builder.Services.AddScoped<ICompraObserver, RewardsObserver>();
+builder.Services.AddScoped<ICompraObserver, AcessoObserver>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

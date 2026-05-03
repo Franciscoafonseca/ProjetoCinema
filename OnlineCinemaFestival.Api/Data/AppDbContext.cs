@@ -9,4 +9,6 @@ public class AppDbContext : DbContext
         : base(options) { }
 
     public DbSet<Festival> Festivals => Set<Festival>();
+    public DbSet<Acesso> Acessos => Set<Acesso>();
+    public DbSet<Reward> Rewards => Set<Reward>();
 }
