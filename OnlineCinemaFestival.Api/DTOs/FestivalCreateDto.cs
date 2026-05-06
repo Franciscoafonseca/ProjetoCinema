@@ -1,0 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace OnlineCinemaFestival.Api.DTOs;
+
+public class FestivalCreateDto
+{
+    [Required]
+    [MaxLength(150)]
+    public string Name { get; set; } = string.Empty;
+
+    [MaxLength(1000)]
+    public string Description { get; set; } = string.Empty;
+
+    public DateTime StartDate { get; set; }
+
+    public DateTime EndDate { get; set; }
+}

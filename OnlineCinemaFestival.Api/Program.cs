@@ -68,11 +68,11 @@ builder
 builder.Services.AddAuthorization();
 
 // Serviços já existentes
-builder.Services.AddScoped<FestivalRepository>();
-builder.Services.AddScoped<FestivalService>();
-
 builder.Services.AddScoped<IFilmeRepository, FilmeRepository>();
 builder.Services.AddScoped<IFilmeService, FilmeService>();
+
+builder.Services.AddScoped<IFestivalRepository, FestivalRepository>();
+builder.Services.AddScoped<IFestivalService, FestivalService>();
 
 builder.Services.AddHttpClient<ITmdbService, TmdbService>();
 
