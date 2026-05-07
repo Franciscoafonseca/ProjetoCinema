@@ -10,6 +10,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Festival> Festivals => Set<Festival>();
     public DbSet<Filme> Filmes => Set<Filme>();
+
+    public DbSet<FestivalFilme> FestivalFilmes => Set<FestivalFilme>();
     public DbSet<Avaliacao> Avaliacoes => Set<Avaliacao>();
     public DbSet<Comentario> Comentarios => Set<Comentario>();
 
@@ -28,6 +30,22 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<FestivalFilme>().HasKey(ff => new { ff.FestivalId, ff.FilmeId });
+
+        modelBuilder
+            .Entity<FestivalFilme>()
+            .HasOne(ff => ff.Festival)
+            .WithMany()
+            .HasForeignKey(ff => ff.FestivalId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<FestivalFilme>()
+            .HasOne(ff => ff.Filme)
+            .WithMany()
+            .HasForeignKey(ff => ff.FilmeId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Utilizador>().HasIndex(u => u.Email).IsUnique();
 
