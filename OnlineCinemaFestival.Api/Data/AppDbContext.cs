@@ -11,6 +11,8 @@ public class AppDbContext : DbContext
     public DbSet<Festival> Festivals => Set<Festival>();
     public DbSet<Filme> Filmes => Set<Filme>();
 
+    public DbSet<Sessao> Sessoes => Set<Sessao>();
+
     public DbSet<FestivalFilme> FestivalFilmes => Set<FestivalFilme>();
     public DbSet<Avaliacao> Avaliacoes => Set<Avaliacao>();
     public DbSet<Comentario> Comentarios => Set<Comentario>();
@@ -156,6 +158,20 @@ public class AppDbContext : DbContext
             .HasOne(cm => cm.Utilizador)
             .WithMany(u => u.Comunidades)
             .HasForeignKey(cm => cm.UtilizadorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<Sessao>()
+            .HasOne(s => s.Festival)
+            .WithMany()
+            .HasForeignKey(s => s.FestivalId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<Sessao>()
+            .HasOne(s => s.Filme)
+            .WithMany()
+            .HasForeignKey(s => s.FilmeId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

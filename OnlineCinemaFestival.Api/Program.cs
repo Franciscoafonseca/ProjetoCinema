@@ -77,6 +77,9 @@ builder.Services.AddScoped<IFestivalService, FestivalService>();
 builder.Services.AddScoped<IFestivalFilmeRepository, FestivalFilmeRepository>();
 builder.Services.AddScoped<IFestivalFilmeService, FestivalFilmeService>();
 
+builder.Services.AddScoped<ISessaoRepository, SessaoRepository>();
+builder.Services.AddScoped<ISessaoService, SessaoService>();
+
 builder.Services.AddHttpClient<ITmdbService, TmdbService>();
 
 // Novos repositories
