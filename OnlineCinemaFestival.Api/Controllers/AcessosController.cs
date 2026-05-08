@@ -7,46 +7,59 @@ using OnlineCinemaFestival.Api.Services;
 namespace OnlineCinemaFestival.Api.Controllers;
 
 [ApiController]
-[Route("api/festivals")]
-public class FestivalsController : ControllerBase
+[Route("api/acessos")]
+public class AcessosController : ControllerBase
 {
-    private readonly IFestivalService _service;
+    private readonly IAcessoService _service;
 
-    public FestivalsController(IFestivalService service)
+    public AcessosController(IAcessoService service)
     {
         _service = service;
     }
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<FestivalReadDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<AcessoReadDto>>> GetAll()
     {
-        var festivals = await _service.GetAllAsync();
+        var acessos = await _service.GetAllAsync();
 
-        return Ok(festivals);
+        return Ok(acessos);
     }
 
     [HttpGet("{id:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<FestivalReadDto>> GetById(int id)
+    public async Task<ActionResult<AcessoReadDto>> GetById(int id)
     {
-        var festival = await _service.GetByIdAsync(id);
+        var acesso = await _service.GetByIdAsync(id);
 
-        if (festival == null)
-            return NotFound("Festival não encontrado.");
+        if (acesso == null)
+            return NotFound("Acesso não encontrado.");
 
-        return Ok(festival);
+        return Ok(acesso);
+    }
+
+    [HttpGet("tipos")]
+    [AllowAnonymous]
+    public ActionResult<IEnumerable<TipoAcessoReadDto>> GetTipos()
+    {
+        var tipos = _service.GetTiposAcesso();
+
+        return Ok(tipos);
     }
 
     [HttpPost]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<ActionResult<FestivalReadDto>> Create(FestivalCreateDto dto)
+    public async Task<ActionResult<AcessoReadDto>> Create(AcessoCreateDto dto)
     {
         try
         {
-            var festival = await _service.CreateAsync(dto);
+            var acesso = await _service.CreateAsync(dto);
 
-            return CreatedAtAction(nameof(GetById), new { id = festival.Id }, festival);
+            return CreatedAtAction(nameof(GetById), new { id = acesso.Id }, acesso);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (ArgumentException ex)
         {
@@ -56,7 +69,7 @@ public class FestivalsController : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<IActionResult> Update(int id, FestivalUpdateDto dto)
+    public async Task<IActionResult> Update(int id, AcessoUpdateDto dto)
     {
         try
         {

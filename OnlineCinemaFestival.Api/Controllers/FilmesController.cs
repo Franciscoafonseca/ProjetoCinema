@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Services;
 
@@ -17,6 +19,7 @@ public class FilmesController : ControllerBase
 
     // GET: api/filmes
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<FilmeReadDto>>> GetFilmes()
     {
         var filmes = await _service.GetAllFilmesAsync();
@@ -25,6 +28,7 @@ public class FilmesController : ControllerBase
 
     // GET: api/filmes/pesquisar-tmdb?query=Matrix
     [HttpGet("pesquisar-tmdb")]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<FilmeReadDto>>> SearchTmdb([FromQuery] string query)
     {
         if (string.IsNullOrWhiteSpace(query))
@@ -36,6 +40,7 @@ public class FilmesController : ControllerBase
 
     // POST: api/filmes/importar/603
     [HttpPost("importar/{tmdbId}")]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<FilmeReadDto>> Import(int tmdbId)
     {
         try

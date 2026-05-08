@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Services;
 
@@ -16,6 +18,7 @@ public class SessoesController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<SessaoReadDto>>> GetAll()
     {
         var sessoes = await _service.GetAllAsync();
@@ -24,6 +27,7 @@ public class SessoesController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [AllowAnonymous]
     public async Task<ActionResult<SessaoReadDto>> GetById(int id)
     {
         var sessao = await _service.GetByIdAsync(id);
@@ -35,6 +39,7 @@ public class SessoesController : ControllerBase
     }
 
     [HttpGet("festival/{festivalId:int}")]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<SessaoReadDto>>> GetByFestival(int festivalId)
     {
         try
@@ -50,6 +55,7 @@ public class SessoesController : ControllerBase
     }
 
     [HttpGet("filme/{filmeId:int}")]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<SessaoReadDto>>> GetByFilme(int filmeId)
     {
         try
@@ -65,6 +71,7 @@ public class SessoesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<SessaoReadDto>> Create(SessaoCreateDto dto)
     {
         try
@@ -88,6 +95,7 @@ public class SessoesController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> Update(int id, SessaoUpdateDto dto)
     {
         try
@@ -111,6 +119,7 @@ public class SessoesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> Delete(int id)
     {
         try

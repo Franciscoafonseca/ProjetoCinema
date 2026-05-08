@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Services;
 
@@ -16,6 +18,7 @@ public class FestivalFilmesController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<FilmeReadDto>>> GetFilmesByFestival(int festivalId)
     {
         try
@@ -31,6 +34,7 @@ public class FestivalFilmesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> AssociarFilme(int festivalId, AssociarFilmeFestivalDto dto)
     {
         try
@@ -50,6 +54,7 @@ public class FestivalFilmesController : ControllerBase
     }
 
     [HttpDelete("{filmeId:int}")]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> RemoverFilme(int festivalId, int filmeId)
     {
         try

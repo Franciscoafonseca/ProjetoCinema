@@ -8,6 +8,7 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options) { }
 
+    public DbSet<Acesso> Acessos => Set<Acesso>();
     public DbSet<Festival> Festivals => Set<Festival>();
     public DbSet<Filme> Filmes => Set<Filme>();
 
@@ -173,5 +174,26 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(s => s.FilmeId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<Acesso>()
+            .HasOne(a => a.Sessao)
+            .WithMany()
+            .HasForeignKey(a => a.SessaoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<Acesso>()
+            .HasOne(a => a.Festival)
+            .WithMany()
+            .HasForeignKey(a => a.FestivalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<Acesso>()
+            .HasOne(a => a.Filme)
+            .WithMany()
+            .HasForeignKey(a => a.FilmeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

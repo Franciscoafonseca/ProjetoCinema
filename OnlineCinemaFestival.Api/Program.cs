@@ -1,10 +1,14 @@
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
+using OnlineCinemaFestival.Api.Services.Acesso;
+using OnlineCinemaFestival.Api.Services.Catalogo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,10 +66,24 @@ builder
             ValidIssuer = jwtSettings["Issuer"],
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.NameIdentifier,
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        NomesPoliticas.ApenasAdministrador,
+        policy => policy.RequireRole(NomesPapeis.Administrador)
+    );
+
+    options.AddPolicy(
+        NomesPoliticas.UtilizadorAutenticado,
+        policy => policy.RequireAuthenticatedUser()
+    );
+});
 
 // Serviços já existentes
 builder.Services.AddScoped<IFilmeRepository, FilmeRepository>();
@@ -80,6 +98,23 @@ builder.Services.AddScoped<IFestivalFilmeService, FestivalFilmeService>();
 builder.Services.AddScoped<ISessaoRepository, SessaoRepository>();
 builder.Services.AddScoped<ISessaoService, SessaoService>();
 
+builder.Services.AddScoped<ICatalogoService, CatalogoService>();
+
+builder.Services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorTituloStrategy>();
+builder.Services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorPopularidadeStrategy>();
+builder.Services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorClassificacaoStrategy>();
+builder.Services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorDataLancamentoStrategy>();
+builder.Services.AddScoped<CatalogoOrdenacaoStrategyFactory>();
+
+builder.Services.AddScoped<IAcessoRepository, AcessoRepository>();
+builder.Services.AddScoped<IAcessoService, AcessoService>();
+
+builder.Services.AddScoped<IEstrategiaValidacaoAcesso, BilheteSessaoValidacaoStrategy>();
+builder.Services.AddScoped<IEstrategiaValidacaoAcesso, EstrategiaValidacaoPasseDiario>();
+builder.Services.AddScoped<IEstrategiaValidacaoAcesso, ValidacaoPasseCompletoStrategy>();
+builder.Services.AddScoped<IEstrategiaValidacaoAcesso, AluguerDigitalValidacaoStrategy>();
+
+builder.Services.AddScoped<IValidacaoAcessoStrategyFactory, ValidacaoAcessoStrategyFactory>();
 builder.Services.AddHttpClient<ITmdbService, TmdbService>();
 
 // Novos repositories
@@ -97,10 +132,10 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.UseCors("BlazorClient");
-
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseCors("BlazorClient");
 
 app.UseAuthentication();
 app.UseAuthorization();
