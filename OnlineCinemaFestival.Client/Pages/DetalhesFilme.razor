@@ -1,0 +1,88 @@
+@page "/filmes/{Id:int}"
+@inherits FilmePageBase
+@inject FilmeService FilmeService
+@inject NavigationManager Nav
+
+<PageTitle>@(_filme?.Titulo ?? "Detalhes") — Online Cinema Festival</PageTitle>
+
+@if (_loading)
+{
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>A carregar filme...</p>
+    </div>
+}
+else if (_erro != null)
+{
+    <div class="nao-encontrado">
+        <p class="erro-msg">@_erro</p>
+        <button class="btn-voltar" @onclick="Voltar">← Voltar ao Catálogo</button>
+    </div>
+}
+else if (_filme?.Titulo == null)
+{
+    <div class="nao-encontrado">
+        <h2>Filme não encontrado</h2>
+        <p>O filme que procuras não existe ou foi removido.</p>
+        <button class="btn-voltar" @onclick="Voltar">← Voltar ao Catálogo</button>
+    </div>
+}
+else
+{
+    <div class="detalhes-container">
+        <button class="btn-voltar" @onclick="Voltar">← Voltar ao Catálogo</button>
+
+        <div class="detalhes-hero">
+            <div class="detalhes-poster">
+                <img src="@_filme.UrlCartaz" alt="@_filme.Titulo" />
+            </div>
+
+            <div class="detalhes-info">
+                @if (!string.IsNullOrWhiteSpace(_filme.Genero))
+                {
+                    <span class="detalhes-genero">@_filme.Genero</span>
+                }
+                <h1 class="detalhes-titulo">@_filme.Titulo</h1>
+
+                <div class="detalhes-meta">
+                    @if (!string.IsNullOrWhiteSpace(_filme.Classificacao))
+                    {
+                        <div class="meta-item">
+                            <span class="star">★</span>
+                            <span>@_filme.Classificacao</span>
+                        </div>
+                    }
+                    @if (_filme.DataLancamento != DateTime.MinValue)
+                    {
+                        <div class="meta-item">
+                            <span class="meta-label">Lançamento</span>
+                            <span>@_filme.DataLancamento.ToString("yyyy")</span>
+                        </div>
+                    }
+                    <div class="meta-item">
+                        <span class="meta-label">Avaliações</span>
+                        <span>@_filme.Popularidade</span>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_filme.Sinopse))
+                {
+                    <p class="detalhes-sinopse">@_filme.Sinopse</p>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private FilmeDto? _filme;
+
+    protected override async Task CarregarDadosAsync()
+    {
+        _filme = await FilmeService.GetFilmeByIdAsync(Id);
+    }
+
+    private void Voltar() => Nav.NavigateTo("/catalogo");
+}

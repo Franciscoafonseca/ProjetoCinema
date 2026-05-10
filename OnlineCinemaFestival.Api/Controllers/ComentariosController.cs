@@ -1,107 +1,190 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineCinemaFestival.Api.Data;
-using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.Controllers;
-[Route("api/[controller]")]
+
 [ApiController]
+[Route("api/[controller]")]
 public class ComentariosController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly AppDbContext _db;
 
-    public ComentariosController(AppDbContext context)
+    public ComentariosController(AppDbContext db)
     {
-        _context = context;
+        _db = db;
     }
 
-    // GET: api/Comentarios/filme/{filmeId}
-    [HttpGet("filme/{filmeId}")]
-    public async Task<ActionResult<IEnumerable<ComentarioReadDto>>> GetComentariosPorFilme(int filmeId)
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<ComentarioReadDto>>> GetAll()
     {
-        /*if (!await _context.Filmes.AnyAsync(f => f.Id == filmeId))
-        {
-            return NotFound($"Filme com ID {filmeId} não encontrado.");
-        }*/
-
-        var comentarios = await _context.Comentarios
-            .AsNoTracking()
-            .Where(c => c.FilmeId == filmeId && c.Visivel == true)
-            .OrderByDescending(c => c.Data)
+        var comentarios = await _db
+            .Comentarios.Include(c => c.Usuario)
+            .Include(c => c.Comunidade)
+            .Where(c => c.Visivel)
+            .OrderByDescending(c => c.CriadoEm)
             .Select(c => new ComentarioReadDto
             {
                 Id = c.Id,
-                FilmeId = c.FilmeId,
                 UsuarioId = c.UsuarioId,
+                NomeUsuario = c.Usuario.Name,
+                ComunidadeId = c.ComunidadeId,
+                NomeComunidade = c.Comunidade.Name,
                 Texto = c.Texto,
-                Data = c.Data
+                CriadoEm = c.CriadoEm,
+                Visivel = c.Visivel,
+                Reportado = c.Reportado,
             })
             .ToListAsync();
 
         return Ok(comentarios);
     }
 
-    // GET: api/Comentarios/{id} -> para obter um comentario especifico
-    [HttpGet("{id}")]
-    public async Task<ActionResult<ComentarioReadDto>> GetById(int id)
+    [HttpGet("comunidade/{comunidadeId:int}")]
+    public async Task<ActionResult<IEnumerable<ComentarioReadDto>>> GetByComunidade(
+        int comunidadeId
+    )
     {
-        var comentario = await _context.Comentarios
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == id);
+        var comentarios = await _db
+            .Comentarios.Include(c => c.Usuario)
+            .Include(c => c.Comunidade)
+            .Where(c => c.ComunidadeId == comunidadeId && c.Visivel)
+            .OrderByDescending(c => c.CriadoEm)
+            .Select(c => new ComentarioReadDto
+            {
+                Id = c.Id,
+                UsuarioId = c.UsuarioId,
+                NomeUsuario = c.Usuario.Name,
+                ComunidadeId = c.ComunidadeId,
+                NomeComunidade = c.Comunidade.Name,
+                Texto = c.Texto,
+                CriadoEm = c.CriadoEm,
+                Visivel = c.Visivel,
+                Reportado = c.Reportado,
+            })
+            .ToListAsync();
 
-        if (comentario == null)
-        {
-            return NotFound($"Comentário com ID {id} não encontrado.");
-        }
-
-        var readDto = new ComentarioReadDto
-        {
-            Id = comentario.Id,
-            FilmeId = comentario.FilmeId,
-            UsuarioId = comentario.UsuarioId,
-            Texto = comentario.Texto,
-            Data = comentario.Data
-        };
-
-        return Ok(readDto);
+        return Ok(comentarios);
     }
 
-    // POST: api/Comentarios
-    [HttpPost]
-    public async Task<ActionResult<ComentarioReadDto>> Post([FromBody] ComentarioCreateDto comentarioDto)
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<ComentarioReadDto>> GetById(int id)
     {
-        if (comentarioDto == null || string.IsNullOrWhiteSpace(comentarioDto.Texto))
-        {
+        var comentario = await _db
+            .Comentarios.Include(c => c.Usuario)
+            .Include(c => c.Comunidade)
+            .Where(c => c.Id == id)
+            .Select(c => new ComentarioReadDto
+            {
+                Id = c.Id,
+                UsuarioId = c.UsuarioId,
+                NomeUsuario = c.Usuario.Name,
+                ComunidadeId = c.ComunidadeId,
+                NomeComunidade = c.Comunidade.Name,
+                Texto = c.Texto,
+                CriadoEm = c.CriadoEm,
+                Visivel = c.Visivel,
+                Reportado = c.Reportado,
+            })
+            .FirstOrDefaultAsync();
+
+        if (comentario == null)
+            return NotFound("Comentário não encontrado.");
+
+        return Ok(comentario);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ComentarioReadDto>> Create(ComentarioCreateDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Texto))
             return BadRequest("O texto do comentário é obrigatório.");
-        }
+
+        var utilizadorExiste = await _db.Utilizadores.AnyAsync(u => u.Id == dto.UsuarioId);
+
+        if (!utilizadorExiste)
+            return BadRequest("Utilizador não encontrado.");
+
+        var comunidadeExiste = await _db.Comunidades.AnyAsync(c => c.Id == dto.ComunidadeId);
+
+        if (!comunidadeExiste)
+            return BadRequest("Comunidade não encontrada.");
 
         var comentario = new Comentario
         {
-            FilmeId = comentarioDto.FilmeId,
-            UsuarioId = comentarioDto.UsuarioId,
-            Texto = comentarioDto.Texto,
-            Data = DateTime.Now,
+            UsuarioId = dto.UsuarioId,
+            ComunidadeId = dto.ComunidadeId,
+            Texto = dto.Texto,
+            CriadoEm = DateTime.UtcNow,
+            Visivel = true,
             Reportado = false,
-            Visivel = true
         };
 
-        _context.Comentarios.Add(comentario);
-        await _context.SaveChangesAsync();
+        _db.Comentarios.Add(comentario);
+        await _db.SaveChangesAsync();
 
-        var readDto = new ComentarioReadDto
-        {
-            Id = comentario.Id,
-            FilmeId = comentario.FilmeId,
-            UsuarioId = comentario.UsuarioId,
-            Texto = comentario.Texto,
-            Data = comentario.Data
-        };
-        return CreatedAtAction(nameof(GetById), new { id = comentario.Id }, readDto);
+        var criado = await _db
+            .Comentarios.Include(c => c.Usuario)
+            .Include(c => c.Comunidade)
+            .Where(c => c.Id == comentario.Id)
+            .Select(c => new ComentarioReadDto
+            {
+                Id = c.Id,
+                UsuarioId = c.UsuarioId,
+                NomeUsuario = c.Usuario.Name,
+                ComunidadeId = c.ComunidadeId,
+                NomeComunidade = c.Comunidade.Name,
+                Texto = c.Texto,
+                CriadoEm = c.CriadoEm,
+                Visivel = c.Visivel,
+                Reportado = c.Reportado,
+            })
+            .FirstAsync();
 
+        return CreatedAtAction(nameof(GetById), new { id = criado.Id }, criado);
     }
 
-}
+    [HttpPatch("{id:int}/reportar")]
+    public async Task<IActionResult> Reportar(int id)
+    {
+        var comentario = await _db.Comentarios.FindAsync(id);
 
-    
-    
+        if (comentario == null)
+            return NotFound("Comentário não encontrado.");
+
+        comentario.Reportado = true;
+        await _db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id:int}/ocultar")]
+    public async Task<IActionResult> Ocultar(int id)
+    {
+        var comentario = await _db.Comentarios.FindAsync(id);
+
+        if (comentario == null)
+            return NotFound("Comentário não encontrado.");
+
+        comentario.Visivel = false;
+        await _db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var comentario = await _db.Comentarios.FindAsync(id);
+
+        if (comentario == null)
+            return NotFound("Comentário não encontrado.");
+
+        _db.Comentarios.Remove(comentario);
+        await _db.SaveChangesAsync();
+
+        return NoContent();
+    }
+}

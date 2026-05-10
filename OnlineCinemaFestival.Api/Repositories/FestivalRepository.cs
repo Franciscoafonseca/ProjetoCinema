@@ -4,7 +4,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.Repositories;
 
-public class FestivalRepository
+public class FestivalRepository : IFestivalRepository
 {
     private readonly AppDbContext _context;
 
@@ -13,19 +13,28 @@ public class FestivalRepository
         _context = context;
     }
 
-    public async Task<List<Festival>> GetAllAsync()
+    public async Task<IEnumerable<Festival>> GetAllAsync()
     {
-        return await _context.Festivals.OrderBy(f => f.StartDate).ToListAsync();
+        return await _context.Festivals.AsNoTracking().OrderBy(f => f.StartDate).ToListAsync();
     }
 
     public async Task<Festival?> GetByIdAsync(int id)
     {
-        return await _context.Festivals.FindAsync(id);
+        return await _context.Festivals.FirstOrDefaultAsync(f => f.Id == id);
     }
 
     public async Task AddAsync(Festival festival)
     {
-        _context.Festivals.Add(festival);
+        await _context.Festivals.AddAsync(festival);
+    }
+
+    public void Remove(Festival festival)
+    {
+        _context.Festivals.Remove(festival);
+    }
+
+    public async Task SaveChangesAsync()
+    {
         await _context.SaveChangesAsync();
     }
 }
