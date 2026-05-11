@@ -202,10 +202,3 @@ Sugestão de UX: botão "+ Quero ver" / "★ Favoritos" no `FilmeCard` ou na pá
 
 ---
 
-## Fora de escopo (não feito nesta iteração)
-
-- **`PUT /api/listas/{id}`** (atualizar nome/descrição/visibilidade da lista)
-- **`DELETE /api/listas/{id}`** (apagar lista personalizada — não devia ser permitido em Watchlist/Watched/Favorites)
-- **Listagens públicas**: `GET /api/listas/publicas` ou `GET /api/listas/utilizador/{userId}` filtrando por `IsPublic`
-- **Reordenar items** numa lista
-- **UI no frontend** (Blazor)
