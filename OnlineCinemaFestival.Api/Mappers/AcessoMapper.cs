@@ -35,11 +35,17 @@ public static class AcessoMapper
             TipoNome = acesso.Tipo.ToString(),
             Preco = acesso.Preco,
             IsAtivo = acesso.IsAtivo,
+
             SessaoId = acesso.SessaoId,
+
             FestivalId = acesso.FestivalId ?? acesso.Sessao?.FestivalId,
             FestivalNome = acesso.Festival?.Name ?? acesso.Sessao?.Festival?.Name ?? string.Empty,
-            FilmeId = acesso.FilmeId ?? acesso.Sessao?.FilmeId,
-            FilmeTitulo = acesso.Filme?.Titulo ?? acesso.Sessao?.Filme?.Titulo ?? string.Empty,
+
+            // FilmeId e FilmeTitulo só representam aluguer digital individual.
+            // Para bilhete de sessão, os filmes vêm da própria sessão.
+            FilmeId = acesso.FilmeId,
+            FilmeTitulo = acesso.Filme?.Titulo ?? string.Empty,
+
             DataAcesso = acesso.DataAcesso,
             DuracaoHoras = acesso.DuracaoHoras,
             CriadoEm = acesso.CriadoEm,

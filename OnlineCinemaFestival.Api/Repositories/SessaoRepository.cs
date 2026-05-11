@@ -17,7 +17,8 @@ public class SessaoRepository : ISessaoRepository
     {
         return await _context
             .Sessoes.Include(s => s.Festival)
-            .Include(s => s.Filme)
+            .Include(s => s.FilmesDaSessao)
+                .ThenInclude(sf => sf.Filme)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -27,7 +28,8 @@ public class SessaoRepository : ISessaoRepository
     {
         return await _context
             .Sessoes.Include(s => s.Festival)
-            .Include(s => s.Filme)
+            .Include(s => s.FilmesDaSessao)
+                .ThenInclude(sf => sf.Filme)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -36,7 +38,8 @@ public class SessaoRepository : ISessaoRepository
         return await _context
             .Sessoes.Where(s => s.FestivalId == festivalId)
             .Include(s => s.Festival)
-            .Include(s => s.Filme)
+            .Include(s => s.FilmesDaSessao)
+                .ThenInclude(sf => sf.Filme)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -45,9 +48,10 @@ public class SessaoRepository : ISessaoRepository
     public async Task<IEnumerable<Sessao>> GetByFilmeIdAsync(int filmeId)
     {
         return await _context
-            .Sessoes.Where(s => s.FilmeId == filmeId)
+            .Sessoes.Where(s => s.FilmesDaSessao.Any(sf => sf.FilmeId == filmeId))
             .Include(s => s.Festival)
-            .Include(s => s.Filme)
+            .Include(s => s.FilmesDaSessao)
+                .ThenInclude(sf => sf.Filme)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -55,14 +59,19 @@ public class SessaoRepository : ISessaoRepository
 
     public async Task<bool> HasOverlapAsync(
         int festivalId,
-        int filmeId,
+        IEnumerable<int> filmeIds,
         DateTime inicio,
         DateTime fim,
         int? ignoreSessaoId = null
     )
     {
+        var idsFilmes = filmeIds.Distinct().ToList();
+
         var query = _context.Sessoes.Where(s =>
-            s.FestivalId == festivalId && s.FilmeId == filmeId && s.Inicio < fim && inicio < s.Fim
+            s.FestivalId == festivalId
+            && s.Inicio < fim
+            && inicio < s.Fim
+            && s.FilmesDaSessao.Any(sf => idsFilmes.Contains(sf.FilmeId))
         );
 
         if (ignoreSessaoId.HasValue)

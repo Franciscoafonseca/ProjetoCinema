@@ -14,7 +14,7 @@ public interface ISessaoRepository
 
     Task<bool> HasOverlapAsync(
         int festivalId,
-        int filmeId,
+        IEnumerable<int> filmeIds,
         DateTime inicio,
         DateTime fim,
         int? ignoreSessaoId = null

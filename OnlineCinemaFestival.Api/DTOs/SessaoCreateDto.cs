@@ -9,7 +9,8 @@ public class SessaoCreateDto
     public int FestivalId { get; set; }
 
     [Required]
-    public int FilmeId { get; set; }
+    [MinLength(1, ErrorMessage = "A sessão deve ter pelo menos um filme.")]
+    public List<int> FilmeIds { get; set; } = new();
 
     [Required]
     public TipoSessao Tipo { get; set; }
@@ -19,6 +20,8 @@ public class SessaoCreateDto
 
     [Required]
     public DateTime Fim { get; set; }
+
+    public bool TemChatAoVivo { get; set; } = true;
 
     [MaxLength(500)]
     public string? Observacoes { get; set; }

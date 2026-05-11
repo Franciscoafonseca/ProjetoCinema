@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Repositories;
@@ -128,7 +129,28 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    const string esquemaAutenticacao = "bearer";
+
+    options.AddSecurityDefinition(
+        esquemaAutenticacao,
+        new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Insere apenas o token JWT. Não escrevas Bearer.",
+        }
+    );
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference(esquemaAutenticacao, document)] = [],
+    });
+});
 
 var app = builder.Build();
 
@@ -144,8 +166,12 @@ app.MapControllers();
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
+
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    await DbSeeder.SeedAsync(db);
+    var passwordHashingStrategy =
+        scope.ServiceProvider.GetRequiredService<IPasswordHashingStrategy>();
+
+    await DbSeeder.SeedAsync(db, passwordHashingStrategy);
 }
 app.Run();

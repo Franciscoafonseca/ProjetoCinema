@@ -1,15 +1,40 @@
 using Bogus;
 using Microsoft.EntityFrameworkCore;
 using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Data;
 
 public static class DbSeeder
 {
-    public static async Task SeedAsync(AppDbContext db)
+    public static async Task SeedAsync(
+        AppDbContext db,
+        IPasswordHashingStrategy passwordHashingStrategy
+    )
     {
         await db.Database.MigrateAsync();
+        const string emailAdmin = "admin@festival.pt";
+        const string passwordAdmin = "Admin123!";
 
+        var adminExistente = await db.Utilizadores.AnyAsync(u => u.Email == emailAdmin);
+
+        if (!adminExistente)
+        {
+            var admin = new Utilizador
+            {
+                Name = "Administrador",
+                Email = emailAdmin,
+                Role = UserRole.Admin,
+                IsActive = true,
+                Nationality = "Portugal",
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            admin.PasswordHash = passwordHashingStrategy.HashPassword(admin, passwordAdmin);
+
+            await db.Utilizadores.AddAsync(admin);
+            await db.SaveChangesAsync();
+        }
         if (await db.Utilizadores.AnyAsync() || await db.Filmes.AnyAsync())
             return;
 

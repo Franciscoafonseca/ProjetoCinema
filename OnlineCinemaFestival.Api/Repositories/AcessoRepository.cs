@@ -17,9 +17,10 @@ public class AcessoRepository : IAcessoRepository
     {
         return await _context
             .Acessos.Include(a => a.Sessao)
-                .ThenInclude(s => s.Festival)
+                .ThenInclude(s => s!.Festival)
             .Include(a => a.Sessao)
-                .ThenInclude(s => s.Filme)
+                .ThenInclude(s => s!.FilmesDaSessao)
+                    .ThenInclude(sf => sf.Filme)
             .Include(a => a.Festival)
             .Include(a => a.Filme)
             .AsNoTracking()
@@ -32,9 +33,10 @@ public class AcessoRepository : IAcessoRepository
     {
         return await _context
             .Acessos.Include(a => a.Sessao)
-                .ThenInclude(s => s.Festival)
+                .ThenInclude(s => s!.Festival)
             .Include(a => a.Sessao)
-                .ThenInclude(s => s.Filme)
+                .ThenInclude(s => s!.FilmesDaSessao)
+                    .ThenInclude(sf => sf.Filme)
             .Include(a => a.Festival)
             .Include(a => a.Filme)
             .FirstOrDefaultAsync(a => a.Id == id);
@@ -47,7 +49,7 @@ public class AcessoRepository : IAcessoRepository
 
     public void Remove(Acesso acesso)
     {
-        _context.Remove(acesso);
+        _context.Acessos.Remove(acesso);
     }
 
     public async Task SaveChangesAsync()

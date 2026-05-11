@@ -12,12 +12,20 @@ public static class SessaoMapper
             Id = sessao.Id,
             FestivalId = sessao.FestivalId,
             FestivalName = sessao.Festival?.Name ?? string.Empty,
-            FilmeId = sessao.FilmeId,
-            FilmeTitulo = sessao.Filme?.Titulo ?? string.Empty,
             Tipo = sessao.Tipo,
             Inicio = sessao.Inicio,
             Fim = sessao.Fim,
+            TemChatAoVivo = sessao.TemChatAoVivo,
             Observacoes = sessao.Observacoes,
+            Filmes = sessao
+                .FilmesDaSessao.OrderBy(sf => sf.Ordem)
+                .Select(sf => new FilmeSessaoReadDto
+                {
+                    Id = sf.FilmeId,
+                    Titulo = sf.Filme?.Titulo ?? string.Empty,
+                    Ordem = sf.Ordem,
+                })
+                .ToList(),
         };
     }
 
@@ -26,11 +34,17 @@ public static class SessaoMapper
         return new Sessao
         {
             FestivalId = dto.FestivalId,
-            FilmeId = dto.FilmeId,
             Tipo = dto.Tipo,
             Inicio = dto.Inicio,
             Fim = dto.Fim,
+            TemChatAoVivo = dto.TemChatAoVivo,
             Observacoes = dto.Observacoes?.Trim(),
+            FilmesDaSessao = dto
+                .FilmeIds.Distinct()
+                .Select(
+                    (filmeId, index) => new SessaoFilme { FilmeId = filmeId, Ordem = index + 1 }
+                )
+                .ToList(),
         };
     }
 
@@ -39,6 +53,23 @@ public static class SessaoMapper
         sessao.Tipo = dto.Tipo;
         sessao.Inicio = dto.Inicio;
         sessao.Fim = dto.Fim;
+        sessao.TemChatAoVivo = dto.TemChatAoVivo;
         sessao.Observacoes = dto.Observacoes?.Trim();
+
+        sessao.FilmesDaSessao.Clear();
+
+        foreach (
+            var item in dto.FilmeIds.Distinct().Select((filmeId, index) => new { filmeId, index })
+        )
+        {
+            sessao.FilmesDaSessao.Add(
+                new SessaoFilme
+                {
+                    SessaoId = sessao.Id,
+                    FilmeId = item.filmeId,
+                    Ordem = item.index + 1,
+                }
+            );
+        }
     }
 }

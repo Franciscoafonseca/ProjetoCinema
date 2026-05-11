@@ -27,18 +27,13 @@ public class SessaoService : ISessaoService
     public async Task<IEnumerable<SessaoReadDto>> GetAllAsync()
     {
         var sessoes = await _sessaoRepository.GetAllAsync();
-
         return sessoes.Select(SessaoMapper.MapToReadDto);
     }
 
     public async Task<SessaoReadDto?> GetByIdAsync(int id)
     {
         var sessao = await _sessaoRepository.GetByIdAsync(id);
-
-        if (sessao == null)
-            return null;
-
-        return SessaoMapper.MapToReadDto(sessao);
+        return sessao == null ? null : SessaoMapper.MapToReadDto(sessao);
     }
 
     public async Task<IEnumerable<SessaoReadDto>> GetByFestivalIdAsync(int festivalId)
@@ -49,7 +44,6 @@ public class SessaoService : ISessaoService
             throw new KeyNotFoundException("Festival não encontrado.");
 
         var sessoes = await _sessaoRepository.GetByFestivalIdAsync(festivalId);
-
         return sessoes.Select(SessaoMapper.MapToReadDto);
     }
 
@@ -61,7 +55,6 @@ public class SessaoService : ISessaoService
             throw new KeyNotFoundException("Filme não encontrado.");
 
         var sessoes = await _sessaoRepository.GetByFilmeIdAsync(filmeId);
-
         return sessoes.Select(SessaoMapper.MapToReadDto);
     }
 
@@ -75,22 +68,25 @@ public class SessaoService : ISessaoService
         await _sessaoRepository.SaveChangesAsync();
 
         var created = await _sessaoRepository.GetByIdAsync(sessao.Id);
-
         return SessaoMapper.MapToReadDto(created!);
     }
 
     public async Task UpdateAsync(int id, SessaoUpdateDto dto)
     {
         ValidateDates(dto.Inicio, dto.Fim);
+        ValidateFilmes(dto.FilmeIds);
 
         var sessao = await _sessaoRepository.GetByIdAsync(id);
 
         if (sessao == null)
             throw new KeyNotFoundException("Sessão não encontrada.");
 
+        await ValidateFilmesExistemAsync(dto.FilmeIds);
+        await ValidateFilmesPertencemAoFestivalAsync(sessao.FestivalId, dto.FilmeIds);
+
         var hasOverlap = await _sessaoRepository.HasOverlapAsync(
             sessao.FestivalId,
-            sessao.FilmeId,
+            dto.FilmeIds,
             dto.Inicio,
             dto.Fim,
             id
@@ -98,7 +94,7 @@ public class SessaoService : ISessaoService
 
         if (hasOverlap)
             throw new InvalidOperationException(
-                "Já existe uma sessão sobreposta para este filme neste festival."
+                "Já existe uma sessão sobreposta com pelo menos um destes filmes neste festival."
             );
 
         SessaoMapper.MapToExistingSessao(dto, sessao);
@@ -114,47 +110,35 @@ public class SessaoService : ISessaoService
             throw new KeyNotFoundException("Sessão não encontrada.");
 
         _sessaoRepository.Remove(sessao);
-
         await _sessaoRepository.SaveChangesAsync();
     }
 
     private async Task ValidateCreateAsync(SessaoCreateDto dto)
     {
         ValidateDates(dto.Inicio, dto.Fim);
+        ValidateFilmes(dto.FilmeIds);
 
         var festival = await _festivalRepository.GetByIdAsync(dto.FestivalId);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival não encontrado.");
 
-        var filme = await _filmeRepository.GetByIdAsync(dto.FilmeId);
-
-        if (filme == null)
-            throw new KeyNotFoundException("Filme não encontrado.");
-
-        var filmeEstaNoFestival = await _festivalFilmeRepository.ExistsAsync(
-            dto.FestivalId,
-            dto.FilmeId
-        );
-
-        if (!filmeEstaNoFestival)
-            throw new InvalidOperationException(
-                "O filme tem de estar associado ao festival antes de criar uma sessão."
-            );
-
         if (dto.Inicio < festival.StartDate || dto.Fim > festival.EndDate)
             throw new ArgumentException("A sessão deve ocorrer dentro do período do festival.");
 
+        await ValidateFilmesExistemAsync(dto.FilmeIds);
+        await ValidateFilmesPertencemAoFestivalAsync(dto.FestivalId, dto.FilmeIds);
+
         var hasOverlap = await _sessaoRepository.HasOverlapAsync(
             dto.FestivalId,
-            dto.FilmeId,
+            dto.FilmeIds,
             dto.Inicio,
             dto.Fim
         );
 
         if (hasOverlap)
             throw new InvalidOperationException(
-                "Já existe uma sessão sobreposta para este filme neste festival."
+                "Já existe uma sessão sobreposta com pelo menos um destes filmes neste festival."
             );
     }
 
@@ -164,5 +148,46 @@ public class SessaoService : ISessaoService
             throw new ArgumentException(
                 "A data de fim da sessão deve ser posterior à data de início."
             );
+    }
+
+    private static void ValidateFilmes(IEnumerable<int> filmeIds)
+    {
+        if (!filmeIds.Any())
+            throw new ArgumentException("A sessão deve ter pelo menos um filme.");
+
+        if (filmeIds.Any(id => id <= 0))
+            throw new ArgumentException(
+                "Todos os filmes da sessão devem ter identificadores válidos."
+            );
+    }
+
+    private async Task ValidateFilmesExistemAsync(IEnumerable<int> filmeIds)
+    {
+        foreach (var filmeId in filmeIds.Distinct())
+        {
+            var filme = await _filmeRepository.GetByIdAsync(filmeId);
+
+            if (filme == null)
+                throw new KeyNotFoundException($"Filme com id {filmeId} não encontrado.");
+        }
+    }
+
+    private async Task ValidateFilmesPertencemAoFestivalAsync(
+        int festivalId,
+        IEnumerable<int> filmeIds
+    )
+    {
+        foreach (var filmeId in filmeIds.Distinct())
+        {
+            var pertenceAoFestival = await _festivalFilmeRepository.ExistsAsync(
+                festivalId,
+                filmeId
+            );
+
+            if (!pertenceAoFestival)
+                throw new InvalidOperationException(
+                    $"O filme com id {filmeId} tem de estar associado ao festival antes de ser incluído numa sessão."
+                );
+        }
     }
 }

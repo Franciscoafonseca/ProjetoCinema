@@ -9,6 +9,8 @@ public class AppDbContext : DbContext
         : base(options) { }
 
     public DbSet<Acesso> Acessos => Set<Acesso>();
+
+    public DbSet<SessaoFilme> SessaoFilmes => Set<SessaoFilme>();
     public DbSet<Festival> Festivals => Set<Festival>();
     public DbSet<Filme> Filmes => Set<Filme>();
 
@@ -168,11 +170,20 @@ public class AppDbContext : DbContext
             .HasForeignKey(s => s.FestivalId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<SessaoFilme>().HasKey(sf => new { sf.SessaoId, sf.FilmeId });
+
         modelBuilder
-            .Entity<Sessao>()
-            .HasOne(s => s.Filme)
+            .Entity<SessaoFilme>()
+            .HasOne(sf => sf.Sessao)
+            .WithMany(s => s.FilmesDaSessao)
+            .HasForeignKey(sf => sf.SessaoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<SessaoFilme>()
+            .HasOne(sf => sf.Filme)
             .WithMany()
-            .HasForeignKey(s => s.FilmeId)
+            .HasForeignKey(sf => sf.FilmeId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder
