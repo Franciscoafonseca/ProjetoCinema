@@ -12,32 +12,32 @@ public class FilmeService
         _http = http;
     }
 
-    public async Task<List<FilmeDto>> GetFilmesAsync(string? genero = null, string? search = null)
+    public async Task<List<FilmeDto>> GetFilmesAsync(string? genero = null, string? pesquisa = null, int? ordenarPor = null, bool descendente = false)
     {
-        var filmes = await _http.GetFromJsonAsync<List<FilmeDto>>("api/filmes") ?? new();
+        var parametros = new List<string>();
 
         if (!string.IsNullOrWhiteSpace(genero))
-        {
-            filmes = filmes
-                .Where(f => string.Equals(f.Genero, genero, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-        }
+            parametros.Add($"genero={Uri.EscapeDataString(genero)}");
 
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            filmes = filmes
-                .Where(f => f.Titulo.Contains(search, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-        }
+        if (!string.IsNullOrWhiteSpace(pesquisa))
+            parametros.Add($"pesquisa={Uri.EscapeDataString(pesquisa)}");
 
-        return filmes;
+        if (ordenarPor.HasValue)
+            parametros.Add($"ordenarPor={ordenarPor.Value}");
+
+        if (descendente)
+            parametros.Add("descendente=true");
+
+        var url = parametros.Count > 0
+            ? "api/catalogo?" + string.Join("&", parametros)
+            : "api/catalogo";
+
+        return await _http.GetFromJsonAsync<List<FilmeDto>>(url) ?? new();
     }
 
     public async Task<FilmeDto?> GetFilmeByIdAsync(int id)
     {
-        var filmes = await _http.GetFromJsonAsync<List<FilmeDto>>("api/filmes") ?? new();
-
-        return filmes.FirstOrDefault(f => f.Id == id);
+        return await _http.GetFromJsonAsync<FilmeDto>($"api/catalogo/filmes/{id}");
     }
 
     public async Task<List<string>> GetGenerosAsync()

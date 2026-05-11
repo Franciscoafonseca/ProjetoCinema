@@ -1,0 +1,128 @@
+@page "/festivais/{Id:int}"
+@inherits FilmePageBase
+@inject FestivalService FestivalService
+@inject SessaoService SessaoService
+@inject NavigationManager Nav
+
+<PageTitle>@(_festival?.Name ?? "Festival") — Online Cinema Festival</PageTitle>
+
+@if (_loading)
+{
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>A carregar festival...</p>
+    </div>
+}
+else if (_erro != null)
+{
+    <div class="festival-erro">
+        <p class="erro-state">@_erro</p>
+        <button class="btn-voltar" @onclick="Voltar">← Voltar aos festivais</button>
+    </div>
+}
+else if (_festival == null)
+{
+    <div class="festival-erro">
+        <h2>Festival não encontrado</h2>
+        <button class="btn-voltar" @onclick="Voltar">← Voltar aos festivais</button>
+    </div>
+}
+else
+{
+    <div class="festival-detalhes-container">
+        <button class="btn-voltar" @onclick="Voltar">← Voltar aos festivais</button>
+
+        <section class="festival-hero">
+            <span class="festival-hero-data">@FormatarPeriodo(_festival.StartDate, _festival.EndDate)</span>
+            <h1 class="festival-hero-titulo">@_festival.Name</h1>
+            @if (!string.IsNullOrWhiteSpace(_festival.Description))
+            {
+                <p class="festival-hero-descricao">@_festival.Description</p>
+            }
+        </section>
+
+        <section class="festival-seccao">
+            <h2 class="seccao-titulo">Filmes no festival</h2>
+            @if (_filmes.Count == 0)
+            {
+                <p class="empty-state">Ainda não há filmes associados a este festival.</p>
+            }
+            else
+            {
+                <div class="filmes-grid">
+                    @foreach (var filme in _filmes)
+                    {
+                        <FilmeCard Filme="filme" />
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="festival-seccao">
+            <h2 class="seccao-titulo">Sessões</h2>
+            @if (_sessoes.Count == 0)
+            {
+                <p class="empty-state">Ainda não há sessões programadas.</p>
+            }
+            else
+            {
+                <div class="sessoes-lista">
+                    @foreach (var s in _sessoes)
+                    {
+                        <div class="sessao-item">
+                            <div class="sessao-data">
+                                <div class="sessao-dia">@s.Inicio.ToString("dd")</div>
+                                <div class="sessao-mes">@s.Inicio.ToString("MMM").ToUpper()</div>
+                            </div>
+                            <div class="sessao-info">
+                                <h4 class="sessao-filme">@s.FilmeTitulo</h4>
+                                <div class="sessao-hora">
+                                    @s.Inicio.ToString("HH:mm") – @s.Fim.ToString("HH:mm")
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(s.Observacoes))
+                                {
+                                    <p class="sessao-obs">@s.Observacoes</p>
+                                }
+                            </div>
+                            <button class="sessao-btn" @onclick="() => AbrirFilme(s.FilmeId)">
+                                Ver filme
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private FestivalDto? _festival;
+    private List<FilmeDto> _filmes = new();
+    private List<SessaoDto> _sessoes = new();
+
+    protected override async Task CarregarDadosAsync()
+    {
+        _festival = await FestivalService.GetFestivalPorIdAsync(Id);
+
+        if (_festival == null)
+            return;
+
+        _filmes = await FestivalService.GetFilmesDoFestivalAsync(Id);
+        _sessoes = (await SessaoService.GetSessoesPorFestivalAsync(Id))
+            .OrderBy(s => s.Inicio)
+            .ToList();
+    }
+
+    private void Voltar() => Nav.NavigateTo("/festivais");
+
+    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
+
+    private static string FormatarPeriodo(DateTime inicio, DateTime fim)
+    {
+        if (inicio.Year == fim.Year && inicio.Month == fim.Month)
+            return $"{inicio:dd} – {fim:dd MMM yyyy}";
+        return $"{inicio:dd/MM/yyyy} – {fim:dd/MM/yyyy}";
+    }
+}

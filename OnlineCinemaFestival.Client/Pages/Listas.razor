@@ -1,0 +1,241 @@
+@page "/listas"
+@inject ListaService ListaService
+@inject NavigationManager Nav
+
+<PageTitle>As minhas listas — Online Cinema Festival</PageTitle>
+
+<AuthorizeView>
+    <NotAuthorized>
+        @{ Nav.NavigateTo("/login?returnUrl=/listas", forceLoad: false); }
+    </NotAuthorized>
+    <Authorized Context="auth">
+        <div class="listas-container">
+            <div class="listas-cabecalho">
+                <div>
+                    <h1 class="listas-titulo">As minhas listas</h1>
+                    <p class="listas-subtitulo">Organiza os filmes que queres ver, viste e os teus favoritos.</p>
+                </div>
+                <button class="btn-nova-lista" @onclick="AbrirFormNovaLista">+ Nova lista</button>
+            </div>
+
+            @if (_mostrarFormNovaLista)
+            {
+                <div class="form-nova-lista">
+                    <h3>Nova lista personalizada</h3>
+                    <EditForm Model="_novaLista" OnValidSubmit="CriarLista">
+                        <DataAnnotationsValidator />
+
+                        <div class="form-linha">
+                            <div class="form-campo">
+                                <label>Nome</label>
+                                <InputText class="form-input" @bind-Value="_novaLista.Name" placeholder="Ex.: Para rever" />
+                                <ValidationMessage For="@(() => _novaLista.Name)" class="campo-erro" />
+                            </div>
+                            <div class="form-campo form-campo-check">
+                                <InputCheckbox @bind-Value="_novaLista.IsPublic" id="publica" />
+                                <label for="publica">Pública</label>
+                            </div>
+                        </div>
+
+                        <div class="form-campo">
+                            <label>Descrição (opcional)</label>
+                            <InputTextArea class="form-input form-textarea" @bind-Value="_novaLista.Description" rows="2" />
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(_erroForm))
+                        {
+                            <p class="form-erro">@_erroForm</p>
+                        }
+
+                        <div class="form-acoes">
+                            <button type="button" class="btn-secundario" @onclick="FecharFormNovaLista">Cancelar</button>
+                            <button type="submit" class="btn-primario" disabled="@_aCriar">
+                                @(_aCriar ? "A criar..." : "Criar lista")
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+
+            @if (_loading)
+            {
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>A carregar listas...</p>
+                </div>
+            }
+            else if (_erro != null)
+            {
+                <p class="erro-state">@_erro</p>
+            }
+            else if (_listas.Count == 0)
+            {
+                <p class="empty-state">Ainda não tens listas. Cria a primeira ou faz registo novamente — as listas padrão são criadas automaticamente.</p>
+            }
+            else
+            {
+                @foreach (var lista in _listas)
+                {
+                    <section class="lista-bloco">
+                        <header class="lista-bloco-cabecalho">
+                            <div>
+                                <h2 class="lista-bloco-nome">
+                                    @ObterIcone(lista.Tipo) @lista.Name
+                                </h2>
+                                <div class="lista-bloco-meta">
+                                    <span class="lista-tipo">@lista.TipoNome</span>
+                                    <span>·</span>
+                                    <span>@lista.TotalFilmes @(lista.TotalFilmes == 1 ? "filme" : "filmes")</span>
+                                    @if (lista.IsPublic)
+                                    {
+                                        <span>·</span>
+                                        <span class="badge-publica">Pública</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(lista.Description))
+                                {
+                                    <p class="lista-bloco-descricao">@lista.Description</p>
+                                }
+                            </div>
+                        </header>
+
+                        @if (lista.Items.Count == 0)
+                        {
+                            <p class="lista-vazia">Ainda não há filmes nesta lista. Adiciona a partir da página de detalhes de um filme.</p>
+                        }
+                        else
+                        {
+                            <div class="lista-grid">
+                                @foreach (var item in lista.Items)
+                                {
+                                    <div class="lista-item-card">
+                                        <div class="lista-item-poster" @onclick="() => AbrirFilme(item.FilmeId)">
+                                            @if (!string.IsNullOrWhiteSpace(item.CapaUrl))
+                                            {
+                                                <img src="@item.CapaUrl" alt="@item.Titulo" />
+                                            }
+                                            else
+                                            {
+                                                <div class="lista-item-sem-capa">🎬</div>
+                                            }
+                                            <button class="lista-item-remover"
+                                                    title="Remover"
+                                                    @onclick="() => RemoverFilme(lista.Id, item.FilmeId)"
+                                                    @onclick:stopPropagation="true">
+                                                ×
+                                            </button>
+                                        </div>
+                                        <div class="lista-item-info">
+                                            <h4 class="lista-item-titulo">@item.Titulo</h4>
+                                            @if (!string.IsNullOrWhiteSpace(item.Genero))
+                                            {
+                                                <span class="lista-item-genero">@item.Genero</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </section>
+                }
+            }
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private List<ListaPessoalDto> _listas = new();
+    private bool _loading = true;
+    private string? _erro;
+
+    private bool _mostrarFormNovaLista;
+    private CriarListaRequest _novaLista = new();
+    private bool _aCriar;
+    private string? _erroForm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarListasAsync();
+    }
+
+    private async Task CarregarListasAsync()
+    {
+        try
+        {
+            _loading = true;
+            _erro = null;
+            _listas = await ListaService.GetMinhasListasAsync();
+        }
+        catch
+        {
+            _erro = "Erro ao carregar listas. Tenta novamente.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void AbrirFormNovaLista()
+    {
+        _novaLista = new CriarListaRequest();
+        _erroForm = null;
+        _mostrarFormNovaLista = true;
+    }
+
+    private void FecharFormNovaLista()
+    {
+        _mostrarFormNovaLista = false;
+        _erroForm = null;
+    }
+
+    private async Task CriarLista()
+    {
+        _aCriar = true;
+        _erroForm = null;
+
+        try
+        {
+            var nova = await ListaService.CriarAsync(_novaLista);
+            _listas.Add(nova);
+            FecharFormNovaLista();
+        }
+        catch (Exception ex)
+        {
+            _erroForm = ex.Message;
+        }
+        finally
+        {
+            _aCriar = false;
+        }
+    }
+
+    private async Task RemoverFilme(int listaId, int filmeId)
+    {
+        try
+        {
+            await ListaService.RemoverFilmeAsync(listaId, filmeId);
+
+            var lista = _listas.FirstOrDefault(l => l.Id == listaId);
+            if (lista != null)
+            {
+                lista.Items.RemoveAll(i => i.FilmeId == filmeId);
+                lista.TotalFilmes = lista.Items.Count;
+            }
+        }
+        catch
+        {
+            _erro = "Não foi possível remover o filme.";
+        }
+    }
+
+    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
+
+    private static string ObterIcone(int tipo) => tipo switch
+    {
+        1 => "🎬", // Watchlist
+        2 => "✓", // Watched
+        3 => "★", // Favorites
+        _ => "📁", // Custom
+    };
+}
