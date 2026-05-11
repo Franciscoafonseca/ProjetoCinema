@@ -134,6 +134,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IComentarioRepository, ComentarioRepository>();
 builder.Services.AddScoped<IComentarioService, ComentarioService>();
 
+// Parte das Comunidades
+builder.Services.AddScoped<IComunidadeRepository, ComunidadeRepository>();
+builder.Services.AddScoped<IComunidadeService, ComunidadeService>();
+
 var app = builder.Build();
 
 app.UseSwagger();

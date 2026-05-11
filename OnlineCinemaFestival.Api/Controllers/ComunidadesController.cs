@@ -1,71 +1,54 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OnlineCinemaFestival.Api.Data;
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+
 public class ComunidadesController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IComunidadeService _comunidadeService;
 
-    public ComunidadesController(AppDbContext db)
+    public ComunidadesController(IComunidadeService comunidadeService)
     {
-        _db = db;
+        _comunidadeService = comunidadeService;
     }
 
+    // Para apresentar todas as comunidades
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<IEnumerable<ComunidadeReadDto>>> GetAll()
     {
-        var comunidades = await _db
-            .Comunidades.Include(c => c.CreatedByUser)
-            .OrderByDescending(c => c.CreatedAt)
-            .Select(c => new
-            {
-                c.Id,
-                c.Name,
-                c.Description,
-                c.ImageUrl,
-                c.IsPublic,
-                c.CreatedByUserId,
-                CreatedByUserName = c.CreatedByUser != null ? c.CreatedByUser.Name : null,
-                c.CreatedAt,
-                MembersCount = c.Members.Count,
-                ComentariosCount = c.Comentarios.Count,
-            })
-            .ToListAsync();
-
+        var comunidades = await _comunidadeService.GetAllComunidadesAsync();
         return Ok(comunidades);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<ActionResult<ComunidadeReadDto>> GetComunidadeById(int id)
     {
-        var comunidade = await _db
-            .Comunidades.Include(c => c.CreatedByUser)
-            .Include(c => c.Members)
-            .Include(c => c.Comentarios)
-            .Where(c => c.Id == id)
-            .Select(c => new
-            {
-                c.Id,
-                c.Name,
-                c.Description,
-                c.ImageUrl,
-                c.IsPublic,
-                c.CreatedByUserId,
-                CreatedByUserName = c.CreatedByUser != null ? c.CreatedByUser.Name : null,
-                c.CreatedAt,
-                MembersCount = c.Members.Count,
-                ComentariosCount = c.Comentarios.Count,
-            })
-            .FirstOrDefaultAsync();
-
-        if (comunidade == null)
-            return NotFound("Comunidade não encontrada.");
-
+        var comunidade = await _comunidadeService.GetComunidadeByIdAsync(id);
+        if (comunidade == null) return NotFound("Comunidade não encontrada.");
         return Ok(comunidade);
     }
+
+    [HttpPost]
+    public async Task<ActionResult<ComunidadeReadDto>> CreateComunidade(ComunidadeCreateDto dto)
+    {
+        try
+        {
+            // mudar depois
+            int criadorUserId = 1; // Simulação de um utilizador autenticado
+            var comunidadeCriada = await _comunidadeService.CreateComunidadeAsync(dto, criadorUserId);
+            return CreatedAtAction(nameof(GetComunidadeById), new { id = comunidadeCriada.Id }, comunidadeCriada);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+
+
 }
+
