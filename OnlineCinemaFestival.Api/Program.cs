@@ -130,6 +130,10 @@ builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Parte dos Comentarios
+builder.Services.AddScoped<IComentarioRepository, ComentarioRepository>();
+builder.Services.AddScoped<IComentarioService, ComentarioService>();
+
 var app = builder.Build();
 
 app.UseSwagger();
