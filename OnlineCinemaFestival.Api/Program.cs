@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using OnlineCinemaFestival.Api.Autorizacao;
@@ -152,6 +154,18 @@ builder.Services.AddScoped<IPasswordHashingStrategy, PasswordHashingStrategy>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+
+// Listas pessoais
+builder.Services.AddScoped<IListaPessoalRepository, ListaPessoalRepository>();
+builder.Services.AddScoped<IListaPessoalService, ListaPessoalService>();
+
+// Parte dos Comentarios
+builder.Services.AddScoped<IComentarioRepository, ComentarioRepository>();
+builder.Services.AddScoped<IComentarioService, ComentarioService>();
+
+// Parte das Comunidades
+builder.Services.AddScoped<IComunidadeRepository, ComunidadeRepository>();
+builder.Services.AddScoped<IComunidadeService, ComunidadeService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

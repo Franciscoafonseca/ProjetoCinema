@@ -51,7 +51,7 @@
 
     protected override async Task CarregarDadosAsync()
     {
-        var todos = await FilmeService.GetFilmesAsync();
-        _filmes = todos.OrderByDescending(f => f.Popularidade).Take(MaxDestaques).ToList();
+        var todos = await FilmeService.GetFilmesAsync(ordenarPor: 2, descendente: true);
+        _filmes = todos.Take(MaxDestaques).ToList();
     }
 }

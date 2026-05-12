@@ -1,6 +1,9 @@
 @page "/filmes/{Id:int}"
 @inherits FilmePageBase
 @inject FilmeService FilmeService
+@inject SessaoService SessaoService
+@inject AcessoService AcessoService
+@inject ListaService ListaService
 @inject NavigationManager Nav
 
 <PageTitle>@(_filme?.Titulo ?? "Detalhes") — Online Cinema Festival</PageTitle>
@@ -69,8 +72,89 @@ else
                 {
                     <p class="detalhes-sinopse">@_filme.Sinopse</p>
                 }
+
+                <AuthorizeView>
+                    <Authorized Context="auth">
+                        @if (_listas.Count > 0)
+                        {
+                            <div class="listas-acoes">
+                                <span class="listas-acoes-titulo">As minhas listas:</span>
+                                <div class="listas-acoes-botoes">
+                                    @foreach (var lista in _listas)
+                                    {
+                                        var naLista = EstaNaLista(lista, Id);
+                                        <button class="btn-lista @(naLista ? "btn-lista-ativo" : "")"
+                                                disabled="@_aMexerEmListas"
+                                                @onclick="() => Toggle(lista)">
+                                            @ObterIcone(lista.Tipo) @lista.Name @(naLista ? "✓" : "+")
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </Authorized>
+                </AuthorizeView>
             </div>
         </div>
+
+        <section class="sessoes-seccao">
+            <h2 class="seccao-titulo">Sessões disponíveis</h2>
+
+            @if (_sessoes.Count == 0)
+            {
+                <p class="empty-state">Ainda não há sessões marcadas para este filme.</p>
+            }
+            else
+            {
+                <div class="sessoes-lista">
+                    @foreach (var s in _sessoes)
+                    {
+                        <div class="sessao-cartao">
+                            <div class="sessao-cartao-cabecalho">
+                                <div class="sessao-cartao-data">
+                                    <span class="sessao-cartao-dia">@s.Inicio.ToString("dd")</span>
+                                    <span class="sessao-cartao-mes">@s.Inicio.ToString("MMM").ToUpper()</span>
+                                </div>
+                                <div class="sessao-cartao-info">
+                                    <div class="sessao-cartao-festival">@s.FestivalName</div>
+                                    <div class="sessao-cartao-hora">
+                                        @s.Inicio.ToString("HH:mm") – @s.Fim.ToString("HH:mm")
+                                    </div>
+                                </div>
+                            </div>
+
+                            @{
+                                var acessosSessao = AcessosDaSessao(s.Id);
+                            }
+                            @if (acessosSessao.Count > 0)
+                            {
+                                <div class="acessos-lista">
+                                    @foreach (var a in acessosSessao)
+                                    {
+                                        <div class="acesso-item">
+                                            <div class="acesso-info">
+                                                <span class="acesso-nome">@a.Nome</span>
+                                                <span class="acesso-tipo">@a.TipoNome</span>
+                                            </div>
+                                            <div class="acesso-acao">
+                                                <span class="acesso-preco">@a.Preco.ToString("C", new System.Globalization.CultureInfo("pt-PT"))</span>
+                                                <button class="btn-comprar" disabled title="Carrinho em desenvolvimento">
+                                                    Em breve
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="sem-acessos">Sem acessos configurados para esta sessão.</p>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </section>
     </div>
 }
 
@@ -78,11 +162,91 @@ else
     [Parameter] public int Id { get; set; }
 
     private FilmeDto? _filme;
+    private List<SessaoDto> _sessoes = new();
+    private List<AcessoDto> _acessos = new();
+    private List<ListaPessoalDto> _listas = new();
+    private bool _aMexerEmListas;
 
     protected override async Task CarregarDadosAsync()
     {
         _filme = await FilmeService.GetFilmeByIdAsync(Id);
+
+        if (_filme == null)
+            return;
+
+        _sessoes = (await SessaoService.GetSessoesPorFilmeAsync(Id))
+            .OrderBy(s => s.Inicio)
+            .ToList();
+
+        if (_sessoes.Count > 0)
+            _acessos = await AcessoService.GetAcessosAsync();
+
+        // Carrega as listas do utilizador (devolve vazio se não autenticado — 401 tratado no service)
+        try
+        {
+            _listas = await ListaService.GetMinhasListasAsync();
+        }
+        catch
+        {
+            _listas = new();
+        }
     }
+
+    private List<AcessoDto> AcessosDaSessao(int sessaoId)
+    {
+        return _acessos
+            .Where(a => a.IsAtivo && a.SessaoId == sessaoId)
+            .ToList();
+    }
+
+    private static bool EstaNaLista(ListaPessoalDto lista, int filmeId)
+        => lista.Items.Any(i => i.FilmeId == filmeId);
+
+    private async Task Toggle(ListaPessoalDto lista)
+    {
+        if (_filme == null || _aMexerEmListas) return;
+
+        _aMexerEmListas = true;
+
+        try
+        {
+            if (EstaNaLista(lista, Id))
+            {
+                await ListaService.RemoverFilmeAsync(lista.Id, Id);
+                lista.Items.RemoveAll(i => i.FilmeId == Id);
+                lista.TotalFilmes = lista.Items.Count;
+            }
+            else
+            {
+                await ListaService.AdicionarFilmeAsync(lista.Id, Id);
+                lista.Items.Add(new ListaPessoalItemDto
+                {
+                    FilmeId = _filme.Id,
+                    Titulo = _filme.Titulo,
+                    Genero = _filme.Genero,
+                    CapaUrl = _filme.CapaUrl,
+                    AddedAt = DateTime.UtcNow,
+                });
+                lista.TotalFilmes = lista.Items.Count;
+            }
+        }
+        catch
+        {
+            // Ignora — o estado local não é alterado
+        }
+        finally
+        {
+            _aMexerEmListas = false;
+        }
+    }
+
+    private static string ObterIcone(int tipo) => tipo switch
+    {
+        1 => "🎬",
+        2 => "✓",
+        3 => "★",
+        _ => "📁",
+    };
 
     private void Voltar() => Nav.NavigateTo("/catalogo");
 }
