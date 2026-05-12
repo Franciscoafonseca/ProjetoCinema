@@ -13,13 +13,30 @@ public class GeneroRepository : IGeneroRepository
         _context = context;
     }
 
-    public async Task<List<Genero>> GetAllAsync()
+    public async Task<IEnumerable<Genero>> GetAllAsync()
     {
-        return await _context.Generos.OrderBy(g => g.Name).ToListAsync();
+        return await _context.Generos.AsNoTracking().OrderBy(g => g.Name).ToListAsync();
     }
 
-    public async Task<List<Genero>> GetByIdsAsync(List<int> ids)
+    public async Task<Genero?> GetByIdAsync(int id)
     {
-        return await _context.Generos.Where(g => ids.Contains(g.Id)).ToListAsync();
+        return await _context.Generos.FindAsync(id);
+    }
+
+    public async Task AddAsync(Genero genero)
+    {
+        await _context.Generos.AddAsync(genero);
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<Genero>> GetByIdsAsync(IEnumerable<int> ids)
+    {
+        var idsDistintos = ids.Distinct().ToList();
+
+        return await _context.Generos.Where(g => idsDistintos.Contains(g.Id)).ToListAsync();
     }
 }

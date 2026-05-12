@@ -105,6 +105,7 @@ builder.Services.AddScoped<IValidadorCheckout, ValidadorCheckout>();
 
 builder.Services.AddScoped<IAcessoUtilizadorFactory, FabricaAcessoUtilizador>();
 
+builder.Services.AddScoped<IGeneroService, GeneroService>();
 builder.Services.AddScoped<IEstrategiaCriacaoAcessoUtilizador, EstrategiaCriacaoBilheteSessao>();
 builder.Services.AddScoped<IEstrategiaCriacaoAcessoUtilizador, EstrategiaCriacaoPasseDiario>();
 builder.Services.AddScoped<IEstrategiaCriacaoAcessoUtilizador, EstrategiaCriacaoPasseCompleto>();

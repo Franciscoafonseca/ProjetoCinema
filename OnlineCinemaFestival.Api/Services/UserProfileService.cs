@@ -89,19 +89,17 @@ public class UserProfileService : IUserProfileService
         // Obtém os géneros favoritos selecionados pelo utilizador.
         var generos = await _generoRepository.GetByIdsAsync(request.FavoriteGenreIds);
 
-        // Remove os géneros favoritos anteriores.
+        if (generos.Count != request.FavoriteGenreIds.Distinct().Count())
+        {
+            throw new ArgumentException("Um ou mais géneros favoritos não existem.");
+        }
+
         utilizador.GenerosFavoritos.Clear();
 
-        // Associa os novos géneros favoritos ao utilizador.
         foreach (var genero in generos)
         {
             utilizador.GenerosFavoritos.Add(
-                new UtilizadorGeneroFavorito
-                {
-                    UtilizadorId = utilizador.Id,
-                    GeneroId = genero.Id,
-                    CreatedAt = DateTime.UtcNow,
-                }
+                new UtilizadorGeneroFavorito { UtilizadorId = utilizador.Id, GeneroId = genero.Id }
             );
         }
 

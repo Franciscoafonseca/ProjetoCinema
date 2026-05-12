@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
-using OnlineCinemaFestival.Api.Repositories;
+using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Controllers;
 
@@ -10,33 +9,34 @@ namespace OnlineCinemaFestival.Api.Controllers;
 [Route("api/genres")]
 public class GenresController : ControllerBase
 {
-    private readonly IGeneroRepository _generoRepository;
-    private readonly AppDbContext _context;
+    private readonly IGeneroService _generoService;
 
-    public GenresController(IGeneroRepository generoRepository, AppDbContext context)
+    public GenresController(IGeneroService generoService)
     {
-        _generoRepository = generoRepository;
-        _context = context;
+        _generoService = generoService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Genero>>> GetAll()
+    public async Task<ActionResult<IEnumerable<Genero>>> GetAll()
     {
-        return Ok(await _generoRepository.GetAllAsync());
+        var generos = await _generoService.GetAllAsync();
+
+        return Ok(generos);
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<Genero>> Create(Genero genero)
     {
-        genero.Name = genero.Name.Trim();
+        try
+        {
+            var criado = await _generoService.CreateAsync(genero);
 
-        if (string.IsNullOrWhiteSpace(genero.Name))
-            return BadRequest("O nome do género é obrigatório.");
-
-        _context.Generos.Add(genero);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetAll), new { id = genero.Id }, genero);
+            return CreatedAtAction(nameof(GetAll), new { id = criado.Id }, criado);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }
