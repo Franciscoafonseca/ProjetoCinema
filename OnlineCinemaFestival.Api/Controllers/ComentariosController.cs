@@ -1,9 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.DTOs;
-using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Services;
+using OnlineCinemaFestival.Api.Extensions;
 
 namespace OnlineCinemaFestival.Api.Controllers;
 
@@ -19,18 +18,18 @@ public class ComentariosController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<ActionResult<ComentarioReadDto>> CriarComentario(int comunidadeId, [FromBody] ComentarioCreateDto dto)
     {
         try
         {
-            int usuarioId = 1; // TODO: Substituir pelo ID do usuário autenticado
-            var resultado = await _comentarioService.CriarComentarioAsync(comunidadeId, dto, usuarioId);
+            var resultado = await _comentarioService.CriarComentarioAsync(comunidadeId, dto, User.GetUserId());
             
             return Ok(resultado);
         }
         catch (Exception ex)
         {
-            return BadRequest(new {mensagem = ex.Message});
+            return BadRequest(new { mensagem = ex.Message });
         }
     }
     

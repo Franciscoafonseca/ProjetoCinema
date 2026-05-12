@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Services;
+using Microsoft.AspNetCore.Authorization;
+using OnlineCinemaFestival.Api.Extensions;
 
 namespace OnlineCinemaFestival.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 
 public class ComunidadesController : ControllerBase
 {
@@ -20,16 +23,30 @@ public class ComunidadesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ComunidadeReadDto>>> GetAll()
     {
-        var comunidades = await _comunidadeService.GetAllComunidadesAsync();
+        var comunidades = await _comunidadeService.GetAllComunidadesAsync(User.GetUserId());
+        return Ok(comunidades);
+    }
+
+    [HttpGet("minhas")]
+    public async Task<ActionResult<IEnumerable<ComunidadeReadDto>>> GetMinhasComunidades()
+    {
+        var comunidades = await _comunidadeService.GetMinhasComunidadesAsync(User.GetUserId());
         return Ok(comunidades);
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ComunidadeReadDto>> GetComunidadeById(int id)
     {
-        var comunidade = await _comunidadeService.GetComunidadeByIdAsync(id);
-        if (comunidade == null) return NotFound("Comunidade não encontrada.");
-        return Ok(comunidade);
+        try
+        {
+            var comunidade = await _comunidadeService.GetComunidadeByIdAsync(id, User.GetUserId());
+            if (comunidade == null) return NotFound("Comunidade não encontrada.");
+            return Ok(comunidade);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
     }
 
     [HttpPost]
@@ -37,14 +54,12 @@ public class ComunidadesController : ControllerBase
     {
         try
         {
-            // mudar depois
-            int criadorUserId = 1; // Simulação de um utilizador autenticado
-            var comunidadeCriada = await _comunidadeService.CreateComunidadeAsync(dto, criadorUserId);
+            var comunidadeCriada = await _comunidadeService.CreateComunidadeAsync(dto, User.GetUserId());
             return CreatedAtAction(nameof(GetComunidadeById), new { id = comunidadeCriada.Id }, comunidadeCriada);
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { mensagem = ex.Message });
         }
     }
 

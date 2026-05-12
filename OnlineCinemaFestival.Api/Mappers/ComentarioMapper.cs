@@ -25,9 +25,15 @@ public static class ComentarioMapper
         return new ComentarioReadDto
         {
             Id = comentario.Id,
-            Texto = comentario.Texto,
             UsuarioId = comentario.UsuarioId,
-            NomeUsuario = comentario.Usuario.Name ?? "Se isto aparecer avisem"
+            NomeUsuario = comentario.Usuario.Name,
+            ComunidadeId = comentario.ComunidadeId,
+            NomeComunidade = comentario.Comunidade.Name,
+            Texto = comentario.Texto,
+            CriadoEm = comentario.CriadoEm,
+            Visivel = comentario.Visivel,
+            Reportado = comentario.Reportado
+
         };
     }
 

@@ -25,6 +25,7 @@ public class ComentarioRepository : IComentarioRepository
     {
         return await _context.Comentarios
             .Include(c => c.Usuario)
+            .Include(c => c.Comunidade)
             .Where(c => c.ComunidadeId == comunidadeId && c.Visivel)
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();

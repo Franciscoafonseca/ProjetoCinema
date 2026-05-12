@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Builder; // (provavelmente já tens algumas destas)
+using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,6 +11,7 @@ using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Api.Services.Acesso;
 using OnlineCinemaFestival.Api.Services.Catalogo;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
