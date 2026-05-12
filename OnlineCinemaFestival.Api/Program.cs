@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Repositories;
@@ -130,8 +131,36 @@ builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 
+// Listas pessoais
+builder.Services.AddScoped<IListaPessoalRepository, ListaPessoalRepository>();
+builder.Services.AddScoped<IListaPessoalService, ListaPessoalService>();
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "OnlineCinemaFestival API",
+        Version = "v1",
+    });
+
+    const string esquemaId = "Bearer";
+
+    options.AddSecurityDefinition(esquemaId, new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Cola apenas o token JWT (sem o prefixo 'Bearer'). Obténs o token via POST /api/auth/login.",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+    });
+
+    options.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
+    {
+        { new OpenApiSecuritySchemeReference(esquemaId, doc), new List<string>() },
+    });
+});
 
 // Parte dos Comentarios
 builder.Services.AddScoped<IComentarioRepository, ComentarioRepository>();

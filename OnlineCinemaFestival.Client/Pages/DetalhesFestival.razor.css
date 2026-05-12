@@ -1,0 +1,186 @@
+.festival-detalhes-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.btn-voltar {
+    background: transparent;
+    color: #a0a0a0;
+    border: none;
+    padding: 0.5rem 0;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: color 0.15s;
+}
+
+.btn-voltar:hover {
+    color: #fff;
+}
+
+.festival-hero {
+    background: linear-gradient(135deg, rgba(229, 9, 20, 0.12), rgba(31, 31, 31, 0.6));
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 2.5rem;
+}
+
+.festival-hero-data {
+    color: #e50914;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.festival-hero-titulo {
+    color: #fff;
+    font-size: 2.5rem;
+    margin: 0.5rem 0 1rem;
+    font-weight: 800;
+}
+
+.festival-hero-descricao {
+    color: #d0d0d0;
+    line-height: 1.6;
+    font-size: 1.05rem;
+    margin: 0;
+    max-width: 800px;
+}
+
+.festival-seccao {
+    margin-bottom: 3rem;
+}
+
+.seccao-titulo {
+    color: #fff;
+    margin: 0 0 1.25rem;
+    font-size: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e50914;
+    display: inline-block;
+}
+
+.filmes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.2rem;
+}
+
+.sessoes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sessao-item {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    background: #1f1f1f;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    transition: border-color 0.15s;
+}
+
+.sessao-item:hover {
+    border-color: #e50914;
+}
+
+.sessao-data {
+    text-align: center;
+    min-width: 60px;
+    padding-right: 1rem;
+    border-right: 1px solid #2a2a2a;
+}
+
+.sessao-dia {
+    color: #e50914;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.sessao-mes {
+    color: #a0a0a0;
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
+    letter-spacing: 0.5px;
+}
+
+.sessao-info {
+    flex: 1;
+}
+
+.sessao-filme {
+    color: #fff;
+    margin: 0 0 0.3rem;
+    font-size: 1.1rem;
+}
+
+.sessao-hora {
+    color: #c0c0c0;
+    font-size: 0.9rem;
+}
+
+.sessao-obs {
+    color: #888;
+    margin: 0.4rem 0 0;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.sessao-btn {
+    background: transparent;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 0.5rem 1.1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+}
+
+.sessao-btn:hover {
+    border-color: #e50914;
+    color: #e50914;
+}
+
+.festival-erro {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #fff;
+}
+
+.loading-state, .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #a0a0a0;
+}
+
+.erro-state {
+    color: #ff8585;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #2a2a2a;
+    border-top-color: #e50914;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+    .festival-hero-titulo { font-size: 1.75rem; }
+    .sessao-item { flex-wrap: wrap; }
+    .sessao-btn { width: 100%; }
+}

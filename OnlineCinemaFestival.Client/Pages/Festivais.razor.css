@@ -1,0 +1,126 @@
+.festivais-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.festivais-cabecalho {
+    margin-bottom: 2rem;
+}
+
+.festivais-titulo {
+    color: #fff;
+    margin: 0 0 0.5rem;
+    font-size: 2.25rem;
+}
+
+.festivais-subtitulo {
+    color: #a0a0a0;
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.festivais-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.festival-card {
+    background: #1f1f1f;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.festival-card:hover {
+    transform: translateY(-3px);
+    border-color: #e50914;
+    box-shadow: 0 8px 24px rgba(229, 9, 20, 0.15);
+}
+
+.festival-card-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.festival-card-data {
+    color: #a0a0a0;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.festival-card-badge {
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.festival-card-badge.ativo {
+    background: rgba(40, 167, 69, 0.2);
+    color: #4ade80;
+}
+
+.festival-card-badge.futuro {
+    background: rgba(229, 9, 20, 0.2);
+    color: #ff6b6b;
+}
+
+.festival-card-badge.terminado {
+    background: rgba(108, 117, 125, 0.25);
+    color: #adb5bd;
+}
+
+.festival-card-nome {
+    color: #fff;
+    margin: 0 0 0.5rem;
+    font-size: 1.35rem;
+}
+
+.festival-card-descricao {
+    color: #c0c0c0;
+    margin: 0 0 1rem;
+    flex: 1;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.festival-card-link {
+    color: #e50914;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.loading-state, .erro-state, .empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #a0a0a0;
+}
+
+.erro-state { color: #ff8585; }
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #2a2a2a;
+    border-top-color: #e50914;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+    to { transform: rotate(360deg); }
+}
