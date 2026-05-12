@@ -21,13 +21,13 @@ public class ComunidadeRepository : IComunidadeRepository
         return comunidade;
     }
 
-    public async Task<Comunidade?> GetComunidadeByIdAsync(int id)
+    public async Task<Comunidade?> GetComunidadeByPublicIdAsync(Guid publicId)
     {
         return await _context.Comunidades
             .Include(c => c.CreatedByUser)
             .Include(c => c.Members)
             .Include(c => c.Comentarios)
-            .FirstOrDefaultAsync(c => c.Id == id);
+            .FirstOrDefaultAsync(c => c.PublicId == publicId);
     }
 
     public async Task<IEnumerable<Comunidade>> FindComunidadesAsync(Expression<Func<Comunidade, bool>> predicate)
@@ -46,6 +46,15 @@ public class ComunidadeRepository : IComunidadeRepository
     {
         return await _context.ComunidadeMembros
             .AnyAsync(cm => cm.ComunidadeId == comunidadeId && cm.UtilizadorId == usuarioId);
+    }
+
+    public async Task<Comunidade?> GetComunidadeByConviteAsync(string codigoConvite)
+    {
+        return await _context.Comunidades
+            .Include(c => c.CreatedByUser)
+            .Include(c => c.Members)
+            .Include(c => c.Comentarios)
+            .FirstOrDefaultAsync(c => c.CodigoConvite == codigoConvite);
     }
 
 }

@@ -3,7 +3,8 @@ using OnlineCinemaFestival.Api.DTOs;
 namespace OnlineCinemaFestival.Api.Services;
 
 public interface IComentarioService
-{
-    Task<ComentarioReadDto> CriarComentarioAsync(int comunidadeId, ComentarioCreateDto dto, int usuarioId);
-    Task<IEnumerable<ComentarioReadDto>> ObterComentariosPorComunidadeIdAsync(int comunidadeId); 
+{   
+    // Uso Guid para nao expor o ID interno da comunidade guardado na BD
+    Task<ComentarioReadDto> CriarComentarioAsync(Guid comunidadeId, ComentarioCreateDto dto, int usuarioId);
+    Task<IEnumerable<ComentarioReadDto>> ObterComentariosPorComunidadeIdAsync(Guid comunidadeId, int usuarioId); 
 }

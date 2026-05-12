@@ -195,5 +195,9 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(a => a.FilmeId)
             .OnDelete(DeleteBehavior.Restrict);
+            
+        
+        modelBuilder.Entity<Comunidade>().HasIndex(c => c.PublicId).IsUnique();
+        modelBuilder.Entity<Comunidade>().HasIndex(c => c.CodigoConvite).IsUnique();
     }
 }

@@ -3,7 +3,7 @@ namespace OnlineCinemaFestival.Api.Models;
 public class Comunidade
 {
     public int Id { get; set; }
-
+    public Guid PublicId { get;  set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
 
     public string Description { get; set; } = string.Empty;
@@ -18,6 +18,7 @@ public class Comunidade
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
+    public string CodigoConvite {get;set;} = string.Empty;
 
     public ICollection<ComunidadeMembro> Members { get; set; } = new List<ComunidadeMembro>();
 

@@ -7,7 +7,8 @@ using OnlineCinemaFestival.Api.Extensions;
 namespace OnlineCinemaFestival.Api.Controllers;
 
 [ApiController]
-[Route("api/comunidades/{comunidadeId}/[controller]")]
+[Route("api/comunidades/{comunidadeId:guid}/comentarios")]
+[Authorize]
 public class ComentariosController : ControllerBase
 {
     private readonly IComentarioService _comentarioService;
@@ -18,14 +19,17 @@ public class ComentariosController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
-    public async Task<ActionResult<ComentarioReadDto>> CriarComentario(int comunidadeId, [FromBody] ComentarioCreateDto dto)
+    public async Task<ActionResult<ComentarioReadDto>> CriarComentario(Guid comunidadeId, [FromBody] ComentarioCreateDto dto)
     {
         try
         {
             var resultado = await _comentarioService.CriarComentarioAsync(comunidadeId, dto, User.GetUserId());
             
             return Ok(resultado);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
         }
         catch (Exception ex)
         {
@@ -35,10 +39,21 @@ public class ComentariosController : ControllerBase
     
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ComentarioReadDto>>> ObterComentarios(int comunidadeId)
+    public async Task<ActionResult<IEnumerable<ComentarioReadDto>>> ObterComentarios(Guid comunidadeId)
     {
-        var comentarios = await _comentarioService.ObterComentariosPorComunidadeIdAsync(comunidadeId);
-        return Ok(comentarios);
+        try
+        {
+            var comentarios = await _comentarioService.ObterComentariosPorComunidadeIdAsync(comunidadeId, User.GetUserId());
+            return Ok(comentarios);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
     }
 
 }

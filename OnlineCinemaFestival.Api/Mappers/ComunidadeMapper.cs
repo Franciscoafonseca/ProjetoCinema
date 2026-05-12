@@ -24,11 +24,12 @@ public static class ComunidadeMapper
     {
         return new ComunidadeReadDto
         {
-            Id = comunidade.Id,
+            PublicId = comunidade.PublicId,
             Name = comunidade.Name,
             Description = comunidade.Description,
             ImageUrl = comunidade.ImageUrl,
             IsPublic = comunidade.IsPublic,
+            CodigoConvite = comunidade.CodigoConvite,
             CreatedByUserId = comunidade.CreatedByUserId,
             CreatedByUserName = comunidade.CreatedByUser?.Name,
             CreatedAt = comunidade.CreatedAt,

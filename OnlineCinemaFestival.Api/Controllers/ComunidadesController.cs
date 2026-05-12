@@ -34,12 +34,12 @@ public class ComunidadesController : ControllerBase
         return Ok(comunidades);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<ComunidadeReadDto>> GetComunidadeById(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ComunidadeReadDto>> GetComunidadeById(Guid id)
     {
         try
         {
-            var comunidade = await _comunidadeService.GetComunidadeByIdAsync(id, User.GetUserId());
+            var comunidade = await _comunidadeService.GetComunidadeByPublicIdAsync(id, User.GetUserId());
             if (comunidade == null) return NotFound("Comunidade não encontrada.");
             return Ok(comunidade);
         }
@@ -55,7 +55,7 @@ public class ComunidadesController : ControllerBase
         try
         {
             var comunidadeCriada = await _comunidadeService.CreateComunidadeAsync(dto, User.GetUserId());
-            return CreatedAtAction(nameof(GetComunidadeById), new { id = comunidadeCriada.Id }, comunidadeCriada);
+            return CreatedAtAction(nameof(GetComunidadeById), new { id = comunidadeCriada.PublicId }, comunidadeCriada);
         }
         catch (Exception ex)
         {
@@ -63,7 +63,15 @@ public class ComunidadesController : ControllerBase
         }
     }
 
+    [HttpGet("convite/{codigoConvite}")]
+    public async Task<ActionResult<ComunidadeReadDto>> GetComunidadeByConvite(string codigoConvite)
+    {
+        var comunidade = await _comunidadeService.GetComunidadeByConviteAsync(codigoConvite);
+        if (comunidade == null) return NotFound("Comunidade não encontrada.");
+        return Ok(comunidade);
+    }
 
+    
 
 }
 
