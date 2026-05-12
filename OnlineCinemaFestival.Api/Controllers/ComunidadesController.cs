@@ -1,15 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.DTOs;
-using OnlineCinemaFestival.Api.Services;
-using Microsoft.AspNetCore.Authorization;
 using OnlineCinemaFestival.Api.Extensions;
+using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-
 public class ComunidadesController : ControllerBase
 {
     private readonly IComunidadeService _comunidadeService;
@@ -40,7 +39,8 @@ public class ComunidadesController : ControllerBase
         try
         {
             var comunidade = await _comunidadeService.GetComunidadeByIdAsync(id, User.GetUserId());
-            if (comunidade == null) return NotFound("Comunidade não encontrada.");
+            if (comunidade == null)
+                return NotFound("Comunidade não encontrada.");
             return Ok(comunidade);
         }
         catch (UnauthorizedAccessException ex)
@@ -54,16 +54,19 @@ public class ComunidadesController : ControllerBase
     {
         try
         {
-            var comunidadeCriada = await _comunidadeService.CreateComunidadeAsync(dto, User.GetUserId());
-            return CreatedAtAction(nameof(GetComunidadeById), new { id = comunidadeCriada.Id }, comunidadeCriada);
+            var comunidadeCriada = await _comunidadeService.CreateComunidadeAsync(
+                dto,
+                User.GetUserId()
+            );
+            return CreatedAtAction(
+                nameof(GetComunidadeById),
+                new { id = comunidadeCriada.Id },
+                comunidadeCriada
+            );
         }
         catch (Exception ex)
         {
             return BadRequest(new { mensagem = ex.Message });
         }
     }
-
-
-
 }
-

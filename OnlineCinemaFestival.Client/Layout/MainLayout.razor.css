@@ -1,108 +1,112 @@
 .layout {
-    min-height: 100vh;
-    background-color: #141414;
-    display: flex;
-    flex-direction: column;
+  min-height: 100vh;
+  background-color: #141414;
+  display: flex;
+  flex-direction: column;
 }
 
 .navbar-topo {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 40px;
-    height: 64px;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 64px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.85) 0%,
+    transparent 100%
+  );
 }
 
 .logo {
-    color: #e50914;
-    font-size: 1.3rem;
-    font-weight: 800;
-    text-decoration: none;
-    letter-spacing: -0.3px;
+  color: #e50914;
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: -0.3px;
 }
 
 .logo:hover {
-    color: #e50914;
-    text-decoration: none;
-    opacity: 0.85;
+  color: #e50914;
+  text-decoration: none;
+  opacity: 0.85;
 }
 
 .nav-botoes {
-    display: flex;
-    gap: 6px;
+  display: flex;
+  gap: 6px;
 }
 
 .nav-btn {
-    color: #ccc;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 8px 20px;
-    border-radius: 4px;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
-    letter-spacing: 0.3px;
+  color: #ccc;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
 }
 
 .nav-btn:hover {
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.1);
-    text-decoration: none;
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
 }
 
 ::deep .nav-btn.active {
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.25);
-    background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .nav-btn-sair {
-    background: transparent;
-    cursor: pointer;
-    font-family: inherit;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .nav-btn-destaque {
-    background-color: #e50914;
-    color: #fff;
+  background-color: #e50914;
+  color: #fff;
 }
 
 .nav-btn-destaque:hover {
-    background-color: #f6121d;
-    color: #fff;
+  background-color: #f6121d;
+  color: #fff;
 }
 
 .nav-user {
-    max-width: 140px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
-    vertical-align: middle;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .conteudo {
-    flex: 1;
-    padding-top: 64px;
+  flex: 1;
+  padding-top: 64px;
 }
 
 @media (max-width: 480px) {
-    .navbar-topo {
-        padding: 0 16px;
-    }
+  .navbar-topo {
+    padding: 0 16px;
+  }
 
-    .logo {
-        font-size: 1rem;
-    }
+  .logo {
+    font-size: 1rem;
+  }
 
-    .nav-btn {
-        padding: 8px 12px;
-        font-size: 0.85rem;
-    }
+  .nav-btn {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
 }

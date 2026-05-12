@@ -11,7 +11,10 @@ public class ComunidadeService : IComunidadeService
     private readonly IComunidadeRepository _comunidadeRepository;
     private readonly IUtilizadorRepository _utilizadorRepository;
 
-    public ComunidadeService(IComunidadeRepository comunidadeRepository, IUtilizadorRepository utilizadorRepository)
+    public ComunidadeService(
+        IComunidadeRepository comunidadeRepository,
+        IUtilizadorRepository utilizadorRepository
+    )
     {
         _comunidadeRepository = comunidadeRepository;
         _utilizadorRepository = utilizadorRepository;
@@ -19,47 +22,55 @@ public class ComunidadeService : IComunidadeService
 
     public async Task<IEnumerable<ComunidadeReadDto>> GetAllComunidadesAsync(int usuarioIdPedido)
     {
-        var comunidades = await _comunidadeRepository.FindComunidadesAsync(
-            c => c.IsPublic && !c.Members.Any(m => m.UtilizadorId == usuarioIdPedido)
+        var comunidades = await _comunidadeRepository.FindComunidadesAsync(c =>
+            c.IsPublic && !c.Members.Any(m => m.UtilizadorId == usuarioIdPedido)
         );
         return comunidades.Select(ComunidadeMapper.ToReadDto);
     }
 
     public async Task<IEnumerable<ComunidadeReadDto>> GetMinhasComunidadesAsync(int usuarioId)
     {
-        var comunidades = await _comunidadeRepository.FindComunidadesAsync(
-            c => c.Members.Any(m => m.UtilizadorId == usuarioId)
+        var comunidades = await _comunidadeRepository.FindComunidadesAsync(c =>
+            c.Members.Any(m => m.UtilizadorId == usuarioId)
         );
 
         return comunidades.Select(ComunidadeMapper.ToReadDto);
     }
 
-
     public async Task<ComunidadeReadDto?> GetComunidadeByIdAsync(int id, int usuarioIdPedido)
     {
         var comunidade = await _comunidadeRepository.GetComunidadeByIdAsync(id);
-        if (comunidade == null) return null;
+        if (comunidade == null)
+            return null;
 
-       bool acessoProibido = !comunidade.IsPublic && !await _comunidadeRepository.IsMembroAsync(id, usuarioIdPedido);
+        bool acessoProibido =
+            !comunidade.IsPublic && !await _comunidadeRepository.IsMembroAsync(id, usuarioIdPedido);
 
-        if (acessoProibido) throw new UnauthorizedAccessException("Acesso negado à comunidade privada");
+        if (acessoProibido)
+            throw new UnauthorizedAccessException("Acesso negado à comunidade privada");
 
         return ComunidadeMapper.ToReadDto(comunidade);
     }
 
-    public async Task<ComunidadeReadDto> CreateComunidadeAsync(ComunidadeCreateDto dto, int criadorUserId)
+    public async Task<ComunidadeReadDto> CreateComunidadeAsync(
+        ComunidadeCreateDto dto,
+        int criadorUserId
+    )
     {
         var criadorUser = await _utilizadorRepository.GetByIdAsync(criadorUserId);
-        if (criadorUser == null) throw new Exception("Criador não encontrado");
+        if (criadorUser == null)
+            throw new Exception("Criador não encontrado");
 
         var comunidadeEntity = ComunidadeMapper.ToEntity(dto, criadorUserId);
 
-        comunidadeEntity.Members.Add(new ComunidadeMembro
-        {
-            UtilizadorId = criadorUserId,
-            Role = CommunityMemberRole.Owner,
-            JoinedAt = DateTime.UtcNow
-        });
+        comunidadeEntity.Members.Add(
+            new ComunidadeMembro
+            {
+                UtilizadorId = criadorUserId,
+                Role = CommunityMemberRole.Owner,
+                JoinedAt = DateTime.UtcNow,
+            }
+        );
 
         var result = await _comunidadeRepository.AddComunidadeAsync(comunidadeEntity);
 
@@ -67,6 +78,5 @@ public class ComunidadeService : IComunidadeService
         result.CreatedByUser = criadorUser;
 
         return ComunidadeMapper.ToReadDto(result);
-
     }
 }

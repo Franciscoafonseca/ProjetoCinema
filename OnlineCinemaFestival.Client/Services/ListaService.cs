@@ -30,9 +30,9 @@ public class ListaService
         if (!resposta.IsSuccessStatusCode)
         {
             var mensagem = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(string.IsNullOrWhiteSpace(mensagem)
-                ? "Não foi possível criar a lista."
-                : mensagem);
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(mensagem) ? "Não foi possível criar a lista." : mensagem
+            );
         }
 
         return await resposta.Content.ReadFromJsonAsync<ListaPessoalDto>()

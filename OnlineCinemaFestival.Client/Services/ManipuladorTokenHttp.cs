@@ -13,7 +13,8 @@ public class ManipuladorTokenHttp : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var token = await _armazenamento.ObterAsync();
 

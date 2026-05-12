@@ -50,7 +50,11 @@ public class ListaPessoalService : IListaPessoalService
     /// <exception cref="KeyNotFoundException">Lista ou filme inexistentes.</exception>
     /// <exception cref="UnauthorizedAccessException">Lista pertence a outro utilizador.</exception>
     /// <exception cref="InvalidOperationException">Filme já presente na lista.</exception>
-    public async Task<ListaPessoalItemReadDto> AdicionarFilmeAsync(int utilizadorId, int listaId, int filmeId)
+    public async Task<ListaPessoalItemReadDto> AdicionarFilmeAsync(
+        int utilizadorId,
+        int listaId,
+        int filmeId
+    )
     {
         var lista = await GarantirAcessoLista(utilizadorId, listaId);
 

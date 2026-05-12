@@ -24,6 +24,7 @@ public class FestivalService
 
     public async Task<List<FilmeDto>> GetFilmesDoFestivalAsync(int festivalId)
     {
-        return await _http.GetFromJsonAsync<List<FilmeDto>>($"api/festivals/{festivalId}/filmes") ?? new();
+        return await _http.GetFromJsonAsync<List<FilmeDto>>($"api/festivals/{festivalId}/filmes")
+            ?? new();
     }
 }

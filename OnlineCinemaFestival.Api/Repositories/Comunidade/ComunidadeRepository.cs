@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
 
@@ -23,20 +23,22 @@ public class ComunidadeRepository : IComunidadeRepository
 
     public async Task<Comunidade?> GetComunidadeByIdAsync(int id)
     {
-        return await _context.Comunidades
-            .Include(c => c.CreatedByUser)
+        return await _context
+            .Comunidades.Include(c => c.CreatedByUser)
             .Include(c => c.Members)
             .Include(c => c.Comentarios)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public async Task<IEnumerable<Comunidade>> FindComunidadesAsync(Expression<Func<Comunidade, bool>> predicate)
+    public async Task<IEnumerable<Comunidade>> FindComunidadesAsync(
+        Expression<Func<Comunidade, bool>> predicate
+    )
     {
-        return await _context.Comunidades
-            .Include(c => c.CreatedByUser)
+        return await _context
+            .Comunidades.Include(c => c.CreatedByUser)
             .Include(c => c.Members)
             .Include(c => c.Comentarios)
-            .Where(predicate) 
+            .Where(predicate)
             .OrderByDescending(c => c.Members.Count)
             .ThenByDescending(c => c.CreatedAt)
             .ToListAsync();
@@ -44,8 +46,8 @@ public class ComunidadeRepository : IComunidadeRepository
 
     public async Task<bool> IsMembroAsync(int comunidadeId, int usuarioId)
     {
-        return await _context.ComunidadeMembros
-            .AnyAsync(cm => cm.ComunidadeId == comunidadeId && cm.UtilizadorId == usuarioId);
+        return await _context.ComunidadeMembros.AnyAsync(cm =>
+            cm.ComunidadeId == comunidadeId && cm.UtilizadorId == usuarioId
+        );
     }
-
 }

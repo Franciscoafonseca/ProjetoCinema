@@ -15,8 +15,8 @@ public class ListaPessoalRepository : IListaPessoalRepository
 
     public async Task<IEnumerable<ListaPessoal>> GetByUtilizadorAsync(int utilizadorId)
     {
-        return await _context.ListasPessoais
-            .AsNoTracking()
+        return await _context
+            .ListasPessoais.AsNoTracking()
             .Include(l => l.Items)
                 .ThenInclude(i => i.Filme)
             .Where(l => l.UtilizadorId == utilizadorId)
@@ -27,8 +27,8 @@ public class ListaPessoalRepository : IListaPessoalRepository
 
     public async Task<ListaPessoal?> GetByIdAsync(int id)
     {
-        return await _context.ListasPessoais
-            .Include(l => l.Items)
+        return await _context
+            .ListasPessoais.Include(l => l.Items)
                 .ThenInclude(i => i.Filme)
             .FirstOrDefaultAsync(l => l.Id == id);
     }
@@ -45,8 +45,9 @@ public class ListaPessoalRepository : IListaPessoalRepository
 
     public async Task<ListaPessoalItem?> GetItemAsync(int listaId, int filmeId)
     {
-        return await _context.ListaPessoalItems
-            .FirstOrDefaultAsync(i => i.ListaPessoalId == listaId && i.FilmeId == filmeId);
+        return await _context.ListaPessoalItems.FirstOrDefaultAsync(i =>
+            i.ListaPessoalId == listaId && i.FilmeId == filmeId
+        );
     }
 
     public async Task AddItemAsync(ListaPessoalItem item)

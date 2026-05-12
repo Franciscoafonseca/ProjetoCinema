@@ -13,7 +13,7 @@ public class ComentarioRepository : IComentarioRepository
         _context = context;
     }
 
-    // 
+    //
     public async Task<Comentario> AddAsync(Comentario comentario)
     {
         _context.Comentarios.Add(comentario);
@@ -23,8 +23,8 @@ public class ComentarioRepository : IComentarioRepository
 
     public async Task<IEnumerable<Comentario>> GetByComunidadeIdAsync(int comunidadeId)
     {
-        return await _context.Comentarios
-            .Include(c => c.Usuario)
+        return await _context
+            .Comentarios.Include(c => c.Usuario)
             .Include(c => c.Comunidade)
             .Where(c => c.ComunidadeId == comunidadeId && c.Visivel)
             .OrderByDescending(c => c.CriadoEm)

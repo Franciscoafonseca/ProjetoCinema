@@ -96,8 +96,12 @@ public class EstadoAutenticacaoCustomizado : AuthenticationStateProvider
         var s = entrada.Replace('-', '+').Replace('_', '/');
         switch (s.Length % 4)
         {
-            case 2: s += "=="; break;
-            case 3: s += "="; break;
+            case 2:
+                s += "==";
+                break;
+            case 3:
+                s += "=";
+                break;
         }
         return Convert.FromBase64String(s);
     }

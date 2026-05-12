@@ -22,7 +22,8 @@ public class ListasController : ControllerBase
     public async Task<ActionResult<IEnumerable<ListaPessoalReadDto>>> GetMinhasListas()
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+            return Unauthorized();
 
         var listas = await _service.GetMinhasListasAsync(userId.Value);
         return Ok(listas);
@@ -32,7 +33,8 @@ public class ListasController : ControllerBase
     public async Task<ActionResult<ListaPessoalReadDto>> Create(ListaPessoalCreateDto dto)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+            return Unauthorized();
 
         try
         {
@@ -49,7 +51,8 @@ public class ListasController : ControllerBase
     public async Task<ActionResult<ListaPessoalItemReadDto>> AdicionarFilme(int id, int filmeId)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+            return Unauthorized();
 
         try
         {
@@ -74,7 +77,8 @@ public class ListasController : ControllerBase
     public async Task<IActionResult> RemoverFilme(int id, int filmeId)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+            return Unauthorized();
 
         try
         {

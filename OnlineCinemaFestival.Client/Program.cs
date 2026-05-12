@@ -14,14 +14,20 @@ builder.Services.AddScoped<ArmazenamentoToken>();
 builder.Services.AddScoped<ManipuladorTokenHttp>();
 builder.Services.AddScoped<EstadoAutenticacaoCustomizado>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
-    sp.GetRequiredService<EstadoAutenticacaoCustomizado>());
+    sp.GetRequiredService<EstadoAutenticacaoCustomizado>()
+);
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 
-builder.Services.AddHttpClient("Api", cliente =>
-{
-    cliente.BaseAddress = new Uri(ApiBaseUrl);
-}).AddHttpMessageHandler<ManipuladorTokenHttp>();
+builder
+    .Services.AddHttpClient(
+        "Api",
+        cliente =>
+        {
+            cliente.BaseAddress = new Uri(ApiBaseUrl);
+        }
+    )
+    .AddHttpMessageHandler<ManipuladorTokenHttp>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
 

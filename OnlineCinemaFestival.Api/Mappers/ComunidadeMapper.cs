@@ -15,7 +15,7 @@ public static class ComunidadeMapper
             ImageUrl = dto.ImageUrl,
             IsPublic = dto.IsPublic,
             CreatedByUserId = criatedByUserId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
         };
     }
 
@@ -33,9 +33,7 @@ public static class ComunidadeMapper
             CreatedByUserName = comunidade.CreatedByUser?.Name,
             CreatedAt = comunidade.CreatedAt,
             MembersCount = comunidade.Members?.Count ?? 0,
-            ComentariosCount = comunidade.Comentarios?.Count ?? 0
+            ComentariosCount = comunidade.Comentarios?.Count ?? 0,
         };
     }
-
-
 }

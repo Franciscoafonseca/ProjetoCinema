@@ -48,12 +48,13 @@ public static class ListaPessoalMapper
         };
     }
 
-    private static string ObterNomeTipo(TipoListaPessoal tipo) => tipo switch
-    {
-        TipoListaPessoal.Watchlist => "Quero ver",
-        TipoListaPessoal.Watched => "Vistos",
-        TipoListaPessoal.Favorites => "Favoritos",
-        TipoListaPessoal.Custom => "Personalizada",
-        _ => tipo.ToString(),
-    };
+    private static string ObterNomeTipo(TipoListaPessoal tipo) =>
+        tipo switch
+        {
+            TipoListaPessoal.Watchlist => "Quero ver",
+            TipoListaPessoal.Watched => "Vistos",
+            TipoListaPessoal.Favorites => "Favoritos",
+            TipoListaPessoal.Custom => "Personalizada",
+            _ => tipo.ToString(),
+        };
 }

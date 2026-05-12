@@ -10,12 +10,12 @@ Adicionei o CRUD básico das listas pessoais (Watchlist / Watched / Favorites + 
 
 Todos exigem JWT (`[Authorize]` no controller). Cada operação valida que a lista pertence ao utilizador autenticado.
 
-| Verbo | Rota | Resposta sucesso | Erros |
-|---|---|---|---|
-| `GET` | `/api/listas` | `200` lista das listas do utilizador (com items + filmes incluídos) | `401` sem token |
-| `POST` | `/api/listas` | `201 Created` lista nova | `400` nome vazio |
-| `POST` | `/api/listas/{id}/filmes/{filmeId}` | `200 OK` item adicionado | `404` lista/filme inexistente, `403` lista de outro utilizador, `409` filme já está na lista |
-| `DELETE` | `/api/listas/{id}/filmes/{filmeId}` | `204 No Content` | `404`, `403` |
+| Verbo    | Rota                                | Resposta sucesso                                                    | Erros                                                                                        |
+| -------- | ----------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/listas`                       | `200` lista das listas do utilizador (com items + filmes incluídos) | `401` sem token                                                                              |
+| `POST`   | `/api/listas`                       | `201 Created` lista nova                                            | `400` nome vazio                                                                             |
+| `POST`   | `/api/listas/{id}/filmes/{filmeId}` | `200 OK` item adicionado                                            | `404` lista/filme inexistente, `403` lista de outro utilizador, `409` filme já está na lista |
+| `DELETE` | `/api/listas/{id}/filmes/{filmeId}` | `204 No Content`                                                    | `404`, `403`                                                                                 |
 
 ### Body do `POST /api/listas`
 
@@ -33,11 +33,11 @@ Todos exigem JWT (`[Authorize]` no controller). Cada operação valida que a lis
 ## Tipos de lista (`TipoListaPessoal` enum)
 
 | Valor | Nome interno | `TipoNome` (em PT-PT) |
-|---|---|---|
-| `0` | Custom | "Personalizada" |
-| `1` | Watchlist | "Quero ver" |
-| `2` | Watched | "Vistos" |
-| `3` | Favorites | "Favoritos" |
+| ----- | ------------ | --------------------- |
+| `0`   | Custom       | "Personalizada"       |
+| `1`   | Watchlist    | "Quero ver"           |
+| `2`   | Watched      | "Vistos"              |
+| `3`   | Favorites    | "Favoritos"           |
 
 As 3 listas predefinidas (Watchlist/Watched/Favorites) são criadas automaticamente no `POST /api/auth/register` — ver [AuthService.cs:77-100](OnlineCinemaFestival.Api/Services/AuthService.cs#L77-L100).
 
@@ -64,6 +64,7 @@ DTOs nunca expõem entidades EF diretamente — mapeamento centralizado em [Mapp
 ## Ficheiros criados / alterados
 
 **Novos:**
+
 - [DTOs/ListaPessoalCreateDto.cs](OnlineCinemaFestival.Api/DTOs/ListaPessoalCreateDto.cs)
 - [DTOs/ListaPessoalReadDto.cs](OnlineCinemaFestival.Api/DTOs/ListaPessoalReadDto.cs)
 - [DTOs/ListaPessoalItemReadDto.cs](OnlineCinemaFestival.Api/DTOs/ListaPessoalItemReadDto.cs)
@@ -75,6 +76,7 @@ DTOs nunca expõem entidades EF diretamente — mapeamento centralizado em [Mapp
 - [Controllers/ListasController.cs](OnlineCinemaFestival.Api/Controllers/ListasController.cs)
 
 **Alterado:**
+
 - [Program.cs](OnlineCinemaFestival.Api/Program.cs) — registo do repository + service no DI, e config nova do Swagger (ver secção "Bónus" mais abaixo)
 
 **Não tocado:** Modelos `ListaPessoal`, `ListaPessoalItem`, enum `TipoListaPessoal`, `AppDbContext` (configuração já existia), `DbSeeder` (já criava as listas predefinidas).
@@ -137,9 +139,16 @@ dotnet run
 Fluxo:
 
 1. **`POST /api/auth/register`** — cria conta nova e devolve já o JWT na resposta:
+
    ```json
-   { "name": "Teste", "email": "teste@exemplo.pt", "password": "123456", "nationality": "Portugal" }
+   {
+     "name": "Teste",
+     "email": "teste@exemplo.pt",
+     "password": "123456",
+     "nationality": "Portugal"
+   }
    ```
+
    Copia o valor de `token` da resposta.
 
 2. **Botão "Authorize"** (topo direito da página) → cola o token (**sem** `Bearer ` à frente) → "Authorize" → "Close".
@@ -201,4 +210,3 @@ public Task RemoverFilmeAsync(int listaId, int filmeId)
 Sugestão de UX: botão "+ Quero ver" / "★ Favoritos" no `FilmeCard` ou na página de `DetalhesFilme`, e uma página `/listas` que mostra os 3 conjuntos do utilizador autenticado.
 
 ---
-

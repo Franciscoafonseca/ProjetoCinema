@@ -15,7 +15,7 @@ public static class ComentarioMapper
             Texto = dto.Texto,
             CriadoEm = DateTime.UtcNow,
             Reportado = false,
-            Visivel = true
+            Visivel = true,
         };
     }
 
@@ -32,10 +32,7 @@ public static class ComentarioMapper
             Texto = comentario.Texto,
             CriadoEm = comentario.CriadoEm,
             Visivel = comentario.Visivel,
-            Reportado = comentario.Reportado
-
+            Reportado = comentario.Reportado,
         };
     }
-
-
 }

@@ -29,9 +29,11 @@ public class PerfilService
         if (!resposta.IsSuccessStatusCode)
         {
             var mensagem = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(string.IsNullOrWhiteSpace(mensagem)
-                ? "Não foi possível atualizar o perfil."
-                : mensagem);
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(mensagem)
+                    ? "Não foi possível atualizar o perfil."
+                    : mensagem
+            );
         }
 
         return await resposta.Content.ReadFromJsonAsync<UserProfileResponse>();

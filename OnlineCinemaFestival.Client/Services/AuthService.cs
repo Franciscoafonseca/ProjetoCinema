@@ -12,7 +12,8 @@ public class AuthService
     public AuthService(
         HttpClient http,
         ArmazenamentoToken armazenamento,
-        EstadoAutenticacaoCustomizado estado)
+        EstadoAutenticacaoCustomizado estado
+    )
     {
         _http = http;
         _armazenamento = armazenamento;
@@ -26,12 +27,13 @@ public class AuthService
         if (!resposta.IsSuccessStatusCode)
         {
             var mensagem = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(string.IsNullOrWhiteSpace(mensagem)
-                ? "Credenciais inválidas."
-                : mensagem);
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(mensagem) ? "Credenciais inválidas." : mensagem
+            );
         }
 
-        var resultado = await resposta.Content.ReadFromJsonAsync<AuthResponse>()
+        var resultado =
+            await resposta.Content.ReadFromJsonAsync<AuthResponse>()
             ?? throw new InvalidOperationException("Resposta inválida do servidor.");
 
         await _armazenamento.GuardarAsync(resultado.Token);
@@ -46,12 +48,13 @@ public class AuthService
         if (!resposta.IsSuccessStatusCode)
         {
             var mensagem = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(string.IsNullOrWhiteSpace(mensagem)
-                ? "Não foi possível criar a conta."
-                : mensagem);
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(mensagem) ? "Não foi possível criar a conta." : mensagem
+            );
         }
 
-        var resultado = await resposta.Content.ReadFromJsonAsync<AuthResponse>()
+        var resultado =
+            await resposta.Content.ReadFromJsonAsync<AuthResponse>()
             ?? throw new InvalidOperationException("Resposta inválida do servidor.");
 
         await _armazenamento.GuardarAsync(resultado.Token);
