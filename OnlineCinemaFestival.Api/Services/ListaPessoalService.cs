@@ -97,6 +97,24 @@ public class ListaPessoalService : IListaPessoalService
     }
 
     /// <summary>
+    /// Remove uma lista personalizada do utilizador autenticado.
+    /// As listas predefinidas (Quero ver, Vistos, Favoritos) não podem ser apagadas.
+    /// </summary>
+    /// <exception cref="KeyNotFoundException">Lista inexistente.</exception>
+    /// <exception cref="UnauthorizedAccessException">Lista pertence a outro utilizador.</exception>
+    /// <exception cref="InvalidOperationException">Tentativa de apagar lista predefinida.</exception>
+    public async Task RemoverListaAsync(int utilizadorId, int listaId)
+    {
+        var lista = await GarantirAcessoLista(utilizadorId, listaId);
+
+        if (lista.Tipo != TipoListaPessoal.Custom)
+            throw new InvalidOperationException("Não é possível apagar listas predefinidas.");
+
+        _repository.Remove(lista);
+        await _repository.SaveChangesAsync();
+    }
+
+    /// <summary>
     /// Verifica se a lista existe e pertence ao utilizador autenticado.
     /// </summary>
     private async Task<ListaPessoal> GarantirAcessoLista(int utilizadorId, int listaId)

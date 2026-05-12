@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
 using OnlineCinemaFestival.Client;
 using OnlineCinemaFestival.Client.Services;
 
@@ -32,5 +33,7 @@ builder.Services.AddScoped<SessaoService>();
 builder.Services.AddScoped<AcessoService>();
 builder.Services.AddScoped<PerfilService>();
 builder.Services.AddScoped<ListaService>();
+
+builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();

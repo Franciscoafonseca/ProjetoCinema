@@ -59,6 +59,11 @@ public class ListaPessoalRepository : IListaPessoalRepository
         _context.ListaPessoalItems.Remove(item);
     }
 
+    public void Remove(ListaPessoal lista)
+    {
+        _context.ListasPessoais.Remove(lista);
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

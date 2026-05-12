@@ -51,34 +51,17 @@
     border-color: #e50914;
 }
 
-.generos-chips {
+.filtro-genero {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.chips-selecionados {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-}
-
-.chip {
-    padding: 6px 16px;
-    border-radius: 20px;
-    border: 1px solid #444;
-    background-color: transparent;
-    color: #ccc;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    letter-spacing: 0.3px;
-}
-
-.chip:hover {
-    border-color: #e50914;
-    color: #fff;
-}
-
-.chip-ativo {
-    background-color: #e50914;
-    border-color: #e50914;
-    color: #fff;
+    gap: 6px;
 }
 
 .catalogo-grid {

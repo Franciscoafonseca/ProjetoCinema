@@ -59,4 +59,17 @@ public class ListaService
 
         resposta.EnsureSuccessStatusCode();
     }
+
+    public async Task RemoverListaAsync(int listaId)
+    {
+        var resposta = await _http.DeleteAsync($"api/listas/{listaId}");
+
+        if (!resposta.IsSuccessStatusCode)
+        {
+            var mensagem = await resposta.Content.ReadAsStringAsync();
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(mensagem)
+                ? "Não foi possível apagar a lista."
+                : mensagem);
+        }
+    }
 }

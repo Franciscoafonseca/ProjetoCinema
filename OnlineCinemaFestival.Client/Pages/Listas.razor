@@ -1,6 +1,7 @@
 @page "/listas"
 @inject ListaService ListaService
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>As minhas listas — Online Cinema Festival</PageTitle>
 
@@ -78,23 +79,34 @@
                 {
                     <section class="lista-bloco">
                         <header class="lista-bloco-cabecalho">
-                            <div>
-                                <h2 class="lista-bloco-nome">
-                                    @ObterIcone(lista.Tipo) @lista.Name
-                                </h2>
-                                <div class="lista-bloco-meta">
-                                    <span class="lista-tipo">@lista.TipoNome</span>
-                                    <span>·</span>
-                                    <span>@lista.TotalFilmes @(lista.TotalFilmes == 1 ? "filme" : "filmes")</span>
-                                    @if (lista.IsPublic)
-                                    {
+                            <div class="lista-bloco-cabecalho-conteudo">
+                                <div>
+                                    <h2 class="lista-bloco-nome">
+                                        @ObterIcone(lista.Tipo) @lista.Name
+                                    </h2>
+                                    <div class="lista-bloco-meta">
+                                        <span class="lista-tipo">@lista.TipoNome</span>
                                         <span>·</span>
-                                        <span class="badge-publica">Pública</span>
+                                        <span>@lista.TotalFilmes @(lista.TotalFilmes == 1 ? "filme" : "filmes")</span>
+                                        @if (lista.IsPublic)
+                                        {
+                                            <span>·</span>
+                                            <span class="badge-publica">Pública</span>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(lista.Description))
+                                    {
+                                        <p class="lista-bloco-descricao">@lista.Description</p>
                                     }
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(lista.Description))
+                                @if (lista.Tipo == 0)
                                 {
-                                    <p class="lista-bloco-descricao">@lista.Description</p>
+                                    <button class="btn-apagar-lista"
+                                            title="Apagar lista"
+                                            disabled="@_aApagar"
+                                            @onclick="() => ApagarLista(lista)">
+                                        🗑 Apagar
+                                    </button>
                                 }
                             </div>
                         </header>
@@ -152,6 +164,7 @@
     private CriarListaRequest _novaLista = new();
     private bool _aCriar;
     private string? _erroForm;
+    private bool _aApagar;
 
     protected override async Task OnInitializedAsync()
     {
@@ -226,6 +239,32 @@
         catch
         {
             _erro = "Não foi possível remover o filme.";
+        }
+    }
+
+    private async Task ApagarLista(ListaPessoalDto lista)
+    {
+        if (_aApagar) return;
+
+        var confirmou = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"Tens a certeza que queres apagar a lista \"{lista.Name}\"? Esta ação não pode ser revertida.");
+
+        if (!confirmou) return;
+
+        _aApagar = true;
+        try
+        {
+            await ListaService.RemoverListaAsync(lista.Id);
+            _listas.Remove(lista);
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aApagar = false;
         }
     }
 
