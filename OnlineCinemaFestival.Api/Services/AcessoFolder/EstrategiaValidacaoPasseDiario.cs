@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
 
-namespace OnlineCinemaFestival.Api.Services.Acesso;
+namespace OnlineCinemaFestival.Api.Services.AcessosFolder;
 
 public class EstrategiaValidacaoPasseDiario : IEstrategiaValidacaoAcesso
 {

@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
-using OnlineCinemaFestival.Api.Services.Acesso;
+using OnlineCinemaFestival.Api.Services.AcessosFolder;
 
 namespace OnlineCinemaFestival.Api.Services;
 

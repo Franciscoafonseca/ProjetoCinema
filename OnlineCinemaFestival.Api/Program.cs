@@ -8,7 +8,7 @@ using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
-using OnlineCinemaFestival.Api.Services.Acesso;
+using OnlineCinemaFestival.Api.Services.AcessosFolder;
 using OnlineCinemaFestival.Api.Services.Catalogo;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -93,13 +93,37 @@ builder.Services.AddScoped<IFilmeService, FilmeService>();
 builder.Services.AddScoped<IFestivalRepository, FestivalRepository>();
 builder.Services.AddScoped<IFestivalService, FestivalService>();
 
+builder.Services.AddScoped<IVisualizacaoRepository, VisualizacaoRepository>();
+builder.Services.AddScoped<IValidacaoAcessoService, ValidacaoAcessoService>();
+builder.Services.AddScoped<IVisualizacaoService, VisualizacaoService>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUtilizadorAtualService, UtilizadorAtualService>();
+
+builder.Services.AddScoped<IGeradorReferenciaCompra, GeradorReferenciaCompra>();
+builder.Services.AddScoped<IValidadorCheckout, ValidadorCheckout>();
+
+builder.Services.AddScoped<IAcessoUtilizadorFactory, FabricaAcessoUtilizador>();
+
+builder.Services.AddScoped<IEstrategiaCriacaoAcessoUtilizador, EstrategiaCriacaoBilheteSessao>();
+builder.Services.AddScoped<IEstrategiaCriacaoAcessoUtilizador, EstrategiaCriacaoPasseDiario>();
+builder.Services.AddScoped<IEstrategiaCriacaoAcessoUtilizador, EstrategiaCriacaoPasseCompleto>();
+builder.Services.AddScoped<IEstrategiaCriacaoAcessoUtilizador, EstrategiaCriacaoAluguerDigital>();
 builder.Services.AddScoped<IFestivalFilmeRepository, FestivalFilmeRepository>();
 builder.Services.AddScoped<IFestivalFilmeService, FestivalFilmeService>();
+builder.Services.AddScoped<ICompraRepository, CompraRepository>();
+builder.Services.AddScoped<IAcessoUtilizadorRepository, AcessoUtilizadorRepository>();
+
+builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.AddScoped<ICompraService, CompraService>();
+builder.Services.AddScoped<IAcessoUtilizadorService, AcessoUtilizadorService>();
 
 builder.Services.AddScoped<ISessaoRepository, SessaoRepository>();
 builder.Services.AddScoped<ISessaoService, SessaoService>();
 
 builder.Services.AddScoped<ICatalogoService, CatalogoService>();
+builder.Services.AddScoped<ICarrinhoRepository, CarrinhoRepository>();
+builder.Services.AddScoped<ICarrinhoService, CarrinhoService>();
 
 builder.Services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorTituloStrategy>();
 builder.Services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorPopularidadeStrategy>();

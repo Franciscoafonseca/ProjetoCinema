@@ -6,4 +6,5 @@ public interface ITmdbService
 {
     Task<IEnumerable<TmdbFilmeDto>> SearchFilmesTmdbAsync(string query);
     Task<TmdbFilmeDto?> GetFilmeByTmdbIdAsync(int tmdbId);
+    Task<string?> GetTrailerUrlAsync(int tmdbId);
 }

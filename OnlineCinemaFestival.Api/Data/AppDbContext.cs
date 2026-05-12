@@ -16,6 +16,9 @@ public class AppDbContext : DbContext
 
     public DbSet<Sessao> Sessoes => Set<Sessao>();
 
+    public DbSet<Carrinho> Carrinhos => Set<Carrinho>();
+
+    public DbSet<ItemCarrinho> ItensCarrinho => Set<ItemCarrinho>();
     public DbSet<FestivalFilme> FestivalFilmes => Set<FestivalFilme>();
     public DbSet<Avaliacao> Avaliacoes => Set<Avaliacao>();
     public DbSet<Comentario> Comentarios => Set<Comentario>();
@@ -28,7 +31,11 @@ public class AppDbContext : DbContext
 
     public DbSet<ListaPessoal> ListasPessoais => Set<ListaPessoal>();
     public DbSet<ListaPessoalItem> ListaPessoalItems => Set<ListaPessoalItem>();
+    public DbSet<Compra> Compras => Set<Compra>();
 
+    public DbSet<ItemCompra> ItensCompra => Set<ItemCompra>();
+
+    public DbSet<AcessoUtilizador> AcessosUtilizador => Set<AcessoUtilizador>();
     public DbSet<Comunidade> Comunidades => Set<Comunidade>();
     public DbSet<ComunidadeMembro> ComunidadeMembros => Set<ComunidadeMembro>();
 
@@ -206,5 +213,106 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(a => a.FilmeId)
             .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder
+            .Entity<Carrinho>()
+            .HasOne(c => c.Utilizador)
+            .WithMany()
+            .HasForeignKey(c => c.UtilizadorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Carrinho>().HasIndex(c => c.UtilizadorId).IsUnique();
+
+        modelBuilder
+            .Entity<ItemCarrinho>()
+            .HasOne(i => i.Carrinho)
+            .WithMany(c => c.Itens)
+            .HasForeignKey(i => i.CarrinhoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<ItemCarrinho>()
+            .HasOne(i => i.Acesso)
+            .WithMany()
+            .HasForeignKey(i => i.AcessoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<ItemCarrinho>()
+            .HasIndex(i => new { i.CarrinhoId, i.AcessoId })
+            .IsUnique();
+
+        modelBuilder.Entity<ItemCarrinho>().Property(i => i.PrecoUnitario).HasPrecision(10, 2);
+        modelBuilder
+            .Entity<Compra>()
+            .HasOne(c => c.Utilizador)
+            .WithMany()
+            .HasForeignKey(c => c.UtilizadorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Compra>().HasIndex(c => c.Referencia).IsUnique();
+
+        modelBuilder.Entity<Compra>().Property(c => c.ValorTotal).HasPrecision(10, 2);
+
+        modelBuilder
+            .Entity<ItemCompra>()
+            .HasOne(i => i.Compra)
+            .WithMany(c => c.Itens)
+            .HasForeignKey(i => i.CompraId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<ItemCompra>()
+            .HasOne(i => i.Acesso)
+            .WithMany()
+            .HasForeignKey(i => i.AcessoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ItemCompra>().Property(i => i.PrecoUnitario).HasPrecision(10, 2);
+
+        modelBuilder.Entity<ItemCompra>().Property(i => i.Subtotal).HasPrecision(10, 2);
+
+        modelBuilder
+            .Entity<AcessoUtilizador>()
+            .HasOne(a => a.Utilizador)
+            .WithMany()
+            .HasForeignKey(a => a.UtilizadorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<AcessoUtilizador>()
+            .HasOne(a => a.Acesso)
+            .WithMany()
+            .HasForeignKey(a => a.AcessoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<AcessoUtilizador>()
+            .HasOne(a => a.Compra)
+            .WithMany()
+            .HasForeignKey(a => a.CompraId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<AcessoUtilizador>()
+            .HasOne(a => a.Sessao)
+            .WithMany()
+            .HasForeignKey(a => a.SessaoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<AcessoUtilizador>()
+            .HasOne(a => a.Festival)
+            .WithMany()
+            .HasForeignKey(a => a.FestivalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<AcessoUtilizador>()
+            .HasOne(a => a.Filme)
+            .WithMany()
+            .HasForeignKey(a => a.FilmeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<AcessoUtilizador>().HasIndex(a => new { a.UtilizadorId, a.AcessoId });
     }
 }

@@ -1,7 +1,7 @@
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Models;
 
-namespace OnlineCinemaFestival.Api.Services.Acesso;
+namespace OnlineCinemaFestival.Api.Services.AcessosFolder;
 
 public interface IEstrategiaValidacaoAcesso
 {

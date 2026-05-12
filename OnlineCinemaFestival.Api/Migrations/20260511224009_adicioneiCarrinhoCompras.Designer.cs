@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineCinemaFestival.Api.Data;
 
@@ -10,9 +11,11 @@ using OnlineCinemaFestival.Api.Data;
 namespace OnlineCinemaFestival.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260511224009_adicioneiCarrinhoCompras")]
+    partial class adicioneiCarrinhoCompras
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
@@ -68,62 +71,6 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.HasIndex("SessaoId");
 
                     b.ToTable("Acessos");
-                });
-
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.AcessoUtilizador", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("AcessoId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Ativo")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CompraId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CriadoEm")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("FestivalId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("FilmeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("FimValidade")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("InicioValidade")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("SessaoId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TipoAcesso")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("UtilizadorId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AcessoId");
-
-                    b.HasIndex("CompraId");
-
-                    b.HasIndex("FestivalId");
-
-                    b.HasIndex("FilmeId");
-
-                    b.HasIndex("SessaoId");
-
-                    b.HasIndex("UtilizadorId", "AcessoId");
-
-                    b.ToTable("AcessosUtilizador");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Avaliacao", b =>
@@ -209,42 +156,6 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Comentarios");
-                });
-
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Compra", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CriadaEm")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Estado")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("PagaEm")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Referencia")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("UtilizadorId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("ValorTotal")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Referencia")
-                        .IsUnique();
-
-                    b.HasIndex("UtilizadorId");
-
-                    b.ToTable("Compras");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comunidade", b =>
@@ -433,45 +344,6 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("ItensCarrinho");
-                });
-
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ItemCompra", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("AcessoId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CompraId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("NomeAcesso")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("PrecoUnitario")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Quantidade")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TipoAcesso")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AcessoId");
-
-                    b.HasIndex("CompraId");
-
-                    b.ToTable("ItensCompra");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ListaPessoal", b =>
@@ -711,54 +583,6 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Sessao");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.AcessoUtilizador", b =>
-                {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Acesso", "Acesso")
-                        .WithMany()
-                        .HasForeignKey("AcessoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Compra", "Compra")
-                        .WithMany()
-                        .HasForeignKey("CompraId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Festival", "Festival")
-                        .WithMany()
-                        .HasForeignKey("FestivalId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
-                        .WithMany()
-                        .HasForeignKey("FilmeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Sessao", "Sessao")
-                        .WithMany()
-                        .HasForeignKey("SessaoId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
-                        .WithMany()
-                        .HasForeignKey("UtilizadorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Acesso");
-
-                    b.Navigation("Compra");
-
-                    b.Navigation("Festival");
-
-                    b.Navigation("Filme");
-
-                    b.Navigation("Sessao");
-
-                    b.Navigation("Utilizador");
-                });
-
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Avaliacao", b =>
                 {
                     b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
@@ -806,17 +630,6 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Comunidade");
 
                     b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Compra", b =>
-                {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
-                        .WithMany()
-                        .HasForeignKey("UtilizadorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Utilizador");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comunidade", b =>
@@ -884,25 +697,6 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Acesso");
 
                     b.Navigation("Carrinho");
-                });
-
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ItemCompra", b =>
-                {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Acesso", "Acesso")
-                        .WithMany()
-                        .HasForeignKey("AcessoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Compra", "Compra")
-                        .WithMany("Itens")
-                        .HasForeignKey("CompraId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Acesso");
-
-                    b.Navigation("Compra");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ListaPessoal", b =>
@@ -996,11 +790,6 @@ namespace OnlineCinemaFestival.Api.Migrations
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Carrinho", b =>
-                {
-                    b.Navigation("Itens");
-                });
-
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Compra", b =>
                 {
                     b.Navigation("Itens");
                 });

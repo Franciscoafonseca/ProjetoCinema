@@ -134,4 +134,39 @@ public class TmdbService : ITmdbService
                     : "Geral",
         };
     }
+
+    public async Task<string?> GetTrailerUrlAsync(int tmdbId)
+    {
+        var token = _configuration["Tmdb:Token"];
+        var baseUrl = _configuration["Tmdb:BaseUrl"];
+
+        var url = $"{baseUrl}movie/{tmdbId}/videos?language=pt-PT";
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var jsonString = await response.Content.ReadAsStringAsync();
+
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+        var videos = JsonSerializer.Deserialize<TmdbVideosResponseDto>(jsonString, options);
+
+        var trailer = videos
+            ?.Results.Where(v =>
+                v.Site.Equals("YouTube", StringComparison.OrdinalIgnoreCase)
+                && v.Type.Equals("Trailer", StringComparison.OrdinalIgnoreCase)
+            )
+            .OrderByDescending(v => v.Official)
+            .FirstOrDefault();
+
+        if (trailer == null || string.IsNullOrWhiteSpace(trailer.Key))
+            return null;
+
+        return $"https://www.youtube.com/embed/{trailer.Key}";
+    }
 }
