@@ -11,4 +11,6 @@ public interface IListaPessoalService
     Task<ListaPessoalItemReadDto> AdicionarFilmeAsync(int utilizadorId, int listaId, int filmeId);
 
     Task RemoverFilmeAsync(int utilizadorId, int listaId, int filmeId);
+
+    Task RemoverListaAsync(int utilizadorId, int listaId);
 }

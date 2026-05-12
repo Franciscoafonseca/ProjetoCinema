@@ -55,6 +55,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  .filtro-genero {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
 }
 
 .chip {
@@ -79,6 +85,12 @@
   background-color: #e50914;
   border-color: #e50914;
   color: #fff;
+}
+
+.chips-selecionados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .catalogo-grid {

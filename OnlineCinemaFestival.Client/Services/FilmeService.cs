@@ -50,8 +50,10 @@ public class FilmeService
 
         return filmes
             .Where(f => !string.IsNullOrWhiteSpace(f.Genero))
-            .Select(f => f.Genero!)
-            .Distinct()
+            .SelectMany(f => f.Genero!.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            .Select(g => g.Trim())
+            .Where(g => g.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(g => g)
             .ToList();
     }

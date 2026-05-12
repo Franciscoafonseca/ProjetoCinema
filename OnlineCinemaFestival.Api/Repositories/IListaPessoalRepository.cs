@@ -18,5 +18,7 @@ public interface IListaPessoalRepository
 
     void RemoveItem(ListaPessoalItem item);
 
+    void Remove(ListaPessoal lista);
+
     Task SaveChangesAsync();
 }

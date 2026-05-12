@@ -14,17 +14,45 @@
                value="@_pesquisa"
                @oninput="OnPesquisaAlterada" />
 
-        <div class="generos-chips">
-            <button class="chip @(_generoSelecionado == null ? "chip-ativo" : "")"
-                    @onclick="() => SelecionarGenero(null)">
-                Todos
-            </button>
-            @foreach (var genero in _generos)
+        <div class="filtro-genero">
+            <MudMenu Label="@RotuloFiltro()"
+                     Variant="Variant.Outlined"
+                     Color="Color.Primary"
+                     StartIcon="@Icons.Material.Filled.FilterList"
+                     EndIcon="@Icons.Material.Filled.ArrowDropDown"
+                     IconColor="Color.Primary"
+                     AnchorOrigin="Origin.BottomLeft"
+                     TransformOrigin="Origin.TopLeft"
+                     MaxHeight="360">
+                @if (_generosSelecionados.Count > 0)
+                {
+                    <MudMenuItem OnClick="LimparGeneros" AutoClose="false">
+                        Limpar seleção
+                    </MudMenuItem>
+                    <MudDivider />
+                }
+                @foreach (var genero in _generos)
+                {
+                    <MudMenuItem OnClick="() => AlternarGenero(genero)" AutoClose="false">
+                        @(_generosSelecionados.Contains(genero) ? $"✓ {genero}" : genero)
+                    </MudMenuItem>
+                }
+            </MudMenu>
+
+            @if (_generosSelecionados.Count > 0)
             {
-                <button class="chip @(_generoSelecionado == genero ? "chip-ativo" : "")"
-                        @onclick="() => SelecionarGenero(genero)">
-                    @genero
-                </button>
+                <div class="chips-selecionados">
+                    @foreach (var genero in _generosSelecionados.OrderBy(g => g))
+                    {
+                        <MudChip T="string"
+                                 Color="Color.Primary"
+                                 Variant="Variant.Filled"
+                                 OnClose="() => AlternarGenero(genero)"
+                                 CloseIcon="@Icons.Material.Filled.Close">
+                            @genero
+                        </MudChip>
+                    }
+                </div>
             }
         </div>
     </div>
@@ -58,7 +86,7 @@
 @code {
     private List<FilmeDto> _filmes = new();
     private List<string> _generos = new();
-    private string? _generoSelecionado;
+    private readonly HashSet<string> _generosSelecionados = new(StringComparer.OrdinalIgnoreCase);
     private string? _pesquisa;
 
     protected override async Task CarregarDadosAsync()
@@ -67,9 +95,17 @@
         _filmes = await FilmeService.GetFilmesAsync();
     }
 
-    private async Task SelecionarGenero(string? genero)
+    private async Task AlternarGenero(string genero)
     {
-        _generoSelecionado = genero;
+        if (!_generosSelecionados.Add(genero))
+            _generosSelecionados.Remove(genero);
+
+        await AplicarFiltros();
+    }
+
+    private async Task LimparGeneros()
+    {
+        _generosSelecionados.Clear();
         await AplicarFiltros();
     }
 
@@ -81,6 +117,40 @@
 
     private async Task AplicarFiltros()
     {
-        _filmes = await FilmeService.GetFilmesAsync(_generoSelecionado, _pesquisa);
+        var filmes = await FilmeService.GetFilmesAsync(null, _pesquisa);
+
+        if (_generosSelecionados.Count > 0)
+        {
+            filmes = filmes
+                .Where(f =>
+                {
+                    var generos = GenerosDoFilme(f.Genero).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    return _generosSelecionados.All(g => generos.Contains(g));
+                })
+                .ToList();
+        }
+
+        _filmes = filmes;
+    }
+
+    private static IEnumerable<string> GenerosDoFilme(string? generos)
+    {
+        if (string.IsNullOrWhiteSpace(generos))
+            return Array.Empty<string>();
+
+        return generos
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(g => g.Trim())
+            .Where(g => g.Length > 0);
+    }
+
+    private string RotuloFiltro()
+    {
+        return _generosSelecionados.Count switch
+        {
+            0 => "Filtrar por género",
+            1 => _generosSelecionados.First(),
+            _ => $"{_generosSelecionados.Count} géneros",
+        };
     }
 }

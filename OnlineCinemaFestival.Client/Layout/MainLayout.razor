@@ -2,10 +2,16 @@
 @inject AuthService AuthService
 @inject NavigationManager Nav
 
+<MudThemeProvider Theme="_tema" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
 <div class="layout">
     <nav class="navbar-topo">
         <a class="logo" href="">🎬 Cinema Festival</a>
-        <div class="nav-botoes">
+
+        <div class="nav-centro">
             <NavLink class="nav-btn" href="" Match="NavLinkMatch.All">Home</NavLink>
             <NavLink class="nav-btn" href="catalogo">Catálogo</NavLink>
             <NavLink class="nav-btn" href="festivais">Festivais</NavLink>
@@ -16,6 +22,13 @@
                     <NavLink class="nav-btn" href="perfil">
                         <span class="nav-user">@context.User.Identity?.Name</span>
                     </NavLink>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+
+        <div class="nav-direita">
+            <AuthorizeView>
+                <Authorized>
                     <button class="nav-btn nav-btn-sair" @onclick="Sair">Sair</button>
                 </Authorized>
                 <NotAuthorized>
@@ -32,6 +45,22 @@
 </div>
 
 @code {
+    private readonly MudTheme _tema = new()
+    {
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#e50914",
+            Secondary = "#e50914",
+            Background = "#141414",
+            Surface = "#1f1f1f",
+            AppbarBackground = "#141414",
+            TextPrimary = "#ffffff",
+            TextSecondary = "#c0c0c0",
+            ActionDefault = "#cccccc",
+            DrawerBackground = "#1a1a1a",
+        }
+    };
+
     private async Task Sair()
     {
         await AuthService.TerminarSessaoAsync();
