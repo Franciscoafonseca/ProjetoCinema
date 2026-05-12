@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder; // (provavelmente já tens algumas destas)
+using Microsoft.AspNetCore.Builder; 
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using System.Text;
