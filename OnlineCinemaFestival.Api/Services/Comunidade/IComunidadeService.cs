@@ -9,4 +9,6 @@ public interface IComunidadeService
     Task<ComunidadeReadDto?> GetComunidadeByPublicIdAsync(Guid publicId, int usuarioIdPedido);
     Task<ComunidadeReadDto> CreateComunidadeAsync(ComunidadeCreateDto dto, int criadorUserId);
     Task<ComunidadeReadDto?> GetComunidadeByConviteAsync(string codigoConvite);
+    Task AderirComunidadeAsync(Guid comunidadePublicId, int usuarioId);
+    Task AderirComunidadePorConviteAsync(string codigoConvite, int usuarioId);
 }

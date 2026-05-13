@@ -71,6 +71,43 @@ public class ComunidadesController : ControllerBase
         return Ok(comunidade);
     }
 
+    [HttpPost("{id:guid}/aderir")]
+    public async Task<ActionResult> AderirComunidade(Guid id)
+    {
+        try
+        {
+            await _comunidadeService.AderirComunidadeAsync(id, User.GetUserId());
+            return Ok(new { mensagem = "Entraste na comunidade com sucesso!" });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
+    // 🎟️ Rota VIP para entrar com o Código de Convite
+    [HttpPost("convite/{codigoConvite}/aderir")]
+    public async Task<ActionResult> AderirPorConvite(string codigoConvite)
+    {
+        try
+        {
+            await _comunidadeService.AderirComunidadePorConviteAsync(codigoConvite, User.GetUserId());
+            return Ok(new { mensagem = "Convite aceite! Bem-vindo à comunidade." });
+        }
+        catch (UnauthorizedAccessException ex) 
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
     
 
 }

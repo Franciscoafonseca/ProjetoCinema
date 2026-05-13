@@ -10,4 +10,5 @@ public interface IComunidadeRepository
     Task<IEnumerable<Comunidade>> FindComunidadesAsync(Expression<Func<Comunidade, bool>> predicate);
     Task<bool> IsMembroAsync(int comunidadeId, int usuarioId);
     Task<Comunidade?> GetComunidadeByConviteAsync(string codigoConvite);
+    Task<ComunidadeMembro> AdicionarMembroAsync(ComunidadeMembro membro);
 }

@@ -83,5 +83,57 @@ public class ComunidadeService : IComunidadeService
         
     }
 
+    public async Task AderirComunidadeAsync(Guid comunidadePublicId, int usuarioId)
+    {
+        var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(comunidadePublicId);
+        var usuario = await _utilizadorRepository.GetByIdAsync(usuarioId);
+
+        await ValidarRegrasDeAdesaoAsync(comunidade, usuario, isEntradaPorConvite: false);
+
+        var novoMembro = new ComunidadeMembro
+        {
+            ComunidadeId = comunidade!.Id,
+            UtilizadorId = usuarioId,
+            Role = CommunityMemberRole.Member,
+            JoinedAt = DateTime.UtcNow
+        };
+
+        await _comunidadeRepository.AdicionarMembroAsync(novoMembro);
+    }
+
+    public async Task AderirComunidadePorConviteAsync(string codigoConvite, int usuarioId)
+    {
+        var comunidade = await _comunidadeRepository.GetComunidadeByConviteAsync(codigoConvite);
+        var usuario = await _utilizadorRepository.GetByIdAsync(usuarioId);
+
+        // O ajudante verifica as regras (isEntradaPorConvite = true)
+        await ValidarRegrasDeAdesaoAsync(comunidade, usuario, isEntradaPorConvite: true);
+
+        var novoMembro = new ComunidadeMembro
+        {
+            ComunidadeId = comunidade!.Id,
+            UtilizadorId = usuarioId,
+            Role = CommunityMemberRole.Member,
+            JoinedAt = DateTime.UtcNow
+        };
+
+        await _comunidadeRepository.AdicionarMembroAsync(novoMembro);
+    }
+
+
+    private async Task ValidarRegrasDeAdesaoAsync(Comunidade? comunidade, Utilizador? usuario, bool isEntradaPorConvite)
+    {
+        if (usuario == null) 
+            throw new Exception("Utilizador não encontrado.");
+            
+        if (comunidade == null) 
+            throw new Exception("Comunidade não encontrada.");
+
+        if (await _comunidadeRepository.IsMembroAsync(comunidade.Id, usuario.Id))
+            throw new Exception("Já és membro desta comunidade.");
+
+        if (!isEntradaPorConvite && !comunidade.IsPublic) 
+            throw new UnauthorizedAccessException("Esta comunidade é privada. Precisas de um convite.");
+    }
 
 }

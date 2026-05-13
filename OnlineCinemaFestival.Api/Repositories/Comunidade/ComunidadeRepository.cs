@@ -57,4 +57,11 @@ public class ComunidadeRepository : IComunidadeRepository
             .FirstOrDefaultAsync(c => c.CodigoConvite == codigoConvite);
     }
 
+    public async Task<ComunidadeMembro> AdicionarMembroAsync(ComunidadeMembro membro)
+    {
+        var result = await _context.ComunidadeMembros.AddAsync(membro);
+        await _context.SaveChangesAsync();
+        return result.Entity;
+    }
+
 }
