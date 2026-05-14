@@ -18,6 +18,7 @@ obj/
 .env
 .env.local
 *.log
+**/appsettings.Development.json
 
 # User-specific files
 *.user
@@ -53,3 +54,6 @@ Thumbs.db
 
 # Test results
 TestResults/
+
+CoisasProjeto/
+.CLAUDE.md

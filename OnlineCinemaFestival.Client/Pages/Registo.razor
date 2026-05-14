@@ -1,0 +1,80 @@
+@page "/registo"
+@inject AuthService AuthService
+@inject NavigationManager Nav
+
+<PageTitle>Criar Conta — Online Cinema Festival</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-icon">🎬</div>
+        <h1 class="auth-titulo">Criar conta</h1>
+        <p class="auth-subtitulo">Junta-te ao festival online em poucos segundos.</p>
+
+        <EditForm Model="_modelo" OnValidSubmit="Registar">
+            <DataAnnotationsValidator />
+
+            <div class="auth-campo">
+                <label for="name">Nome</label>
+                <InputText id="name" class="auth-input" @bind-Value="_modelo.Name" autocomplete="name" />
+                <ValidationMessage For="@(() => _modelo.Name)" class="auth-erro-campo" />
+            </div>
+
+            <div class="auth-campo">
+                <label for="email">Email</label>
+                <InputText id="email" class="auth-input" @bind-Value="_modelo.Email" type="email" autocomplete="email" />
+                <ValidationMessage For="@(() => _modelo.Email)" class="auth-erro-campo" />
+            </div>
+
+            <div class="auth-campo">
+                <label for="password">Palavra-passe</label>
+                <InputText id="password" class="auth-input" @bind-Value="_modelo.Password" type="password" autocomplete="new-password" />
+                <ValidationMessage For="@(() => _modelo.Password)" class="auth-erro-campo" />
+            </div>
+
+            <div class="auth-campo">
+                <label for="nationality">Nacionalidade</label>
+                <InputText id="nationality" class="auth-input" @bind-Value="_modelo.Nationality" autocomplete="country-name" />
+                <ValidationMessage For="@(() => _modelo.Nationality)" class="auth-erro-campo" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_erro))
+            {
+                <p class="auth-erro-geral">@_erro</p>
+            }
+
+            <button type="submit" class="btn-auth" disabled="@_aSubmeter">
+                @(_aSubmeter ? "A criar conta..." : "Criar conta")
+            </button>
+        </EditForm>
+
+        <p class="auth-rodape">
+            Já tens conta? <a href="/login">Entrar</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    private readonly RegisterRequest _modelo = new();
+    private string? _erro;
+    private bool _aSubmeter;
+
+    private async Task Registar()
+    {
+        _erro = null;
+        _aSubmeter = true;
+
+        try
+        {
+            await AuthService.RegistarAsync(_modelo);
+            Nav.NavigateTo("/perfil");
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aSubmeter = false;
+        }
+    }
+}

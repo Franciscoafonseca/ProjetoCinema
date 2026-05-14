@@ -1,0 +1,123 @@
+.auth-container {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.auth-card {
+    background: #1f1f1f;
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    border: 1px solid #2a2a2a;
+}
+
+.auth-icon {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.auth-titulo {
+    color: #fff;
+    text-align: center;
+    margin: 0 0 0.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.auth-subtitulo {
+    color: #a0a0a0;
+    text-align: center;
+    margin: 0 0 1.75rem;
+    font-size: 0.95rem;
+}
+
+.auth-campo {
+    margin-bottom: 1.1rem;
+}
+
+.auth-campo label {
+    display: block;
+    color: #d0d0d0;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    background: #141414;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: #e50914;
+}
+
+.auth-erro-campo {
+    display: block;
+    color: #ff6b6b;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+}
+
+.auth-erro-geral {
+    background: rgba(229, 9, 20, 0.15);
+    border: 1px solid #e50914;
+    color: #ff8585;
+    padding: 0.7rem 0.9rem;
+    border-radius: 6px;
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+}
+
+.btn-auth {
+    width: 100%;
+    padding: 0.85rem;
+    background: #e50914;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-auth:hover:not(:disabled) {
+    background: #f6121d;
+}
+
+.btn-auth:disabled {
+    background: #5c0509;
+    cursor: not-allowed;
+}
+
+.auth-rodape {
+    text-align: center;
+    margin: 1.5rem 0 0;
+    color: #a0a0a0;
+    font-size: 0.9rem;
+}
+
+.auth-rodape a {
+    color: #e50914;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-rodape a:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,71 @@
+@page "/login"
+@inject AuthService AuthService
+@inject NavigationManager Nav
+
+<PageTitle>Entrar — Online Cinema Festival</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-icon">🎬</div>
+        <h1 class="auth-titulo">Entrar</h1>
+        <p class="auth-subtitulo">Acede à tua conta para ver festivais e gerir o teu perfil.</p>
+
+        <EditForm Model="_modelo" OnValidSubmit="Entrar">
+            <DataAnnotationsValidator />
+
+            <div class="auth-campo">
+                <label for="email">Email</label>
+                <InputText id="email" class="auth-input" @bind-Value="_modelo.Email" type="email" autocomplete="email" />
+                <ValidationMessage For="@(() => _modelo.Email)" class="auth-erro-campo" />
+            </div>
+
+            <div class="auth-campo">
+                <label for="password">Palavra-passe</label>
+                <InputText id="password" class="auth-input" @bind-Value="_modelo.Password" type="password" autocomplete="current-password" />
+                <ValidationMessage For="@(() => _modelo.Password)" class="auth-erro-campo" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_erro))
+            {
+                <p class="auth-erro-geral">@_erro</p>
+            }
+
+            <button type="submit" class="btn-auth" disabled="@_aSubmeter">
+                @(_aSubmeter ? "A entrar..." : "Entrar")
+            </button>
+        </EditForm>
+
+        <p class="auth-rodape">
+            Ainda não tens conta? <a href="/registo">Regista-te</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+
+    private readonly LoginRequest _modelo = new();
+    private string? _erro;
+    private bool _aSubmeter;
+
+    private async Task Entrar()
+    {
+        _erro = null;
+        _aSubmeter = true;
+
+        try
+        {
+            await AuthService.LoginAsync(_modelo);
+            var destino = string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl;
+            Nav.NavigateTo(destino);
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aSubmeter = false;
+        }
+    }
+}

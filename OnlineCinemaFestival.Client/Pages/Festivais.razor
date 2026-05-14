@@ -1,0 +1,87 @@
+@page "/festivais"
+@inherits FilmePageBase
+@inject FestivalService FestivalService
+@inject NavigationManager Nav
+
+<PageTitle>Festivais — Online Cinema Festival</PageTitle>
+
+<div class="festivais-container">
+    <div class="festivais-cabecalho">
+        <h1 class="festivais-titulo">Festivais</h1>
+        <p class="festivais-subtitulo">Explora os festivais de cinema online disponíveis.</p>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>A carregar festivais...</p>
+        </div>
+    }
+    else if (_erro != null)
+    {
+        <p class="erro-state">@_erro</p>
+    }
+    else if (_festivais.Count == 0)
+    {
+        <p class="empty-state">Não há festivais disponíveis de momento.</p>
+    }
+    else
+    {
+        <div class="festivais-grid">
+            @foreach (var f in _festivais)
+            {
+                <div class="festival-card" @onclick="() => AbrirFestival(f.Id)">
+                    <div class="festival-card-cabecalho">
+                        <span class="festival-card-data">@FormatarPeriodo(f.StartDate, f.EndDate)</span>
+                        @if (EstaAtivo(f))
+                        {
+                            <span class="festival-card-badge ativo">A decorrer</span>
+                        }
+                        else if (f.StartDate > DateTime.Now)
+                        {
+                            <span class="festival-card-badge futuro">Em breve</span>
+                        }
+                        else
+                        {
+                            <span class="festival-card-badge terminado">Terminado</span>
+                        }
+                    </div>
+                    <h3 class="festival-card-nome">@f.Name</h3>
+                    @if (!string.IsNullOrWhiteSpace(f.Description))
+                    {
+                        <p class="festival-card-descricao">@f.Description</p>
+                    }
+                    <span class="festival-card-link">Ver detalhes →</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<FestivalDto> _festivais = new();
+
+    protected override async Task CarregarDadosAsync()
+    {
+        _festivais = await FestivalService.GetFestivaisAsync();
+        _festivais = _festivais
+            .OrderByDescending(f => f.StartDate)
+            .ToList();
+    }
+
+    private void AbrirFestival(int id) => Nav.NavigateTo($"/festivais/{id}");
+
+    private static bool EstaAtivo(FestivalDto f)
+    {
+        var agora = DateTime.Now;
+        return agora >= f.StartDate && agora <= f.EndDate;
+    }
+
+    private static string FormatarPeriodo(DateTime inicio, DateTime fim)
+    {
+        if (inicio.Year == fim.Year && inicio.Month == fim.Month)
+            return $"{inicio:dd} – {fim:dd MMM yyyy}";
+        return $"{inicio:dd/MM/yyyy} – {fim:dd/MM/yyyy}";
+    }
+}

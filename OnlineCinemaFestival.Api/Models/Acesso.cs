@@ -2,38 +2,40 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Api.Models;
 
-public enum TipoAcesso
-{
-    // Válido para uma sessão específica
-    BilheteUnico = 1,
-
-    // Acesso a todas as sessões de um dia específico
-    PasseDiario = 2,
-
-    // Acesso total a todo o catálogo do festival
-    PasseCompleto = 3,
-
-    // Janela temporal por filme (ex: 48h)
-    AluguerDigital = 4
-}
-
 public class Acesso
 {
-
     public int Id { get; set; }
 
     [Required]
-    public string UtilizadorId { get; set; } = string.Empty;
+    [MaxLength(150)]
+    public string Nome { get; set; } = string.Empty;
 
-    public int? FilmeId { get; set; }
+    [MaxLength(1000)]
+    public string? Descricao { get; set; }
 
-    [Required]
     public TipoAcesso Tipo { get; set; }
 
-    public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
+    public decimal Preco { get; set; }
 
-    public DateTime? DataExpiracao { get; set; }
+    public bool IsAtivo { get; set; } = true;
 
-    [Required]
-    public decimal PrecoPago { get; set; }
+    public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
+
+    // Bilhete de sessão
+    public int? SessaoId { get; set; }
+    public Sessao? Sessao { get; set; }
+
+    // Passe diário / passe completo
+    public int? FestivalId { get; set; }
+    public Festival? Festival { get; set; }
+
+    // Aluguer digital
+    public int? FilmeId { get; set; }
+    public Filme? Filme { get; set; }
+
+    // Passe diário
+    public DateTime? DataAcesso { get; set; }
+
+    // Aluguer digital
+    public int? DuracaoHoras { get; set; }
 }

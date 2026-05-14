@@ -1,16 +1,40 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inherits LayoutComponentBase
+@inject AuthService AuthService
+@inject NavigationManager Nav
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<div class="layout">
+    <nav class="navbar-topo">
+        <a class="logo" href="">🎬 Cinema Festival</a>
+        <div class="nav-botoes">
+            <NavLink class="nav-btn" href="" Match="NavLinkMatch.All">Home</NavLink>
+            <NavLink class="nav-btn" href="catalogo">Catálogo</NavLink>
+            <NavLink class="nav-btn" href="festivais">Festivais</NavLink>
+
+            <AuthorizeView>
+                <Authorized>
+                    <NavLink class="nav-btn" href="listas">As minhas listas</NavLink>
+                    <NavLink class="nav-btn" href="perfil">
+                        <span class="nav-user">@context.User.Identity?.Name</span>
+                    </NavLink>
+                    <button class="nav-btn nav-btn-sair" @onclick="Sair">Sair</button>
+                </Authorized>
+                <NotAuthorized>
+                    <NavLink class="nav-btn" href="login">Entrar</NavLink>
+                    <NavLink class="nav-btn nav-btn-destaque" href="registo">Registar</NavLink>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
+    </nav>
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <main class="conteudo">
+        @Body
     </main>
 </div>
+
+@code {
+    private async Task Sair()
+    {
+        await AuthService.TerminarSessaoAsync();
+        Nav.NavigateTo("/");
+    }
+}
