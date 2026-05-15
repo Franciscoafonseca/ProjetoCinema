@@ -6,7 +6,7 @@
 @inject CarrinhoService CarrinhoService
 @inject NavigationManager Nav
 
-<PageTitle>@(_festival?.Name ?? "Festival") — Online Cinema Festival</PageTitle>
+<PageTitle>@(_festival?.Name ?? "Festival") - Online Cinema Festival</PageTitle>
 
 @if (_loading)
 {
@@ -19,20 +19,20 @@ else if (_erro != null)
 {
     <div class="festival-erro">
         <p class="erro-state">@_erro</p>
-        <button class="btn-voltar" @onclick="Voltar">← Voltar aos festivais</button>
+        <button class="btn-voltar" @onclick="Voltar">Voltar aos festivais</button>
     </div>
 }
 else if (_festival == null)
 {
     <div class="festival-erro">
-        <h2>Festival não encontrado</h2>
-        <button class="btn-voltar" @onclick="Voltar">← Voltar aos festivais</button>
+        <h2>Festival nao encontrado</h2>
+        <button class="btn-voltar" @onclick="Voltar">Voltar aos festivais</button>
     </div>
 }
 else
 {
     <div class="festival-detalhes-container">
-        <button class="btn-voltar" @onclick="Voltar">← Voltar aos festivais</button>
+        <button class="btn-voltar" @onclick="Voltar">Voltar aos festivais</button>
 
         <section class="festival-hero">
             <span class="festival-hero-data">@FormatarPeriodo(_festival.StartDate, _festival.EndDate)</span>
@@ -41,27 +41,36 @@ else
             {
                 <p class="festival-hero-descricao">@_festival.Description</p>
             }
+            <div class="festival-hero-metrics">
+                <span>@_filmes.Count filmes</span>
+                <span>@_sessoes.Count sessoes</span>
+                <span>@EstadoFestival(_festival)</span>
+            </div>
         </section>
 
         <section class="festival-seccao">
-            <h2 class="seccao-titulo">Passes</h2>
-            @if (AcessosDoFestival().Count == 0)
+            <div class="seccao-cabecalho">
+                <h2 class="seccao-titulo">Passes</h2>
+                <a href="/carrinho">Ver carrinho</a>
+            </div>
+
+            @if (AcessosDoFestival.Count == 0)
             {
                 <p class="empty-state">Ainda nao ha passes configurados para este festival.</p>
             }
             else
             {
                 <div class="passes-lista">
-                    @foreach (var acesso in AcessosDoFestival())
+                    @foreach (var acesso in AcessosDoFestival)
                     {
                         <article class="passe-item">
                             <div>
                                 <h3>@acesso.Nome</h3>
-                                <p>@acesso.TipoNome</p>
+                                <p>@DescricaoAcesso(acesso)</p>
                             </div>
                             <div class="passe-acoes">
-                                <strong>@acesso.Preco.ToString("C", new System.Globalization.CultureInfo("pt-PT"))</strong>
-                                <button @onclick="() => AdicionarAoCarrinho(acesso.Id)" disabled="@_aAtualizarCarrinho">
+                                <strong>@Moeda(acesso.Preco)</strong>
+                                <button @onclick="() => AdicionarPasse(acesso)" disabled="@_aAtualizarCarrinho">
                                     Adicionar
                                 </button>
                             </div>
@@ -77,10 +86,67 @@ else
         </section>
 
         <section class="festival-seccao">
+            <div class="seccao-cabecalho">
+                <h2 class="seccao-titulo">Sessoes</h2>
+                <a href="/sessoes">Programacao completa</a>
+            </div>
+
+            @if (_sessoes.Count == 0)
+            {
+                <p class="empty-state">Ainda nao ha sessoes programadas.</p>
+            }
+            else
+            {
+                <div class="sessoes-lista">
+                    @foreach (var sessao in _sessoes)
+                    {
+                        <article class="sessao-item">
+                            <div class="sessao-data">
+                                <div class="sessao-dia">@sessao.Inicio.ToLocalTime().ToString("dd")</div>
+                                <div class="sessao-mes">@sessao.Inicio.ToLocalTime().ToString("MMM").ToUpperInvariant()</div>
+                            </div>
+
+                            <div class="sessao-info">
+                                <div class="sessao-linha">
+                                    <h3 class="sessao-filme">@TituloSessao(sessao)</h3>
+                                    <span class="sessao-estado @EstadoCss(EstadoTexto(sessao))">@EstadoTexto(sessao)</span>
+                                </div>
+                                <div class="sessao-hora">
+                                    @sessao.TipoNome - @sessao.Inicio.ToLocalTime().ToString("HH:mm") - @sessao.Fim.ToLocalTime().ToString("HH:mm")
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(sessao.Observacoes))
+                                {
+                                    <p class="sessao-obs">@sessao.Observacoes</p>
+                                }
+                            </div>
+
+                            <div class="sessao-acoes">
+                                <button class="sessao-btn destaque"
+                                        disabled="@(_aAtualizarCarrinho || SessaoTerminada(sessao))"
+                                        @onclick="() => AdicionarBilhete(sessao.Id)">
+                                    Bilhete
+                                </button>
+                                <button class="sessao-btn" @onclick="() => AbrirPlayer(sessao.Id)">
+                                    Player
+                                </button>
+                                @if (sessao.FilmePrincipalId.HasValue)
+                                {
+                                    <button class="sessao-btn" @onclick="() => AbrirFilme(sessao.FilmePrincipalId.Value)">
+                                        Filme
+                                    </button>
+                                }
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="festival-seccao">
             <h2 class="seccao-titulo">Filmes no festival</h2>
             @if (_filmes.Count == 0)
             {
-                <p class="empty-state">Ainda não há filmes associados a este festival.</p>
+                <p class="empty-state">Ainda nao ha filmes associados a este festival.</p>
             }
             else
             {
@@ -88,41 +154,6 @@ else
                     @foreach (var filme in _filmes)
                     {
                         <FilmeCard Filme="filme" />
-                    }
-                </div>
-            }
-        </section>
-
-        <section class="festival-seccao">
-            <h2 class="seccao-titulo">Sessões</h2>
-            @if (_sessoes.Count == 0)
-            {
-                <p class="empty-state">Ainda não há sessões programadas.</p>
-            }
-            else
-            {
-                <div class="sessoes-lista">
-                    @foreach (var s in _sessoes)
-                    {
-                        <div class="sessao-item">
-                            <div class="sessao-data">
-                                <div class="sessao-dia">@s.Inicio.ToString("dd")</div>
-                                <div class="sessao-mes">@s.Inicio.ToString("MMM").ToUpper()</div>
-                            </div>
-                            <div class="sessao-info">
-                                <h4 class="sessao-filme">@s.FilmeTitulo</h4>
-                                <div class="sessao-hora">
-                                    @s.Inicio.ToString("HH:mm") – @s.Fim.ToString("HH:mm")
-                                </div>
-                                @if (!string.IsNullOrWhiteSpace(s.Observacoes))
-                                {
-                                    <p class="sessao-obs">@s.Observacoes</p>
-                                }
-                            </div>
-                            <button class="sessao-btn" @onclick="() => AbrirFilme(s.FilmeId)">
-                                Ver filme
-                            </button>
-                        </div>
                     }
                 </div>
             }
@@ -140,6 +171,19 @@ else
     private bool _aAtualizarCarrinho;
     private string? _mensagemCarrinho;
 
+    private List<AcessoDto> AcessosDoFestival =>
+        _acessos
+            .Where(a =>
+                a.IsAtivo
+                && a.FestivalId == Id
+                && a.SessaoId == null
+                && a.FilmeId == null
+            )
+            .OrderBy(a => a.Tipo)
+            .ThenBy(a => a.DataAcesso)
+            .ThenBy(a => a.Preco)
+            .ToList();
+
     protected override async Task CarregarDadosAsync()
     {
         _festival = await FestivalService.GetFestivalPorIdAsync(Id);
@@ -154,26 +198,44 @@ else
         _acessos = await AcessoService.GetAcessosAsync();
     }
 
-    private void Voltar() => Nav.NavigateTo("/festivais");
-
-    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
-
-    private List<AcessoDto> AcessosDoFestival()
+    private async Task AdicionarPasse(AcessoDto acesso)
     {
-        return _acessos
-            .Where(a => a.IsAtivo && a.FestivalId == Id && a.SessaoId == null && a.FilmeId == null)
-            .ToList();
+        await ExecutarCarrinho(async () =>
+        {
+            if (acesso.Tipo == TiposAcesso.PasseDiario && acesso.DataAcesso.HasValue)
+            {
+                await CarrinhoService.AdicionarPasseDiarioAsync(Id, acesso.DataAcesso.Value);
+            }
+            else if (acesso.Tipo == TiposAcesso.PasseCompleto)
+            {
+                await CarrinhoService.AdicionarPasseCompletoAsync(Id);
+            }
+            else
+            {
+                await CarrinhoService.AdicionarItemAsync(acesso.Id);
+            }
+
+            _mensagemCarrinho = "Acesso adicionado ao carrinho.";
+        });
     }
 
-    private async Task AdicionarAoCarrinho(int acessoId)
+    private async Task AdicionarBilhete(int sessaoId)
+    {
+        await ExecutarCarrinho(async () =>
+        {
+            await CarrinhoService.AdicionarBilheteSessaoAsync(sessaoId);
+            _mensagemCarrinho = "Bilhete adicionado ao carrinho.";
+        });
+    }
+
+    private async Task ExecutarCarrinho(Func<Task> acao)
     {
         _mensagemCarrinho = null;
         _aAtualizarCarrinho = true;
 
         try
         {
-            await CarrinhoService.AdicionarItemAsync(acessoId);
-            _mensagemCarrinho = "Acesso adicionado ao carrinho.";
+            await acao();
         }
         catch (Exception ex)
         {
@@ -185,10 +247,77 @@ else
         }
     }
 
+    private void Voltar() => Nav.NavigateTo("/festivais");
+
+    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
+
+    private void AbrirPlayer(int sessaoId) => Nav.NavigateTo($"/player/sessao/{sessaoId}");
+
+    private static string TituloSessao(SessaoDto sessao)
+    {
+        return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
+    }
+
+    private static string DescricaoAcesso(AcessoDto acesso)
+    {
+        if (acesso.Tipo == TiposAcesso.PasseDiario && acesso.DataAcesso.HasValue)
+            return $"{acesso.TipoNome} - {acesso.DataAcesso.Value.ToLocalTime():dd/MM/yyyy}";
+
+        return acesso.TipoNome;
+    }
+
+    private static bool SessaoTerminada(SessaoDto sessao)
+    {
+        return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase)
+            || sessao.Fim.ToUniversalTime() <= DateTime.UtcNow;
+    }
+
+    private static string EstadoTexto(SessaoDto sessao)
+    {
+        if (!string.IsNullOrWhiteSpace(sessao.Estado))
+            return sessao.Estado;
+
+        var agora = DateTime.UtcNow;
+        if (sessao.Inicio.ToUniversalTime() > agora)
+            return "Agendada";
+
+        return sessao.Fim.ToUniversalTime() >= agora ? "ADecorrer" : "Terminada";
+    }
+
+    private static string EstadoCss(string estado)
+    {
+        if (string.Equals(estado, "ADecorrer", StringComparison.OrdinalIgnoreCase))
+            return "live";
+
+        if (string.Equals(estado, "Terminada", StringComparison.OrdinalIgnoreCase))
+            return "ended";
+
+        return "scheduled";
+    }
+
+    private static string EstadoFestival(FestivalDto festival)
+    {
+        var agora = DateTime.Now;
+
+        if (agora < festival.StartDate)
+            return "Em breve";
+
+        if (agora <= festival.EndDate)
+            return "A decorrer";
+
+        return "Terminado";
+    }
+
     private static string FormatarPeriodo(DateTime inicio, DateTime fim)
     {
         if (inicio.Year == fim.Year && inicio.Month == fim.Month)
-            return $"{inicio:dd} – {fim:dd MMM yyyy}";
-        return $"{inicio:dd/MM/yyyy} – {fim:dd/MM/yyyy}";
+            return $"{inicio:dd} - {fim:dd MMM yyyy}";
+
+        return $"{inicio:dd/MM/yyyy} - {fim:dd/MM/yyyy}";
+    }
+
+    private static string Moeda(decimal valor)
+    {
+        return valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
     }
 }

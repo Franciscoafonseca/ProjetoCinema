@@ -173,6 +173,8 @@ Migrations/
  20260511224009_adicioneiCarrinhoCompras.Designer.cs
  20260511234417_adicioneiRealizacaoCompraCheckout.cs
  20260511234417_adicioneiRealizacaoCompraCheckout.Designer.cs
+ 20260515174450_ImplementarCarrinhoESessoes.cs
+ 20260515174450_ImplementarCarrinhoESessoes.Designer.cs
  20260515180000_AdicionaPagamentosEHistoricoVisualizacoes.cs
  20260515180000_AdicionaPagamentosEHistoricoVisualizacoes.Designer.cs
  AppDbContextModelSnapshot.cs

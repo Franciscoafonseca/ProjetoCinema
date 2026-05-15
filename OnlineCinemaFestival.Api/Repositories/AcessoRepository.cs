@@ -71,7 +71,7 @@ public class AcessoRepository : IAcessoRepository
             _ => query.Where(_ => false),
         };
 
-        var acessos = await query.OrderBy(a => a.Preco).ToListAsync();
+        var acessos = (await query.ToListAsync()).OrderBy(a => a.Preco).ToList();
 
         if (tipo == TipoAcesso.PasseDiario && dataPasse.HasValue)
             return acessos.FirstOrDefault(a => a.DataAcesso?.Date == dataPasse.Value.Date);

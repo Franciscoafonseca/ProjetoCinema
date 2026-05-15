@@ -1,57 +1,183 @@
 @page "/"
 @inherits FilmePageBase
 @inject FilmeService FilmeService
+@inject FestivalService FestivalService
+@inject SessaoService SessaoService
 
 <PageTitle>Online Cinema Festival</PageTitle>
 
-<section class="hero">
+<section class="hero" style="@HeroStyle">
     <div class="hero-content">
-        <div class="hero-icon">🎬</div>
-        <h1 class="hero-titulo">O Melhor Cinema Online</h1>
-        <p class="hero-subtitulo">Descobre os melhores filmes do festival. Vê onde e quando quiseres.</p>
-        <a href="/catalogo" class="btn-hero">Ver Catálogo</a>
+        <p class="hero-eyebrow">Festival online</p>
+        <h1 class="hero-titulo">Online Cinema Festival</h1>
+        <p class="hero-subtitulo">
+            Catalogo, sessoes digitais, passes, alugueres e player integrado num unico percurso.
+        </p>
+        <div class="hero-actions">
+            <a href="/catalogo" class="btn-hero">Ver catalogo</a>
+            <a href="/sessoes" class="btn-hero secundario">Programacao</a>
+        </div>
     </div>
 </section>
 
-<section class="secao-destaques">
-    <div class="secao-header">
-        <h2 class="secao-titulo">Filmes em Destaque</h2>
-        <a href="/catalogo" class="ver-todos">Ver todos →</a>
-    </div>
-
+<div class="home-shell">
     @if (_loading)
     {
         <div class="loading-state">
             <div class="spinner"></div>
-            <p>A carregar filmes...</p>
+            <p>A carregar festival...</p>
         </div>
     }
     else if (_erro != null)
     {
         <p class="erro-state">@_erro</p>
     }
-    else if (_filmes.Count == 0)
-    {
-        <p class="empty-state">Nenhum filme disponível de momento.</p>
-    }
     else
     {
-        <div class="filmes-grid">
-            @foreach (var filme in _filmes)
+        <section class="home-metrics">
+            <article>
+                <span>@_filmes.Count</span>
+                <small>Filmes em destaque</small>
+            </article>
+            <article>
+                <span>@_sessoes.Count</span>
+                <small>Sessoes disponiveis</small>
+            </article>
+            <article>
+                <span>@_festivais.Count</span>
+                <small>Festivais</small>
+            </article>
+        </section>
+
+        <section class="secao-destaques">
+            <div class="secao-header">
+                <h2 class="secao-titulo">Filmes em destaque</h2>
+                <a href="/catalogo" class="ver-todos">Ver todos</a>
+            </div>
+
+            @if (_filmes.Count == 0)
             {
-                <FilmeCard Filme="filme" />
+                <p class="empty-state">Nenhum filme disponivel de momento.</p>
             }
-        </div>
+            else
+            {
+                <div class="filmes-grid">
+                    @foreach (var filme in _filmes)
+                    {
+                        <FilmeCard Filme="filme" />
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="home-columns">
+            <div class="home-panel">
+                <div class="secao-header compacta">
+                    <h2 class="secao-titulo">Proximas sessoes</h2>
+                    <a href="/sessoes" class="ver-todos">Abrir</a>
+                </div>
+
+                @if (_sessoes.Count == 0)
+                {
+                    <p class="empty-state compacto">Sem sessoes futuras ou ativas.</p>
+                }
+                else
+                {
+                    <div class="quick-list">
+                        @foreach (var sessao in _sessoes.Take(4))
+                        {
+                            <a href="@($"/player/sessao/{sessao.Id}")">
+                                <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM HH:mm")</span>
+                                <strong>@TituloSessao(sessao)</strong>
+                                <small>@sessao.Festival</small>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="home-panel">
+                <div class="secao-header compacta">
+                    <h2 class="secao-titulo">Festivais</h2>
+                    <a href="/festivais" class="ver-todos">Abrir</a>
+                </div>
+
+                @if (_festivais.Count == 0)
+                {
+                    <p class="empty-state compacto">Sem festivais disponiveis.</p>
+                }
+                else
+                {
+                    <div class="quick-list">
+                        @foreach (var festival in _festivais.Take(4))
+                        {
+                            <a href="@($"/festivais/{festival.Id}")">
+                                <span>@FormatarPeriodo(festival)</span>
+                                <strong>@festival.Name</strong>
+                                <small>@EstadoFestival(festival)</small>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </section>
     }
-</section>
+</div>
 
 @code {
     private const int MaxDestaques = 6;
     private List<FilmeDto> _filmes = new();
+    private List<SessaoDto> _sessoes = new();
+    private List<FestivalDto> _festivais = new();
+
+    private string HeroStyle
+    {
+        get
+        {
+            var imagem = _filmes.FirstOrDefault(f => !string.IsNullOrWhiteSpace(f.CapaUrl))?.CapaUrl;
+
+            return string.IsNullOrWhiteSpace(imagem)
+                ? string.Empty
+                : $"background-image: linear-gradient(90deg, rgba(8,8,8,.92), rgba(8,8,8,.52)), url('{imagem}')";
+        }
+    }
 
     protected override async Task CarregarDadosAsync()
     {
         var todos = await FilmeService.GetFilmesAsync(ordenarPor: 2, descendente: true);
         _filmes = todos.Take(MaxDestaques).ToList();
+
+        _sessoes = (await SessaoService.GetSessoesDisponiveisAsync())
+            .OrderBy(s => s.Inicio)
+            .Take(6)
+            .ToList();
+
+        _festivais = (await FestivalService.GetFestivaisAsync())
+            .OrderByDescending(f => f.StartDate)
+            .Take(6)
+            .ToList();
+    }
+
+    private static string TituloSessao(SessaoDto sessao)
+    {
+        return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
+    }
+
+    private static string FormatarPeriodo(FestivalDto festival)
+    {
+        return $"{festival.StartDate:dd/MM} - {festival.EndDate:dd/MM}";
+    }
+
+    private static string EstadoFestival(FestivalDto festival)
+    {
+        var agora = DateTime.Now;
+
+        if (agora < festival.StartDate)
+            return "Em breve";
+
+        if (agora <= festival.EndDate)
+            return "A decorrer";
+
+        return "Terminado";
     }
 }

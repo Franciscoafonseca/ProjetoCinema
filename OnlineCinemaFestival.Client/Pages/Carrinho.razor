@@ -1,4 +1,5 @@
 @page "/carrinho"
+@attribute [Authorize]
 @inject CarrinhoService CarrinhoService
 @inject CompraService CompraService
 @inject NavigationManager Nav
@@ -6,55 +7,144 @@
 <PageTitle>Carrinho - Online Cinema Festival</PageTitle>
 
 <div class="carrinho-page">
-    <div class="page-header">
-        <h1>Carrinho</h1>
-        <a href="/minhas-compras">Compras</a>
-    </div>
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">Checkout</p>
+            <h1>Carrinho</h1>
+            <p class="lead">
+                Revê os bilhetes, passes e alugueres antes de finalizar a compra.
+            </p>
+        </div>
+        <a class="heading-action" href="/minhas-compras">Compras</a>
+    </header>
 
     @if (_aCarregar)
     {
-        <p class="estado">A carregar carrinho...</p>
+        <section class="state-panel">
+            A carregar carrinho...
+        </section>
     }
     else if (!string.IsNullOrWhiteSpace(_erro))
     {
-        <div class="estado erro">
-            <p>@_erro</p>
-            <a href="/login?returnUrl=/carrinho">Entrar</a>
-        </div>
+        <section class="state-panel error">
+            @_erro
+        </section>
     }
     else if (_carrinho.Itens.Count == 0)
     {
-        <div class="estado">
-            <p>O carrinho esta vazio.</p>
-            <a href="/catalogo">Ver catalogo</a>
-        </div>
+        <section class="empty-cart">
+            <h2>O carrinho esta vazio</h2>
+            <p>Adiciona bilhetes de sessao, passes de festival ou alugueres digitais para continuares.</p>
+            <div class="empty-actions">
+                <a href="/catalogo">Ver catalogo</a>
+                <a href="/sessoes">Ver sessoes</a>
+            </div>
+        </section>
     }
     else
     {
         <div class="carrinho-layout">
-            <section class="itens">
-                @foreach (var item in _carrinho.Itens)
+            <section class="items-list" aria-label="Itens do carrinho">
+                @foreach (var item in _carrinho.Itens.OrderBy(i => i.DataAdicao))
                 {
-                    <article class="item">
-                        <div>
-                            <h2>@item.NomeAcesso</h2>
-                            <p>@item.TipoAcessoNome</p>
+                    var erroItem = ObterErroItem(item.Id);
+
+                    <article class="cart-item @(erroItem is null ? null : "has-error")">
+                        <div class="item-main">
+                            <span class="item-type">@RotuloTipo(item)</span>
+                            <h2>@NomeItem(item)</h2>
+                            <div class="item-meta">
+                                @foreach (var detalhe in DetalhesItem(item))
+                                {
+                                    <span>@detalhe</span>
+                                }
+                            </div>
+                            @if (erroItem != null)
+                            {
+                                <p class="item-error">@erroItem</p>
+                            }
                         </div>
-                        <div class="item-acoes">
-                            <strong>@Moeda(item.Subtotal)</strong>
-                            <button @onclick="() => Remover(item.Id)" disabled="@_aAtualizar">Remover</button>
+
+                        <div class="item-side">
+                            <div class="price">
+                                <span>@Moeda(item.PrecoUnitario) cada</span>
+                                <strong>@Moeda(item.Subtotal)</strong>
+                            </div>
+
+                            <div class="qty" aria-label="Quantidade">
+                                <button type="button"
+                                        class="secondary"
+                                        disabled="@(_aAtualizar || item.Quantidade <= 1)"
+                                        @onclick="() => AlterarQuantidade(item, item.Quantidade - 1)">
+                                    -
+                                </button>
+                                <input value="@item.Quantidade" readonly aria-label="Quantidade atual" />
+                                <button type="button"
+                                        class="secondary"
+                                        disabled="@_aAtualizar"
+                                        @onclick="() => AlterarQuantidade(item, item.Quantidade + 1)">
+                                    +
+                                </button>
+                            </div>
+
+                            <button type="button"
+                                    class="remove"
+                                    disabled="@_aAtualizar"
+                                    @onclick="() => Remover(item.Id)">
+                                Remover
+                            </button>
                         </div>
                     </article>
                 }
             </section>
 
-            <aside class="resumo">
-                <span>Total</span>
-                <strong>@Moeda(_carrinho.Total)</strong>
-                <button @onclick="Finalizar" disabled="@_aAtualizar">
+            <aside class="checkout-panel" aria-label="Resumo da compra">
+                <div class="summary-line">
+                    <span>Itens</span>
+                    <strong>@_carrinho.Itens.Sum(i => i.Quantidade)</strong>
+                </div>
+                <div class="summary-line">
+                    <span>Subtotal</span>
+                    <strong>@Moeda(_carrinho.Total)</strong>
+                </div>
+                <div class="summary-line total">
+                    <span>Total</span>
+                    <strong>@Moeda(TotalValidado)</strong>
+                </div>
+
+                @if (_validacao != null)
+                {
+                    <div class="validation @(_validacao.Valido ? "ok" : "bad")">
+                        <strong>@(_validacao.Valido ? "Carrinho valido" : "Carrinho com problemas")</strong>
+                        @foreach (var aviso in _validacao.Avisos)
+                        {
+                            <p>@aviso</p>
+                        }
+                        @foreach (var erro in _validacao.Erros.Where(e => e.ItemId == null))
+                        {
+                            <p>@erro.Mensagem</p>
+                        }
+                    </div>
+                }
+
+                <button type="button"
+                        class="primary"
+                        disabled="@_aAtualizar"
+                        @onclick="Validar">
+                    @(_aAtualizar ? "A validar..." : "Validar carrinho")
+                </button>
+                <button type="button"
+                        class="checkout"
+                        disabled="@(_aAtualizar || (_validacao != null && !_validacao.Valido))"
+                        @onclick="Finalizar">
                     @(_aAtualizar ? "A processar..." : "Finalizar compra")
                 </button>
-                <button class="secundario" @onclick="Limpar" disabled="@_aAtualizar">Limpar</button>
+                <button type="button"
+                        class="secondary"
+                        disabled="@_aAtualizar"
+                        @onclick="Limpar">
+                    Limpar carrinho
+                </button>
             </aside>
         </div>
     }
@@ -62,9 +152,12 @@
 
 @code {
     private CarrinhoDto _carrinho = new();
+    private CarrinhoValidacaoDto? _validacao;
     private bool _aCarregar = true;
     private bool _aAtualizar;
     private string? _erro;
+
+    private decimal TotalValidado => _validacao?.Total > 0 ? _validacao.Total : _carrinho.Total;
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,6 +172,7 @@
         try
         {
             _carrinho = await CarrinhoService.ObterAsync();
+            _validacao = _carrinho.Itens.Count == 0 ? null : await CarrinhoService.ValidarAsync();
         }
         catch (Exception ex)
         {
@@ -90,12 +184,33 @@
         }
     }
 
+    private async Task Validar()
+    {
+        await ExecutarAtualizacao(async () =>
+        {
+            _validacao = await CarrinhoService.ValidarAsync();
+        });
+    }
+
+    private async Task AlterarQuantidade(ItemCarrinhoDto item, int quantidade)
+    {
+        if (quantidade < 1 || quantidade == item.Quantidade)
+            return;
+
+        await ExecutarAtualizacao(async () =>
+        {
+            _carrinho = await CarrinhoService.AtualizarQuantidadeAsync(item.Id, quantidade);
+            _validacao = _carrinho.Itens.Count == 0 ? null : await CarrinhoService.ValidarAsync();
+        });
+    }
+
     private async Task Remover(int itemId)
     {
         await ExecutarAtualizacao(async () =>
         {
             await CarrinhoService.RemoverItemAsync(itemId);
-            await Carregar();
+            _carrinho = await CarrinhoService.ObterAsync();
+            _validacao = _carrinho.Itens.Count == 0 ? null : await CarrinhoService.ValidarAsync();
         });
     }
 
@@ -104,7 +219,8 @@
         await ExecutarAtualizacao(async () =>
         {
             await CarrinhoService.LimparAsync();
-            await Carregar();
+            _carrinho = new();
+            _validacao = null;
         });
     }
 
@@ -112,6 +228,11 @@
     {
         await ExecutarAtualizacao(async () =>
         {
+            _validacao = await CarrinhoService.ValidarAsync();
+
+            if (!_validacao.Valido)
+                return;
+
             await CompraService.FinalizarCompraAsync();
             Nav.NavigateTo("/minhas-compras");
         });
@@ -136,6 +257,60 @@
         }
     }
 
+    private string? ObterErroItem(int itemId)
+    {
+        return _validacao?.Erros.FirstOrDefault(e => e.ItemId == itemId)?.Mensagem;
+    }
+
+    private static string NomeItem(ItemCarrinhoDto item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.NomeAcesso))
+            return item.NomeAcesso;
+
+        if (!string.IsNullOrWhiteSpace(item.TituloFilme))
+            return item.TituloFilme;
+
+        if (!string.IsNullOrWhiteSpace(item.NomeFestival))
+            return item.NomeFestival;
+
+        return $"Acesso #{item.AcessoId}";
+    }
+
+    private static string RotuloTipo(ItemCarrinhoDto item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.TipoAcessoNome))
+            return item.TipoAcessoNome;
+
+        return item.TipoAcesso switch
+        {
+            TiposAcesso.BilheteSessao => "Bilhete de sessao",
+            TiposAcesso.PasseDiario => "Passe diario",
+            TiposAcesso.PasseCompleto => "Passe completo",
+            TiposAcesso.AluguerDigital => "Aluguer digital",
+            _ => "Acesso",
+        };
+    }
+
+    private static IEnumerable<string> DetalhesItem(ItemCarrinhoDto item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.NomeFestival))
+            yield return item.NomeFestival;
+
+        if (!string.IsNullOrWhiteSpace(item.TituloFilme))
+            yield return item.TituloFilme;
+
+        if (item.InicioSessao.HasValue)
+            yield return item.InicioSessao.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+
+        if (item.DataAcesso.HasValue)
+            yield return item.DataAcesso.Value.ToLocalTime().ToString("dd/MM/yyyy");
+
+        if (item.DuracaoHoras.HasValue)
+            yield return $"{item.DuracaoHoras.Value} horas";
+    }
+
     private static string Moeda(decimal valor)
-        => valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+    {
+        return valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+    }
 }

@@ -1,184 +1,469 @@
 @page "/perfil"
 @inject PerfilService PerfilService
+@inject ListaService ListaService
+@inject VisualizacaoService VisualizacaoService
 @inject NavigationManager Nav
 
-<PageTitle>Perfil — Online Cinema Festival</PageTitle>
+<PageTitle>Perfil - Online Cinema Festival</PageTitle>
 
 <AuthorizeView>
     <NotAuthorized>
         @{ Nav.NavigateTo("/login?returnUrl=/perfil", forceLoad: false); }
     </NotAuthorized>
     <Authorized Context="auth">
-        <div class="perfil-container">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="perfil-page">
             @if (_loading)
             {
-                <div class="loading-state">
-                    <div class="spinner"></div>
-                    <p>A carregar perfil...</p>
-                </div>
+                <MudCard Elevation="0" Class="perfil-panel perfil-loading">
+                    <MudCardContent>
+                        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                            <MudText Color="Color.Secondary">A carregar perfil...</MudText>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
             }
             else if (_erro != null)
             {
-                <p class="erro-state">@_erro</p>
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Class="perfil-alert">
+                    @_erro
+                </MudAlert>
             }
-            else if (_perfil != null)
+            else if (_perfil == null)
             {
-                @if (!_emEdicao)
-                {
-                    <div class="perfil-card">
-                        <div class="perfil-cabecalho">
-                            <div class="perfil-avatar">
-                                @if (!string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl))
-                                {
-                                    <img src="@_perfil.ProfileImageUrl" alt="@_perfil.Name" />
-                                }
-                                else
-                                {
-                                    <span class="perfil-avatar-inicial">@ObterInicial(_perfil.Name)</span>
-                                }
-                            </div>
-                            <div class="perfil-titulo">
-                                <h1>@_perfil.Name</h1>
-                                <p class="perfil-email">@_perfil.Email</p>
-                                @if (_perfil.IsPublic)
-                                {
-                                    <span class="perfil-badge publico">Perfil público</span>
-                                }
-                                else
-                                {
-                                    <span class="perfil-badge privado">Perfil privado</span>
-                                }
-                            </div>
-                            <button class="btn-editar" @onclick="EntrarEdicao">Editar</button>
-                        </div>
-
-                        <div class="perfil-info">
-                            @if (!string.IsNullOrWhiteSpace(_perfil.Bio))
-                            {
-                                <p class="perfil-bio">@_perfil.Bio</p>
-                            }
-
-                            <div class="perfil-detalhes">
-                                @if (!string.IsNullOrWhiteSpace(_perfil.Nationality))
-                                {
-                                    <div class="detalhe">
-                                        <span class="detalhe-label">Nacionalidade</span>
-                                        <span>@_perfil.Nationality</span>
-                                    </div>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(_perfil.Location))
-                                {
-                                    <div class="detalhe">
-                                        <span class="detalhe-label">Localização</span>
-                                        <span>@_perfil.Location</span>
-                                    </div>
-                                }
-                            </div>
-
-                            @if (_perfil.FavoriteGenres.Any())
-                            {
-                                <div class="perfil-generos">
-                                    <span class="detalhe-label">Géneros favoritos</span>
-                                    <div class="generos-lista">
-                                        @foreach (var g in _perfil.FavoriteGenres)
-                                        {
-                                            <span class="genero-chip">@g</span>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        <div class="perfil-stats">
-                            <div class="stat">
-                                <div class="stat-valor">@_perfil.ReviewsCount</div>
-                                <div class="stat-label">Avaliações</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-valor">@_perfil.CommunitiesCount</div>
-                                <div class="stat-label">Comunidades</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-valor">@_perfil.PublicListsCount</div>
-                                <div class="stat-label">Listas públicas</div>
-                            </div>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="perfil-card">
-                        <h2 class="form-titulo">Editar perfil</h2>
-
-                        <EditForm Model="_pedido" OnValidSubmit="Guardar">
-                            <DataAnnotationsValidator />
-
-                            <div class="form-campo">
-                                <label>Nome</label>
-                                <InputText class="form-input" @bind-Value="_pedido.Name" />
-                                <ValidationMessage For="@(() => _pedido.Name)" class="auth-erro-campo" />
-                            </div>
-
-                            <div class="form-campo">
-                                <label>Nacionalidade</label>
-                                <InputText class="form-input" @bind-Value="_pedido.Nationality" />
-                            </div>
-
-                            <div class="form-campo">
-                                <label>Localização</label>
-                                <InputText class="form-input" @bind-Value="_pedido.Location" />
-                            </div>
-
-                            <div class="form-campo">
-                                <label>URL da foto de perfil</label>
-                                <InputText class="form-input" @bind-Value="_pedido.ProfileImageUrl" />
-                            </div>
-
-                            <div class="form-campo">
-                                <label>Biografia</label>
-                                <InputTextArea class="form-input form-textarea" @bind-Value="_pedido.Bio" rows="4" />
-                            </div>
-
-                            <div class="form-campo-check">
-                                <InputCheckbox @bind-Value="_pedido.IsPublic" id="ispublic" />
-                                <label for="ispublic">Perfil público</label>
-                            </div>
-
-                            @if (!string.IsNullOrWhiteSpace(_erroEdicao))
-                            {
-                                <p class="auth-erro-geral">@_erroEdicao</p>
-                            }
-
-                            <div class="form-acoes">
-                                <button type="button" class="btn-secundario" @onclick="CancelarEdicao">Cancelar</button>
-                                <button type="submit" class="btn-primario" disabled="@_aGuardar">
-                                    @(_aGuardar ? "A guardar..." : "Guardar alterações")
-                                </button>
-                            </div>
-                        </EditForm>
-                    </div>
-                }
+                <MudCard Elevation="0" Class="perfil-panel perfil-empty">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Perfil indisponivel</MudText>
+                        <MudText Color="Color.Secondary">
+                            Nao foi possivel encontrar dados para o utilizador autenticado.
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
             }
-        </div>
+            else if (_emEdicao)
+            {
+                <MudCard Elevation="0" Class="perfil-panel perfil-edit-card">
+                    <MudCardContent>
+                        <MudStack Spacing="3">
+                            <MudStack Row="true"
+                                      AlignItems="AlignItems.Center"
+                                      Justify="Justify.SpaceBetween"
+                                      Class="perfil-section-header">
+                                <div>
+                                    <MudText Typo="Typo.h5">Editar perfil</MudText>
+                                    <MudText Color="Color.Secondary">
+                                        Atualiza os dados publicos que aparecem no teu perfil.
+                                    </MudText>
+                                </div>
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Default"
+                                           StartIcon="@Icons.Material.Filled.Close"
+                                           OnClick="CancelarEdicao">
+                                    Cancelar
+                                </MudButton>
+                            </MudStack>
+
+                            <EditForm Model="_pedido" OnValidSubmit="Guardar">
+                                <DataAnnotationsValidator />
+
+                                <MudGrid Spacing="3">
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string"
+                                                      Label="Nome"
+                                                      Variant="Variant.Outlined"
+                                                      Margin="Margin.Dense"
+                                                      For="@(() => _pedido.Name)"
+                                                      @bind-Value="_pedido.Name" />
+                                    </MudItem>
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string"
+                                                      Label="Nacionalidade"
+                                                      Variant="Variant.Outlined"
+                                                      Margin="Margin.Dense"
+                                                      @bind-Value="_pedido.Nationality" />
+                                    </MudItem>
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string"
+                                                      Label="Localizacao"
+                                                      Variant="Variant.Outlined"
+                                                      Margin="Margin.Dense"
+                                                      @bind-Value="_pedido.Location" />
+                                    </MudItem>
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField T="string"
+                                                      Label="URL da foto de perfil"
+                                                      Variant="Variant.Outlined"
+                                                      Margin="Margin.Dense"
+                                                      @bind-Value="_pedido.ProfileImageUrl" />
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudTextField T="string"
+                                                      Label="Biografia"
+                                                      Variant="Variant.Outlined"
+                                                      Lines="4"
+                                                      Margin="Margin.Dense"
+                                                      @bind-Value="_pedido.Bio" />
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudCheckBox T="bool"
+                                                     Color="Color.Primary"
+                                                     Label="Perfil publico"
+                                                     @bind-Value="_pedido.IsPublic" />
+                                    </MudItem>
+                                </MudGrid>
+
+                                @if (!string.IsNullOrWhiteSpace(_erroEdicao))
+                                {
+                                    <MudAlert Severity="Severity.Error"
+                                              Variant="Variant.Outlined"
+                                              Class="perfil-form-alert">
+                                        @_erroEdicao
+                                    </MudAlert>
+                                }
+
+                                <MudStack Row="true"
+                                          Justify="Justify.FlexEnd"
+                                          Spacing="2"
+                                          Class="perfil-form-actions">
+                                    <MudButton ButtonType="ButtonType.Button"
+                                               Variant="Variant.Outlined"
+                                               Color="Color.Default"
+                                               OnClick="CancelarEdicao">
+                                        Cancelar
+                                    </MudButton>
+                                    <MudButton ButtonType="ButtonType.Submit"
+                                               Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               Disabled="@_aGuardar"
+                                               StartIcon="@Icons.Material.Filled.Save">
+                                        @(_aGuardar ? "A guardar..." : "Guardar alteracoes")
+                                    </MudButton>
+                                </MudStack>
+                            </EditForm>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
+            else
+            {
+                <MudGrid Spacing="3" Class="perfil-hero-grid">
+                    <MudItem xs="12" md="3">
+                        <MudCard Elevation="0" Class="perfil-panel perfil-avatar-card">
+                            <MudCardContent>
+                                <MudAvatar Square="true"
+                                           Rounded="true"
+                                           Size="Size.Large"
+                                           Color="Color.Primary"
+                                           Class="perfil-avatar">
+                                    @if (!string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl))
+                                    {
+                                        <img class="perfil-avatar-img"
+                                             src="@_perfil.ProfileImageUrl"
+                                             alt="@_perfil.Name" />
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.h3">@ObterInicial(_perfil.Name)</MudText>
+                                    }
+                                </MudAvatar>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+
+                    <MudItem xs="12" md="9">
+                        <MudCard Elevation="0" Class="perfil-panel perfil-summary-card">
+                            <MudCardContent>
+                                <MudStack Spacing="4">
+                                    <MudStack Row="true"
+                                              AlignItems="AlignItems.Start"
+                                              Justify="Justify.SpaceBetween"
+                                              Class="perfil-summary-header">
+                                        <div>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                Utilizador
+                                            </MudText>
+                                            <MudText Typo="Typo.h4" Class="perfil-name">
+                                                @_perfil.Name
+                                            </MudText>
+                                            @if (!string.IsNullOrWhiteSpace(_perfil.Email))
+                                            {
+                                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Email"
+                                                             Size="Size.Small"
+                                                             Color="Color.Secondary" />
+                                                    <MudText Color="Color.Secondary">@_perfil.Email</MudText>
+                                                </MudStack>
+                                            }
+                                        </div>
+
+                                        <MudStack Row="true"
+                                                  AlignItems="AlignItems.Center"
+                                                  Spacing="2"
+                                                  Class="perfil-actions">
+                                            <MudChip T="string"
+                                                     Color="@(_perfil.IsPublic ? Color.Success : Color.Default)"
+                                                     Variant="Variant.Outlined"
+                                                     Icon="@(_perfil.IsPublic ? Icons.Material.Filled.Public : Icons.Material.Filled.Lock)">
+                                                @(_perfil.IsPublic ? "Perfil publico" : "Perfil privado")
+                                            </MudChip>
+                                            <MudButton Variant="Variant.Filled"
+                                                       Color="Color.Primary"
+                                                       StartIcon="@Icons.Material.Filled.Edit"
+                                                       OnClick="EntrarEdicao">
+                                                Editar perfil
+                                            </MudButton>
+                                        </MudStack>
+                                    </MudStack>
+
+                                    <MudGrid Spacing="2">
+                                        @foreach (var stat in ObterEstatisticas())
+                                        {
+                                            <MudItem xs="6" sm="3">
+                                                <MudPaper Elevation="0" Class="perfil-stat">
+                                                    <MudIcon Icon="@stat.Icon" Color="Color.Primary" />
+                                                    <MudText Typo="Typo.h6">@stat.Value</MudText>
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                        @stat.Label
+                                                    </MudText>
+                                                </MudPaper>
+                                            </MudItem>
+                                        }
+                                    </MudGrid>
+
+                                    <MudStack Row="true" Spacing="2" Class="perfil-meta-chips">
+                                        @if (!string.IsNullOrWhiteSpace(_perfil.Nationality))
+                                        {
+                                            <MudChip T="string"
+                                                     Variant="Variant.Filled"
+                                                     Color="Color.Default"
+                                                     Icon="@Icons.Material.Filled.Flag">
+                                                @_perfil.Nationality
+                                            </MudChip>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(_perfil.Location))
+                                        {
+                                            <MudChip T="string"
+                                                     Variant="Variant.Filled"
+                                                     Color="Color.Default"
+                                                     Icon="@Icons.Material.Filled.Place">
+                                                @_perfil.Location
+                                            </MudChip>
+                                        }
+                                        @foreach (var genero in _perfil.FavoriteGenres)
+                                        {
+                                            <MudChip T="string"
+                                                     Variant="Variant.Outlined"
+                                                     Color="Color.Primary"
+                                                     Icon="@Icons.Material.Filled.MovieFilter">
+                                                @genero
+                                            </MudChip>
+                                        }
+                                    </MudStack>
+                                </MudStack>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+
+                <MudCard Elevation="0" Class="perfil-panel perfil-description">
+                    <MudCardContent>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Descricao</MudText>
+                        @if (!string.IsNullOrWhiteSpace(_perfil.Bio))
+                        {
+                            <MudText Typo="Typo.body1">@_perfil.Bio</MudText>
+                        }
+                        else
+                        {
+                            <MudText Color="Color.Secondary">
+                                Ainda nao adicionaste uma biografia ao teu perfil.
+                            </MudText>
+                        }
+                    </MudCardContent>
+                </MudCard>
+
+                <MudCard Elevation="0" Class="perfil-panel">
+                    <MudCardContent>
+                        <MudTabs Rounded="true" Border="true" Elevation="0" Class="perfil-tabs">
+                            <MudTabPanel Text="Listas pessoais"
+                                         Icon="@Icons.Material.Filled.PlaylistAddCheck"
+                                         BadgeData="@_listas.Count"
+                                         BadgeColor="Color.Primary">
+                                @if (!string.IsNullOrWhiteSpace(_erroListas))
+                                {
+                                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+                                        @_erroListas
+                                    </MudAlert>
+                                }
+                                else if (_listas.Count == 0)
+                                {
+                                    <MudPaper Elevation="0" Class="perfil-empty-section">
+                                        <MudIcon Icon="@Icons.Material.Filled.PlaylistAdd"
+                                                 Color="Color.Secondary" />
+                                        <MudText Typo="Typo.h6">Sem listas pessoais</MudText>
+                                        <MudText Color="Color.Secondary">
+                                            Quando criares Favoritos, Vistos ou Quero Ver, aparecem aqui.
+                                        </MudText>
+                                    </MudPaper>
+                                }
+                                else
+                                {
+                                    <MudGrid Spacing="3" Class="perfil-listas-grid">
+                                        @foreach (var lista in ObterListasResumo())
+                                        {
+                                            <MudItem xs="12" md="6">
+                                                <MudCard Elevation="0" Class="perfil-list-card">
+                                                    <MudCardContent>
+                                                        <MudStack Spacing="2">
+                                                            <MudStack Row="true"
+                                                                      AlignItems="AlignItems.Start"
+                                                                      Justify="Justify.SpaceBetween">
+                                                                <div>
+                                                                    <MudText Typo="Typo.h6">@lista.Name</MudText>
+                                                                    <MudText Typo="Typo.caption"
+                                                                             Color="Color.Secondary">
+                                                                        @DescricaoLista(lista)
+                                                                    </MudText>
+                                                                </div>
+                                                                <MudChip T="string"
+                                                                         Size="Size.Small"
+                                                                         Color="Color.Primary"
+                                                                         Variant="Variant.Outlined">
+                                                                    @lista.TipoNome
+                                                                </MudChip>
+                                                            </MudStack>
+
+                                                            @if (lista.Items.Count == 0)
+                                                            {
+                                                                <MudText Color="Color.Secondary">
+                                                                    Esta lista ainda nao tem filmes.
+                                                                </MudText>
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="perfil-posters">
+                                                                    @foreach (var item in lista.Items.Take(5))
+                                                                    {
+                                                                        <button class="perfil-poster"
+                                                                                title="@item.Titulo"
+                                                                                @onclick="() => AbrirFilme(item.FilmeId)">
+                                                                            @if (!string.IsNullOrWhiteSpace(item.CapaUrl))
+                                                                            {
+                                                                                <img src="@item.CapaUrl" alt="@item.Titulo" />
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <MudIcon Icon="@Icons.Material.Filled.Movie"
+                                                                                         Color="Color.Secondary" />
+                                                                            }
+                                                                        </button>
+                                                                    }
+                                                                </div>
+                                                            }
+                                                        </MudStack>
+                                                    </MudCardContent>
+                                                </MudCard>
+                                            </MudItem>
+                                        }
+                                    </MudGrid>
+                                }
+                            </MudTabPanel>
+
+                            <MudTabPanel Text="Atividade recente"
+                                         Icon="@Icons.Material.Filled.History"
+                                         BadgeData="@_historico.Count"
+                                         BadgeColor="Color.Primary">
+                                @if (!string.IsNullOrWhiteSpace(_erroHistorico))
+                                {
+                                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+                                        @_erroHistorico
+                                    </MudAlert>
+                                }
+                                else if (_historico.Count == 0)
+                                {
+                                    <MudPaper Elevation="0" Class="perfil-empty-section">
+                                        <MudIcon Icon="@Icons.Material.Filled.History"
+                                                 Color="Color.Secondary" />
+                                        <MudText Typo="Typo.h6">Sem atividade recente</MudText>
+                                        <MudText Color="Color.Secondary">
+                                            O historico de visualizacoes aparece aqui quando existir.
+                                        </MudText>
+                                    </MudPaper>
+                                }
+                                else
+                                {
+                                    <MudStack Spacing="2" Class="perfil-activity-list">
+                                        @foreach (var item in _historico.Take(6))
+                                        {
+                                            <MudPaper Elevation="0" Class="perfil-activity-item">
+                                                <MudStack Row="true"
+                                                          AlignItems="AlignItems.Center"
+                                                          Justify="Justify.SpaceBetween"
+                                                          Class="perfil-activity-content">
+                                                    <MudStack Row="true"
+                                                              AlignItems="AlignItems.Center"
+                                                              Spacing="2">
+                                                        <MudAvatar Rounded="true"
+                                                                   Color="Color.Primary"
+                                                                   Variant="Variant.Outlined">
+                                                            <MudIcon Icon="@Icons.Material.Filled.PlayCircle" />
+                                                        </MudAvatar>
+                                                        <div>
+                                                            <MudText Typo="Typo.subtitle1">@item.FilmeTitulo</MudText>
+                                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                                @TextoHistorico(item)
+                                                            </MudText>
+                                                        </div>
+                                                    </MudStack>
+
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                        @FormatarData(item.VisualizadoEm)
+                                                    </MudText>
+                                                </MudStack>
+                                            </MudPaper>
+                                        }
+                                    </MudStack>
+                                }
+                            </MudTabPanel>
+                        </MudTabs>
+                    </MudCardContent>
+                </MudCard>
+            }
+        </MudContainer>
     </Authorized>
 </AuthorizeView>
 
 @code {
     private UserProfileResponse? _perfil;
     private UpdateProfileRequest _pedido = new();
+    private List<ListaPessoalDto> _listas = new();
+    private List<VisualizacaoHistoricoDto> _historico = new();
     private bool _loading = true;
     private bool _emEdicao;
     private bool _aGuardar;
     private string? _erro;
     private string? _erroEdicao;
+    private string? _erroListas;
+    private string? _erroHistorico;
 
     protected override async Task OnInitializedAsync()
+    {
+        await CarregarPerfilAsync();
+    }
+
+    private async Task CarregarPerfilAsync()
     {
         try
         {
             _perfil = await PerfilService.GetMeuPerfilAsync();
+
             if (_perfil == null)
-                _erro = "Não foi possível carregar o perfil. Verifica se tens sessão iniciada.";
+            {
+                _erro = "Nao foi possivel carregar o perfil. Verifica se tens sessao iniciada.";
+                return;
+            }
+
+            await CarregarListasAsync();
+            await CarregarHistoricoAsync();
         }
         catch
         {
@@ -187,6 +472,34 @@
         finally
         {
             _loading = false;
+        }
+    }
+
+    private async Task CarregarListasAsync()
+    {
+        try
+        {
+            _erroListas = null;
+            _listas = await ListaService.GetMinhasListasAsync();
+        }
+        catch
+        {
+            _erroListas = "Nao foi possivel carregar as listas pessoais.";
+        }
+    }
+
+    private async Task CarregarHistoricoAsync()
+    {
+        try
+        {
+            _erroHistorico = null;
+            _historico = (await VisualizacaoService.ObterHistoricoAsync())
+                .OrderByDescending(v => v.VisualizadoEm)
+                .ToList();
+        }
+        catch
+        {
+            _erroHistorico = "Nao foi possivel carregar a atividade recente.";
         }
     }
 
@@ -236,8 +549,68 @@
         }
     }
 
+    private IEnumerable<PerfilStat> ObterEstatisticas()
+    {
+        yield return new PerfilStat("Avaliacoes", _perfil?.ReviewsCount.ToString() ?? "0", Icons.Material.Filled.Star);
+        yield return new PerfilStat("Comunidades", _perfil?.CommunitiesCount.ToString() ?? "0", Icons.Material.Filled.Groups);
+        yield return new PerfilStat("Listas publicas", _perfil?.PublicListsCount.ToString() ?? "0", Icons.Material.Filled.Visibility);
+        yield return new PerfilStat("Filmes em listas", _listas.Sum(l => l.TotalFilmes > 0 ? l.TotalFilmes : l.Items.Count).ToString(), Icons.Material.Filled.Movie);
+    }
+
+    private IEnumerable<ListaPessoalDto> ObterListasResumo()
+    {
+        return _listas
+            .OrderBy(l => OrdemLista(l))
+            .ThenBy(l => l.Name)
+            .Take(6);
+    }
+
+    private static int OrdemLista(ListaPessoalDto lista)
+    {
+        var nome = lista.Name.Trim();
+
+        if (nome.Equals("Favoritos", StringComparison.OrdinalIgnoreCase) || lista.Tipo == TipoListaPessoal.Favorites)
+            return 0;
+
+        if (nome.Equals("Vistos", StringComparison.OrdinalIgnoreCase) || lista.Tipo == TipoListaPessoal.Watched)
+            return 1;
+
+        if (nome.Equals("Quero ver", StringComparison.OrdinalIgnoreCase) || lista.Tipo == TipoListaPessoal.Watchlist)
+            return 2;
+
+        return 3;
+    }
+
+    private static string DescricaoLista(ListaPessoalDto lista)
+    {
+        var total = lista.TotalFilmes > 0 ? lista.TotalFilmes : lista.Items.Count;
+        var filmes = total == 1 ? "1 filme" : $"{total} filmes";
+
+        if (!string.IsNullOrWhiteSpace(lista.Description))
+            return $"{lista.Description} - {filmes}";
+
+        return filmes;
+    }
+
+    private static string TextoHistorico(VisualizacaoHistoricoDto item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.FestivalNome))
+            return $"{item.TipoConteudo} em {item.FestivalNome}";
+
+        return string.IsNullOrWhiteSpace(item.TipoConteudo) ? "Visualizacao" : item.TipoConteudo;
+    }
+
+    private static string FormatarData(DateTime data)
+    {
+        return data.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+    }
+
+    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
+
     private static string ObterInicial(string nome)
     {
         return string.IsNullOrWhiteSpace(nome) ? "?" : nome.Trim()[..1].ToUpperInvariant();
     }
+
+    private sealed record PerfilStat(string Label, string Value, string Icon);
 }

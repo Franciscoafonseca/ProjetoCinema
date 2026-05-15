@@ -1,5 +1,6 @@
 @page "/player/filme/{FilmeId:int}"
 @page "/player/sessao/{SessaoId:int}"
+@attribute [Authorize]
 @inject VisualizacaoService VisualizacaoService
 @inject NavigationManager Nav
 
@@ -15,8 +16,12 @@
     else if (!string.IsNullOrWhiteSpace(_erro))
     {
         <div class="estado erro">
+            <h1>Nao foi possivel abrir o conteudo</h1>
             <p>@_erro</p>
-            <a href="/carrinho">Ver carrinho</a>
+            <div class="erro-acoes">
+                <a href="/carrinho">Ver carrinho</a>
+                <a href="/meus-acessos">Meus acessos</a>
+            </div>
         </div>
     }
     else if (_conteudoSelecionado == null)
@@ -27,17 +32,30 @@
     {
         <section class="player-shell">
             <div class="video-frame">
-                <iframe src="@_conteudoSelecionado.UrlVisualizacao"
-                        title="@_conteudoSelecionado.Titulo"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen>
-                </iframe>
+                @if (UsarVideoTag(_conteudoSelecionado.UrlVisualizacao))
+                {
+                    <video src="@_conteudoSelecionado.UrlVisualizacao" controls autoplay>
+                        O teu browser nao suporta video HTML5.
+                    </video>
+                }
+                else
+                {
+                    <iframe src="@UrlPlayer(_conteudoSelecionado.UrlVisualizacao)"
+                            title="@_conteudoSelecionado.Titulo"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen>
+                    </iframe>
+                }
             </div>
 
             <div class="player-meta">
                 <div>
                     <span>@_visualizacao?.TipoConteudo</span>
                     <h1>@_conteudoSelecionado.Titulo</h1>
+                    @if (!string.IsNullOrWhiteSpace(_visualizacao?.Mensagem))
+                    {
+                        <p>@_visualizacao.Mensagem</p>
+                    }
                 </div>
                 @if (_visualizacao?.TemChatAoVivo == true)
                 {
@@ -48,13 +66,13 @@
 
         @if (_conteudos.Count > 1)
         {
-            <section class="playlist">
+            <section class="playlist" aria-label="Conteudos da sessao">
                 @foreach (var conteudo in _conteudos)
                 {
                     <button class="@(conteudo.FilmeId == _conteudoSelecionado.FilmeId ? "ativo" : "")"
                             @onclick="() => Selecionar(conteudo)">
                         <span>@conteudo.Ordem</span>
-                        @conteudo.Titulo
+                        <strong>@conteudo.Titulo</strong>
                     </button>
                 }
             </section>
@@ -91,7 +109,7 @@
         }
         catch (Exception ex)
         {
-            _erro = ex.Message;
+            _erro = LimparMensagem(ex.Message);
         }
         finally
         {
@@ -107,8 +125,62 @@
     private void Voltar()
     {
         if (FilmeId > 0)
+        {
             Nav.NavigateTo($"/filmes/{FilmeId}");
-        else
-            Nav.NavigateTo("/catalogo");
+            return;
+        }
+
+        if (_conteudoSelecionado?.FilmeId > 0)
+        {
+            Nav.NavigateTo($"/filmes/{_conteudoSelecionado.FilmeId}");
+            return;
+        }
+
+        Nav.NavigateTo("/sessoes");
+    }
+
+    private static string UrlPlayer(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        if (url.Contains("/embed/", StringComparison.OrdinalIgnoreCase))
+            return url;
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            if (uri.Host.Contains("youtu.be", StringComparison.OrdinalIgnoreCase))
+                return $"https://www.youtube.com/embed/{uri.AbsolutePath.Trim('/')}";
+
+            var videoId = uri.Query
+                .TrimStart('?')
+                .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                .Select(parte => parte.Split('=', 2))
+                .FirstOrDefault(partes =>
+                    partes.Length == 2 && string.Equals(partes[0], "v", StringComparison.OrdinalIgnoreCase)
+                )?[1];
+
+            if (!string.IsNullOrWhiteSpace(videoId))
+                return $"https://www.youtube.com/embed/{Uri.UnescapeDataString(videoId)}";
+        }
+
+        return url;
+    }
+
+    private static bool UsarVideoTag(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        return url.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".webm", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string LimparMensagem(string mensagem)
+    {
+        return string.IsNullOrWhiteSpace(mensagem)
+            ? "Sem acesso valido ao conteudo."
+            : mensagem.Trim('"');
     }
 }

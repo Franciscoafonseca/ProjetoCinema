@@ -1,0 +1,187 @@
+.acessos-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 34px 20px 64px;
+}
+
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #2dd4bf;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2.2rem;
+  font-weight: 850;
+}
+
+.lead {
+  max-width: 620px;
+  margin: 10px 0 0;
+  color: #c9c9c9;
+  line-height: 1.5;
+}
+
+.heading-action,
+.empty-actions a {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  padding: 0 16px;
+  background: #e50914;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 750;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.metrics article,
+.access-card,
+.state-panel,
+.empty-state {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: #1a1a1a;
+}
+
+.metrics article {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+}
+
+.metrics span {
+  color: #fff;
+  font-size: 1.7rem;
+  font-weight: 850;
+}
+
+.metrics small {
+  color: #aaa;
+}
+
+.access-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.access-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.access-top,
+.access-meta,
+.access-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.access-top {
+  justify-content: space-between;
+}
+
+.access-type,
+.access-state {
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.access-type {
+  background: rgba(45, 212, 191, 0.14);
+  color: #99f6e4;
+}
+
+.access-state.active {
+  background: rgba(229, 9, 20, 0.16);
+  color: #ffb4b8;
+}
+
+.access-state.ended {
+  background: rgba(255, 255, 255, 0.08);
+  color: #aaa;
+}
+
+.access-card h2 {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 850;
+}
+
+.access-meta {
+  color: #bbb;
+  font-size: 0.88rem;
+}
+
+.access-actions button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 13px;
+  background: #e50914;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.state-panel,
+.empty-state {
+  padding: 24px;
+  color: #cfcfcf;
+}
+
+.state-panel.error {
+  border-color: rgba(229, 9, 20, 0.45);
+  color: #ffb4b8;
+}
+
+.empty-state h2 {
+  margin: 0 0 8px;
+  color: #fff;
+}
+
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.empty-actions a:last-child {
+  background: #2b2b2b;
+}
+
+@media (max-width: 720px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

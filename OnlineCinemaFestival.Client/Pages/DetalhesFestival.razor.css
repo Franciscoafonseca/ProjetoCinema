@@ -54,6 +54,28 @@
   max-width: 800px;
 }
 
+.festival-hero-metrics,
+.seccao-cabecalho,
+.sessao-linha,
+.sessao-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.festival-hero-metrics {
+  margin-top: 1.4rem;
+}
+
+.festival-hero-metrics span {
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.14);
+  color: #99f6e4;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .festival-seccao {
   margin-bottom: 3rem;
 }
@@ -65,6 +87,22 @@
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #e50914;
   display: inline-block;
+}
+
+.seccao-cabecalho {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.seccao-cabecalho .seccao-titulo {
+  margin-bottom: 0;
+}
+
+.seccao-cabecalho a {
+  color: #2dd4bf;
+  text-decoration: none;
+  font-weight: 700;
 }
 
 .filmes-grid {
@@ -176,12 +214,39 @@
 
 .sessao-info {
   flex: 1;
+  min-width: 0;
+}
+
+.sessao-linha {
+  align-items: center;
 }
 
 .sessao-filme {
   color: #fff;
-  margin: 0 0 0.3rem;
+  margin: 0;
   font-size: 1.1rem;
+}
+
+.sessao-estado {
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.sessao-estado.scheduled {
+  background: rgba(45, 212, 191, 0.14);
+  color: #99f6e4;
+}
+
+.sessao-estado.live {
+  background: rgba(229, 9, 20, 0.18);
+  color: #ffb4b8;
+}
+
+.sessao-estado.ended {
+  background: rgba(255, 255, 255, 0.08);
+  color: #aaa;
 }
 
 .sessao-hora {
@@ -207,9 +272,24 @@
   transition: all 0.15s;
 }
 
+.sessao-btn.destaque {
+  background: #e50914;
+  border-color: #e50914;
+}
+
 .sessao-btn:hover {
   border-color: #e50914;
   color: #e50914;
+}
+
+.sessao-btn.destaque:hover {
+  color: #fff;
+  background: #f1252f;
+}
+
+.sessao-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .festival-erro {
@@ -250,7 +330,12 @@
     font-size: 1.75rem;
   }
   .sessao-item {
-    flex-wrap: wrap;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .sessao-data {
+    border-right: 0;
+    padding-right: 0;
   }
   .sessao-btn {
     width: 100%;

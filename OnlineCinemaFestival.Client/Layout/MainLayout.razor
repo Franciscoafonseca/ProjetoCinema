@@ -8,27 +8,32 @@
 <MudSnackbarProvider />
 
 <div class="layout">
-    <nav class="navbar-topo">
-        <a class="logo" href="">🎬 Cinema Festival</a>
+    <header class="navbar-topo">
+        <a class="logo" href="">
+            <span class="logo-mark">OCF</span>
+            <span>Online Cinema Festival</span>
+        </a>
 
-        <div class="nav-centro">
-            <NavLink class="nav-btn" href="" Match="NavLinkMatch.All">Home</NavLink>
-            <NavLink class="nav-btn" href="catalogo">Catálogo</NavLink>
+        <nav class="nav-centro" aria-label="Navegacao principal">
+            <NavLink class="nav-btn" href="" Match="NavLinkMatch.All">Inicio</NavLink>
+            <NavLink class="nav-btn" href="catalogo">Catalogo</NavLink>
             <NavLink class="nav-btn" href="festivais">Festivais</NavLink>
+            <NavLink class="nav-btn" href="sessoes">Sessoes</NavLink>
 
             <AuthorizeView>
                 <Authorized>
-                    <NavLink class="nav-btn" href="listas">As minhas listas</NavLink>
-                    <NavLink class="nav-btn" href="perfil">
-                        <span class="nav-user">@context.User.Identity?.Name</span>
-                    </NavLink>
+                    <NavLink class="nav-btn" href="meus-acessos">Acessos</NavLink>
+                    <NavLink class="nav-btn" href="minhas-compras">Compras</NavLink>
+                    <NavLink class="nav-btn" href="listas">Listas</NavLink>
                 </Authorized>
             </AuthorizeView>
-        </div>
+        </nav>
 
         <div class="nav-direita">
             <AuthorizeView>
-                <Authorized>
+                <Authorized Context="auth">
+                    <NavLink class="nav-icon-btn" href="carrinho" title="Carrinho">Carrinho</NavLink>
+                    <NavLink class="nav-user" href="perfil">@ObterNome(auth.User.Identity?.Name)</NavLink>
                     <button class="nav-btn nav-btn-sair" @onclick="Sair">Sair</button>
                 </Authorized>
                 <NotAuthorized>
@@ -37,7 +42,7 @@
                 </NotAuthorized>
             </AuthorizeView>
         </div>
-    </nav>
+    </header>
 
     <main class="conteudo">
         @Body
@@ -50,14 +55,14 @@
         PaletteDark = new PaletteDark
         {
             Primary = "#e50914",
-            Secondary = "#e50914",
-            Background = "#141414",
-            Surface = "#1f1f1f",
-            AppbarBackground = "#141414",
+            Secondary = "#2dd4bf",
+            Background = "#111111",
+            Surface = "#1b1b1b",
+            AppbarBackground = "#111111",
             TextPrimary = "#ffffff",
-            TextSecondary = "#c0c0c0",
-            ActionDefault = "#cccccc",
-            DrawerBackground = "#1a1a1a",
+            TextSecondary = "#c8c8c8",
+            ActionDefault = "#d8d8d8",
+            DrawerBackground = "#171717",
         }
     };
 
@@ -65,5 +70,13 @@
     {
         await AuthService.TerminarSessaoAsync();
         Nav.NavigateTo("/");
+    }
+
+    private static string ObterNome(string? nome)
+    {
+        if (string.IsNullOrWhiteSpace(nome))
+            return "Perfil";
+
+        return nome.Contains('@') ? nome.Split('@')[0] : nome;
     }
 }

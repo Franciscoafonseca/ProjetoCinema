@@ -339,11 +339,13 @@ Pages/
  Home.razor
  Listas.razor
  Login.razor
+ MeusAcessos.razor
  MinhasCompras.razor
  NotFound.razor
  Perfil.razor
  Player.razor
  Registo.razor
+ Sessoes.razor
 _Imports.razor
 
 [dynamicFiles]
@@ -361,9 +363,11 @@ Pages/
  Home.razor
  Listas.razor
  Login.razor
+ MeusAcessos.razor
  MinhasCompras.razor
  NotFound.razor
  Perfil.razor
  Player.razor
  Registo.razor
+ Sessoes.razor
 _Imports.razor

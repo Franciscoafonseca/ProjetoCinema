@@ -1,0 +1,187 @@
+@page "/sessoes"
+@inherits FilmePageBase
+@inject SessaoService SessaoService
+@inject CarrinhoService CarrinhoService
+@inject NavigationManager Nav
+
+<PageTitle>Sessoes - Online Cinema Festival</PageTitle>
+
+<div class="sessoes-page">
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">Programacao digital</p>
+            <h1>Sessoes</h1>
+            <p class="lead">Escolhe uma exibicao, compra o bilhete e entra no player quando tiveres acesso.</p>
+        </div>
+        <a class="heading-action" href="/carrinho">Ver carrinho</a>
+    </header>
+
+    <section class="toolbar">
+        <input class="search"
+               placeholder="Pesquisar filme ou festival"
+               value="@_pesquisa"
+               @oninput="OnPesquisaAlterada" />
+
+        <select class="select" @bind="_estado">
+            <option value="">Todos os estados</option>
+            <option value="Agendada">Agendada</option>
+            <option value="ADecorrer">A decorrer</option>
+            <option value="Terminada">Terminada</option>
+        </select>
+
+        <label class="check">
+            <input type="checkbox" @bind="_apenasDisponiveis" />
+            Futuras/ativas
+        </label>
+    </section>
+
+    @if (_loading)
+    {
+        <div class="state-panel">A carregar sessoes...</div>
+    }
+    else if (_erro != null)
+    {
+        <div class="state-panel error">@_erro</div>
+    }
+    else if (SessoesFiltradas.Count == 0)
+    {
+        <div class="state-panel">Nao ha sessoes com estes filtros.</div>
+    }
+    else
+    {
+        <section class="sessions-grid">
+            @foreach (var sessao in SessoesFiltradas)
+            {
+                <article class="session-row">
+                    <div class="date-box">
+                        <span>@sessao.Inicio.ToLocalTime().ToString("dd")</span>
+                        <small>@sessao.Inicio.ToLocalTime().ToString("MMM").ToUpperInvariant()</small>
+                    </div>
+
+                    <div class="session-main">
+                        <div class="session-titleline">
+                            <h2>@TituloSessao(sessao)</h2>
+                            <span class="status @EstadoCss(EstadoTexto(sessao))">@EstadoTexto(sessao)</span>
+                        </div>
+                        <div class="meta">
+                            <span>@sessao.Festival</span>
+                            <span>@sessao.TipoNome</span>
+                            <span>@sessao.Inicio.ToLocalTime().ToString("HH:mm") - @sessao.Fim.ToLocalTime().ToString("HH:mm")</span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(sessao.Observacoes))
+                        {
+                            <p class="obs">@sessao.Observacoes</p>
+                        }
+                    </div>
+
+                    <div class="session-actions">
+                        <button class="primary"
+                                disabled="@(_aAtualizar || SessaoTerminada(sessao))"
+                                @onclick="() => AdicionarBilhete(sessao.Id)">
+                            Bilhete
+                        </button>
+                        <button class="secondary" @onclick="() => AbrirPlayer(sessao.Id)">Player</button>
+                        @if (sessao.FilmePrincipalId.HasValue)
+                        {
+                            <button class="secondary" @onclick="() => AbrirFilme(sessao.FilmePrincipalId.Value)">Filme</button>
+                        }
+                    </div>
+                </article>
+            }
+        </section>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_feedback))
+    {
+        <div class="feedback">@_feedback</div>
+    }
+</div>
+
+@code {
+    private List<SessaoDto> _sessoes = new();
+    private string? _pesquisa;
+    private string _estado = string.Empty;
+    private bool _apenasDisponiveis = true;
+    private bool _aAtualizar;
+    private string? _feedback;
+
+    private List<SessaoDto> SessoesFiltradas =>
+        _sessoes
+            .Where(s => !_apenasDisponiveis || !SessaoTerminada(s))
+            .Where(s => string.IsNullOrWhiteSpace(_estado) || EstadoTexto(s) == _estado)
+            .Where(s =>
+                string.IsNullOrWhiteSpace(_pesquisa)
+                || TituloSessao(s).Contains(_pesquisa, StringComparison.OrdinalIgnoreCase)
+                || s.Festival.Contains(_pesquisa, StringComparison.OrdinalIgnoreCase)
+            )
+            .OrderBy(s => s.Inicio)
+            .ToList();
+
+    protected override async Task CarregarDadosAsync()
+    {
+        _sessoes = await SessaoService.GetSessoesAsync();
+    }
+
+    private void OnPesquisaAlterada(ChangeEventArgs e)
+    {
+        _pesquisa = e.Value?.ToString();
+    }
+
+    private async Task AdicionarBilhete(int sessaoId)
+    {
+        _feedback = null;
+        _aAtualizar = true;
+
+        try
+        {
+            await CarrinhoService.AdicionarBilheteSessaoAsync(sessaoId);
+            _feedback = "Bilhete adicionado ao carrinho.";
+        }
+        catch (Exception ex)
+        {
+            _feedback = ex.Message;
+        }
+        finally
+        {
+            _aAtualizar = false;
+        }
+    }
+
+    private static bool SessaoTerminada(SessaoDto sessao)
+    {
+        return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase)
+            || sessao.Fim.ToUniversalTime() <= DateTime.UtcNow;
+    }
+
+    private static string EstadoTexto(SessaoDto sessao)
+    {
+        if (!string.IsNullOrWhiteSpace(sessao.Estado))
+            return sessao.Estado;
+
+        var agora = DateTime.UtcNow;
+        if (sessao.Inicio.ToUniversalTime() > agora)
+            return "Agendada";
+
+        return sessao.Fim.ToUniversalTime() >= agora ? "ADecorrer" : "Terminada";
+    }
+
+    private static string EstadoCss(string? estado)
+    {
+        if (string.Equals(estado, "ADecorrer", StringComparison.OrdinalIgnoreCase))
+            return "live";
+
+        if (string.Equals(estado, "Terminada", StringComparison.OrdinalIgnoreCase))
+            return "ended";
+
+        return "scheduled";
+    }
+
+    private static string TituloSessao(SessaoDto sessao)
+    {
+        return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
+    }
+
+    private void AbrirPlayer(int sessaoId) => Nav.NavigateTo($"/player/sessao/{sessaoId}");
+
+    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
+}

@@ -120,6 +120,36 @@ code {
   color: #c02d76;
 }
 
+.auth-required {
+  max-width: 620px;
+  margin: 72px auto;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: #1a1a1a;
+}
+
+.auth-required h1 {
+  margin: 0 0 8px;
+  color: #fff;
+}
+
+.auth-required p {
+  color: #c9c9c9;
+}
+
+.auth-required a {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  padding: 0 16px;
+  background: #e50914;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+}
+
 .form-floating > .form-control-plaintext::placeholder,
 .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);

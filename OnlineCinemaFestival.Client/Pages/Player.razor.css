@@ -25,11 +25,30 @@
   padding: 1.25rem;
 }
 
+.estado h1 {
+  margin: 0 0 0.5rem;
+  color: #fff;
+  font-size: 1.4rem;
+}
+
 .estado.erro {
   border-color: #7a1117;
 }
 
+.erro-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
 .estado a {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  padding: 0 13px;
+  background: #2a2a2a;
   color: #e50914;
   font-weight: 700;
   text-decoration: none;
@@ -55,6 +74,13 @@
   display: block;
 }
 
+.video-frame video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #050505;
+}
+
 .player-meta {
   display: flex;
   justify-content: space-between;
@@ -74,6 +100,11 @@
   color: #fff;
   margin: 0.25rem 0 0;
   font-size: 1.6rem;
+}
+
+.player-meta p {
+  color: #aaa;
+  margin: 0.35rem 0 0;
 }
 
 .player-meta strong {
@@ -105,6 +136,7 @@
 
 .playlist button.ativo {
   border-color: #e50914;
+  background: #241416;
 }
 
 .playlist span {

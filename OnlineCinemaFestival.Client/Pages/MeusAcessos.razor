@@ -1,0 +1,137 @@
+@page "/meus-acessos"
+@attribute [Authorize]
+@inject AcessoService AcessoService
+@inject NavigationManager Nav
+
+<PageTitle>Meus acessos - Online Cinema Festival</PageTitle>
+
+<div class="acessos-page">
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">Biblioteca</p>
+            <h1>Meus acessos</h1>
+            <p class="lead">Tudo o que tens ativo para ver: bilhetes, passes e alugueres digitais.</p>
+        </div>
+        <a class="heading-action" href="/sessoes">Ver sessoes</a>
+    </header>
+
+    @if (_aCarregar)
+    {
+        <div class="state-panel">A carregar acessos...</div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_erro))
+    {
+        <div class="state-panel error">@_erro</div>
+    }
+    else if (_acessos.Count == 0)
+    {
+        <section class="empty-state">
+            <h2>Ainda nao tens acessos ativos</h2>
+            <p>Compra um bilhete de sessao, um passe de festival ou um aluguer digital para comecar.</p>
+            <div class="empty-actions">
+                <a href="/sessoes">Ver sessoes</a>
+                <a href="/catalogo">Ver catalogo</a>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="metrics">
+            <article>
+                <span>@_acessos.Count</span>
+                <small>Acessos ativos</small>
+            </article>
+            <article>
+                <span>@_acessos.Count(a => a.SessaoId.HasValue)</span>
+                <small>Bilhetes</small>
+            </article>
+            <article>
+                <span>@_acessos.Count(a => a.FilmeId.HasValue && !a.SessaoId.HasValue)</span>
+                <small>Filmes digitais</small>
+            </article>
+        </section>
+
+        <section class="access-grid">
+            @foreach (var acesso in _acessos.OrderBy(a => a.FimValidade))
+            {
+                <article class="access-card">
+                    <div class="access-top">
+                        <span class="access-type">@acesso.TipoAcessoNome</span>
+                        <span class="access-state @(acesso.Ativo ? "active" : "ended")">
+                            @(acesso.Ativo ? "Ativo" : "Expirado")
+                        </span>
+                    </div>
+
+                    <h2>@TituloAcesso(acesso)</h2>
+
+                    <div class="access-meta">
+                        <span>@FormatarPeriodo(acesso.InicioValidade, acesso.FimValidade)</span>
+                        @if (acesso.SessaoId.HasValue)
+                        {
+                            <span>Sessao #@acesso.SessaoId</span>
+                        }
+                        @if (acesso.FestivalId.HasValue)
+                        {
+                            <span>Festival #@acesso.FestivalId</span>
+                        }
+                    </div>
+
+                    <div class="access-actions">
+                        @if (acesso.SessaoId.HasValue)
+                        {
+                            <button @onclick="() => AbrirSessao(acesso.SessaoId.Value)">Ver sessao</button>
+                        }
+                        else if (acesso.FilmeId.HasValue)
+                        {
+                            <button @onclick="() => AbrirFilme(acesso.FilmeId.Value)">Ver filme</button>
+                        }
+                        else if (acesso.FestivalId.HasValue)
+                        {
+                            <button @onclick="() => AbrirFestival(acesso.FestivalId.Value)">Ver festival</button>
+                        }
+                    </div>
+                </article>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private List<AcessoUtilizadorDto> _acessos = new();
+    private bool _aCarregar = true;
+    private string? _erro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _acessos = await AcessoService.GetMeusAcessosAsync();
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private void AbrirSessao(int sessaoId) => Nav.NavigateTo($"/player/sessao/{sessaoId}");
+
+    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/player/filme/{filmeId}");
+
+    private void AbrirFestival(int festivalId) => Nav.NavigateTo($"/festivais/{festivalId}");
+
+    private static string TituloAcesso(AcessoUtilizadorDto acesso)
+    {
+        return string.IsNullOrWhiteSpace(acesso.NomeAcesso)
+            ? $"Acesso #{acesso.AcessoId}"
+            : acesso.NomeAcesso;
+    }
+
+    private static string FormatarPeriodo(DateTime inicio, DateTime fim)
+    {
+        return $"{inicio.ToLocalTime():dd/MM/yyyy HH:mm} - {fim.ToLocalTime():dd/MM/yyyy HH:mm}";
+    }
+}

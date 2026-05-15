@@ -1,14 +1,23 @@
 @page "/minhas-compras"
+@attribute [Authorize]
 @inject CompraService CompraService
 @inject VisualizacaoService VisualizacaoService
+@inject NavigationManager Nav
 
 <PageTitle>Minhas compras - Online Cinema Festival</PageTitle>
 
 <div class="historico-page">
-    <div class="page-header">
-        <h1>Minhas compras</h1>
-        <a href="/carrinho">Carrinho</a>
-    </div>
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">Historico</p>
+            <h1>Compras e visualizacoes</h1>
+            <p>Consulta transacoes, pagamentos simulados e os conteudos que ja abriste no player.</p>
+        </div>
+        <div class="header-actions">
+            <a href="/meus-acessos">Meus acessos</a>
+            <a href="/carrinho">Carrinho</a>
+        </div>
+    </header>
 
     @if (_aCarregar)
     {
@@ -20,20 +29,43 @@
     }
     else
     {
+        <section class="metricas">
+            <article>
+                <span>@_compras.Count</span>
+                <small>Compras</small>
+            </article>
+            <article>
+                <span>@Moeda(_compras.Sum(c => c.ValorTotal))</span>
+                <small>Total gasto</small>
+            </article>
+            <article>
+                <span>@_visualizacoes.Count</span>
+                <small>Visualizacoes</small>
+            </article>
+        </section>
+
         <section class="secao">
-            <h2>Compras</h2>
+            <div class="secao-topo">
+                <h2>Compras</h2>
+                <a href="/sessoes">Comprar mais</a>
+            </div>
+
             @if (_compras.Count == 0)
             {
-                <p class="estado">Ainda nao existem compras.</p>
+                <div class="empty-state">
+                    <h3>Ainda nao existem compras</h3>
+                    <p>Quando finalizares o carrinho, as compras aparecem aqui com pagamento e itens.</p>
+                </div>
             }
             else
             {
                 <div class="lista">
-                    @foreach (var compra in _compras)
+                    @foreach (var compra in _compras.OrderByDescending(c => c.CriadaEm))
                     {
                         <article class="compra">
                             <div class="compra-topo">
                                 <div>
+                                    <span class="estado-compra">@compra.EstadoNome</span>
                                     <h3>@compra.Referencia</h3>
                                     <p>@compra.CriadaEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
                                 </div>
@@ -42,16 +74,21 @@
 
                             @if (compra.Pagamento != null)
                             {
-                                <p class="pagamento">
-                                    @compra.Pagamento.Metodo - @compra.Pagamento.EstadoNome - @compra.Pagamento.Referencia
-                                </p>
+                                <div class="pagamento">
+                                    <span>@compra.Pagamento.Metodo</span>
+                                    <span>@compra.Pagamento.EstadoNome</span>
+                                    <span>@compra.Pagamento.Referencia</span>
+                                </div>
                             }
 
                             <ul>
                                 @foreach (var item in compra.Itens)
                                 {
                                     <li>
-                                        <span>@item.NomeAcesso</span>
+                                        <span>
+                                            <strong>@item.NomeAcesso</strong>
+                                            <small>@item.TipoAcessoNome x @item.Quantidade</small>
+                                        </span>
                                         <span>@Moeda(item.Subtotal)</span>
                                     </li>
                                 }
@@ -63,22 +100,33 @@
         </section>
 
         <section class="secao">
-            <h2>Visualizacoes</h2>
+            <div class="secao-topo">
+                <h2>Visualizacoes</h2>
+                <a href="/catalogo">Explorar catalogo</a>
+            </div>
+
             @if (_visualizacoes.Count == 0)
             {
-                <p class="estado">Ainda nao existem visualizacoes registadas.</p>
+                <div class="empty-state">
+                    <h3>Ainda nao existem visualizacoes registadas</h3>
+                    <p>Ao abrir um filme ou sessao no player, o historico fica registado aqui.</p>
+                </div>
             }
             else
             {
                 <div class="lista compacta">
-                    @foreach (var visualizacao in _visualizacoes)
+                    @foreach (var visualizacao in _visualizacoes.OrderByDescending(v => v.VisualizadoEm))
                     {
                         <article class="visualizacao">
                             <div>
+                                <span class="estado-compra">@visualizacao.TipoConteudo</span>
                                 <h3>@visualizacao.FilmeTitulo</h3>
-                                <p>@visualizacao.TipoConteudo @DescricaoSessao(visualizacao)</p>
+                                <p>@DescricaoVisualizacao(visualizacao)</p>
                             </div>
-                            <time>@visualizacao.VisualizadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</time>
+                            <div class="visualizacao-acoes">
+                                <time>@visualizacao.VisualizadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</time>
+                                <button @onclick="() => Reabrir(visualizacao)">Reabrir</button>
+                            </div>
                         </article>
                     }
                 </div>
@@ -110,9 +158,30 @@
         }
     }
 
-    private static string Moeda(decimal valor)
-        => valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+    private void Reabrir(VisualizacaoHistoricoDto visualizacao)
+    {
+        if (visualizacao.SessaoId.HasValue)
+        {
+            Nav.NavigateTo($"/player/sessao/{visualizacao.SessaoId.Value}");
+            return;
+        }
 
-    private static string DescricaoSessao(VisualizacaoHistoricoDto visualizacao)
-        => visualizacao.SessaoId.HasValue ? $"#{visualizacao.SessaoId}" : string.Empty;
+        Nav.NavigateTo($"/player/filme/{visualizacao.FilmeId}");
+    }
+
+    private static string DescricaoVisualizacao(VisualizacaoHistoricoDto visualizacao)
+    {
+        if (!string.IsNullOrWhiteSpace(visualizacao.FestivalNome))
+            return visualizacao.FestivalNome;
+
+        if (visualizacao.SessaoId.HasValue)
+            return $"Sessao #{visualizacao.SessaoId}";
+
+        return "Filme digital";
+    }
+
+    private static string Moeda(decimal valor)
+    {
+        return valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+    }
 }

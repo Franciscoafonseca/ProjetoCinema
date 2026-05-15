@@ -1,6 +1,27 @@
+@inject NavigationManager Nav
+
 <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
-        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <NotAuthorized>
+                <LayoutView Layout="@typeof(MainLayout)">
+                    <section class="auth-required">
+                        <h1>Inicia sessao</h1>
+                        <p>Precisas de uma conta para aceder a esta area do festival.</p>
+                        <a href="@LoginUrl()">Entrar</a>
+                    </section>
+                </LayoutView>
+            </NotAuthorized>
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
 </Router>
+
+@code {
+    private string LoginUrl()
+    {
+        var relativo = Nav.ToBaseRelativePath(Nav.Uri);
+        var destino = string.IsNullOrWhiteSpace(relativo) ? "/" : "/" + relativo;
+        return "/login?returnUrl=" + Uri.EscapeDataString(destino);
+    }
+}
