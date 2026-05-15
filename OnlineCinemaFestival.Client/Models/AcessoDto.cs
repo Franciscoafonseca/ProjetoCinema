@@ -66,3 +66,5 @@ public class AcessoUtilizadorDto
 
     public bool Ativo { get; set; }
 }
+
+public class AcessoAtivoDto : AcessoUtilizadorDto { }

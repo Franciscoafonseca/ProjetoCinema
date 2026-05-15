@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ItemCarrinhoReadDto
+public class CarrinhoItemDto
 {
     public int Id { get; set; }
 
@@ -38,3 +38,5 @@ public class ItemCarrinhoReadDto
 
     public DateTime DataAdicao { get; set; }
 }
+
+public class ItemCarrinhoReadDto : CarrinhoItemDto { }

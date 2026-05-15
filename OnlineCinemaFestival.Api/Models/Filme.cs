@@ -14,7 +14,23 @@ public class Filme
     public string? VideoUrl { get; set; }
     public string? ConteudoLocalPath { get; set; }
 
+    public ICollection<FestivalFilme> FestivalFilmes { get; set; } = new List<FestivalFilme>();
+
+    public ICollection<SessaoFilme> SessoesDoFilme { get; set; } = new List<SessaoFilme>();
+
     public ICollection<Avaliacao> Avaliacoes { get; set; } = new List<Avaliacao>();
+
+    public ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
+
+    public ICollection<ListaPessoalItem> ListaPessoalItems { get; set; } =
+        new List<ListaPessoalItem>();
+
+    public ICollection<Acesso> Acessos { get; set; } = new List<Acesso>();
+
+    public ICollection<AcessoUtilizador> AcessosUtilizador { get; set; } =
+        new List<AcessoUtilizador>();
+
+    public ICollection<Visualizacao> Visualizacoes { get; set; } = new List<Visualizacao>();
 
     public int Popularidade => Avaliacoes.Count;
 }

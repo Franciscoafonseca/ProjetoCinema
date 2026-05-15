@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Controllers;
@@ -17,7 +17,7 @@ public class GenresController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Genero>>> GetAll()
+    public async Task<ActionResult<IEnumerable<GeneroDto>>> GetAll()
     {
         var generos = await _generoService.GetAllAsync();
 
@@ -26,11 +26,11 @@ public class GenresController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
-    public async Task<ActionResult<Genero>> Create(Genero genero)
+    public async Task<ActionResult<GeneroDto>> Create(CriarGeneroDto dto)
     {
         try
         {
-            var criado = await _generoService.CreateAsync(genero);
+            var criado = await _generoService.CreateAsync(dto);
 
             return CreatedAtAction(nameof(GetAll), new { id = criado.Id }, criado);
         }

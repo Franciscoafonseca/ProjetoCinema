@@ -20,7 +20,7 @@ public class FilmesController : ControllerBase
     // GET: api/filmes
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<FilmeReadDto>>> GetFilmes()
+    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> GetFilmes()
     {
         var filmes = await _service.GetAllFilmesAsync();
         return Ok(filmes);
@@ -29,7 +29,7 @@ public class FilmesController : ControllerBase
     // GET: api/filmes/pesquisar-tmdb?query=Matrix
     [HttpGet("pesquisar-tmdb")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<FilmeReadDto>>> SearchTmdb([FromQuery] string query)
+    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> SearchTmdb([FromQuery] string query)
     {
         if (string.IsNullOrWhiteSpace(query))
             return BadRequest("O termo de pesquisa não pode estar vazio.");
@@ -41,7 +41,7 @@ public class FilmesController : ControllerBase
     // POST: api/filmes/importar/603
     [HttpPost("importar/{tmdbId}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<ActionResult<FilmeReadDto>> Import(int tmdbId)
+    public async Task<ActionResult<FilmeDetalheDto>> Import(int tmdbId)
     {
         try
         {

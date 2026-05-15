@@ -15,6 +15,9 @@ public class Comentario
     public int UsuarioId { get; set; }
     public Utilizador Usuario { get; set; } = null!;
 
-    public int ComunidadeId { get; set; }
-    public Comunidade Comunidade { get; set; } = null!;
+    public int? ComunidadeId { get; set; }
+    public Comunidade? Comunidade { get; set; }
+
+    public int? FilmeId { get; set; }
+    public Filme? Filme { get; set; }
 }

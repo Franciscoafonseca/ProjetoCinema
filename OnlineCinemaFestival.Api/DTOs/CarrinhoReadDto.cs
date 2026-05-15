@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class CarrinhoReadDto
+public class CarrinhoDto
 {
     public int Id { get; set; }
 
@@ -10,3 +10,5 @@ public class CarrinhoReadDto
 
     public decimal Total { get; set; }
 }
+
+public class CarrinhoReadDto : CarrinhoDto { }

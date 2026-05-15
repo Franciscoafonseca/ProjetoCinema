@@ -1,10 +1,10 @@
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.DTOs;
 
 namespace OnlineCinemaFestival.Api.Services;
 
 public interface IGeneroService
 {
-    Task<IEnumerable<Genero>> GetAllAsync();
+    Task<IEnumerable<GeneroDto>> GetAllAsync();
 
-    Task<Genero> CreateAsync(Genero genero);
+    Task<GeneroDto> CreateAsync(CriarGeneroDto dto);
 }

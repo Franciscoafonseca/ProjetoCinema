@@ -1,3 +1,4 @@
+using System.Globalization;
 using Bogus;
 using Microsoft.EntityFrameworkCore;
 using OnlineCinemaFestival.Api.Models;
@@ -7,6 +8,120 @@ namespace OnlineCinemaFestival.Api.Data;
 
 public static class DbSeeder
 {
+    private const int NumeroUtilizadores = 35;
+    private const int NumeroFilmes = 100;
+    private const int NumeroComunidades = 10;
+    private const int NumeroComentarios = 180;
+    private const int NumeroCompras = 60;
+    private const int NumeroVisualizacoes = 220;
+
+    private static readonly Random SeedRandom = new(2120622);
+
+    private static readonly string[] Nacionalidades =
+    {
+        "Portugal",
+        "Brasil",
+        "Cabo Verde",
+        "Angola",
+        "Moçambique",
+        "Espanha",
+        "França",
+        "Itália",
+        "Reino Unido",
+        "Alemanha",
+    };
+
+    private static readonly string[] Localizacoes =
+    {
+        "Funchal",
+        "Câmara de Lobos",
+        "Machico",
+        "Santa Cruz",
+        "Ribeira Brava",
+        "Lisboa",
+        "Porto",
+        "Coimbra",
+        "Braga",
+        "Setúbal",
+    };
+
+    private static readonly string[] TitulosFilmesSeed =
+    {
+        "A Última Sessão no Funchal",
+        "Maré Alta",
+        "O Silêncio da Baía",
+        "Depois da Meia-Noite",
+        "Cartas para Atlântida",
+        "A Casa das Sombras",
+        "Neon Madeira",
+        "O Arquivo das Estrelas",
+        "O Homem que Filmava Nuvens",
+        "Vozes do Mercado",
+        "O Jardim Submerso",
+        "A Ilha dos Esquecidos",
+        "Noite de Estreia",
+        "O Último Projetor",
+        "Fronteira Digital",
+        "A Rapariga e o Cometa",
+        "O Peso da Luz",
+        "Câmara Lenta",
+        "O Som do Nevoeiro",
+        "Pequenos Futuros",
+        "A Cidade Sem Intervalo",
+        "O Plano Sequência",
+        "Fora de Campo",
+        "O Festival Acabou Ontem",
+        "A Máquina de Sonhar",
+        "O Farol Vermelho",
+        "A Teoria do Eclipse",
+        "Dias de Cinema",
+        "Fragmentos do Atlântico",
+        "O Realizador Invisível",
+        "As Ruas Depois da Chuva",
+        "A Montanha Azul",
+        "O Segredo da Sala 7",
+        "Cineclube dos Fantasmas",
+        "Uma Janela Para Marte",
+        "A Balada do Último Bilhete",
+        "O Som das Estrelas",
+        "A Cidade Submersa",
+        "Rostos no Escuro",
+        "O Público Decide",
+    };
+
+    private static readonly string[] TextosComentarios =
+    {
+        "Gostei muito da fotografia e da atmosfera do filme.",
+        "A sessão funcionou muito bem e o chat tornou a experiência mais interessante.",
+        "A realização está acima da média e o ritmo prende bastante.",
+        "Achei o início um pouco lento, mas o final compensa.",
+        "Este filme merece estar nos prémios do público.",
+        "A banda sonora ficou excelente e combinou muito bem com a narrativa.",
+        "Boa escolha para este festival.",
+        "Não esperava gostar tanto desta obra.",
+        "O final ficou muito forte e deixou espaço para discussão.",
+        "A personagem principal está muito bem construída.",
+        "Gostei da forma como o filme explora o tema da memória.",
+        "A sessão devia ter tido mais tempo para debate.",
+        "A qualidade visual surpreendeu bastante.",
+        "O filme é simples, mas muito eficaz.",
+        "Gostava de ver mais filmes deste realizador na plataforma.",
+    };
+
+    private static readonly string[] NomesComunidades =
+    {
+        "Comunidade Cinema Atlântico",
+        "Clube Sci-Fi Madeira",
+        "Cinéfilos de Terror",
+        "Curtas e Documentários",
+        "Cinema Português e Lusófono",
+        "Animação e Fantasia",
+        "Festival Talks",
+        "Críticos do Público",
+        "Indie Lovers",
+        "Sessões da Meia-Noite",
+    };
+
     public static async Task SeedAsync(
         AppDbContext db,
         IPasswordHashingStrategy passwordHashingStrategy
@@ -15,8 +130,6 @@ public static class DbSeeder
         await db.Database.MigrateAsync();
 
         Randomizer.Seed = new Random(2120622);
-
-        var agora = DateTime.UtcNow;
 
         var admin = await CriarAdminAsync(db, passwordHashingStrategy);
         var utilizadores = await CriarUtilizadoresAsync(db, passwordHashingStrategy);
@@ -29,7 +142,6 @@ public static class DbSeeder
         await AssociarFilmesAFestivaisAsync(db, festivais, filmes);
 
         var sessoes = await CriarSessoesAsync(db, festivais, filmes);
-
         var acessos = await CriarAcessosAsync(db, festivais, filmes, sessoes);
 
         await CriarPerfisAsync(db, todosUtilizadores);
@@ -43,17 +155,28 @@ public static class DbSeeder
         await CriarListasPessoaisAsync(db, utilizadores, filmes);
 
         await CriarCarrinhosAsync(db, utilizadores, acessos);
-        await CriarComprasEAcessosUtilizadorAsync(
-            db,
-            utilizadores,
-            acessos,
-            sessoes,
-            festivais,
-            filmes
-        );
+        await CriarComprasEAcessosUtilizadorAsync(db, utilizadores, acessos);
         await CriarVisualizacoesAsync(db, utilizadores, filmes);
 
         await db.SaveChangesAsync();
+    }
+
+    private static List<T> EscolherAleatorio<T>(IEnumerable<T> origem, int quantidade)
+    {
+        var lista = origem.ToList();
+
+        if (lista.Count == 0 || quantidade <= 0)
+            return new List<T>();
+
+        return lista
+            .OrderBy(_ => SeedRandom.Next())
+            .Take(Math.Min(quantidade, lista.Count))
+            .ToList();
+    }
+
+    private static string Chave(params object?[] valores)
+    {
+        return string.Join(":", valores.Select(v => v?.ToString() ?? ""));
     }
 
     private static async Task<Utilizador> CriarAdminAsync(
@@ -92,16 +215,18 @@ public static class DbSeeder
         IPasswordHashingStrategy passwordHashingStrategy
     )
     {
+        var faker = new Faker("pt_PT");
+
         var utilizadoresExistentes = await db
             .Utilizadores.Where(u => u.Email.EndsWith("@teste.pt"))
             .ToListAsync();
 
-        if (utilizadoresExistentes.Count >= 8)
+        if (utilizadoresExistentes.Count >= NumeroUtilizadores)
             return utilizadoresExistentes;
 
         var utilizadores = new List<Utilizador>();
 
-        for (var i = 1; i <= 8; i++)
+        for (var i = 1; i <= NumeroUtilizadores; i++)
         {
             var email = $"utilizador{i}@teste.pt";
 
@@ -110,12 +235,12 @@ public static class DbSeeder
 
             var utilizador = new Utilizador
             {
-                Name = $"Utilizador Teste {i}",
+                Name = i <= 8 ? $"Utilizador Teste {i}" : faker.Name.FullName(),
                 Email = email,
                 Role = UserRole.User,
                 IsActive = true,
-                Nationality = "Portugal",
-                CreatedAt = DateTime.UtcNow.AddDays(-i),
+                Nationality = Nacionalidades[SeedRandom.Next(Nacionalidades.Length)],
+                CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 180)),
             };
 
             utilizador.PasswordHash = passwordHashingStrategy.HashPassword(utilizador, "User123!");
@@ -123,93 +248,188 @@ public static class DbSeeder
             utilizadores.Add(utilizador);
         }
 
-        await db.Utilizadores.AddRangeAsync(utilizadores);
-        await db.SaveChangesAsync();
+        if (utilizadores.Count > 0)
+        {
+            await db.Utilizadores.AddRangeAsync(utilizadores);
+            await db.SaveChangesAsync();
+        }
 
         return await db.Utilizadores.Where(u => u.Email.EndsWith("@teste.pt")).ToListAsync();
     }
 
     private static async Task<List<Genero>> CriarGenerosAsync(AppDbContext db)
     {
-        if (await db.Generos.AnyAsync())
-            return await db.Generos.ToListAsync();
-
-        var generos = new List<Genero>
+        var nomesGeneros = new[]
         {
-            new() { Name = "Drama", CreatedAt = DateTime.UtcNow },
-            new() { Name = "Comédia", CreatedAt = DateTime.UtcNow },
-            new() { Name = "Terror", CreatedAt = DateTime.UtcNow },
-            new() { Name = "Documentário", CreatedAt = DateTime.UtcNow },
-            new() { Name = "Animação", CreatedAt = DateTime.UtcNow },
-            new() { Name = "Ação", CreatedAt = DateTime.UtcNow },
-            new() { Name = "Ficção Científica", CreatedAt = DateTime.UtcNow },
+            "Drama",
+            "Comédia",
+            "Terror",
+            "Documentário",
+            "Animação",
+            "Ação",
+            "Ficção Científica",
+            "Fantasia",
+            "Romance",
+            "Thriller",
+            "Mistério",
+            "Biografia",
+            "Experimental",
+            "Cinema Português",
         };
 
-        await db.Generos.AddRangeAsync(generos);
-        await db.SaveChangesAsync();
+        var existentes = await db.Generos.ToListAsync();
+        var nomesExistentes = existentes.Select(g => g.Name).ToHashSet();
 
-        return generos;
+        var novos = nomesGeneros
+            .Where(nome => !nomesExistentes.Contains(nome))
+            .Select(nome => new Genero { Name = nome, CreatedAt = DateTime.UtcNow })
+            .ToList();
+
+        if (novos.Count > 0)
+        {
+            await db.Generos.AddRangeAsync(novos);
+            await db.SaveChangesAsync();
+        }
+
+        return await db.Generos.ToListAsync();
     }
 
     private static async Task<List<Festival>> CriarFestivaisAsync(AppDbContext db)
     {
-        if (await db.Festivals.AnyAsync())
-            return await db.Festivals.ToListAsync();
-
         var hoje = DateTime.UtcNow.Date;
 
-        var festivais = new List<Festival>
+        var festivaisSeed = new List<Festival>
         {
             new()
             {
                 Name = "Festival Atlântico 2026",
-                Description = "Festival online dedicado a cinema independente.",
-                StartDate = hoje.AddDays(10),
-                EndDate = hoje.AddDays(16),
+                Description =
+                    "Festival online dedicado ao cinema independente, europeu e atlântico. Está a decorrer neste momento.",
+                StartDate = hoje.AddDays(-5),
+                EndDate = hoje.AddDays(3),
+            },
+            new()
+            {
+                Name = "Madeira Indie Film Week",
+                Description =
+                    "Mostra de cinema independente com foco em novos realizadores. Festival atualmente ativo.",
+                StartDate = hoje.AddDays(-2),
+                EndDate = hoje.AddDays(5),
+            },
+            new()
+            {
+                Name = "Festival Sessões de Maio",
+                Description =
+                    "Festival especial com sessões recentes, sessões ao vivo e janela de acesso digital.",
+                StartDate = hoje.AddDays(-1),
+                EndDate = hoje.AddDays(6),
+            },
+            new()
+            {
+                Name = "Clássicos Online - Edição Passada",
+                Description =
+                    "Festival já terminado, útil para testar histórico e acessos expirados.",
+                StartDate = hoje.AddDays(-35),
+                EndDate = hoje.AddDays(-28),
+            },
+            new()
+            {
+                Name = "Curtas & Documentários Online",
+                Description =
+                    "Festival dedicado a curtas-metragens, documentários e cinema social.",
+                StartDate = hoje.AddDays(7),
+                EndDate = hoje.AddDays(13),
             },
             new()
             {
                 Name = "Festival Sci-Fi Madeira",
-                Description = "Festival de ficção científica e fantasia.",
-                StartDate = hoje.AddDays(20),
-                EndDate = hoje.AddDays(26),
+                Description = "Festival de ficção científica, fantasia e cinema especulativo.",
+                StartDate = hoje.AddDays(15),
+                EndDate = hoje.AddDays(21),
             },
             new()
             {
-                Name = "Festival Curtas e Documentários",
-                Description = "Festival focado em curtas-metragens e documentários.",
-                StartDate = hoje.AddDays(30),
-                EndDate = hoje.AddDays(35),
+                Name = "Noites de Terror Digital",
+                Description = "Festival temático de terror, suspense e thrillers psicológicos.",
+                StartDate = hoje.AddDays(28),
+                EndDate = hoje.AddDays(34),
+            },
+            new()
+            {
+                Name = "Anima Madeira Online",
+                Description = "Festival de animação, cinema juvenil e experiências visuais.",
+                StartDate = hoje.AddDays(45),
+                EndDate = hoje.AddDays(51),
             },
         };
 
-        await db.Festivals.AddRangeAsync(festivais);
+        var existentes = await db.Festivals.ToListAsync();
+
+        foreach (var festivalSeed in festivaisSeed)
+        {
+            var existente = existentes.FirstOrDefault(f => f.Name == festivalSeed.Name);
+
+            if (existente == null)
+            {
+                await db.Festivals.AddAsync(festivalSeed);
+            }
+            else
+            {
+                existente.Description = festivalSeed.Description;
+                existente.StartDate = festivalSeed.StartDate;
+                existente.EndDate = festivalSeed.EndDate;
+            }
+        }
+
         await db.SaveChangesAsync();
 
-        return festivais;
+        return await db.Festivals.ToListAsync();
     }
 
     private static async Task<List<Filme>> CriarFilmesAsync(AppDbContext db, List<Genero> generos)
     {
-        if (await db.Filmes.AnyAsync())
-            return await db.Filmes.ToListAsync();
+        var filmesExistentes = await db.Filmes.ToListAsync();
 
-        var filmeFaker = new Faker<Filme>("pt_PT")
-            .RuleFor(f => f.TmdbId, f => f.Random.Int(1000, 999999))
-            .RuleFor(f => f.Titulo, f => f.Commerce.ProductName())
-            .RuleFor(f => f.Sinopse, f => f.Lorem.Paragraph(2))
-            .RuleFor(f => f.DataLancamento, f => f.Date.Past(20).ToUniversalTime())
-            .RuleFor(f => f.Genero, f => f.PickRandom(generos).Name)
-            .RuleFor(f => f.Classificacao, f => f.Random.Decimal(5.0m, 9.8m).ToString("0.0"))
-            .RuleFor(f => f.CapaUrl, f => $"https://picsum.photos/seed/{f.Random.Guid()}/400/600")
-            .RuleFor(f => f.VideoUrl, _ => "https://www.youtube.com/embed/dQw4w9WgXcQ");
+        if (filmesExistentes.Count >= NumeroFilmes)
+            return filmesExistentes;
 
-        var filmes = filmeFaker.Generate(30);
+        var faker = new Faker("pt_PT");
+        var filmes = new List<Filme>();
 
-        await db.Filmes.AddRangeAsync(filmes);
-        await db.SaveChangesAsync();
+        for (var i = filmesExistentes.Count + 1; i <= NumeroFilmes; i++)
+        {
+            var genero = EscolherAleatorio(generos, 1).Single();
 
-        return filmes;
+            var tituloBase = TitulosFilmesSeed[(i - 1) % TitulosFilmesSeed.Length];
+            var titulo = i <= TitulosFilmesSeed.Length ? tituloBase : $"{tituloBase} {i}";
+
+            var classificacao = (SeedRandom.Next(55, 99) / 10.0m).ToString(
+                "0.0",
+                CultureInfo.InvariantCulture
+            );
+
+            filmes.Add(
+                new Filme
+                {
+                    TmdbId = 100000 + i,
+                    Titulo = titulo,
+                    Sinopse = faker.Lorem.Paragraphs(2),
+                    DataLancamento = DateTime.UtcNow.AddDays(-SeedRandom.Next(365, 365 * 25)),
+                    Genero = genero.Name,
+                    Classificacao = classificacao,
+                    CapaUrl = $"https://picsum.photos/seed/filme-{i}/400/600",
+                    VideoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                }
+            );
+        }
+
+        if (filmes.Count > 0)
+        {
+            await db.Filmes.AddRangeAsync(filmes);
+            await db.SaveChangesAsync();
+        }
+
+        return await db.Filmes.ToListAsync();
     }
 
     private static async Task AssociarFilmesAFestivaisAsync(
@@ -218,23 +438,46 @@ public static class DbSeeder
         List<Filme> filmes
     )
     {
-        if (await db.FestivalFilmes.AnyAsync())
-            return;
-
-        var associacoes = new List<FestivalFilme>();
+        var associacoesExistentes = await db.FestivalFilmes.ToListAsync();
+        var novasAssociacoes = new List<FestivalFilme>();
 
         foreach (var festival in festivais)
         {
-            var filmesDoFestival = filmes.OrderBy(_ => Guid.NewGuid()).Take(10).ToList();
+            var jaAssociados = associacoesExistentes
+                .Where(ff => ff.FestivalId == festival.Id)
+                .Select(ff => ff.FilmeId)
+                .ToHashSet();
 
-            foreach (var filme in filmesDoFestival)
+            foreach (
+                var associacaoNova in novasAssociacoes.Where(ff => ff.FestivalId == festival.Id)
+            )
+                jaAssociados.Add(associacaoNova.FilmeId);
+
+            var quantidadeAtual = jaAssociados.Count;
+            var quantidadePretendida = SeedRandom.Next(18, 26);
+            var quantidadeEmFalta = Math.Max(0, quantidadePretendida - quantidadeAtual);
+
+            if (quantidadeEmFalta == 0)
+                continue;
+
+            var filmesParaAssociar = EscolherAleatorio(
+                filmes.Where(f => !jaAssociados.Contains(f.Id)),
+                quantidadeEmFalta
+            );
+
+            foreach (var filme in filmesParaAssociar)
             {
-                associacoes.Add(new FestivalFilme { FestivalId = festival.Id, FilmeId = filme.Id });
+                novasAssociacoes.Add(
+                    new FestivalFilme { FestivalId = festival.Id, FilmeId = filme.Id }
+                );
             }
         }
 
-        await db.FestivalFilmes.AddRangeAsync(associacoes);
-        await db.SaveChangesAsync();
+        if (novasAssociacoes.Count > 0)
+        {
+            await db.FestivalFilmes.AddRangeAsync(novasAssociacoes);
+            await db.SaveChangesAsync();
+        }
     }
 
     private static async Task<List<Sessao>> CriarSessoesAsync(
@@ -243,69 +486,204 @@ public static class DbSeeder
         List<Filme> filmes
     )
     {
-        if (await db.Sessoes.AnyAsync())
-            return await db.Sessoes.Include(s => s.FilmesDaSessao).ToListAsync();
+        var sessoesExistentesPorFestival = await db
+            .Sessoes.GroupBy(s => s.FestivalId)
+            .Select(g => new { FestivalId = g.Key, Quantidade = g.Count() })
+            .ToDictionaryAsync(x => x.FestivalId, x => x.Quantidade);
 
-        var sessoes = new List<Sessao>();
+        var sessoesNovas = new List<Sessao>();
 
         foreach (var festival in festivais)
         {
+            sessoesExistentesPorFestival.TryGetValue(festival.Id, out var quantidadeExistente);
+
+            if (quantidadeExistente >= 6)
+                continue;
+
             var filmeIdsDoFestival = await db
                 .FestivalFilmes.Where(ff => ff.FestivalId == festival.Id)
                 .Select(ff => ff.FilmeId)
                 .ToListAsync();
 
-            var filmesDoFestival = filmes
-                .Where(f => filmeIdsDoFestival.Contains(f.Id))
-                .Take(6)
-                .ToList();
+            var filmesDoFestival = filmes.Where(f => filmeIdsDoFestival.Contains(f.Id)).ToList();
 
-            var sessaoPrincipal = new Sessao
+            if (filmesDoFestival.Count == 0)
+                continue;
+
+            var planos = CriarPlanoSessoes(festival);
+            var quantidadeEmFalta = 6 - quantidadeExistente;
+
+            foreach (var plano in planos.Take(quantidadeEmFalta))
             {
-                FestivalId = festival.Id,
-                Tipo = TipoSessao.HorarioFixo,
-                Inicio = festival.StartDate.Date.AddHours(20),
-                Fim = festival.StartDate.Date.AddHours(23),
-                TemChatAoVivo = true,
-                Observacoes = "Sessão principal com chat ao vivo.",
-            };
+                var sessao = new Sessao
+                {
+                    FestivalId = festival.Id,
+                    Tipo = TipoSessao.HorarioFixo,
+                    Inicio = plano.Inicio,
+                    Fim = plano.Fim,
+                    TemChatAoVivo = plano.TemChatAoVivo,
+                    Observacoes = plano.Observacoes,
+                };
 
-            var ordem = 1;
-
-            foreach (var filme in filmesDoFestival.Take(5))
-            {
-                sessaoPrincipal.FilmesDaSessao.Add(
-                    new SessaoFilme { FilmeId = filme.Id, Ordem = ordem++ }
+                var quantidadeFilmesSessao = SeedRandom.Next(
+                    1,
+                    Math.Min(5, filmesDoFestival.Count) + 1
                 );
+                var filmesDaSessao = EscolherAleatorio(filmesDoFestival, quantidadeFilmesSessao);
+                var ordem = 1;
+
+                foreach (var filme in filmesDaSessao)
+                {
+                    sessao.FilmesDaSessao.Add(
+                        new SessaoFilme { FilmeId = filme.Id, Ordem = ordem++ }
+                    );
+                }
+
+                sessoesNovas.Add(sessao);
             }
-
-            var sessaoRepeticao = new Sessao
-            {
-                FestivalId = festival.Id,
-                Tipo = TipoSessao.HorarioFixo,
-                Inicio = festival.StartDate.Date.AddDays(1).AddHours(20),
-                Fim = festival.StartDate.Date.AddDays(1).AddHours(23),
-                TemChatAoVivo = true,
-                Observacoes = "Repetição da sessão principal.",
-            };
-
-            ordem = 1;
-
-            foreach (var filme in filmesDoFestival.Take(5))
-            {
-                sessaoRepeticao.FilmesDaSessao.Add(
-                    new SessaoFilme { FilmeId = filme.Id, Ordem = ordem++ }
-                );
-            }
-
-            sessoes.Add(sessaoPrincipal);
-            sessoes.Add(sessaoRepeticao);
         }
 
-        await db.Sessoes.AddRangeAsync(sessoes);
-        await db.SaveChangesAsync();
+        if (sessoesNovas.Count > 0)
+        {
+            await db.Sessoes.AddRangeAsync(sessoesNovas);
+            await db.SaveChangesAsync();
+        }
 
-        return sessoes;
+        return await db.Sessoes.Include(s => s.FilmesDaSessao).ToListAsync();
+    }
+
+    private static List<(
+        DateTime Inicio,
+        DateTime Fim,
+        string Observacoes,
+        bool TemChatAoVivo
+    )> CriarPlanoSessoes(Festival festival)
+    {
+        var agora = DateTime.UtcNow;
+        var hoje = agora.Date;
+
+        var festivalADecorrer = festival.StartDate.Date <= hoje && festival.EndDate.Date >= hoje;
+        var festivalPassado = festival.EndDate.Date < hoje;
+
+        if (festivalADecorrer)
+        {
+            return new List<(DateTime Inicio, DateTime Fim, string Observacoes, bool TemChatAoVivo)>
+            {
+                (
+                    hoje.AddDays(-1).AddHours(20),
+                    hoje.AddDays(-1).AddHours(23),
+                    "Sessão recente realizada ontem, útil para testar histórico.",
+                    true
+                ),
+                (
+                    agora.AddHours(-4),
+                    agora.AddHours(-2),
+                    "Sessão recente terminada há pouco tempo.",
+                    true
+                ),
+                (
+                    agora.AddHours(-1),
+                    agora.AddHours(2),
+                    "Sessão a decorrer neste momento com chat ao vivo.",
+                    true
+                ),
+                (
+                    hoje.AddHours(21),
+                    hoje.AddHours(23).AddMinutes(30),
+                    "Sessão marcada para hoje à noite.",
+                    true
+                ),
+                (
+                    hoje.AddDays(1).AddHours(18),
+                    hoje.AddDays(1).AddHours(20),
+                    "Sessão futura próxima.",
+                    true
+                ),
+                (
+                    hoje.AddDays(2).AddHours(0),
+                    hoje.AddDays(2).AddHours(23).AddMinutes(59),
+                    "Janela de acesso diária simulada.",
+                    false
+                ),
+            };
+        }
+
+        if (festivalPassado)
+        {
+            var basePassada = festival.StartDate.Date;
+
+            return new List<(DateTime Inicio, DateTime Fim, string Observacoes, bool TemChatAoVivo)>
+            {
+                (
+                    basePassada.AddHours(18),
+                    basePassada.AddHours(20),
+                    "Sessão passada de abertura.",
+                    true
+                ),
+                (
+                    basePassada.AddDays(1).AddHours(20),
+                    basePassada.AddDays(1).AddHours(22),
+                    "Sessão passada em horário fixo.",
+                    true
+                ),
+                (
+                    basePassada.AddDays(2).AddHours(21),
+                    basePassada.AddDays(2).AddHours(23),
+                    "Sessão passada de competição.",
+                    true
+                ),
+                (
+                    basePassada.AddDays(3).AddHours(0),
+                    basePassada.AddDays(3).AddHours(23).AddMinutes(59),
+                    "Janela de acesso já terminada.",
+                    false
+                ),
+                (
+                    basePassada.AddDays(4).AddHours(19),
+                    basePassada.AddDays(4).AddHours(21),
+                    "Sessão passada de encerramento.",
+                    true
+                ),
+                (
+                    basePassada.AddDays(5).AddHours(20),
+                    basePassada.AddDays(5).AddHours(22),
+                    "Repetição passada.",
+                    false
+                ),
+            };
+        }
+
+        var baseFutura = festival.StartDate.Date;
+
+        return new List<(DateTime Inicio, DateTime Fim, string Observacoes, bool TemChatAoVivo)>
+        {
+            (baseFutura.AddHours(18), baseFutura.AddHours(20), "Sessão futura de abertura.", true),
+            (baseFutura.AddHours(21), baseFutura.AddHours(23), "Sessão futura de estreia.", true),
+            (
+                baseFutura.AddDays(1).AddHours(20),
+                baseFutura.AddDays(1).AddHours(22),
+                "Sessão futura em horário fixo.",
+                true
+            ),
+            (
+                baseFutura.AddDays(2).AddHours(0),
+                baseFutura.AddDays(2).AddHours(23).AddMinutes(59),
+                "Janela de acesso futura.",
+                false
+            ),
+            (
+                baseFutura.AddDays(3).AddHours(19),
+                baseFutura.AddDays(3).AddHours(21),
+                "Sessão futura de debate.",
+                true
+            ),
+            (
+                baseFutura.AddDays(4).AddHours(20),
+                baseFutura.AddDays(4).AddHours(22),
+                "Sessão futura de encerramento.",
+                true
+            ),
+        };
     }
 
     private static async Task<List<Acesso>> CriarAcessosAsync(
@@ -315,24 +693,28 @@ public static class DbSeeder
         List<Sessao> sessoes
     )
     {
-        if (await db.Acessos.AnyAsync())
-            return await db
-                .Acessos.Include(a => a.Sessao)
-                .Include(a => a.Festival)
-                .Include(a => a.Filme)
-                .ToListAsync();
+        var acessosExistentes = await db.Acessos.ToListAsync();
+        var nomesExistentes = acessosExistentes.Select(a => a.Nome).ToHashSet();
 
         var acessos = new List<Acesso>();
 
         foreach (var sessao in sessoes)
         {
+            var nome = $"Bilhete - Sessão {sessao.Id}";
+
+            if (nomesExistentes.Contains(nome))
+                continue;
+
             acessos.Add(
                 new Acesso
                 {
-                    Nome = $"Bilhete - Sessão {sessao.Id}",
-                    Descricao = "Bilhete válido para uma sessão específica.",
+                    Nome = nome,
+                    Descricao =
+                        sessao.Inicio <= DateTime.UtcNow && sessao.Fim >= DateTime.UtcNow
+                            ? "Bilhete válido para uma sessão que está a decorrer agora."
+                            : "Bilhete válido para uma sessão específica.",
                     Tipo = TipoAcesso.BilheteSessao,
-                    Preco = 4.99m,
+                    Preco = sessao.TemChatAoVivo ? 5.99m : 4.99m,
                     SessaoId = sessao.Id,
                     FestivalId = null,
                     FilmeId = null,
@@ -346,47 +728,71 @@ public static class DbSeeder
 
         foreach (var festival in festivais)
         {
-            acessos.Add(
-                new Acesso
-                {
-                    Nome = $"Passe Diário - {festival.Name}",
-                    Descricao = "Passe válido para todas as sessões de um dia do festival.",
-                    Tipo = TipoAcesso.PasseDiario,
-                    Preco = 9.99m,
-                    SessaoId = null,
-                    FestivalId = festival.Id,
-                    FilmeId = null,
-                    DataAcesso = festival.StartDate.Date,
-                    DuracaoHoras = null,
-                    IsAtivo = true,
-                    CriadoEm = DateTime.UtcNow,
-                }
-            );
+            var nomePasseCompleto = $"Passe Completo - {festival.Name}";
 
-            acessos.Add(
-                new Acesso
-                {
-                    Nome = $"Passe Completo - {festival.Name}",
-                    Descricao = "Passe válido para todo o festival.",
-                    Tipo = TipoAcesso.PasseCompleto,
-                    Preco = 24.99m,
-                    SessaoId = null,
-                    FestivalId = festival.Id,
-                    FilmeId = null,
-                    DataAcesso = null,
-                    DuracaoHoras = null,
-                    IsAtivo = true,
-                    CriadoEm = DateTime.UtcNow,
-                }
-            );
+            if (!nomesExistentes.Contains(nomePasseCompleto))
+            {
+                acessos.Add(
+                    new Acesso
+                    {
+                        Nome = nomePasseCompleto,
+                        Descricao = "Passe válido para todo o festival.",
+                        Tipo = TipoAcesso.PasseCompleto,
+                        Preco = 24.99m,
+                        SessaoId = null,
+                        FestivalId = festival.Id,
+                        FilmeId = null,
+                        DataAcesso = null,
+                        DuracaoHoras = null,
+                        IsAtivo = true,
+                        CriadoEm = DateTime.UtcNow,
+                    }
+                );
+            }
+
+            var totalDias = Math.Max(1, (festival.EndDate.Date - festival.StartDate.Date).Days + 1);
+
+            for (var i = 0; i < totalDias; i++)
+            {
+                var dia = festival.StartDate.Date.AddDays(i);
+                var nomePasseDiario = $"Passe Diário - {festival.Name} - {dia:dd/MM/yyyy}";
+
+                if (nomesExistentes.Contains(nomePasseDiario))
+                    continue;
+
+                acessos.Add(
+                    new Acesso
+                    {
+                        Nome = nomePasseDiario,
+                        Descricao = "Passe válido para todas as sessões de um dia do festival.",
+                        Tipo = TipoAcesso.PasseDiario,
+                        Preco = 9.99m,
+                        SessaoId = null,
+                        FestivalId = festival.Id,
+                        FilmeId = null,
+                        DataAcesso = dia,
+                        DuracaoHoras = null,
+                        IsAtivo = true,
+                        CriadoEm = DateTime.UtcNow,
+                    }
+                );
+            }
         }
 
-        foreach (var filme in filmes.Take(10))
+        var quantidadeAlugueres = Math.Max(40, (int)(filmes.Count * 0.65));
+        var filmesComAluguer = EscolherAleatorio(filmes, quantidadeAlugueres);
+
+        foreach (var filme in filmesComAluguer)
         {
+            var nome = $"Aluguer Digital - {filme.Titulo}";
+
+            if (nomesExistentes.Contains(nome))
+                continue;
+
             acessos.Add(
                 new Acesso
                 {
-                    Nome = $"Aluguer Digital - {filme.Titulo}",
+                    Nome = nome,
                     Descricao = "Aluguer individual do filme durante 48 horas.",
                     Tipo = TipoAcesso.AluguerDigital,
                     Preco = 3.99m,
@@ -401,37 +807,51 @@ public static class DbSeeder
             );
         }
 
-        await db.Acessos.AddRangeAsync(acessos);
-        await db.SaveChangesAsync();
+        if (acessos.Count > 0)
+        {
+            await db.Acessos.AddRangeAsync(acessos);
+            await db.SaveChangesAsync();
+        }
 
-        return acessos;
+        return await db
+            .Acessos.Include(a => a.Sessao)
+            .Include(a => a.Festival)
+            .Include(a => a.Filme)
+            .ToListAsync();
     }
 
     private static async Task CriarPerfisAsync(AppDbContext db, List<Utilizador> utilizadores)
     {
+        var utilizadoresComPerfil = await db
+            .PerfisUtilizador.Select(p => p.UtilizadorId)
+            .ToListAsync();
+
+        var perfis = new List<PerfilUtilizador>();
+
         foreach (var utilizador in utilizadores)
         {
-            var jaTemPerfil = await db.PerfisUtilizador.AnyAsync(p =>
-                p.UtilizadorId == utilizador.Id
-            );
-
-            if (jaTemPerfil)
+            if (utilizadoresComPerfil.Contains(utilizador.Id))
                 continue;
 
-            await db.PerfisUtilizador.AddAsync(
+            perfis.Add(
                 new PerfilUtilizador
                 {
                     UtilizadorId = utilizador.Id,
-                    Bio = "Perfil gerado automaticamente para testes.",
+                    Bio =
+                        $"Perfil de {utilizador.Name}. Apaixonado por cinema, festivais online e novas descobertas cinematográficas.",
                     ProfileImageUrl = $"https://picsum.photos/seed/perfil-{utilizador.Id}/200/200",
-                    Location = "Madeira",
-                    IsPublic = true,
-                    CreatedAt = DateTime.UtcNow,
+                    Location = Localizacoes[SeedRandom.Next(Localizacoes.Length)],
+                    IsPublic = SeedRandom.Next(1, 100) <= 85,
+                    CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 120)),
                 }
             );
         }
 
-        await db.SaveChangesAsync();
+        if (perfis.Count > 0)
+        {
+            await db.PerfisUtilizador.AddRangeAsync(perfis);
+            await db.SaveChangesAsync();
+        }
     }
 
     private static async Task CriarGenerosFavoritosAsync(
@@ -440,28 +860,53 @@ public static class DbSeeder
         List<Genero> generos
     )
     {
-        if (await db.UtilizadoresGenerosFavoritos.AnyAsync())
-            return;
+        var favoritosExistentes = await db.UtilizadoresGenerosFavoritos.ToListAsync();
+
+        var chavesExistentes = favoritosExistentes
+            .Select(f => Chave(f.UtilizadorId, f.GeneroId))
+            .ToHashSet();
 
         var favoritos = new List<UtilizadorGeneroFavorito>();
 
         foreach (var utilizador in utilizadores)
         {
-            foreach (var genero in generos.OrderBy(_ => Guid.NewGuid()).Take(3))
+            var favoritosAtuais = favoritosExistentes.Count(f => f.UtilizadorId == utilizador.Id);
+            var quantidadePretendida = SeedRandom.Next(2, 6);
+            var quantidadeEmFalta = Math.Max(0, quantidadePretendida - favoritosAtuais);
+
+            if (quantidadeEmFalta == 0)
+                continue;
+
+            var generosEscolhidos = EscolherAleatorio(generos, quantidadeEmFalta + 3);
+
+            foreach (var genero in generosEscolhidos)
             {
+                var chave = Chave(utilizador.Id, genero.Id);
+
+                if (chavesExistentes.Contains(chave))
+                    continue;
+
                 favoritos.Add(
                     new UtilizadorGeneroFavorito
                     {
                         UtilizadorId = utilizador.Id,
                         GeneroId = genero.Id,
-                        CreatedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 90)),
                     }
                 );
+
+                chavesExistentes.Add(chave);
+
+                if (favoritos.Count(f => f.UtilizadorId == utilizador.Id) >= quantidadeEmFalta)
+                    break;
             }
         }
 
-        await db.UtilizadoresGenerosFavoritos.AddRangeAsync(favoritos);
-        await db.SaveChangesAsync();
+        if (favoritos.Count > 0)
+        {
+            await db.UtilizadoresGenerosFavoritos.AddRangeAsync(favoritos);
+            await db.SaveChangesAsync();
+        }
     }
 
     private static async Task<List<Comunidade>> CriarComunidadesAsync(
@@ -469,30 +914,41 @@ public static class DbSeeder
         List<Utilizador> utilizadores
     )
     {
-        if (await db.Comunidades.AnyAsync())
-            return await db.Comunidades.ToListAsync();
+        var existentes = await db.Comunidades.ToListAsync();
 
-        var comunidadeFaker = new Faker<Comunidade>("pt_PT")
-            .RuleFor(
-                c => c.Name,
-                f =>
-                    $"Comunidade {f.PickRandom("Cinema", "Terror", "Drama", "Clássicos", "Sci-Fi")}"
-            )
-            .RuleFor(c => c.Description, f => f.Lorem.Sentence())
-            .RuleFor(
-                c => c.ImageUrl,
-                f => $"https://picsum.photos/seed/comunidade-{f.Random.Guid()}/600/300"
-            )
-            .RuleFor(c => c.IsPublic, f => true)
-            .RuleFor(c => c.CreatedByUserId, f => f.PickRandom(utilizadores).Id)
-            .RuleFor(c => c.CreatedAt, f => f.Date.Recent(20).ToUniversalTime());
+        if (existentes.Count >= NumeroComunidades)
+            return existentes;
 
-        var comunidades = comunidadeFaker.Generate(5);
+        var comunidades = new List<Comunidade>();
 
-        await db.Comunidades.AddRangeAsync(comunidades);
-        await db.SaveChangesAsync();
+        for (var i = existentes.Count; i < NumeroComunidades; i++)
+        {
+            var nome = NomesComunidades[i % NomesComunidades.Length];
 
-        return comunidades;
+            if (existentes.Any(c => c.Name == nome) || comunidades.Any(c => c.Name == nome))
+                nome = $"{nome} {i + 1}";
+
+            comunidades.Add(
+                new Comunidade
+                {
+                    Name = nome,
+                    Description =
+                        $"Espaço para discutir filmes, sessões, críticas e recomendações relacionadas com {nome}.",
+                    ImageUrl = $"https://picsum.photos/seed/comunidade-{i + 1}/600/300",
+                    IsPublic = SeedRandom.Next(1, 100) <= 90,
+                    CreatedByUserId = EscolherAleatorio(utilizadores, 1).Single().Id,
+                    CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 80)),
+                }
+            );
+        }
+
+        if (comunidades.Count > 0)
+        {
+            await db.Comunidades.AddRangeAsync(comunidades);
+            await db.SaveChangesAsync();
+        }
+
+        return await db.Comunidades.ToListAsync();
     }
 
     private static async Task CriarMembrosComunidadesAsync(
@@ -501,29 +957,54 @@ public static class DbSeeder
         List<Utilizador> utilizadores
     )
     {
-        if (await db.ComunidadeMembros.AnyAsync())
-            return;
+        var existentes = await db.ComunidadeMembros.ToListAsync();
+
+        var chavesExistentes = existentes
+            .Select(m => Chave(m.ComunidadeId, m.UtilizadorId))
+            .ToHashSet();
 
         var membros = new List<ComunidadeMembro>();
 
         foreach (var comunidade in comunidades)
         {
-            foreach (var utilizador in utilizadores.OrderBy(_ => Guid.NewGuid()).Take(4))
+            var membrosAtuais = existentes.Count(m => m.ComunidadeId == comunidade.Id);
+            var quantidadePretendida = SeedRandom.Next(8, Math.Min(22, utilizadores.Count) + 1);
+            var quantidadeEmFalta = Math.Max(0, quantidadePretendida - membrosAtuais);
+
+            if (quantidadeEmFalta == 0)
+                continue;
+
+            var utilizadoresEscolhidos = EscolherAleatorio(utilizadores, quantidadeEmFalta + 5);
+
+            foreach (var utilizador in utilizadoresEscolhidos)
             {
+                var chave = Chave(comunidade.Id, utilizador.Id);
+
+                if (chavesExistentes.Contains(chave))
+                    continue;
+
                 membros.Add(
                     new ComunidadeMembro
                     {
                         ComunidadeId = comunidade.Id,
                         UtilizadorId = utilizador.Id,
                         Role = default,
-                        JoinedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30)),
+                        JoinedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 90)),
                     }
                 );
+
+                chavesExistentes.Add(chave);
+
+                if (membros.Count(m => m.ComunidadeId == comunidade.Id) >= quantidadeEmFalta)
+                    break;
             }
         }
 
-        await db.ComunidadeMembros.AddRangeAsync(membros);
-        await db.SaveChangesAsync();
+        if (membros.Count > 0)
+        {
+            await db.ComunidadeMembros.AddRangeAsync(membros);
+            await db.SaveChangesAsync();
+        }
     }
 
     private static async Task CriarComentariosAsync(
@@ -532,18 +1013,31 @@ public static class DbSeeder
         List<Utilizador> utilizadores
     )
     {
-        if (await db.Comentarios.AnyAsync())
+        var quantidadeExistente = await db.Comentarios.CountAsync();
+
+        if (quantidadeExistente >= NumeroComentarios)
             return;
 
-        var comentarioFaker = new Faker<Comentario>("pt_PT")
-            .RuleFor(c => c.UsuarioId, f => f.PickRandom(utilizadores).Id)
-            .RuleFor(c => c.ComunidadeId, f => f.PickRandom(comunidades).Id)
-            .RuleFor(c => c.Texto, f => f.Lorem.Paragraph())
-            .RuleFor(c => c.CriadoEm, f => f.Date.Recent(15).ToUniversalTime())
-            .RuleFor(c => c.Visivel, f => true)
-            .RuleFor(c => c.Reportado, f => false);
+        var comentarios = new List<Comentario>();
+        var quantidadeEmFalta = NumeroComentarios - quantidadeExistente;
 
-        var comentarios = comentarioFaker.Generate(25);
+        for (var i = 0; i < quantidadeEmFalta; i++)
+        {
+            var reportado = SeedRandom.Next(1, 100) <= 12;
+            var visivel = !reportado || SeedRandom.Next(1, 100) <= 55;
+
+            comentarios.Add(
+                new Comentario
+                {
+                    UsuarioId = EscolherAleatorio(utilizadores, 1).Single().Id,
+                    ComunidadeId = EscolherAleatorio(comunidades, 1).Single().Id,
+                    Texto = TextosComentarios[SeedRandom.Next(TextosComentarios.Length)],
+                    CriadoEm = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 60)),
+                    Visivel = visivel,
+                    Reportado = reportado,
+                }
+            );
+        }
 
         await db.Comentarios.AddRangeAsync(comentarios);
         await db.SaveChangesAsync();
@@ -555,31 +1049,72 @@ public static class DbSeeder
         List<Filme> filmes
     )
     {
-        if (await db.Avaliacoes.AnyAsync())
+        var existentes = await db.Avaliacoes.ToListAsync();
+
+        if (existentes.Count >= 420)
             return;
+
+        var chavesExistentes = existentes.Select(a => Chave(a.UsuarioId, a.FilmeId)).ToHashSet();
 
         var avaliacoes = new List<Avaliacao>();
 
-        foreach (var utilizador in utilizadores)
-        {
-            var filmesEscolhidos = filmes.OrderBy(_ => Guid.NewGuid()).Take(5);
+        var filmesPopulares = filmes.OrderBy(f => f.Id).Take(18).ToList();
 
-            foreach (var filme in filmesEscolhidos)
+        foreach (var filme in filmesPopulares)
+        {
+            var utilizadoresParaFilme = EscolherAleatorio(utilizadores, SeedRandom.Next(15, 28));
+
+            foreach (var utilizador in utilizadoresParaFilme)
             {
+                var chave = Chave(utilizador.Id, filme.Id);
+
+                if (chavesExistentes.Contains(chave))
+                    continue;
+
                 avaliacoes.Add(
                     new Avaliacao
                     {
                         UsuarioId = utilizador.Id,
                         FilmeId = filme.Id,
-                        Pontuacao = Random.Shared.Next(1, 11),
-                        Data = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
+                        Pontuacao = SeedRandom.Next(7, 11),
+                        Data = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 90)),
                     }
                 );
+
+                chavesExistentes.Add(chave);
             }
         }
 
-        await db.Avaliacoes.AddRangeAsync(avaliacoes);
-        await db.SaveChangesAsync();
+        foreach (var utilizador in utilizadores)
+        {
+            var filmesEscolhidos = EscolherAleatorio(filmes, SeedRandom.Next(7, 16));
+
+            foreach (var filme in filmesEscolhidos)
+            {
+                var chave = Chave(utilizador.Id, filme.Id);
+
+                if (chavesExistentes.Contains(chave))
+                    continue;
+
+                avaliacoes.Add(
+                    new Avaliacao
+                    {
+                        UsuarioId = utilizador.Id,
+                        FilmeId = filme.Id,
+                        Pontuacao = SeedRandom.Next(1, 11),
+                        Data = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 120)),
+                    }
+                );
+
+                chavesExistentes.Add(chave);
+            }
+        }
+
+        if (avaliacoes.Count > 0)
+        {
+            await db.Avaliacoes.AddRangeAsync(avaliacoes);
+            await db.SaveChangesAsync();
+        }
     }
 
     private static async Task CriarListasPessoaisAsync(
@@ -588,74 +1123,122 @@ public static class DbSeeder
         List<Filme> filmes
     )
     {
-        if (await db.ListasPessoais.AnyAsync())
-            return;
-
-        var listas = new List<ListaPessoal>();
+        var listasExistentes = await db.ListasPessoais.ToListAsync();
+        var listasNovas = new List<ListaPessoal>();
 
         foreach (var utilizador in utilizadores)
         {
-            listas.Add(
-                new ListaPessoal
-                {
-                    UtilizadorId = utilizador.Id,
-                    Name = "Quero ver",
-                    Description = "Filmes que quero ver mais tarde.",
-                    Tipo = default,
-                    IsPublic = true,
-                    CreatedAt = DateTime.UtcNow,
-                }
-            );
+            var listasDoUtilizador = listasExistentes
+                .Where(l => l.UtilizadorId == utilizador.Id)
+                .ToList();
 
-            listas.Add(
-                new ListaPessoal
-                {
-                    UtilizadorId = utilizador.Id,
-                    Name = "Favoritos",
-                    Description = "Os meus filmes favoritos.",
-                    Tipo = default,
-                    IsPublic = true,
-                    CreatedAt = DateTime.UtcNow,
-                }
-            );
-
-            listas.Add(
-                new ListaPessoal
-                {
-                    UtilizadorId = utilizador.Id,
-                    Name = "Vistos",
-                    Description = "Filmes já visualizados.",
-                    Tipo = default,
-                    IsPublic = false,
-                    CreatedAt = DateTime.UtcNow,
-                }
-            );
-        }
-
-        await db.ListasPessoais.AddRangeAsync(listas);
-        await db.SaveChangesAsync();
-
-        var listaItems = new List<ListaPessoalItem>();
-
-        foreach (var lista in listas)
-        {
-            var filmesDaLista = filmes.OrderBy(_ => Guid.NewGuid()).Take(5);
-
-            foreach (var filme in filmesDaLista)
+            if (!listasDoUtilizador.Any(l => l.Name == "Quero ver"))
             {
-                listaItems.Add(
-                    new ListaPessoalItem
+                listasNovas.Add(
+                    new ListaPessoal
                     {
-                        ListaPessoalId = lista.Id,
-                        FilmeId = filme.Id,
-                        AddedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 15)),
+                        UtilizadorId = utilizador.Id,
+                        Name = "Quero ver",
+                        Description = "Filmes que quero ver mais tarde.",
+                        Tipo = TipoListaPessoal.Watchlist,
+                        IsPublic = true,
+                        CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 80)),
+                    }
+                );
+            }
+
+            if (!listasDoUtilizador.Any(l => l.Name == "Favoritos"))
+            {
+                listasNovas.Add(
+                    new ListaPessoal
+                    {
+                        UtilizadorId = utilizador.Id,
+                        Name = "Favoritos",
+                        Description = "Os meus filmes favoritos.",
+                        Tipo = TipoListaPessoal.Favorites,
+                        IsPublic = true,
+                        CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 80)),
+                    }
+                );
+            }
+
+            if (!listasDoUtilizador.Any(l => l.Name == "Vistos"))
+            {
+                listasNovas.Add(
+                    new ListaPessoal
+                    {
+                        UtilizadorId = utilizador.Id,
+                        Name = "Vistos",
+                        Description = "Filmes já visualizados.",
+                        Tipo = TipoListaPessoal.Watched,
+                        IsPublic = false,
+                        CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 80)),
                     }
                 );
             }
         }
 
-        await db.ListaPessoalItems.AddRangeAsync(listaItems);
-        await db.SaveChangesAsync();
+        if (listasNovas.Count > 0)
+        {
+            await db.ListasPessoais.AddRangeAsync(listasNovas);
+            await db.SaveChangesAsync();
+        }
+
+        var listas = await db.ListasPessoais.ToListAsync();
+        var itensExistentes = await db.ListaPessoalItems.ToListAsync();
+
+        var chavesItensExistentes = itensExistentes
+            .Select(i => Chave(i.ListaPessoalId, i.FilmeId))
+            .ToHashSet();
+
+        var itensNovos = new List<ListaPessoalItem>();
+
+        foreach (var lista in listas)
+        {
+            var quantidadeAtual = itensExistentes.Count(i => i.ListaPessoalId == lista.Id);
+            var quantidadePretendida = lista.Tipo switch
+            {
+                TipoListaPessoal.Favorites => SeedRandom.Next(6, 13),
+                TipoListaPessoal.Watched => SeedRandom.Next(10, 22),
+                TipoListaPessoal.Watchlist => SeedRandom.Next(8, 20),
+                _ => SeedRandom.Next(5, 12),
+            };
+
+            var quantidadeEmFalta = Math.Max(0, quantidadePretendida - quantidadeAtual);
+
+            if (quantidadeEmFalta == 0)
+                continue;
+
+            var filmesDaLista = EscolherAleatorio(filmes, quantidadeEmFalta + 5);
+
+            foreach (var filme in filmesDaLista)
+            {
+                var chave = Chave(lista.Id, filme.Id);
+
+                if (chavesItensExistentes.Contains(chave))
+                    continue;
+
+                itensNovos.Add(
+                    new ListaPessoalItem
+                    {
+                        ListaPessoalId = lista.Id,
+                        FilmeId = filme.Id,
+                        AddedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 90)),
+                    }
+                );
+
+                chavesItensExistentes.Add(chave);
+
+                if (itensNovos.Count(i => i.ListaPessoalId == lista.Id) >= quantidadeEmFalta)
+                    break;
+            }
+        }
+
+        if (itensNovos.Count > 0)
+        {
+            await db.ListaPessoalItems.AddRangeAsync(itensNovos);
+            await db.SaveChangesAsync();
+        }
     }
 
     private static async Task CriarCarrinhosAsync(
@@ -664,66 +1247,116 @@ public static class DbSeeder
         List<Acesso> acessos
     )
     {
-        if (await db.Carrinhos.AnyAsync())
+        var quantidadeExistente = await db.Carrinhos.CountAsync();
+
+        if (quantidadeExistente >= 12)
             return;
+
+        var utilizadoresComCarrinho = await db.Carrinhos.Select(c => c.UtilizadorId).ToListAsync();
+
+        var candidatos = utilizadores.Where(u => !utilizadoresComCarrinho.Contains(u.Id)).ToList();
+
+        var quantidadeEmFalta = 12 - quantidadeExistente;
+        var utilizadoresEscolhidos = EscolherAleatorio(candidatos, quantidadeEmFalta);
 
         var carrinhos = new List<Carrinho>();
 
-        foreach (var utilizador in utilizadores.Take(3))
+        foreach (var utilizador in utilizadoresEscolhidos)
         {
             var carrinho = new Carrinho
             {
                 UtilizadorId = utilizador.Id,
-                DataCriacao = DateTime.UtcNow.AddDays(-1),
-                AtualizadoEm = DateTime.UtcNow,
+                DataCriacao = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 12)),
+                AtualizadoEm = DateTime.UtcNow.AddHours(-SeedRandom.Next(1, 72)),
             };
 
-            foreach (var acesso in acessos.OrderBy(_ => Guid.NewGuid()).Take(2))
+            var tiposPretendidos = new[]
             {
+                TipoAcesso.BilheteSessao,
+                TipoAcesso.PasseDiario,
+                TipoAcesso.PasseCompleto,
+                TipoAcesso.AluguerDigital,
+            };
+
+            var tiposEscolhidos = tiposPretendidos
+                .OrderBy(_ => SeedRandom.Next())
+                .Take(SeedRandom.Next(2, 5))
+                .ToList();
+
+            foreach (var tipo in tiposEscolhidos)
+            {
+                var acessosDoTipo = acessos.Where(a => a.Tipo == tipo && a.IsAtivo).ToList();
+
+                if (acessosDoTipo.Count == 0)
+                    continue;
+
+                var acesso = EscolherAleatorio(acessosDoTipo, 1).Single();
+
                 carrinho.Itens.Add(
                     new CarrinhoItem
                     {
                         AcessoId = acesso.Id,
                         PrecoUnitario = acesso.Preco,
                         Quantidade = 1,
-                        DataAdicao = DateTime.UtcNow.AddHours(-Random.Shared.Next(1, 12)),
+                        DataAdicao = DateTime.UtcNow.AddHours(-SeedRandom.Next(1, 72)),
                     }
                 );
             }
 
-            carrinhos.Add(carrinho);
+            if (carrinho.Itens.Any())
+                carrinhos.Add(carrinho);
         }
 
-        await db.Carrinhos.AddRangeAsync(carrinhos);
-        await db.SaveChangesAsync();
+        if (carrinhos.Count > 0)
+        {
+            await db.Carrinhos.AddRangeAsync(carrinhos);
+            await db.SaveChangesAsync();
+        }
     }
 
     private static async Task CriarComprasEAcessosUtilizadorAsync(
         AppDbContext db,
         List<Utilizador> utilizadores,
-        List<Acesso> acessos,
-        List<Sessao> sessoes,
-        List<Festival> festivais,
-        List<Filme> filmes
+        List<Acesso> acessos
     )
     {
-        if (await db.Compras.AnyAsync())
+        var comprasExistentes = await db.Compras.CountAsync();
+
+        if (comprasExistentes >= NumeroCompras)
+            return;
+
+        var acessosComNavegacoes = await db
+            .Acessos.Include(a => a.Sessao)
+            .Include(a => a.Festival)
+            .Include(a => a.Filme)
+            .Where(a => a.IsAtivo)
+            .ToListAsync();
+
+        if (acessosComNavegacoes.Count == 0)
             return;
 
         var compras = new List<Compra>();
         var acessosUtilizador = new List<AcessoUtilizador>();
 
-        foreach (var utilizador in utilizadores.Take(4))
+        var quantidadeEmFalta = NumeroCompras - comprasExistentes;
+
+        for (var i = 0; i < quantidadeEmFalta; i++)
         {
-            var acessosComprados = acessos.OrderBy(_ => Guid.NewGuid()).Take(2).ToList();
+            var utilizador = EscolherAleatorio(utilizadores, 1).Single();
+            var acessosComprados = EscolherAleatorio(acessosComNavegacoes, SeedRandom.Next(1, 5));
+
+            var dataCompra = DateTime
+                .UtcNow.AddDays(-SeedRandom.Next(0, 100))
+                .AddMinutes(-SeedRandom.Next(1, 600));
 
             var compra = new Compra
             {
                 UtilizadorId = utilizador.Id,
-                Referencia = $"CMP-SEED-{utilizador.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                Referencia =
+                    $"CMP-SEED-{utilizador.Id}-{comprasExistentes + i + 1}-{DateTime.UtcNow:yyyyMMddHHmmssfff}",
                 Estado = EstadoCompra.Pago,
-                CriadaEm = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 5)),
-                PagaEm = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 4)),
+                CriadaEm = dataCompra,
+                PagaEm = dataCompra.AddMinutes(SeedRandom.Next(1, 20)),
             };
 
             foreach (var acesso in acessosComprados)
@@ -740,7 +1373,7 @@ public static class DbSeeder
                     }
                 );
 
-                var validade = CalcularValidadeAcessoSeed(acesso);
+                var validade = CalcularValidadeAcessoSeed(acesso, compra.PagaEm ?? compra.CriadaEm);
 
                 acessosUtilizador.Add(
                     new AcessoUtilizador
@@ -754,37 +1387,41 @@ public static class DbSeeder
                         FilmeId = acesso.FilmeId,
                         InicioValidade = validade.inicio,
                         FimValidade = validade.fim,
-                        Ativo = true,
-                        CriadoEm = DateTime.UtcNow,
+                        Ativo = validade.fim > DateTime.UtcNow,
+                        CriadoEm = compra.CriadaEm,
                     }
                 );
             }
 
             compra.ValorTotal = compra.Itens.Sum(i => i.Subtotal);
+
             compra.Pagamento = new Pagamento
             {
                 Referencia = $"PG-{compra.Referencia}",
                 Valor = compra.ValorTotal,
                 Metodo = "Simulado",
                 Estado = EstadoPagamento.Aprovado,
-                CriadoEm = compra.PagaEm ?? compra.CriadaEm,
-                ProcessadoEm = compra.PagaEm ?? compra.CriadaEm,
+                CriadoEm = compra.CriadaEm,
+                ProcessadoEm = compra.PagaEm,
                 Mensagem = "Pagamento seed aprovado automaticamente.",
             };
 
             compras.Add(compra);
         }
 
-        await db.Compras.AddRangeAsync(compras);
-        await db.AcessosUtilizador.AddRangeAsync(acessosUtilizador);
-
-        await db.SaveChangesAsync();
+        if (compras.Count > 0)
+        {
+            await db.Compras.AddRangeAsync(compras);
+            await db.AcessosUtilizador.AddRangeAsync(acessosUtilizador);
+            await db.SaveChangesAsync();
+        }
     }
 
-    private static (DateTime inicio, DateTime fim) CalcularValidadeAcessoSeed(Acesso acesso)
+    private static (DateTime inicio, DateTime fim) CalcularValidadeAcessoSeed(
+        Acesso acesso,
+        DateTime dataCompra
+    )
     {
-        var agora = DateTime.UtcNow;
-
         return acesso.Tipo switch
         {
             TipoAcesso.BilheteSessao when acesso.Sessao != null => (
@@ -794,20 +1431,20 @@ public static class DbSeeder
 
             TipoAcesso.PasseDiario when acesso.DataAcesso.HasValue => (
                 acesso.DataAcesso.Value.Date,
-                acesso.DataAcesso.Value.Date.AddDays(1)
+                acesso.DataAcesso.Value.Date.AddDays(1).AddTicks(-1)
             ),
 
             TipoAcesso.PasseCompleto when acesso.Festival != null => (
-                acesso.Festival.StartDate,
-                acesso.Festival.EndDate
+                acesso.Festival.StartDate.Date,
+                acesso.Festival.EndDate.Date.AddDays(1).AddTicks(-1)
             ),
 
             TipoAcesso.AluguerDigital => (
-                agora.AddHours(-2),
-                agora.AddHours(acesso.DuracaoHoras ?? 48)
+                dataCompra,
+                dataCompra.AddHours(acesso.DuracaoHoras ?? 48)
             ),
 
-            _ => (agora, agora.AddDays(1)),
+            _ => (dataCompra, dataCompra.AddDays(1)),
         };
     }
 
@@ -817,27 +1454,31 @@ public static class DbSeeder
         List<Filme> filmes
     )
     {
-        if (await db.Visualizacoes.AnyAsync())
+        var quantidadeExistente = await db.Visualizacoes.CountAsync();
+
+        if (quantidadeExistente >= NumeroVisualizacoes)
             return;
 
         var visualizacoes = new List<Visualizacao>();
+        var quantidadeEmFalta = NumeroVisualizacoes - quantidadeExistente;
 
-        foreach (var utilizador in utilizadores.Take(4))
+        for (var i = 0; i < quantidadeEmFalta; i++)
         {
-            foreach (var filme in filmes.OrderBy(_ => Guid.NewGuid()).Take(3))
-            {
-                visualizacoes.Add(
-                    new Visualizacao
-                    {
-                        UtilizadorId = utilizador.Id,
-                        FilmeId = filme.Id,
-                        TipoConteudo = "Filme",
-                        UrlVisualizacao =
-                            filme.VideoUrl ?? "https://www.youtube.com/embed/dQw4w9WgXcQ",
-                        VisualizadoEm = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 12)),
-                    }
-                );
-            }
+            var utilizador = EscolherAleatorio(utilizadores, 1).Single();
+            var filme = EscolherAleatorio(filmes, 1).Single();
+
+            visualizacoes.Add(
+                new Visualizacao
+                {
+                    UtilizadorId = utilizador.Id,
+                    FilmeId = filme.Id,
+                    TipoConteudo = "Filme",
+                    UrlVisualizacao = filme.VideoUrl ?? "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                    VisualizadoEm = DateTime
+                        .UtcNow.AddDays(-SeedRandom.Next(0, 100))
+                        .AddMinutes(-SeedRandom.Next(1, 900)),
+                }
+            );
         }
 
         await db.Visualizacoes.AddRangeAsync(visualizacoes);

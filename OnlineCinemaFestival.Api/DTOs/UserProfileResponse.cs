@@ -1,12 +1,10 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class UserProfileResponse
+public class PerfilPublicoDto
 {
     public int UserId { get; set; }
 
     public string Name { get; set; } = string.Empty;
-
-    public string Email { get; set; } = string.Empty;
 
     public string Nationality { get; set; } = string.Empty;
 
@@ -26,3 +24,10 @@ public class UserProfileResponse
 
     public int PublicListsCount { get; set; }
 }
+
+public class PerfilPrivadoDto : PerfilPublicoDto
+{
+    public string Email { get; set; } = string.Empty;
+}
+
+public class UserProfileResponse : PerfilPrivadoDto { }

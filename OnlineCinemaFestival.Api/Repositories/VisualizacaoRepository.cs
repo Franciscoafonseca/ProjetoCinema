@@ -86,7 +86,12 @@ public class VisualizacaoRepository : IVisualizacaoRepository
             && a.FimValidade >= agora
             && (
                 (a.TipoAcesso == TipoAcesso.BilheteSessao && a.SessaoId == sessao.Id)
-                || (a.TipoAcesso == TipoAcesso.PasseDiario && a.FestivalId == sessao.FestivalId)
+                || (
+                    a.TipoAcesso == TipoAcesso.PasseDiario
+                    && a.FestivalId == sessao.FestivalId
+                    && sessao.Inicio >= a.InicioValidade
+                    && sessao.Inicio < a.FimValidade
+                )
                 || (a.TipoAcesso == TipoAcesso.PasseCompleto && a.FestivalId == sessao.FestivalId)
             )
         );

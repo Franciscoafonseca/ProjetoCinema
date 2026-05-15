@@ -21,4 +21,11 @@ public class Sessao
     public string? Observacoes { get; set; }
 
     public ICollection<SessaoFilme> FilmesDaSessao { get; set; } = new List<SessaoFilme>();
+
+    public ICollection<Acesso> Acessos { get; set; } = new List<Acesso>();
+
+    public ICollection<AcessoUtilizador> AcessosUtilizador { get; set; } =
+        new List<AcessoUtilizador>();
+
+    public ICollection<Visualizacao> Visualizacoes { get; set; } = new List<Visualizacao>();
 }

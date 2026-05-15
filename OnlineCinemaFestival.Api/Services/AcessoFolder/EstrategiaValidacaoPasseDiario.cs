@@ -27,6 +27,11 @@ public class EstrategiaValidacaoPasseDiario : IEstrategiaValidacaoAcesso
         if (!dto.DataAcesso.HasValue)
             throw new ArgumentException("Um passe diário precisa de DataAcesso.");
 
+        if (dto.SessaoId.HasValue || dto.FilmeId.HasValue || dto.DuracaoHoras.HasValue)
+            throw new ArgumentException(
+                "Passe diario deve indicar apenas FestivalId e DataAcesso como alvo."
+            );
+
         var festival = await _festivalRepository.GetByIdAsync(dto.FestivalId.Value);
 
         if (festival == null)
@@ -38,5 +43,8 @@ public class EstrategiaValidacaoPasseDiario : IEstrategiaValidacaoAcesso
             throw new ArgumentException(
                 "A data do passe diário deve estar dentro do período do festival."
             );
+
+        if (data < DateTime.UtcNow.Date)
+            throw new ArgumentException("A data do passe diario nao pode estar no passado.");
     }
 }

@@ -16,4 +16,15 @@ public class Festival
     public DateTime StartDate { get; set; }
 
     public DateTime EndDate { get; set; }
+
+    public ICollection<FestivalFilme> FestivalFilmes { get; set; } = new List<FestivalFilme>();
+
+    public ICollection<Sessao> Sessoes { get; set; } = new List<Sessao>();
+
+    public ICollection<Acesso> Acessos { get; set; } = new List<Acesso>();
+
+    public ICollection<AcessoUtilizador> AcessosUtilizador { get; set; } =
+        new List<AcessoUtilizador>();
+
+    public ICollection<Visualizacao> Visualizacoes { get; set; } = new List<Visualizacao>();
 }

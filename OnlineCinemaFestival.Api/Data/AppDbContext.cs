@@ -50,14 +50,14 @@ public class AppDbContext : DbContext
         modelBuilder
             .Entity<FestivalFilme>()
             .HasOne(ff => ff.Festival)
-            .WithMany()
+            .WithMany(f => f.FestivalFilmes)
             .HasForeignKey(ff => ff.FestivalId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder
             .Entity<FestivalFilme>()
             .HasOne(ff => ff.Filme)
-            .WithMany()
+            .WithMany(f => f.FestivalFilmes)
             .HasForeignKey(ff => ff.FilmeId)
             .OnDelete(DeleteBehavior.Cascade);
 
@@ -96,7 +96,7 @@ public class AppDbContext : DbContext
             .WithMany(u => u.Avaliacoes)
             .HasForeignKey(a => a.UsuarioId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Avaliacao>()
@@ -104,9 +104,18 @@ public class AppDbContext : DbContext
             .WithMany(f => f.Avaliacoes)
             .HasForeignKey(a => a.FilmeId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Avaliacao>().HasIndex(a => new { a.UsuarioId, a.FilmeId }).IsUnique();
+
+        modelBuilder
+            .Entity<Comentario>()
+            .ToTable(t =>
+                t.HasCheckConstraint(
+                    "CK_Comentarios_Alvo",
+                    "ComunidadeId IS NOT NULL OR FilmeId IS NOT NULL"
+                )
+            );
 
         modelBuilder
             .Entity<Comentario>()
@@ -114,15 +123,21 @@ public class AppDbContext : DbContext
             .WithMany(u => u.Comentarios)
             .HasForeignKey(c => c.UsuarioId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Comentario>()
             .HasOne(c => c.Comunidade)
             .WithMany(c => c.Comentarios)
             .HasForeignKey(c => c.ComunidadeId)
-            .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<Comentario>()
+            .HasOne(c => c.Filme)
+            .WithMany(f => f.Comentarios)
+            .HasForeignKey(c => c.FilmeId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<ListaPessoal>()
@@ -143,9 +158,9 @@ public class AppDbContext : DbContext
         modelBuilder
             .Entity<ListaPessoalItem>()
             .HasOne(i => i.Filme)
-            .WithMany()
+            .WithMany(f => f.ListaPessoalItems)
             .HasForeignKey(i => i.FilmeId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Comunidade>()
@@ -170,14 +185,14 @@ public class AppDbContext : DbContext
             .HasOne(cm => cm.Utilizador)
             .WithMany(u => u.Comunidades)
             .HasForeignKey(cm => cm.UtilizadorId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Sessao>()
             .HasOne(s => s.Festival)
-            .WithMany()
+            .WithMany(f => f.Sessoes)
             .HasForeignKey(s => s.FestivalId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<SessaoFilme>().HasKey(sf => new { sf.SessaoId, sf.FilmeId });
 
@@ -191,35 +206,38 @@ public class AppDbContext : DbContext
         modelBuilder
             .Entity<SessaoFilme>()
             .HasOne(sf => sf.Filme)
-            .WithMany()
+            .WithMany(f => f.SessoesDoFilme)
             .HasForeignKey(sf => sf.FilmeId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Acesso>()
             .HasOne(a => a.Sessao)
-            .WithMany()
+            .WithMany(s => s.Acessos)
             .HasForeignKey(a => a.SessaoId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Acesso>()
             .HasOne(a => a.Festival)
-            .WithMany()
+            .WithMany(f => f.Acessos)
             .HasForeignKey(a => a.FestivalId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Acesso>()
             .HasOne(a => a.Filme)
-            .WithMany()
+            .WithMany(f => f.Acessos)
             .HasForeignKey(a => a.FilmeId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Acesso>().Property(a => a.Preco).HasConversion<double>().HasColumnType("REAL");
+
         modelBuilder
             .Entity<Carrinho>()
             .HasOne(c => c.Utilizador)
-            .WithMany()
-            .HasForeignKey(c => c.UtilizadorId)
+            .WithOne(u => u.Carrinho)
+            .HasForeignKey<Carrinho>(c => c.UtilizadorId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Carrinho>().HasIndex(c => c.UtilizadorId).IsUnique();
@@ -236,7 +254,7 @@ public class AppDbContext : DbContext
         modelBuilder
             .Entity<CarrinhoItem>()
             .HasOne(i => i.Acesso)
-            .WithMany()
+            .WithMany(a => a.CarrinhoItems)
             .HasForeignKey(i => i.AcessoId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -245,17 +263,26 @@ public class AppDbContext : DbContext
             .HasIndex(i => new { i.CarrinhoId, i.AcessoId })
             .IsUnique();
 
-        modelBuilder.Entity<CarrinhoItem>().Property(i => i.PrecoUnitario).HasPrecision(10, 2);
+        modelBuilder
+            .Entity<CarrinhoItem>()
+            .Property(i => i.PrecoUnitario)
+            .HasConversion<double>()
+            .HasColumnType("REAL");
+
         modelBuilder
             .Entity<Compra>()
             .HasOne(c => c.Utilizador)
-            .WithMany()
+            .WithMany(u => u.Compras)
             .HasForeignKey(c => c.UtilizadorId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Compra>().HasIndex(c => c.Referencia).IsUnique();
 
-        modelBuilder.Entity<Compra>().Property(c => c.ValorTotal).HasPrecision(10, 2);
+        modelBuilder
+            .Entity<Compra>()
+            .Property(c => c.ValorTotal)
+            .HasConversion<double>()
+            .HasColumnType("REAL");
 
         modelBuilder
             .Entity<Pagamento>()
@@ -268,7 +295,11 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Pagamento>().HasIndex(p => p.Referencia).IsUnique();
 
-        modelBuilder.Entity<Pagamento>().Property(p => p.Valor).HasPrecision(10, 2);
+        modelBuilder
+            .Entity<Pagamento>()
+            .Property(p => p.Valor)
+            .HasConversion<double>()
+            .HasColumnType("REAL");
 
         modelBuilder
             .Entity<ItemCompra>()
@@ -280,53 +311,61 @@ public class AppDbContext : DbContext
         modelBuilder
             .Entity<ItemCompra>()
             .HasOne(i => i.Acesso)
-            .WithMany()
+            .WithMany(a => a.ItensCompra)
             .HasForeignKey(i => i.AcessoId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<ItemCompra>().Property(i => i.PrecoUnitario).HasPrecision(10, 2);
+        modelBuilder
+            .Entity<ItemCompra>()
+            .Property(i => i.PrecoUnitario)
+            .HasConversion<double>()
+            .HasColumnType("REAL");
 
-        modelBuilder.Entity<ItemCompra>().Property(i => i.Subtotal).HasPrecision(10, 2);
+        modelBuilder
+            .Entity<ItemCompra>()
+            .Property(i => i.Subtotal)
+            .HasConversion<double>()
+            .HasColumnType("REAL");
 
         modelBuilder
             .Entity<AcessoUtilizador>()
             .HasOne(a => a.Utilizador)
-            .WithMany()
+            .WithMany(u => u.AcessosUtilizador)
             .HasForeignKey(a => a.UtilizadorId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<AcessoUtilizador>()
             .HasOne(a => a.Acesso)
-            .WithMany()
+            .WithMany(a => a.AcessosUtilizador)
             .HasForeignKey(a => a.AcessoId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<AcessoUtilizador>()
             .HasOne(a => a.Compra)
-            .WithMany()
+            .WithMany(c => c.AcessosUtilizador)
             .HasForeignKey(a => a.CompraId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<AcessoUtilizador>()
             .HasOne(a => a.Sessao)
-            .WithMany()
+            .WithMany(s => s.AcessosUtilizador)
             .HasForeignKey(a => a.SessaoId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<AcessoUtilizador>()
             .HasOne(a => a.Festival)
-            .WithMany()
+            .WithMany(f => f.AcessosUtilizador)
             .HasForeignKey(a => a.FestivalId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<AcessoUtilizador>()
             .HasOne(a => a.Filme)
-            .WithMany()
+            .WithMany(f => f.AcessosUtilizador)
             .HasForeignKey(a => a.FilmeId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -335,28 +374,28 @@ public class AppDbContext : DbContext
         modelBuilder
             .Entity<Visualizacao>()
             .HasOne(v => v.Utilizador)
-            .WithMany()
+            .WithMany(u => u.Visualizacoes)
             .HasForeignKey(v => v.UtilizadorId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Visualizacao>()
             .HasOne(v => v.Filme)
-            .WithMany()
+            .WithMany(f => f.Visualizacoes)
             .HasForeignKey(v => v.FilmeId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Visualizacao>()
             .HasOne(v => v.Sessao)
-            .WithMany()
+            .WithMany(s => s.Visualizacoes)
             .HasForeignKey(v => v.SessaoId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Visualizacao>()
             .HasOne(v => v.Festival)
-            .WithMany()
+            .WithMany(f => f.Visualizacoes)
             .HasForeignKey(v => v.FestivalId)
             .OnDelete(DeleteBehavior.Restrict);
 

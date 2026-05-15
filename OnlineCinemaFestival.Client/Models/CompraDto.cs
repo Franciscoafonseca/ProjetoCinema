@@ -23,6 +23,28 @@ public class CompraDto
     public List<ItemCompraDto> Itens { get; set; } = new();
 }
 
+public class CheckoutResultadoDto : CompraDto
+{
+    public string Mensagem { get; set; } = string.Empty;
+
+    public int AcessosGerados { get; set; }
+}
+
+public class CompraResumoDto
+{
+    public int Id { get; set; }
+
+    public string Referencia { get; set; } = string.Empty;
+
+    public decimal ValorTotal { get; set; }
+
+    public string EstadoNome { get; set; } = string.Empty;
+
+    public DateTime CriadaEm { get; set; }
+
+    public int NumeroItens { get; set; }
+}
+
 public class ItemCompraDto
 {
     public int Id { get; set; }

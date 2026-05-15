@@ -19,7 +19,7 @@ public class FestivalFilmesController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<FilmeReadDto>>> GetFilmesByFestival(int festivalId)
+    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> GetFilmesByFestival(int festivalId)
     {
         try
         {

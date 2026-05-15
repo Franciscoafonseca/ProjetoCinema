@@ -19,7 +19,7 @@ public class SessoesController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SessaoReadDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<SessaoResumoDto>>> GetAll()
     {
         var sessoes = await _service.GetAllAsync();
 
@@ -28,7 +28,7 @@ public class SessoesController : ControllerBase
 
     [HttpGet("{id:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<SessaoReadDto>> GetById(int id)
+    public async Task<ActionResult<SessaoDetalheDto>> GetById(int id)
     {
         var sessao = await _service.GetByIdAsync(id);
 
@@ -40,7 +40,7 @@ public class SessoesController : ControllerBase
 
     [HttpGet("disponiveis")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SessaoReadDto>>> GetDisponiveis()
+    public async Task<ActionResult<IEnumerable<SessaoResumoDto>>> GetDisponiveis()
     {
         var sessoes = await _service.GetDisponiveisAsync();
 
@@ -65,7 +65,7 @@ public class SessoesController : ControllerBase
 
     [HttpGet("festival/{festivalId:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SessaoReadDto>>> GetByFestival(int festivalId)
+    public async Task<ActionResult<IEnumerable<SessaoResumoDto>>> GetByFestival(int festivalId)
     {
         try
         {
@@ -81,7 +81,7 @@ public class SessoesController : ControllerBase
 
     [HttpGet("filme/{filmeId:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SessaoReadDto>>> GetByFilme(int filmeId)
+    public async Task<ActionResult<IEnumerable<SessaoResumoDto>>> GetByFilme(int filmeId)
     {
         try
         {
@@ -97,7 +97,7 @@ public class SessoesController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<ActionResult<SessaoReadDto>> Create(SessaoCreateDto dto)
+    public async Task<ActionResult<SessaoDetalheDto>> Create(CriarSessaoDto dto)
     {
         try
         {

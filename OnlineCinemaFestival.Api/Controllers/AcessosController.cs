@@ -27,7 +27,7 @@ public class AcessosController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<AcessoReadDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<AcessoDto>>> GetAll()
     {
         var acessos = await _service.GetAllAsync();
 
@@ -36,7 +36,7 @@ public class AcessosController : ControllerBase
 
     [HttpGet("{id:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<AcessoReadDto>> GetById(int id)
+    public async Task<ActionResult<AcessoDto>> GetById(int id)
     {
         var acesso = await _service.GetByIdAsync(id);
 
@@ -57,7 +57,7 @@ public class AcessosController : ControllerBase
 
     [HttpGet("meus")]
     [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
-    public async Task<ActionResult<IEnumerable<AcessoUtilizadorReadDto>>> ObterMeusAcessos()
+    public async Task<ActionResult<IEnumerable<AcessoUtilizadorDto>>> ObterMeusAcessos()
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
@@ -121,7 +121,7 @@ public class AcessosController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<ActionResult<AcessoReadDto>> Create(AcessoCreateDto dto)
+    public async Task<ActionResult<AcessoDto>> Create(CriarAcessoDto dto)
     {
         try
         {

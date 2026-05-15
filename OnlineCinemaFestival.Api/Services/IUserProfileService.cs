@@ -4,11 +4,11 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IUserProfileService
 {
-    Task<UserProfileResponse> GetMyProfileAsync(int userId);
+    Task<PerfilPrivadoDto> GetMyProfileAsync(int userId);
 
-    Task<UserProfileResponse> UpdateMyProfileAsync(int userId, UpdateProfileRequest request);
+    Task<PerfilPrivadoDto> UpdateMyProfileAsync(int userId, UpdateProfileRequest request);
 
-    Task<List<UserProfileResponse>> GetPublicProfilesAsync();
+    Task<List<PerfilPublicoDto>> GetPublicProfilesAsync();
 
-    Task<UserProfileResponse> GetPublicProfileAsync(int userId);
+    Task<PerfilPublicoDto> GetPublicProfileAsync(int userId);
 }

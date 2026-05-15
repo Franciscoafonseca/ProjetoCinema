@@ -105,6 +105,7 @@ DTOs/
   ComunidadeCreateDto.cs
   ComunidadeReadDto.cs
  ConteudoVisualizacaoDto.cs
+ ContratosApiDto.cs
  CreateCommunityRequest.cs
  FestivalCreateDto.cs
  FestivalFilmeCreateDto.cs
@@ -146,6 +147,7 @@ Mappers/
  ComunidadeMapper.cs
  FestivalMapper.cs
  FilmeMapper.cs
+ GeneroMapper.cs
  ListaPessoalMapper.cs
  SessaoMapper.cs
 Migrations/
@@ -177,6 +179,8 @@ Migrations/
  20260515174450_ImplementarCarrinhoESessoes.Designer.cs
  20260515180000_AdicionaPagamentosEHistoricoVisualizacoes.cs
  20260515180000_AdicionaPagamentosEHistoricoVisualizacoes.Designer.cs
+ 20260515222708_CorrigirAssociacoesPrincipais.cs
+ 20260515222708_CorrigirAssociacoesPrincipais.Designer.cs
  AppDbContextModelSnapshot.cs
 Models/
  Acesso.cs

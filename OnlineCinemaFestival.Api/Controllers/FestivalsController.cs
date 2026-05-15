@@ -19,7 +19,7 @@ public class FestivalsController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<FestivalReadDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<FestivalResumoDto>>> GetAll()
     {
         var festivals = await _service.GetAllAsync();
 
@@ -28,7 +28,7 @@ public class FestivalsController : ControllerBase
 
     [HttpGet("{id:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<FestivalReadDto>> GetById(int id)
+    public async Task<ActionResult<FestivalDetalheDto>> GetById(int id)
     {
         var festival = await _service.GetByIdAsync(id);
 
@@ -40,7 +40,7 @@ public class FestivalsController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<ActionResult<FestivalReadDto>> Create(FestivalCreateDto dto)
+    public async Task<ActionResult<FestivalDetalheDto>> Create(CriarFestivalDto dto)
     {
         try
         {
@@ -56,7 +56,7 @@ public class FestivalsController : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<IActionResult> Update(int id, FestivalUpdateDto dto)
+    public async Task<IActionResult> Update(int id, AtualizarFestivalDto dto)
     {
         try
         {

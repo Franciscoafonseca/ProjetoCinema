@@ -7,6 +7,8 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public class CarrinhoService : ICarrinhoService
 {
+    private const int QuantidadeMaxima = 99;
+
     private readonly ICarrinhoRepository _carrinhoRepository;
     private readonly IAcessoRepository _acessoRepository;
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
@@ -86,6 +88,9 @@ public class CarrinhoService : ICarrinhoService
     {
         if (dto.Quantidade <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
+
+        if (dto.Quantidade > QuantidadeMaxima)
+            throw new ArgumentException($"A quantidade nao pode exceder {QuantidadeMaxima}.");
 
         var carrinho = await _carrinhoRepository.GetByUtilizadorIdAsync(utilizadorId);
 
@@ -211,6 +216,11 @@ public class CarrinhoService : ICarrinhoService
             if (acesso.Tipo != TipoAcesso.BilheteSessao)
                 throw new InvalidOperationException("Este acesso ja esta no carrinho.");
 
+            if (itemExistente.Quantidade + quantidade > QuantidadeMaxima)
+                throw new InvalidOperationException(
+                    $"A quantidade total deste bilhete nao pode exceder {QuantidadeMaxima}."
+                );
+
             itemExistente.Quantidade += quantidade;
             carrinho.AtualizadoEm = DateTime.UtcNow;
             await _carrinhoRepository.SaveChangesAsync();
@@ -258,11 +268,22 @@ public class CarrinhoService : ICarrinhoService
         if (dto.Quantidade <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
 
+        if (dto.Quantidade > QuantidadeMaxima)
+            throw new ArgumentException($"A quantidade nao pode exceder {QuantidadeMaxima}.");
+
         switch (dto.TipoAcesso)
         {
             case TipoAcesso.BilheteSessao:
                 if (dto.SessaoId is null)
                     throw new ArgumentException("SessaoId e obrigatorio para bilhete de sessao.");
+                if (
+                    dto.FestivalId is not null
+                    || dto.FilmeId is not null
+                    || dto.DataPasse is not null
+                )
+                    throw new ArgumentException(
+                        "Bilhete de sessao deve indicar apenas SessaoId como alvo."
+                    );
                 break;
 
             case TipoAcesso.PasseDiario:
@@ -270,16 +291,32 @@ public class CarrinhoService : ICarrinhoService
                     throw new ArgumentException(
                         "FestivalId e DataPasse sao obrigatorios para passe diario."
                     );
+                if (dto.SessaoId is not null || dto.FilmeId is not null)
+                    throw new ArgumentException(
+                        "Passe diario deve indicar apenas FestivalId e DataPasse como alvo."
+                    );
                 break;
 
             case TipoAcesso.PasseCompleto:
                 if (dto.FestivalId is null)
                     throw new ArgumentException("FestivalId e obrigatorio para passe completo.");
+                if (
+                    dto.SessaoId is not null
+                    || dto.FilmeId is not null
+                    || dto.DataPasse is not null
+                )
+                    throw new ArgumentException(
+                        "Passe completo deve indicar apenas FestivalId como alvo."
+                    );
                 break;
 
             case TipoAcesso.AluguerDigital:
                 if (dto.FilmeId is null)
                     throw new ArgumentException("FilmeId e obrigatorio para aluguer digital.");
+                if (dto.SessaoId is not null || dto.FestivalId is not null || dto.DataPasse is not null)
+                    throw new ArgumentException(
+                        "Aluguer digital deve indicar apenas FilmeId como alvo."
+                    );
                 break;
 
             default:
@@ -316,6 +353,11 @@ public class CarrinhoService : ICarrinhoService
                     throw new InvalidOperationException(
                         "A data do passe diario tem de estar dentro do periodo do festival."
                     );
+
+                if (dto.DataPasse.Value.Date < agora.Date)
+                    throw new InvalidOperationException(
+                        "A data do passe diario nao pode estar no passado."
+                    );
                 break;
 
             case TipoAcesso.PasseCompleto:
@@ -346,6 +388,9 @@ public class CarrinhoService : ICarrinhoService
 
         if (quantidade <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
+
+        if (quantidade > QuantidadeMaxima)
+            throw new ArgumentException($"A quantidade nao pode exceder {QuantidadeMaxima}.");
 
         if (acesso.Tipo != TipoAcesso.BilheteSessao && quantidade != 1)
             throw new InvalidOperationException(
@@ -380,6 +425,11 @@ public class CarrinhoService : ICarrinhoService
                 )
                     throw new InvalidOperationException(
                         "A data do passe diario tem de estar dentro do periodo do festival."
+                    );
+
+                if (acesso.DataAcesso.Value.Date < agora.Date)
+                    throw new InvalidOperationException(
+                        "A data do passe diario nao pode estar no passado."
                     );
                 break;
 

@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs
 {
-    public class FilmeReadDto
+    public class FilmeResumoDto
     {
         public int Id { get; set; }
         public int TmdbId { get; set; }
@@ -12,7 +12,10 @@ namespace OnlineCinemaFestival.Api.DTOs
         public string CapaUrl { get; set; } = "";
         public string? TrailerUrl { get; set; }
         public string? VideoUrl { get; set; }
-        public string? ConteudoLocalPath { get; set; }
         public int Popularidade { get; set; }
     }
+
+    public class FilmeDetalheDto : FilmeResumoDto { }
+
+    public class FilmeReadDto : FilmeDetalheDto { }
 }

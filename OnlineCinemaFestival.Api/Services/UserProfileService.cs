@@ -39,7 +39,7 @@ public class UserProfileService : IUserProfileService
     /// <exception cref="ArgumentException">
     /// Lançada quando o utilizador ou o perfil não são encontrados.
     /// </exception>
-    public async Task<UserProfileResponse> GetMyProfileAsync(int userId)
+    public async Task<PerfilPrivadoDto> GetMyProfileAsync(int userId)
     {
         // Obtém o utilizador juntamente com o respetivo perfil e dados relacionados.
         var utilizador = await _utilizadorRepository.GetWithProfileAsync(userId);
@@ -48,7 +48,7 @@ public class UserProfileService : IUserProfileService
             throw new ArgumentException("Perfil não encontrado.");
 
         // Devolve o perfil completo, incluindo o email por se tratar do próprio utilizador.
-        return ToResponse(utilizador, includeEmail: true);
+        return ToPrivadoDto(utilizador);
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class UserProfileService : IUserProfileService
     /// <exception cref="ArgumentException">
     /// Lançada quando o utilizador ou o perfil não são encontrados.
     /// </exception>
-    public async Task<UserProfileResponse> UpdateMyProfileAsync(
+    public async Task<PerfilPrivadoDto> UpdateMyProfileAsync(
         int userId,
         UpdateProfileRequest request
     )
@@ -107,20 +107,20 @@ public class UserProfileService : IUserProfileService
         await _utilizadorRepository.SaveChangesAsync();
 
         // Devolve o perfil atualizado, incluindo o email do próprio utilizador.
-        return ToResponse(utilizador, includeEmail: true);
+        return ToPrivadoDto(utilizador);
     }
 
     /// <summary>
     /// Obtém todos os perfis públicos existentes no sistema.
     /// </summary>
     /// <returns>Lista de perfis públicos, sem exposição dos emails dos utilizadores.</returns>
-    public async Task<List<UserProfileResponse>> GetPublicProfilesAsync()
+    public async Task<List<PerfilPublicoDto>> GetPublicProfilesAsync()
     {
         // Obtém apenas utilizadores com perfil público.
         var utilizadores = await _utilizadorRepository.GetPublicProfilesAsync();
 
         // Converte os utilizadores para resposta pública, ocultando o email.
-        return utilizadores.Select(u => ToResponse(u, includeEmail: false)).ToList();
+        return utilizadores.Select(ToPublicoDto).ToList();
     }
 
     /// <summary>
@@ -131,7 +131,7 @@ public class UserProfileService : IUserProfileService
     /// <exception cref="ArgumentException">
     /// Lançada quando o utilizador não existe, não tem perfil ou o perfil não é público.
     /// </exception>
-    public async Task<UserProfileResponse> GetPublicProfileAsync(int userId)
+    public async Task<PerfilPublicoDto> GetPublicProfileAsync(int userId)
     {
         // Obtém o utilizador com o respetivo perfil.
         var utilizador = await _utilizadorRepository.GetWithProfileAsync(userId);
@@ -141,29 +141,19 @@ public class UserProfileService : IUserProfileService
             throw new ArgumentException("Perfil público não encontrado.");
 
         // Devolve apenas informação pública, sem expor o email.
-        return ToResponse(utilizador, includeEmail: false);
+        return ToPublicoDto(utilizador);
     }
 
     /// <summary>
-    /// Converte uma entidade Utilizador para um DTO de resposta de perfil.
+    /// Converte uma entidade Utilizador para um DTO publico de perfil.
     /// </summary>
-    /// <param name="utilizador">Utilizador a converter.</param>
-    /// <param name="includeEmail">
-    /// Indica se o email deve ser incluído na resposta.
-    /// Deve ser verdadeiro apenas quando o perfil pertence ao próprio utilizador autenticado.
-    /// </param>
-    /// <returns>DTO com os dados do perfil do utilizador.</returns>
-    private static UserProfileResponse ToResponse(Utilizador utilizador, bool includeEmail)
+    private static PerfilPublicoDto ToPublicoDto(Utilizador utilizador)
     {
         // Mapeia a entidade Utilizador para um DTO adequado à resposta da API.
-        return new UserProfileResponse
+        return new PerfilPublicoDto
         {
             UserId = utilizador.Id,
             Name = utilizador.Name,
-
-            // O email só é apresentado quando o utilizador consulta o seu próprio perfil.
-            Email = includeEmail ? utilizador.Email : string.Empty,
-
             Nationality = utilizador.Nationality,
             Bio = utilizador.Perfil?.Bio ?? string.Empty,
             ProfileImageUrl = utilizador.Perfil?.ProfileImageUrl ?? string.Empty,
@@ -180,6 +170,27 @@ public class UserProfileService : IUserProfileService
             ReviewsCount = utilizador.Avaliacoes.Count,
             CommunitiesCount = utilizador.Comunidades.Count,
             PublicListsCount = utilizador.ListasPessoais.Count(l => l.IsPublic),
+        };
+    }
+
+    private static PerfilPrivadoDto ToPrivadoDto(Utilizador utilizador)
+    {
+        var publico = ToPublicoDto(utilizador);
+
+        return new PerfilPrivadoDto
+        {
+            UserId = publico.UserId,
+            Name = publico.Name,
+            Email = utilizador.Email,
+            Nationality = publico.Nationality,
+            Bio = publico.Bio,
+            ProfileImageUrl = publico.ProfileImageUrl,
+            Location = publico.Location,
+            IsPublic = publico.IsPublic,
+            FavoriteGenres = publico.FavoriteGenres,
+            ReviewsCount = publico.ReviewsCount,
+            CommunitiesCount = publico.CommunitiesCount,
+            PublicListsCount = publico.PublicListsCount,
         };
     }
 }

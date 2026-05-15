@@ -24,6 +24,16 @@ public class BilheteSessaoValidacaoStrategy : IEstrategiaValidacaoAcesso
         if (!dto.SessaoId.HasValue)
             throw new ArgumentException("Um bilhete de sessão precisa de SessaoId.");
 
+        if (
+            dto.FestivalId.HasValue
+            || dto.FilmeId.HasValue
+            || dto.DataAcesso.HasValue
+            || dto.DuracaoHoras.HasValue
+        )
+            throw new ArgumentException(
+                "Bilhete de sessao deve indicar apenas SessaoId como alvo."
+            );
+
         var sessao = await _sessaoRepository.GetByIdAsync(dto.SessaoId.Value);
 
         if (sessao == null)

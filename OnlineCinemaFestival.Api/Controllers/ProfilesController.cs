@@ -19,7 +19,7 @@ public class ProfilesController : ControllerBase
 
     [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<UserProfileResponse>> GetMyProfile()
+    public async Task<ActionResult<PerfilPrivadoDto>> GetMyProfile()
     {
         var userId = GetCurrentUserId();
 
@@ -31,7 +31,7 @@ public class ProfilesController : ControllerBase
 
     [Authorize]
     [HttpPut("me")]
-    public async Task<ActionResult<UserProfileResponse>> UpdateMyProfile(
+    public async Task<ActionResult<PerfilPrivadoDto>> UpdateMyProfile(
         UpdateProfileRequest request
     )
     {
@@ -44,13 +44,13 @@ public class ProfilesController : ControllerBase
     }
 
     [HttpGet("public")]
-    public async Task<ActionResult<List<UserProfileResponse>>> GetPublicProfiles()
+    public async Task<ActionResult<List<PerfilPublicoDto>>> GetPublicProfiles()
     {
         return Ok(await _profileService.GetPublicProfilesAsync());
     }
 
     [HttpGet("{userId:int}")]
-    public async Task<ActionResult<UserProfileResponse>> GetPublicProfile(int userId)
+    public async Task<ActionResult<PerfilPublicoDto>> GetPublicProfile(int userId)
     {
         try
         {

@@ -80,6 +80,7 @@ Services/
  ArmazenamentoToken.cs
  AuthService.cs
  CarrinhoService.cs
+ CheckoutService.cs
  CompraService.cs
  EstadoAutenticacaoCustomizado.cs
  FestivalService.cs

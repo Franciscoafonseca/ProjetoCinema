@@ -5,6 +5,44 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class CompraMapper
 {
+    public static CheckoutResultadoDto MapToCheckoutResultadoDto(
+        Compra compra,
+        int acessosGerados,
+        string mensagem
+    )
+    {
+        var dto = MapToReadDto(compra);
+
+        return new CheckoutResultadoDto
+        {
+            Id = dto.Id,
+            Referencia = dto.Referencia,
+            UtilizadorId = dto.UtilizadorId,
+            ValorTotal = dto.ValorTotal,
+            Estado = dto.Estado,
+            EstadoNome = dto.EstadoNome,
+            CriadaEm = dto.CriadaEm,
+            PagaEm = dto.PagaEm,
+            Pagamento = dto.Pagamento,
+            Itens = dto.Itens,
+            AcessosGerados = acessosGerados,
+            Mensagem = mensagem,
+        };
+    }
+
+    public static CompraResumoDto MapToResumoDto(Compra compra)
+    {
+        return new CompraResumoDto
+        {
+            Id = compra.Id,
+            Referencia = compra.Referencia,
+            ValorTotal = compra.ValorTotal,
+            EstadoNome = compra.Estado.ToString(),
+            CriadaEm = compra.CriadaEm,
+            NumeroItens = compra.Itens.Sum(i => i.Quantidade),
+        };
+    }
+
     public static CompraReadDto MapToReadDto(Compra compra)
     {
         return new CompraReadDto

@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class CompraReadDto
+public class CompraDto
 {
     public int Id { get; set; }
 
@@ -24,3 +24,5 @@ public class CompraReadDto
 
     public List<ItemCompraReadDto> Itens { get; set; } = new();
 }
+
+public class CompraReadDto : CompraDto { }

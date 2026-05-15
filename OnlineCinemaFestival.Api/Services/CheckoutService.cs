@@ -34,7 +34,7 @@ public class CheckoutService : ICheckoutService
         _pagamentoService = pagamentoService;
     }
 
-    public async Task<CompraReadDto> FinalizarCompraAsync(int utilizadorId)
+    public async Task<CheckoutResultadoDto> FinalizarCompraAsync(int utilizadorId)
     {
         var carrinho = await _carrinhoRepository.GetByUtilizadorIdAsync(utilizadorId);
 
@@ -62,7 +62,11 @@ public class CheckoutService : ICheckoutService
 
         var compraCriada = await _compraRepository.GetByIdAsync(compra.Id);
 
-        return CompraMapper.MapToReadDto(compraCriada!);
+        return CompraMapper.MapToCheckoutResultadoDto(
+            compraCriada!,
+            acessosComprados.Count,
+            "Compra finalizada com sucesso."
+        );
     }
 
     private Compra CriarCompra(int utilizadorId, Carrinho carrinho, DateTime dataCompra)

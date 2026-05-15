@@ -38,6 +38,7 @@ builder.Services.AddScoped<FestivalService>();
 builder.Services.AddScoped<SessaoService>();
 builder.Services.AddScoped<AcessoService>();
 builder.Services.AddScoped<CarrinhoService>();
+builder.Services.AddScoped<CheckoutService>();
 builder.Services.AddScoped<CompraService>();
 builder.Services.AddScoped<VisualizacaoService>();
 builder.Services.AddScoped<PerfilService>();

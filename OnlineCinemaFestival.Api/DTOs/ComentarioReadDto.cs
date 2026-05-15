@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ComentarioReadDto
+public class ComentarioDto
 {
     public int Id { get; set; }
 
@@ -8,9 +8,13 @@ public class ComentarioReadDto
 
     public string NomeUsuario { get; set; } = string.Empty;
 
-    public int ComunidadeId { get; set; }
+    public int? ComunidadeId { get; set; }
 
-    public string NomeComunidade { get; set; } = string.Empty;
+    public string? NomeComunidade { get; set; }
+
+    public int? FilmeId { get; set; }
+
+    public string? TituloFilme { get; set; }
 
     public string Texto { get; set; } = string.Empty;
 
@@ -20,3 +24,5 @@ public class ComentarioReadDto
 
     public bool Reportado { get; set; }
 }
+
+public class ComentarioReadDto : ComentarioDto { }

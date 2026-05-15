@@ -60,23 +60,26 @@ public class AcessoRepository : IAcessoRepository
             .Include(a => a.Filme)
             .Where(a => a.IsAtivo && a.Tipo == tipo);
 
+        var inicioDataPasse = dataPasse?.Date ?? DateTime.MinValue;
+        var fimDataPasse = inicioDataPasse.AddDays(1);
+
         query = tipo switch
         {
             TipoAcesso.BilheteSessao => query.Where(a => a.SessaoId == sessaoId),
-            TipoAcesso.PasseDiario => query.Where(a =>
-                a.FestivalId == festivalId && a.DataAcesso.HasValue
-            ),
+            TipoAcesso.PasseDiario when dataPasse.HasValue =>
+                query.Where(a =>
+                    a.FestivalId == festivalId
+                    && a.DataAcesso.HasValue
+                    && a.DataAcesso.Value >= inicioDataPasse
+                    && a.DataAcesso.Value < fimDataPasse
+                ),
+            TipoAcesso.PasseDiario => query.Where(_ => false),
             TipoAcesso.PasseCompleto => query.Where(a => a.FestivalId == festivalId),
             TipoAcesso.AluguerDigital => query.Where(a => a.FilmeId == filmeId),
             _ => query.Where(_ => false),
         };
 
-        var acessos = (await query.ToListAsync()).OrderBy(a => a.Preco).ToList();
-
-        if (tipo == TipoAcesso.PasseDiario && dataPasse.HasValue)
-            return acessos.FirstOrDefault(a => a.DataAcesso?.Date == dataPasse.Value.Date);
-
-        return acessos.FirstOrDefault();
+        return await query.OrderBy(a => a.Preco).FirstOrDefaultAsync();
     }
 
     public async Task AddAsync(Acesso acesso)

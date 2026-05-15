@@ -1,4 +1,5 @@
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
@@ -12,13 +13,17 @@ public class GeneroService : IGeneroService
         _generoRepository = generoRepository;
     }
 
-    public async Task<IEnumerable<Genero>> GetAllAsync()
+    public async Task<IEnumerable<GeneroDto>> GetAllAsync()
     {
-        return await _generoRepository.GetAllAsync();
+        var generos = await _generoRepository.GetAllAsync();
+
+        return generos.Select(GeneroMapper.MapToDto);
     }
 
-    public async Task<Genero> CreateAsync(Genero genero)
+    public async Task<GeneroDto> CreateAsync(CriarGeneroDto dto)
     {
+        var genero = GeneroMapper.MapFromCreateDto(dto);
+
         genero.Name = genero.Name.Trim();
 
         if (string.IsNullOrWhiteSpace(genero.Name))
@@ -27,6 +32,6 @@ public class GeneroService : IGeneroService
         await _generoRepository.AddAsync(genero);
         await _generoRepository.SaveChangesAsync();
 
-        return genero;
+        return GeneroMapper.MapToDto(genero);
     }
 }

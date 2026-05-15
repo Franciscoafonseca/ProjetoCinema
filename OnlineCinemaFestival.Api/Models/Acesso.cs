@@ -38,4 +38,11 @@ public class Acesso
 
     // Aluguer digital
     public int? DuracaoHoras { get; set; }
+
+    public ICollection<CarrinhoItem> CarrinhoItems { get; set; } = new List<CarrinhoItem>();
+
+    public ICollection<ItemCompra> ItensCompra { get; set; } = new List<ItemCompra>();
+
+    public ICollection<AcessoUtilizador> AcessosUtilizador { get; set; } =
+        new List<AcessoUtilizador>();
 }

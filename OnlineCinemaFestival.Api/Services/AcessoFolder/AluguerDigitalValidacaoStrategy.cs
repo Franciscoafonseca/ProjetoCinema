@@ -25,6 +25,9 @@ public class AluguerDigitalValidacaoStrategy : IEstrategiaValidacaoAcesso
         if (!dto.FilmeId.HasValue)
             throw new ArgumentException("Um aluguer digital precisa de FilmeId.");
 
+        if (dto.SessaoId.HasValue || dto.FestivalId.HasValue || dto.DataAcesso.HasValue)
+            throw new ArgumentException("Aluguer digital deve indicar apenas FilmeId como alvo.");
+
         var filme = await _filmeRepository.GetByIdAsync(dto.FilmeId.Value);
 
         if (filme == null)

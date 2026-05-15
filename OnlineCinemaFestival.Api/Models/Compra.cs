@@ -20,4 +20,7 @@ public class Compra
     public Pagamento? Pagamento { get; set; }
 
     public ICollection<ItemCompra> Itens { get; set; } = new List<ItemCompra>();
+
+    public ICollection<AcessoUtilizador> AcessosUtilizador { get; set; } =
+        new List<AcessoUtilizador>();
 }

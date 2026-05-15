@@ -19,7 +19,7 @@ public class CatalogoController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<FilmeReadDto>>> GetCatalogo(
+    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> GetCatalogo(
         [FromQuery] CatalogoQueryDto query
     )
     {
@@ -40,7 +40,7 @@ public class CatalogoController : ControllerBase
     }
 
     [HttpGet("festival/{festivalId:int}")]
-    public async Task<ActionResult<IEnumerable<FilmeReadDto>>> GetCatalogoByFestival(
+    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> GetCatalogoByFestival(
         int festivalId,
         [FromQuery] CatalogoQueryDto query
     )
@@ -62,7 +62,7 @@ public class CatalogoController : ControllerBase
     }
 
     [HttpGet("filmes/{filmeId:int}")]
-    public async Task<ActionResult<FilmeReadDto>> GetFilmeDetalhes(int filmeId)
+    public async Task<ActionResult<FilmeDetalheDto>> GetFilmeDetalhes(int filmeId)
     {
         var filme = await _service.GetFilmeDetalhesAsync(filmeId);
 

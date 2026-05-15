@@ -19,7 +19,7 @@ public class ListasController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ListaPessoalReadDto>>> GetMinhasListas()
+    public async Task<ActionResult<IEnumerable<ListaPessoalDto>>> GetMinhasListas()
     {
         var userId = GetCurrentUserId();
         if (userId == null)
@@ -30,7 +30,7 @@ public class ListasController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ListaPessoalReadDto>> Create(ListaPessoalCreateDto dto)
+    public async Task<ActionResult<ListaPessoalDto>> Create(ListaPessoalCreateDto dto)
     {
         var userId = GetCurrentUserId();
         if (userId == null)

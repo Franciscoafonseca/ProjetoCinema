@@ -43,4 +43,13 @@ public class Utilizador
     public ICollection<ListaPessoal> ListasPessoais { get; set; } = new List<ListaPessoal>();
 
     public ICollection<ComunidadeMembro> Comunidades { get; set; } = new List<ComunidadeMembro>();
+
+    public Carrinho? Carrinho { get; set; }
+
+    public ICollection<Compra> Compras { get; set; } = new List<Compra>();
+
+    public ICollection<AcessoUtilizador> AcessosUtilizador { get; set; } =
+        new List<AcessoUtilizador>();
+
+    public ICollection<Visualizacao> Visualizacoes { get; set; } = new List<Visualizacao>();
 }

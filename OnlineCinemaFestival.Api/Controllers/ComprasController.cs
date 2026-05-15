@@ -25,7 +25,7 @@ public class ComprasController : ControllerBase
     }
 
     [HttpGet("minhas")]
-    public async Task<ActionResult<IEnumerable<CompraReadDto>>> ObterMinhasCompras()
+    public async Task<ActionResult<IEnumerable<CompraDto>>> ObterMinhasCompras()
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 

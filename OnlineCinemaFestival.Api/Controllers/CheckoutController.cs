@@ -25,7 +25,7 @@ public class CheckoutController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<CompraReadDto>> FinalizarCompra()
+    public async Task<ActionResult<CheckoutResultadoDto>> FinalizarCompra()
     {
         try
         {

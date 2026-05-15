@@ -21,7 +21,6 @@ public static class FilmeMapper
             CapaUrl = f.CapaUrl,
             TrailerUrl = f.TrailerUrl,
             VideoUrl = f.VideoUrl,
-            ConteudoLocalPath = f.ConteudoLocalPath,
             Popularidade = f.Popularidade,
         };
 

@@ -24,7 +24,7 @@ public class CarrinhoController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<CarrinhoReadDto>> ObterCarrinho()
+    public async Task<ActionResult<CarrinhoDto>> ObterCarrinho()
     {
         try
         {
@@ -40,7 +40,7 @@ public class CarrinhoController : ControllerBase
     }
 
     [HttpPost("itens")]
-    public async Task<ActionResult<CarrinhoReadDto>> AdicionarItem(AdicionarItemCarrinhoDto dto)
+    public async Task<ActionResult<CarrinhoDto>> AdicionarItem(AdicionarItemCarrinhoDto dto)
     {
         try
         {
@@ -69,7 +69,7 @@ public class CarrinhoController : ControllerBase
     }
 
     [HttpPost("items")]
-    public async Task<ActionResult<CarrinhoReadDto>> AdicionarItemPorTipo(CarrinhoItemCreateDto dto)
+    public async Task<ActionResult<CarrinhoDto>> AdicionarItemPorTipo(CarrinhoItemCreateDto dto)
     {
         try
         {
@@ -99,7 +99,7 @@ public class CarrinhoController : ControllerBase
 
     [HttpPut("items/{itemId:int}")]
     [HttpPut("itens/{itemId:int}")]
-    public async Task<ActionResult<CarrinhoReadDto>> AtualizarItem(
+    public async Task<ActionResult<CarrinhoDto>> AtualizarItem(
         int itemId,
         CarrinhoItemUpdateDto dto
     )
