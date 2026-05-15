@@ -1,0 +1,114 @@
+.historico-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px 64px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+h1,
+h2,
+h3 {
+  color: #fff;
+}
+
+.page-header h1,
+.secao h2 {
+  margin: 0;
+}
+
+.page-header a {
+  color: #e50914;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.secao {
+  margin-top: 2rem;
+}
+
+.lista {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.compra,
+.visualizacao,
+.estado {
+  background: #1f1f1f;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.estado {
+  color: #c8c8c8;
+}
+
+.estado.erro {
+  border-color: #7a1117;
+}
+
+.compra-topo,
+.visualizacao,
+.compra li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.compra h3,
+.visualizacao h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.compra p,
+.visualizacao p,
+.visualizacao time {
+  color: #999;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.compra strong {
+  color: #e50914;
+}
+
+.pagamento {
+  border-top: 1px solid #2a2a2a;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem !important;
+}
+
+.compra ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.compra li {
+  color: #ddd;
+  font-size: 0.9rem;
+}
+
+.compacta {
+  gap: 0.75rem;
+}
+
+@media (max-width: 700px) {
+  .compra-topo,
+  .visualizacao,
+  .compra li {
+    flex-direction: column;
+  }
+}

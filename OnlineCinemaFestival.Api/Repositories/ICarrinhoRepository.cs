@@ -8,15 +8,17 @@ public interface ICarrinhoRepository
 
     Task<Carrinho> GetOrCreateByUtilizadorIdAsync(int utilizadorId);
 
-    Task<ItemCarrinho?> GetItemAsync(int carrinhoId, int itemId);
+    Task<CarrinhoItem?> GetItemAsync(int carrinhoId, int itemId);
+
+    Task<CarrinhoItem?> GetItemByAcessoAsync(int carrinhoId, int acessoId);
 
     Task<bool> ExisteItemComAcessoAsync(int carrinhoId, int acessoId);
 
-    Task AddItemAsync(ItemCarrinho item);
+    Task AddItemAsync(CarrinhoItem item);
 
-    void RemoveItem(ItemCarrinho item);
+    void RemoveItem(CarrinhoItem item);
 
-    void RemoveItems(IEnumerable<ItemCarrinho> itens);
+    void RemoveItems(IEnumerable<CarrinhoItem> itens);
 
     Task SaveChangesAsync();
 }

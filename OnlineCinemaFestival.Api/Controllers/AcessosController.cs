@@ -11,10 +11,18 @@ namespace OnlineCinemaFestival.Api.Controllers;
 public class AcessosController : ControllerBase
 {
     private readonly IAcessoService _service;
+    private readonly IAcessoUtilizadorService _acessoUtilizadorService;
+    private readonly IUtilizadorAtualService _utilizadorAtualService;
 
-    public AcessosController(IAcessoService service)
+    public AcessosController(
+        IAcessoService service,
+        IAcessoUtilizadorService acessoUtilizadorService,
+        IUtilizadorAtualService utilizadorAtualService
+    )
     {
         _service = service;
+        _acessoUtilizadorService = acessoUtilizadorService;
+        _utilizadorAtualService = utilizadorAtualService;
     }
 
     [HttpGet]
@@ -45,6 +53,70 @@ public class AcessosController : ControllerBase
         var tipos = _service.GetTiposAcesso();
 
         return Ok(tipos);
+    }
+
+    [HttpGet("meus")]
+    [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
+    public async Task<ActionResult<IEnumerable<AcessoUtilizadorReadDto>>> ObterMeusAcessos()
+    {
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+
+        var acessos = await _acessoUtilizadorService.ObterAcessosAtivosDoUtilizadorAsync(
+            utilizadorId
+        );
+
+        return Ok(acessos);
+    }
+
+    [HttpGet("validar-filme/{filmeId:int}")]
+    [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
+    public async Task<ActionResult<ValidacaoAcessoReadDto>> ValidarFilme(
+        int filmeId,
+        [FromQuery] int? festivalId
+    )
+    {
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+
+        var temAcesso = await _acessoUtilizadorService.UtilizadorTemAcessoAFilmeAsync(
+            utilizadorId,
+            filmeId,
+            festivalId
+        );
+
+        return Ok(
+            new ValidacaoAcessoReadDto
+            {
+                TemAcesso = temAcesso,
+                Mensagem = temAcesso ? "Acesso valido." : "Sem acesso valido para este filme.",
+            }
+        );
+    }
+
+    [HttpGet("validar-sessao/{sessaoId:int}")]
+    [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
+    public async Task<ActionResult<ValidacaoAcessoReadDto>> ValidarSessao(int sessaoId)
+    {
+        try
+        {
+            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+
+            var temAcesso = await _acessoUtilizadorService.UtilizadorTemAcessoASessaoAsync(
+                utilizadorId,
+                sessaoId
+            );
+
+            return Ok(
+                new ValidacaoAcessoReadDto
+                {
+                    TemAcesso = temAcesso,
+                    Mensagem = temAcesso ? "Acesso valido." : "Sem acesso valido para esta sessao.",
+                }
+            );
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 
     [HttpPost]

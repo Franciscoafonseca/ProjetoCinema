@@ -17,8 +17,8 @@ public class AppDbContext : DbContext
     public DbSet<Sessao> Sessoes => Set<Sessao>();
 
     public DbSet<Carrinho> Carrinhos => Set<Carrinho>();
+    public DbSet<CarrinhoItem> ItensCarrinho => Set<CarrinhoItem>();
 
-    public DbSet<ItemCarrinho> ItensCarrinho => Set<ItemCarrinho>();
     public DbSet<FestivalFilme> FestivalFilmes => Set<FestivalFilme>();
     public DbSet<Avaliacao> Avaliacoes => Set<Avaliacao>();
     public DbSet<Comentario> Comentarios => Set<Comentario>();
@@ -34,8 +34,10 @@ public class AppDbContext : DbContext
     public DbSet<Compra> Compras => Set<Compra>();
 
     public DbSet<ItemCompra> ItensCompra => Set<ItemCompra>();
+    public DbSet<Pagamento> Pagamentos => Set<Pagamento>();
 
     public DbSet<AcessoUtilizador> AcessosUtilizador => Set<AcessoUtilizador>();
+    public DbSet<Visualizacao> Visualizacoes => Set<Visualizacao>();
     public DbSet<Comunidade> Comunidades => Set<Comunidade>();
     public DbSet<ComunidadeMembro> ComunidadeMembros => Set<ComunidadeMembro>();
 
@@ -222,26 +224,28 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Carrinho>().HasIndex(c => c.UtilizadorId).IsUnique();
 
+        modelBuilder.Entity<CarrinhoItem>().ToTable("ItensCarrinho");
+
         modelBuilder
-            .Entity<ItemCarrinho>()
+            .Entity<CarrinhoItem>()
             .HasOne(i => i.Carrinho)
             .WithMany(c => c.Itens)
             .HasForeignKey(i => i.CarrinhoId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder
-            .Entity<ItemCarrinho>()
+            .Entity<CarrinhoItem>()
             .HasOne(i => i.Acesso)
             .WithMany()
             .HasForeignKey(i => i.AcessoId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
-            .Entity<ItemCarrinho>()
+            .Entity<CarrinhoItem>()
             .HasIndex(i => new { i.CarrinhoId, i.AcessoId })
             .IsUnique();
 
-        modelBuilder.Entity<ItemCarrinho>().Property(i => i.PrecoUnitario).HasPrecision(10, 2);
+        modelBuilder.Entity<CarrinhoItem>().Property(i => i.PrecoUnitario).HasPrecision(10, 2);
         modelBuilder
             .Entity<Compra>()
             .HasOne(c => c.Utilizador)
@@ -252,6 +256,19 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Compra>().HasIndex(c => c.Referencia).IsUnique();
 
         modelBuilder.Entity<Compra>().Property(c => c.ValorTotal).HasPrecision(10, 2);
+
+        modelBuilder
+            .Entity<Pagamento>()
+            .HasOne(p => p.Compra)
+            .WithOne(c => c.Pagamento)
+            .HasForeignKey<Pagamento>(p => p.CompraId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Pagamento>().HasIndex(p => p.CompraId).IsUnique();
+
+        modelBuilder.Entity<Pagamento>().HasIndex(p => p.Referencia).IsUnique();
+
+        modelBuilder.Entity<Pagamento>().Property(p => p.Valor).HasPrecision(10, 2);
 
         modelBuilder
             .Entity<ItemCompra>()
@@ -314,5 +331,35 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<AcessoUtilizador>().HasIndex(a => new { a.UtilizadorId, a.AcessoId });
+
+        modelBuilder
+            .Entity<Visualizacao>()
+            .HasOne(v => v.Utilizador)
+            .WithMany()
+            .HasForeignKey(v => v.UtilizadorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<Visualizacao>()
+            .HasOne(v => v.Filme)
+            .WithMany()
+            .HasForeignKey(v => v.FilmeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<Visualizacao>()
+            .HasOne(v => v.Sessao)
+            .WithMany()
+            .HasForeignKey(v => v.SessaoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<Visualizacao>()
+            .HasOne(v => v.Festival)
+            .WithMany()
+            .HasForeignKey(v => v.FestivalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Visualizacao>().HasIndex(v => new { v.UtilizadorId, v.VisualizadoEm });
     }
 }

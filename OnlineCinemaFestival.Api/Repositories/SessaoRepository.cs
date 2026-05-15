@@ -57,6 +57,18 @@ public class SessaoRepository : ISessaoRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Sessao>> GetDisponiveisAsync(DateTime dataAtual)
+    {
+        return await _context
+            .Sessoes.Where(s => s.Fim >= dataAtual)
+            .Include(s => s.Festival)
+            .Include(s => s.FilmesDaSessao)
+                .ThenInclude(sf => sf.Filme)
+            .AsNoTracking()
+            .OrderBy(s => s.Inicio)
+            .ToListAsync();
+    }
+
     public async Task<bool> HasOverlapAsync(
         int festivalId,
         IEnumerable<int> filmeIds,
@@ -78,6 +90,12 @@ public class SessaoRepository : ISessaoRepository
             query = query.Where(s => s.Id != ignoreSessaoId.Value);
 
         return await query.AnyAsync();
+    }
+
+    public async Task<bool> HasAcessosAssociadosAsync(int sessaoId)
+    {
+        return await _context.Acessos.AnyAsync(a => a.SessaoId == sessaoId)
+            || await _context.AcessosUtilizador.AnyAsync(a => a.SessaoId == sessaoId);
     }
 
     public async Task AddAsync(Sessao sessao)

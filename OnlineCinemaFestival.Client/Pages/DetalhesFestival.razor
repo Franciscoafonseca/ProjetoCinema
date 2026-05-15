@@ -2,6 +2,8 @@
 @inherits FilmePageBase
 @inject FestivalService FestivalService
 @inject SessaoService SessaoService
+@inject AcessoService AcessoService
+@inject CarrinhoService CarrinhoService
 @inject NavigationManager Nav
 
 <PageTitle>@(_festival?.Name ?? "Festival") — Online Cinema Festival</PageTitle>
@@ -38,6 +40,39 @@ else
             @if (!string.IsNullOrWhiteSpace(_festival.Description))
             {
                 <p class="festival-hero-descricao">@_festival.Description</p>
+            }
+        </section>
+
+        <section class="festival-seccao">
+            <h2 class="seccao-titulo">Passes</h2>
+            @if (AcessosDoFestival().Count == 0)
+            {
+                <p class="empty-state">Ainda nao ha passes configurados para este festival.</p>
+            }
+            else
+            {
+                <div class="passes-lista">
+                    @foreach (var acesso in AcessosDoFestival())
+                    {
+                        <article class="passe-item">
+                            <div>
+                                <h3>@acesso.Nome</h3>
+                                <p>@acesso.TipoNome</p>
+                            </div>
+                            <div class="passe-acoes">
+                                <strong>@acesso.Preco.ToString("C", new System.Globalization.CultureInfo("pt-PT"))</strong>
+                                <button @onclick="() => AdicionarAoCarrinho(acesso.Id)" disabled="@_aAtualizarCarrinho">
+                                    Adicionar
+                                </button>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_mensagemCarrinho))
+            {
+                <p class="carrinho-feedback">@_mensagemCarrinho</p>
             }
         </section>
 
@@ -101,6 +136,9 @@ else
     private FestivalDto? _festival;
     private List<FilmeDto> _filmes = new();
     private List<SessaoDto> _sessoes = new();
+    private List<AcessoDto> _acessos = new();
+    private bool _aAtualizarCarrinho;
+    private string? _mensagemCarrinho;
 
     protected override async Task CarregarDadosAsync()
     {
@@ -113,11 +151,39 @@ else
         _sessoes = (await SessaoService.GetSessoesPorFestivalAsync(Id))
             .OrderBy(s => s.Inicio)
             .ToList();
+        _acessos = await AcessoService.GetAcessosAsync();
     }
 
     private void Voltar() => Nav.NavigateTo("/festivais");
 
     private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
+
+    private List<AcessoDto> AcessosDoFestival()
+    {
+        return _acessos
+            .Where(a => a.IsAtivo && a.FestivalId == Id && a.SessaoId == null && a.FilmeId == null)
+            .ToList();
+    }
+
+    private async Task AdicionarAoCarrinho(int acessoId)
+    {
+        _mensagemCarrinho = null;
+        _aAtualizarCarrinho = true;
+
+        try
+        {
+            await CarrinhoService.AdicionarItemAsync(acessoId);
+            _mensagemCarrinho = "Acesso adicionado ao carrinho.";
+        }
+        catch (Exception ex)
+        {
+            _mensagemCarrinho = ex.Message;
+        }
+        finally
+        {
+            _aAtualizarCarrinho = false;
+        }
+    }
 
     private static string FormatarPeriodo(DateTime inicio, DateTime fim)
     {

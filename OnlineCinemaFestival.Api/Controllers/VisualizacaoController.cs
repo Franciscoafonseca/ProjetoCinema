@@ -24,6 +24,7 @@ public class VisualizacaoController : ControllerBase
     }
 
     [HttpGet("filmes/{filmeId:int}")]
+    [HttpGet("filme/{filmeId:int}")]
     public async Task<ActionResult<VisualizacaoReadDto>> VisualizarFilme(
         int filmeId,
         [FromQuery] int? festivalId
@@ -52,6 +53,7 @@ public class VisualizacaoController : ControllerBase
     }
 
     [HttpGet("sessoes/{sessaoId:int}")]
+    [HttpGet("sessao/{sessaoId:int}")]
     public async Task<ActionResult<VisualizacaoReadDto>> VisualizarSessao(int sessaoId)
     {
         try

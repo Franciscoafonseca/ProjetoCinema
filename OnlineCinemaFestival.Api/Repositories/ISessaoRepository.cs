@@ -12,6 +12,8 @@ public interface ISessaoRepository
 
     Task<IEnumerable<Sessao>> GetByFilmeIdAsync(int filmeId);
 
+    Task<IEnumerable<Sessao>> GetDisponiveisAsync(DateTime dataAtual);
+
     Task<bool> HasOverlapAsync(
         int festivalId,
         IEnumerable<int> filmeIds,
@@ -19,6 +21,8 @@ public interface ISessaoRepository
         DateTime fim,
         int? ignoreSessaoId = null
     );
+
+    Task<bool> HasAcessosAssociadosAsync(int sessaoId);
 
     Task AddAsync(Sessao sessao);
 

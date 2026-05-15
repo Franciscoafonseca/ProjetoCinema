@@ -279,6 +279,12 @@
   gap: 0.5rem;
 }
 
+.acessos-filme {
+  margin-top: 1.5rem;
+  border-top: 1px solid #2a2a2a;
+  padding-top: 0.75rem;
+}
+
 .acesso-item {
   display: flex;
   justify-content: space-between;
@@ -320,12 +326,56 @@
 
 .btn-comprar {
   padding: 0.5rem 1.1rem;
-  background: #2a2a2a;
-  color: #888;
-  border: 1px solid #333;
+  background: #e50914;
+  color: #fff;
+  border: 1px solid #e50914;
   border-radius: 6px;
   font-size: 0.85rem;
-  cursor: not-allowed;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-comprar:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.player-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.btn-ver,
+.btn-ver-sessao {
+  border: 0;
+  border-radius: 6px;
+  background: #fff;
+  color: #111;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-ver {
+  padding: 0.7rem 1.2rem;
+}
+
+.btn-ver-sessao {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.8rem;
+}
+
+.link-carrinho {
+  color: #e50914;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.carrinho-feedback {
+  color: #ddd;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
 }
 
 .sem-acessos {

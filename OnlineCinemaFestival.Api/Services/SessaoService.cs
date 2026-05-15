@@ -58,6 +58,28 @@ public class SessaoService : ISessaoService
         return sessoes.Select(SessaoMapper.MapToReadDto);
     }
 
+    public async Task<IEnumerable<SessaoReadDto>> GetDisponiveisAsync()
+    {
+        var sessoes = await _sessaoRepository.GetDisponiveisAsync(DateTime.UtcNow);
+        return sessoes.Select(SessaoMapper.MapToReadDto);
+    }
+
+    public async Task<SessaoEstadoReadDto> GetEstadoAsync(int id)
+    {
+        var sessao = await _sessaoRepository.GetByIdAsync(id);
+
+        if (sessao == null)
+            throw new KeyNotFoundException("Sessao nao encontrada.");
+
+        return new SessaoEstadoReadDto
+        {
+            SessaoId = sessao.Id,
+            Estado = SessaoMapper.ObterEstado(sessao.Inicio, sessao.Fim),
+            Inicio = sessao.Inicio,
+            Fim = sessao.Fim,
+        };
+    }
+
     public async Task<SessaoReadDto> CreateAsync(SessaoCreateDto dto)
     {
         await ValidateCreateAsync(dto);
@@ -80,6 +102,9 @@ public class SessaoService : ISessaoService
 
         if (sessao == null)
             throw new KeyNotFoundException("Sessão não encontrada.");
+
+        if (dto.Inicio < sessao.Festival.StartDate || dto.Fim > sessao.Festival.EndDate)
+            throw new ArgumentException("A sessao deve ocorrer dentro do periodo do festival.");
 
         await ValidateFilmesExistemAsync(dto.FilmeIds);
         await ValidateFilmesPertencemAoFestivalAsync(sessao.FestivalId, dto.FilmeIds);
@@ -108,6 +133,13 @@ public class SessaoService : ISessaoService
 
         if (sessao == null)
             throw new KeyNotFoundException("Sessão não encontrada.");
+
+        var temAcessosAssociados = await _sessaoRepository.HasAcessosAssociadosAsync(id);
+
+        if (temAcessosAssociados)
+            throw new InvalidOperationException(
+                "Nao e possivel remover uma sessao com acessos ou bilhetes associados."
+            );
 
         _sessaoRepository.Remove(sessao);
         await _sessaoRepository.SaveChangesAsync();

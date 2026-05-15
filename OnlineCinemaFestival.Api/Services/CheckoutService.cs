@@ -13,6 +13,7 @@ public class CheckoutService : ICheckoutService
     private readonly IAcessoUtilizadorFactory _fabricaAcessoUtilizador;
     private readonly IGeradorReferenciaCompra _geradorReferenciaCompra;
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
+    private readonly IPagamentoService _pagamentoService;
 
     public CheckoutService(
         ICarrinhoRepository carrinhoRepository,
@@ -20,7 +21,8 @@ public class CheckoutService : ICheckoutService
         IValidadorCheckout validadorCheckout,
         IAcessoUtilizadorFactory fabricaAcessoUtilizador,
         IGeradorReferenciaCompra geradorReferenciaCompra,
-        IAcessoUtilizadorRepository acessoUtilizadorRepository
+        IAcessoUtilizadorRepository acessoUtilizadorRepository,
+        IPagamentoService pagamentoService
     )
     {
         _carrinhoRepository = carrinhoRepository;
@@ -29,6 +31,7 @@ public class CheckoutService : ICheckoutService
         _fabricaAcessoUtilizador = fabricaAcessoUtilizador;
         _geradorReferenciaCompra = geradorReferenciaCompra;
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
+        _pagamentoService = pagamentoService;
     }
 
     public async Task<CompraReadDto> FinalizarCompraAsync(int utilizadorId)
@@ -40,6 +43,8 @@ public class CheckoutService : ICheckoutService
         var agora = DateTime.UtcNow;
 
         var compra = CriarCompra(utilizadorId, carrinho!, agora);
+
+        compra.Pagamento = await _pagamentoService.ProcessarPagamentoSimuladoAsync(compra, agora);
 
         await _compraRepository.AddAsync(compra);
 

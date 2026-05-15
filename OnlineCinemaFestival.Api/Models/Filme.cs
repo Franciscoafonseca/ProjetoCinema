@@ -10,6 +10,9 @@ public class Filme
     public string? Genero { get; set; }
     public string? Classificacao { get; set; }
     public string CapaUrl { get; set; } = "";
+    public string? TrailerUrl { get; set; }
+    public string? VideoUrl { get; set; }
+    public string? ConteudoLocalPath { get; set; }
 
     public ICollection<Avaliacao> Avaliacoes { get; set; } = new List<Avaliacao>();
 

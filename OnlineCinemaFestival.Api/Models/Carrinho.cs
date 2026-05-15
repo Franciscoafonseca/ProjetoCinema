@@ -11,5 +11,5 @@ public class Carrinho
 
     public DateTime? AtualizadoEm { get; set; }
 
-    public ICollection<ItemCarrinho> Itens { get; set; } = new List<ItemCarrinho>();
+    public ICollection<CarrinhoItem> Itens { get; set; } = new List<CarrinhoItem>();
 }

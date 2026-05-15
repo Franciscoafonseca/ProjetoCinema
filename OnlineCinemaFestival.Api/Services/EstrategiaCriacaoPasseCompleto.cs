@@ -9,7 +9,7 @@ public class EstrategiaCriacaoPasseCompleto : IEstrategiaCriacaoAcessoUtilizador
     public AcessoUtilizador Criar(
         int utilizadorId,
         Compra compra,
-        ItemCarrinho item,
+        CarrinhoItem item,
         DateTime dataCompra
     )
     {

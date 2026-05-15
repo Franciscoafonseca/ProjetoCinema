@@ -1,0 +1,114 @@
+@page "/player/filme/{FilmeId:int}"
+@page "/player/sessao/{SessaoId:int}"
+@inject VisualizacaoService VisualizacaoService
+@inject NavigationManager Nav
+
+<PageTitle>Player - Online Cinema Festival</PageTitle>
+
+<div class="player-page">
+    <button class="voltar" @onclick="Voltar">Voltar</button>
+
+    @if (_aCarregar)
+    {
+        <p class="estado">A preparar player...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_erro))
+    {
+        <div class="estado erro">
+            <p>@_erro</p>
+            <a href="/carrinho">Ver carrinho</a>
+        </div>
+    }
+    else if (_conteudoSelecionado == null)
+    {
+        <p class="estado">Conteudo indisponivel.</p>
+    }
+    else
+    {
+        <section class="player-shell">
+            <div class="video-frame">
+                <iframe src="@_conteudoSelecionado.UrlVisualizacao"
+                        title="@_conteudoSelecionado.Titulo"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen>
+                </iframe>
+            </div>
+
+            <div class="player-meta">
+                <div>
+                    <span>@_visualizacao?.TipoConteudo</span>
+                    <h1>@_conteudoSelecionado.Titulo</h1>
+                </div>
+                @if (_visualizacao?.TemChatAoVivo == true)
+                {
+                    <strong>Chat ao vivo</strong>
+                }
+            </div>
+        </section>
+
+        @if (_conteudos.Count > 1)
+        {
+            <section class="playlist">
+                @foreach (var conteudo in _conteudos)
+                {
+                    <button class="@(conteudo.FilmeId == _conteudoSelecionado.FilmeId ? "ativo" : "")"
+                            @onclick="() => Selecionar(conteudo)">
+                        <span>@conteudo.Ordem</span>
+                        @conteudo.Titulo
+                    </button>
+                }
+            </section>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public int FilmeId { get; set; }
+
+    [Parameter] public int SessaoId { get; set; }
+
+    [SupplyParameterFromQuery] public int? FestivalId { get; set; }
+
+    private VisualizacaoDto? _visualizacao;
+    private List<ConteudoVisualizacaoDto> _conteudos = new();
+    private ConteudoVisualizacaoDto? _conteudoSelecionado;
+    private bool _aCarregar = true;
+    private string? _erro;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _aCarregar = true;
+        _erro = null;
+
+        try
+        {
+            _visualizacao = SessaoId > 0
+                ? await VisualizacaoService.ObterSessaoAsync(SessaoId)
+                : await VisualizacaoService.ObterFilmeAsync(FilmeId, FestivalId);
+
+            _conteudos = _visualizacao.Conteudos.OrderBy(c => c.Ordem).ToList();
+            _conteudoSelecionado = _conteudos.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private void Selecionar(ConteudoVisualizacaoDto conteudo)
+    {
+        _conteudoSelecionado = conteudo;
+    }
+
+    private void Voltar()
+    {
+        if (FilmeId > 0)
+            Nav.NavigateTo($"/filmes/{FilmeId}");
+        else
+            Nav.NavigateTo("/catalogo");
+    }
+}

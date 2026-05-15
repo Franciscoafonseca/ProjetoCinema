@@ -17,6 +17,21 @@ public static class CompraMapper
             EstadoNome = compra.Estado.ToString(),
             CriadaEm = compra.CriadaEm,
             PagaEm = compra.PagaEm,
+            Pagamento =
+                compra.Pagamento == null
+                    ? null
+                    : new PagamentoReadDto
+                    {
+                        Id = compra.Pagamento.Id,
+                        Referencia = compra.Pagamento.Referencia,
+                        Valor = compra.Pagamento.Valor,
+                        Metodo = compra.Pagamento.Metodo,
+                        Estado = compra.Pagamento.Estado,
+                        EstadoNome = compra.Pagamento.Estado.ToString(),
+                        CriadoEm = compra.Pagamento.CriadoEm,
+                        ProcessadoEm = compra.Pagamento.ProcessadoEm,
+                        Mensagem = compra.Pagamento.Mensagem,
+                    },
             Itens = compra
                 .Itens.Select(item => new ItemCompraReadDto
                 {

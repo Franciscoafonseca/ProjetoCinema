@@ -20,5 +20,7 @@ public class CompraReadDto
 
     public DateTime? PagaEm { get; set; }
 
+    public PagamentoReadDto? Pagamento { get; set; }
+
     public List<ItemCompraReadDto> Itens { get; set; } = new();
 }

@@ -12,6 +12,10 @@ public interface ISessaoService
 
     Task<IEnumerable<SessaoReadDto>> GetByFilmeIdAsync(int filmeId);
 
+    Task<IEnumerable<SessaoReadDto>> GetDisponiveisAsync();
+
+    Task<SessaoEstadoReadDto> GetEstadoAsync(int id);
+
     Task<SessaoReadDto> CreateAsync(SessaoCreateDto dto);
 
     Task UpdateAsync(int id, SessaoUpdateDto dto);

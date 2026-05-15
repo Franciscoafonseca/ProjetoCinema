@@ -19,6 +19,12 @@ public class CarrinhoRepository : ICarrinhoRepository
             .Carrinhos.Include(c => c.Itens)
                 .ThenInclude(i => i.Acesso)
                     .ThenInclude(a => a.Sessao)
+                        .ThenInclude(s => s!.FilmesDaSessao)
+                            .ThenInclude(sf => sf.Filme)
+            .Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+                    .ThenInclude(a => a.Sessao)
+                        .ThenInclude(s => s!.Festival)
             .Include(c => c.Itens)
                 .ThenInclude(i => i.Acesso)
                     .ThenInclude(a => a.Festival)
@@ -43,11 +49,28 @@ public class CarrinhoRepository : ICarrinhoRepository
         return carrinho;
     }
 
-    public async Task<ItemCarrinho?> GetItemAsync(int carrinhoId, int itemId)
+    public async Task<CarrinhoItem?> GetItemAsync(int carrinhoId, int itemId)
     {
         return await _context
             .ItensCarrinho.Include(i => i.Acesso)
+                .ThenInclude(a => a.Sessao)
+                    .ThenInclude(s => s!.FilmesDaSessao)
+                        .ThenInclude(sf => sf.Filme)
+            .Include(i => i.Acesso)
+                .ThenInclude(a => a.Sessao)
+                    .ThenInclude(s => s!.Festival)
+            .Include(i => i.Acesso)
+                .ThenInclude(a => a.Festival)
+            .Include(i => i.Acesso)
+                .ThenInclude(a => a.Filme)
             .FirstOrDefaultAsync(i => i.CarrinhoId == carrinhoId && i.Id == itemId);
+    }
+
+    public async Task<CarrinhoItem?> GetItemByAcessoAsync(int carrinhoId, int acessoId)
+    {
+        return await _context.ItensCarrinho.FirstOrDefaultAsync(i =>
+            i.CarrinhoId == carrinhoId && i.AcessoId == acessoId
+        );
     }
 
     public async Task<bool> ExisteItemComAcessoAsync(int carrinhoId, int acessoId)
@@ -57,17 +80,17 @@ public class CarrinhoRepository : ICarrinhoRepository
         );
     }
 
-    public async Task AddItemAsync(ItemCarrinho item)
+    public async Task AddItemAsync(CarrinhoItem item)
     {
         await _context.ItensCarrinho.AddAsync(item);
     }
 
-    public void RemoveItem(ItemCarrinho item)
+    public void RemoveItem(CarrinhoItem item)
     {
         _context.ItensCarrinho.Remove(item);
     }
 
-    public void RemoveItems(IEnumerable<ItemCarrinho> itens)
+    public void RemoveItems(IEnumerable<CarrinhoItem> itens)
     {
         _context.ItensCarrinho.RemoveRange(itens);
     }

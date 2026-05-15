@@ -20,4 +20,12 @@ public interface IVisualizacaoRepository
     );
 
     Task<bool> TemAcessoAtivoParaSessaoAsync(int utilizadorId, Sessao sessao, DateTime agora);
+
+    Task AddAsync(Visualizacao visualizacao);
+
+    Task AddRangeAsync(IEnumerable<Visualizacao> visualizacoes);
+
+    Task<IEnumerable<Visualizacao>> GetByUtilizadorIdAsync(int utilizadorId);
+
+    Task SaveChangesAsync();
 }

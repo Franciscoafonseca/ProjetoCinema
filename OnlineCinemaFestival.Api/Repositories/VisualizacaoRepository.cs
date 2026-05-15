@@ -91,4 +91,29 @@ public class VisualizacaoRepository : IVisualizacaoRepository
             )
         );
     }
+
+    public async Task AddAsync(Visualizacao visualizacao)
+    {
+        await _context.Visualizacoes.AddAsync(visualizacao);
+    }
+
+    public async Task AddRangeAsync(IEnumerable<Visualizacao> visualizacoes)
+    {
+        await _context.Visualizacoes.AddRangeAsync(visualizacoes);
+    }
+
+    public async Task<IEnumerable<Visualizacao>> GetByUtilizadorIdAsync(int utilizadorId)
+    {
+        return await _context
+            .Visualizacoes.Where(v => v.UtilizadorId == utilizadorId)
+            .Include(v => v.Filme)
+            .Include(v => v.Festival)
+            .OrderByDescending(v => v.VisualizadoEm)
+            .ToListAsync();
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
 }

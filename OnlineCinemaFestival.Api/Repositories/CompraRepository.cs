@@ -23,6 +23,7 @@ public class CompraRepository : ICompraRepository
         return await _context
             .Compras.Include(c => c.Itens)
                 .ThenInclude(i => i.Acesso)
+            .Include(c => c.Pagamento)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
@@ -32,6 +33,7 @@ public class CompraRepository : ICompraRepository
             .Compras.Where(c => c.UtilizadorId == utilizadorId)
             .Include(c => c.Itens)
                 .ThenInclude(i => i.Acesso)
+            .Include(c => c.Pagamento)
             .OrderByDescending(c => c.CriadaEm)
             .ToListAsync();
     }

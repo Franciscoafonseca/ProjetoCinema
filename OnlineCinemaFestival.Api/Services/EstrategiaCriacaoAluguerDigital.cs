@@ -9,7 +9,7 @@ public class EstrategiaCriacaoAluguerDigital : IEstrategiaCriacaoAcessoUtilizado
     public AcessoUtilizador Criar(
         int utilizadorId,
         Compra compra,
-        ItemCarrinho item,
+        CarrinhoItem item,
         DateTime dataCompra
     )
     {

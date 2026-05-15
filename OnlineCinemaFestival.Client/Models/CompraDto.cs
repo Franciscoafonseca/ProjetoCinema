@@ -1,0 +1,64 @@
+namespace OnlineCinemaFestival.Client.Models;
+
+public class CompraDto
+{
+    public int Id { get; set; }
+
+    public string Referencia { get; set; } = string.Empty;
+
+    public int UtilizadorId { get; set; }
+
+    public decimal ValorTotal { get; set; }
+
+    public int Estado { get; set; }
+
+    public string EstadoNome { get; set; } = string.Empty;
+
+    public DateTime CriadaEm { get; set; }
+
+    public DateTime? PagaEm { get; set; }
+
+    public PagamentoDto? Pagamento { get; set; }
+
+    public List<ItemCompraDto> Itens { get; set; } = new();
+}
+
+public class ItemCompraDto
+{
+    public int Id { get; set; }
+
+    public int AcessoId { get; set; }
+
+    public string NomeAcesso { get; set; } = string.Empty;
+
+    public int TipoAcesso { get; set; }
+
+    public string TipoAcessoNome { get; set; } = string.Empty;
+
+    public decimal PrecoUnitario { get; set; }
+
+    public int Quantidade { get; set; }
+
+    public decimal Subtotal { get; set; }
+}
+
+public class PagamentoDto
+{
+    public int Id { get; set; }
+
+    public string Referencia { get; set; } = string.Empty;
+
+    public decimal Valor { get; set; }
+
+    public string Metodo { get; set; } = string.Empty;
+
+    public int Estado { get; set; }
+
+    public string EstadoNome { get; set; } = string.Empty;
+
+    public DateTime CriadoEm { get; set; }
+
+    public DateTime? ProcessadoEm { get; set; }
+
+    public string? Mensagem { get; set; }
+}

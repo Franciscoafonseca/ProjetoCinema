@@ -38,6 +38,31 @@ public class SessoesController : ControllerBase
         return Ok(sessao);
     }
 
+    [HttpGet("disponiveis")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IEnumerable<SessaoReadDto>>> GetDisponiveis()
+    {
+        var sessoes = await _service.GetDisponiveisAsync();
+
+        return Ok(sessoes);
+    }
+
+    [HttpGet("{id:int}/estado")]
+    [AllowAnonymous]
+    public async Task<ActionResult<SessaoEstadoReadDto>> GetEstado(int id)
+    {
+        try
+        {
+            var estado = await _service.GetEstadoAsync(id);
+
+            return Ok(estado);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
     [HttpGet("festival/{festivalId:int}")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<SessaoReadDto>>> GetByFestival(int festivalId)
@@ -131,6 +156,10 @@ public class SessoesController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
         }
     }
 }

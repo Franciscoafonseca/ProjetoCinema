@@ -119,6 +119,7 @@ builder.Services.AddScoped<IAcessoUtilizadorRepository, AcessoUtilizadorReposito
 
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
 builder.Services.AddScoped<ICompraService, CompraService>();
+builder.Services.AddScoped<IPagamentoService, PagamentoSimuladoService>();
 builder.Services.AddScoped<IAcessoUtilizadorService, AcessoUtilizadorService>();
 
 builder.Services.AddScoped<ISessaoRepository, SessaoRepository>();

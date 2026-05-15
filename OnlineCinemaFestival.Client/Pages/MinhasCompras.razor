@@ -1,0 +1,118 @@
+@page "/minhas-compras"
+@inject CompraService CompraService
+@inject VisualizacaoService VisualizacaoService
+
+<PageTitle>Minhas compras - Online Cinema Festival</PageTitle>
+
+<div class="historico-page">
+    <div class="page-header">
+        <h1>Minhas compras</h1>
+        <a href="/carrinho">Carrinho</a>
+    </div>
+
+    @if (_aCarregar)
+    {
+        <p class="estado">A carregar historico...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_erro))
+    {
+        <p class="estado erro">@_erro</p>
+    }
+    else
+    {
+        <section class="secao">
+            <h2>Compras</h2>
+            @if (_compras.Count == 0)
+            {
+                <p class="estado">Ainda nao existem compras.</p>
+            }
+            else
+            {
+                <div class="lista">
+                    @foreach (var compra in _compras)
+                    {
+                        <article class="compra">
+                            <div class="compra-topo">
+                                <div>
+                                    <h3>@compra.Referencia</h3>
+                                    <p>@compra.CriadaEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                                <strong>@Moeda(compra.ValorTotal)</strong>
+                            </div>
+
+                            @if (compra.Pagamento != null)
+                            {
+                                <p class="pagamento">
+                                    @compra.Pagamento.Metodo - @compra.Pagamento.EstadoNome - @compra.Pagamento.Referencia
+                                </p>
+                            }
+
+                            <ul>
+                                @foreach (var item in compra.Itens)
+                                {
+                                    <li>
+                                        <span>@item.NomeAcesso</span>
+                                        <span>@Moeda(item.Subtotal)</span>
+                                    </li>
+                                }
+                            </ul>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="secao">
+            <h2>Visualizacoes</h2>
+            @if (_visualizacoes.Count == 0)
+            {
+                <p class="estado">Ainda nao existem visualizacoes registadas.</p>
+            }
+            else
+            {
+                <div class="lista compacta">
+                    @foreach (var visualizacao in _visualizacoes)
+                    {
+                        <article class="visualizacao">
+                            <div>
+                                <h3>@visualizacao.FilmeTitulo</h3>
+                                <p>@visualizacao.TipoConteudo @DescricaoSessao(visualizacao)</p>
+                            </div>
+                            <time>@visualizacao.VisualizadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</time>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private List<CompraDto> _compras = new();
+    private List<VisualizacaoHistoricoDto> _visualizacoes = new();
+    private bool _aCarregar = true;
+    private string? _erro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _compras = await CompraService.ObterMinhasAsync();
+            _visualizacoes = await VisualizacaoService.ObterHistoricoAsync();
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private static string Moeda(decimal valor)
+        => valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+
+    private static string DescricaoSessao(VisualizacaoHistoricoDto visualizacao)
+        => visualizacao.SessaoId.HasValue ? $"#{visualizacao.SessaoId}" : string.Empty;
+}

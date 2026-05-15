@@ -27,6 +27,23 @@ public class AcessoUtilizadorRepository : IAcessoUtilizadorRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<AcessoUtilizador>> GetAtivosByUtilizadorIdAsync(
+        int utilizadorId,
+        DateTime dataAtual
+    )
+    {
+        return await _context
+            .AcessosUtilizador.Where(a =>
+                a.UtilizadorId == utilizadorId
+                && a.Ativo
+                && a.InicioValidade <= dataAtual
+                && a.FimValidade >= dataAtual
+            )
+            .Include(a => a.Acesso)
+            .OrderBy(a => a.FimValidade)
+            .ToListAsync();
+    }
+
     public async Task<bool> ExisteAcessoAtivoAsync(
         int utilizadorId,
         int acessoId,

@@ -8,5 +8,10 @@ public interface IAcessoUtilizadorRepository
 
     Task<IEnumerable<AcessoUtilizador>> GetByUtilizadorIdAsync(int utilizadorId);
 
+    Task<IEnumerable<AcessoUtilizador>> GetAtivosByUtilizadorIdAsync(
+        int utilizadorId,
+        DateTime dataAtual
+    );
+
     Task<bool> ExisteAcessoAtivoAsync(int utilizadorId, int acessoId, DateTime dataAtual);
 }

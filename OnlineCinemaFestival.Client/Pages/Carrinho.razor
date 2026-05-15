@@ -1,0 +1,141 @@
+@page "/carrinho"
+@inject CarrinhoService CarrinhoService
+@inject CompraService CompraService
+@inject NavigationManager Nav
+
+<PageTitle>Carrinho - Online Cinema Festival</PageTitle>
+
+<div class="carrinho-page">
+    <div class="page-header">
+        <h1>Carrinho</h1>
+        <a href="/minhas-compras">Compras</a>
+    </div>
+
+    @if (_aCarregar)
+    {
+        <p class="estado">A carregar carrinho...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_erro))
+    {
+        <div class="estado erro">
+            <p>@_erro</p>
+            <a href="/login?returnUrl=/carrinho">Entrar</a>
+        </div>
+    }
+    else if (_carrinho.Itens.Count == 0)
+    {
+        <div class="estado">
+            <p>O carrinho esta vazio.</p>
+            <a href="/catalogo">Ver catalogo</a>
+        </div>
+    }
+    else
+    {
+        <div class="carrinho-layout">
+            <section class="itens">
+                @foreach (var item in _carrinho.Itens)
+                {
+                    <article class="item">
+                        <div>
+                            <h2>@item.NomeAcesso</h2>
+                            <p>@item.TipoAcessoNome</p>
+                        </div>
+                        <div class="item-acoes">
+                            <strong>@Moeda(item.Subtotal)</strong>
+                            <button @onclick="() => Remover(item.Id)" disabled="@_aAtualizar">Remover</button>
+                        </div>
+                    </article>
+                }
+            </section>
+
+            <aside class="resumo">
+                <span>Total</span>
+                <strong>@Moeda(_carrinho.Total)</strong>
+                <button @onclick="Finalizar" disabled="@_aAtualizar">
+                    @(_aAtualizar ? "A processar..." : "Finalizar compra")
+                </button>
+                <button class="secundario" @onclick="Limpar" disabled="@_aAtualizar">Limpar</button>
+            </aside>
+        </div>
+    }
+</div>
+
+@code {
+    private CarrinhoDto _carrinho = new();
+    private bool _aCarregar = true;
+    private bool _aAtualizar;
+    private string? _erro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Carregar();
+    }
+
+    private async Task Carregar()
+    {
+        _erro = null;
+        _aCarregar = true;
+
+        try
+        {
+            _carrinho = await CarrinhoService.ObterAsync();
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private async Task Remover(int itemId)
+    {
+        await ExecutarAtualizacao(async () =>
+        {
+            await CarrinhoService.RemoverItemAsync(itemId);
+            await Carregar();
+        });
+    }
+
+    private async Task Limpar()
+    {
+        await ExecutarAtualizacao(async () =>
+        {
+            await CarrinhoService.LimparAsync();
+            await Carregar();
+        });
+    }
+
+    private async Task Finalizar()
+    {
+        await ExecutarAtualizacao(async () =>
+        {
+            await CompraService.FinalizarCompraAsync();
+            Nav.NavigateTo("/minhas-compras");
+        });
+    }
+
+    private async Task ExecutarAtualizacao(Func<Task> acao)
+    {
+        _erro = null;
+        _aAtualizar = true;
+
+        try
+        {
+            await acao();
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aAtualizar = false;
+        }
+    }
+
+    private static string Moeda(decimal valor)
+        => valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+}

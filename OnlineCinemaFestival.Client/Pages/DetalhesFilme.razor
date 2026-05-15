@@ -3,6 +3,7 @@
 @inject FilmeService FilmeService
 @inject SessaoService SessaoService
 @inject AcessoService AcessoService
+@inject CarrinhoService CarrinhoService
 @inject ListaService ListaService
 @inject NavigationManager Nav
 
@@ -94,6 +95,39 @@ else
                         }
                     </Authorized>
                 </AuthorizeView>
+
+                @if (AcessosDoFilme().Count > 0)
+                {
+                    <div class="acessos-filme">
+                        @foreach (var acesso in AcessosDoFilme())
+                        {
+                            <div class="acesso-item">
+                                <div class="acesso-info">
+                                    <span class="acesso-nome">@acesso.Nome</span>
+                                    <span class="acesso-tipo">@acesso.TipoNome</span>
+                                </div>
+                                <div class="acesso-acao">
+                                    <span class="acesso-preco">@acesso.Preco.ToString("C", new System.Globalization.CultureInfo("pt-PT"))</span>
+                                    <button class="btn-comprar"
+                                            disabled="@_aAtualizarCarrinho"
+                                            @onclick="() => AdicionarAoCarrinho(acesso.Id)">
+                                        Adicionar
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="player-acoes">
+                    <button class="btn-ver" @onclick="VerFilme">Ver filme</button>
+                    <a class="link-carrinho" href="/carrinho">Carrinho</a>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_mensagemCarrinho))
+                {
+                    <p class="carrinho-feedback">@_mensagemCarrinho</p>
+                }
             </div>
         </div>
 
@@ -122,6 +156,7 @@ else
                                     </div>
                                 </div>
                             </div>
+                            <button class="btn-ver-sessao" @onclick="() => VerSessao(s.Id)">Ver sessao</button>
 
                             @{
                                 var acessosSessao = AcessosDaSessao(s.Id);
@@ -138,8 +173,10 @@ else
                                             </div>
                                             <div class="acesso-acao">
                                                 <span class="acesso-preco">@a.Preco.ToString("C", new System.Globalization.CultureInfo("pt-PT"))</span>
-                                                <button class="btn-comprar" disabled title="Carrinho em desenvolvimento">
-                                                    Em breve
+                                                <button class="btn-comprar"
+                                                        disabled="@_aAtualizarCarrinho"
+                                                        @onclick="() => AdicionarAoCarrinho(a.Id)">
+                                                    Adicionar
                                                 </button>
                                             </div>
                                         </div>
@@ -166,6 +203,8 @@ else
     private List<AcessoDto> _acessos = new();
     private List<ListaPessoalDto> _listas = new();
     private bool _aMexerEmListas;
+    private bool _aAtualizarCarrinho;
+    private string? _mensagemCarrinho;
 
     protected override async Task CarregarDadosAsync()
     {
@@ -178,8 +217,7 @@ else
             .OrderBy(s => s.Inicio)
             .ToList();
 
-        if (_sessoes.Count > 0)
-            _acessos = await AcessoService.GetAcessosAsync();
+        _acessos = await AcessoService.GetAcessosAsync();
 
         // Carrega as listas do utilizador (devolve vazio se não autenticado — 401 tratado no service)
         try
@@ -196,6 +234,13 @@ else
     {
         return _acessos
             .Where(a => a.IsAtivo && a.SessaoId == sessaoId)
+            .ToList();
+    }
+
+    private List<AcessoDto> AcessosDoFilme()
+    {
+        return _acessos
+            .Where(a => a.IsAtivo && a.FilmeId == Id)
             .ToList();
     }
 
@@ -247,6 +292,30 @@ else
         3 => "★",
         _ => "📁",
     };
+
+    private async Task AdicionarAoCarrinho(int acessoId)
+    {
+        _mensagemCarrinho = null;
+        _aAtualizarCarrinho = true;
+
+        try
+        {
+            await CarrinhoService.AdicionarItemAsync(acessoId);
+            _mensagemCarrinho = "Acesso adicionado ao carrinho.";
+        }
+        catch (Exception ex)
+        {
+            _mensagemCarrinho = ex.Message;
+        }
+        finally
+        {
+            _aAtualizarCarrinho = false;
+        }
+    }
+
+    private void VerFilme() => Nav.NavigateTo($"/player/filme/{Id}");
+
+    private void VerSessao(int sessaoId) => Nav.NavigateTo($"/player/sessao/{sessaoId}");
 
     private void Voltar() => Nav.NavigateTo("/catalogo");
 }

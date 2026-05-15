@@ -18,6 +18,12 @@ public class FilmeDto
 
     public string CapaUrl { get; set; } = string.Empty;
 
+    public string? TrailerUrl { get; set; }
+
+    public string? VideoUrl { get; set; }
+
+    public string? ConteudoLocalPath { get; set; }
+
     public int Popularidade { get; set; }
 
     // Compatibilidade com páginas antigas tuas que usam UrlCartaz

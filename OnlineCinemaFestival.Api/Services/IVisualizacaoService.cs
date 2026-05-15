@@ -11,4 +11,13 @@ public interface IVisualizacaoService
     );
 
     Task<VisualizacaoReadDto> ObterVisualizacaoSessaoAsync(int utilizadorId, int sessaoId);
+
+    Task<IEnumerable<VisualizacaoHistoricoReadDto>> ObterHistoricoDoUtilizadorAsync(
+        int utilizadorId
+    );
+
+    Task<VisualizacaoHistoricoReadDto> RegistarVisualizacaoAsync(
+        int utilizadorId,
+        RegistarVisualizacaoDto dto
+    );
 }

@@ -17,5 +17,7 @@ public class Compra
 
     public DateTime? PagaEm { get; set; }
 
+    public Pagamento? Pagamento { get; set; }
+
     public ICollection<ItemCompra> Itens { get; set; } = new List<ItemCompra>();
 }

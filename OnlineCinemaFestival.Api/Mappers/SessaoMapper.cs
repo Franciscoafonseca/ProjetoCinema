@@ -7,14 +7,21 @@ public static class SessaoMapper
 {
     public static SessaoReadDto MapToReadDto(Sessao sessao)
     {
+        var primeiroFilme = sessao.FilmesDaSessao.OrderBy(sf => sf.Ordem).FirstOrDefault();
+
         return new SessaoReadDto
         {
             Id = sessao.Id,
             FestivalId = sessao.FestivalId,
             FestivalName = sessao.Festival?.Name ?? string.Empty,
+            NomeFestival = sessao.Festival?.Name ?? string.Empty,
+            FilmeId = primeiroFilme?.FilmeId,
+            TituloFilme = primeiroFilme?.Filme?.Titulo ?? string.Empty,
             Tipo = sessao.Tipo,
+            TipoNome = sessao.Tipo.ToString(),
             Inicio = sessao.Inicio,
             Fim = sessao.Fim,
+            Estado = ObterEstado(sessao.Inicio, sessao.Fim),
             TemChatAoVivo = sessao.TemChatAoVivo,
             Observacoes = sessao.Observacoes,
             Filmes = sessao
@@ -27,6 +34,19 @@ public static class SessaoMapper
                 })
                 .ToList(),
         };
+    }
+
+    public static string ObterEstado(DateTime inicio, DateTime fim)
+    {
+        var agora = DateTime.UtcNow;
+
+        if (agora < inicio)
+            return "Agendada";
+
+        if (agora <= fim)
+            return "ADecorrer";
+
+        return "Terminada";
     }
 
     public static Sessao MapFromCreateDto(SessaoCreateDto dto)

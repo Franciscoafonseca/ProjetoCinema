@@ -8,6 +8,14 @@ public interface IAcessoRepository
 
     Task<Acesso?> GetByIdAsync(int id);
 
+    Task<Acesso?> GetAtivoParaCarrinhoAsync(
+        TipoAcesso tipo,
+        int? festivalId,
+        int? filmeId,
+        int? sessaoId,
+        DateTime? dataPasse
+    );
+
     Task AddAsync(Acesso acesso);
 
     void Remove(Acesso acesso);
