@@ -5,9 +5,9 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class ListaPessoalMapper
 {
-    public static ListaPessoalReadDto MapToReadDto(ListaPessoal lista)
+    public static ListaPessoalReadDTO MapToReadDTO(ListaPessoal lista)
     {
-        return new ListaPessoalReadDto
+        return new ListaPessoalReadDTO
         {
             Id = lista.Id,
             UtilizadorId = lista.UtilizadorId,
@@ -19,13 +19,13 @@ public static class ListaPessoalMapper
             CreatedAt = lista.CreatedAt,
             UpdatedAt = lista.UpdatedAt,
             TotalFilmes = lista.Items?.Count ?? 0,
-            Items = lista.Items?.Select(MapToItemReadDto).ToList() ?? new(),
+            Items = lista.Items?.Select(MapToItemReadDTO).ToList() ?? new(),
         };
     }
 
-    public static ListaPessoalItemReadDto MapToItemReadDto(ListaPessoalItem item)
+    public static ListaPessoalItemReadDTO MapToItemReadDTO(ListaPessoalItem item)
     {
-        return new ListaPessoalItemReadDto
+        return new ListaPessoalItemReadDTO
         {
             FilmeId = item.FilmeId,
             Titulo = item.Filme?.Titulo ?? string.Empty,
@@ -35,7 +35,7 @@ public static class ListaPessoalMapper
         };
     }
 
-    public static ListaPessoal MapFromCreateDto(ListaPessoalCreateDto dto, int utilizadorId)
+    public static ListaPessoal MapFromCreateDTO(ListaPessoalCreateDTO dto, int utilizadorId)
     {
         return new ListaPessoal
         {

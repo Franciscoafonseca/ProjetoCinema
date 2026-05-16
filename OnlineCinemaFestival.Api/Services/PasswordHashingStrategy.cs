@@ -27,7 +27,7 @@ public class PasswordHashingStrategy : IPasswordHashingStrategy
     /// Verifica se a palavra-passe introduzida corresponde ao hash guardado.
     /// </summary>
     /// <param name="utilizador">Utilizador cujas credenciais estão a ser validadas.</param>
-    /// <param name="password">Palavra-passe introduzida no login.</param>
+    /// <param name="password">Palavra-passe introduzida no Entrar.</param>
     /// <returns>Verdadeiro se a palavra-passe for válida; caso contrário, falso.</returns>
     public bool VerifyPassword(Utilizador utilizador, string password)
     {

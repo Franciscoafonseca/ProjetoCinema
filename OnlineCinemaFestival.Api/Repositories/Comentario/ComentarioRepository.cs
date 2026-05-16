@@ -21,7 +21,7 @@ public class ComentarioRepository : IComentarioRepository
         return comentario;
     }
 
-    public async Task<IEnumerable<Comentario>> GetByComunidadeIdAsync(int comunidadeId)
+    public async Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(int comunidadeId)
     {
         return await _context
             .Comentarios.Include(c => c.Usuario)

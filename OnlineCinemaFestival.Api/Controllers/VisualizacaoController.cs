@@ -25,7 +25,7 @@ public class VisualizacaoController : ControllerBase
 
     [HttpGet("filmes/{filmeId:int}")]
     [HttpGet("filme/{filmeId:int}")]
-    public async Task<ActionResult<VisualizacaoDto>> VisualizarFilme(
+    public async Task<ActionResult<VisualizacaoDTO>> VisualizarFilme(
         int filmeId,
         [FromQuery] int? festivalId
     )
@@ -54,7 +54,7 @@ public class VisualizacaoController : ControllerBase
 
     [HttpGet("sessoes/{sessaoId:int}")]
     [HttpGet("sessao/{sessaoId:int}")]
-    public async Task<ActionResult<VisualizacaoDto>> VisualizarSessao(int sessaoId)
+    public async Task<ActionResult<VisualizacaoDTO>> VisualizarSessao(int sessaoId)
     {
         try
         {
@@ -78,7 +78,7 @@ public class VisualizacaoController : ControllerBase
     }
 
     [HttpGet("historico")]
-    public async Task<ActionResult<IEnumerable<VisualizacaoHistoricoReadDto>>> ObterHistorico()
+    public async Task<ActionResult<IEnumerable<VisualizacaoHistoricoReadDTO>>> ObterHistorico()
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 

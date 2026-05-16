@@ -20,25 +20,25 @@ public class ComunidadesController : ControllerBase
 
     // Para apresentar todas as comunidades
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ComunidadeReadDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<ComunidadeReadDTO>>> ObterTodos()
     {
-        var comunidades = await _comunidadeService.GetAllComunidadesAsync(User.GetUserId());
+        var comunidades = await _comunidadeService.ObterTodasComunidadesAsync(User.GetUserId());
         return Ok(comunidades);
     }
 
     [HttpGet("minhas")]
-    public async Task<ActionResult<IEnumerable<ComunidadeReadDto>>> GetMinhasComunidades()
+    public async Task<ActionResult<IEnumerable<ComunidadeReadDTO>>> GetMinhasComunidades()
     {
-        var comunidades = await _comunidadeService.GetMinhasComunidadesAsync(User.GetUserId());
+        var comunidades = await _comunidadeService.ObterMinhasComunidadesAsync(User.GetUserId());
         return Ok(comunidades);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<ComunidadeReadDto>> GetComunidadeById(int id)
+    public async Task<ActionResult<ComunidadeReadDTO>> GetComunidadeById(int id)
     {
         try
         {
-            var comunidade = await _comunidadeService.GetComunidadeByIdAsync(id, User.GetUserId());
+            var comunidade = await _comunidadeService.ObterComunidadePorIdAsync(id, User.GetUserId());
             if (comunidade == null)
                 return NotFound("Comunidade não encontrada.");
             return Ok(comunidade);
@@ -50,7 +50,7 @@ public class ComunidadesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ComunidadeReadDto>> CreateComunidade(ComunidadeCreateDto dto)
+    public async Task<ActionResult<ComunidadeReadDTO>> CreateComunidade(ComunidadeCreateDTO dto)
     {
         try
         {

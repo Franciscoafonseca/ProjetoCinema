@@ -26,58 +26,58 @@ public class CatalogoService : ICatalogoService
         _ordenacaoFactory = ordenacaoFactory;
     }
 
-    public async Task<IEnumerable<FilmeReadDto>> GetCatalogoAsync(CatalogoQueryDto query)
+    public async Task<IEnumerable<FilmeReadDTO>> ObterCatalogoAsync(CatalogoQueryDTO query)
     {
         IEnumerable<Filme> filmes;
 
         if (query.FestivalId.HasValue)
         {
-            filmes = await GetFilmesDoFestivalAsync(query.FestivalId.Value);
+            filmes = await ObterFilmesDoFestivalAsync(query.FestivalId.Value);
         }
         else
         {
-            filmes = await _filmeRepository.GetAllAsync();
+            filmes = await _filmeRepository.ObterTodosAsync();
         }
 
         filmes = AplicarFiltros(filmes, query);
         filmes = AplicarOrdenacao(filmes, query);
 
-        return filmes.Select(FilmeMapper.MapToReadDto);
+        return filmes.Select(FilmeMapper.MapToReadDTO);
     }
 
-    public async Task<IEnumerable<FilmeReadDto>> GetFilmesByFestivalAsync(
+    public async Task<IEnumerable<FilmeReadDTO>> ObterFilmesPorFestivalAsync(
         int festivalId,
-        CatalogoQueryDto query
+        CatalogoQueryDTO query
     )
     {
         query.FestivalId = festivalId;
 
-        return await GetCatalogoAsync(query);
+        return await ObterCatalogoAsync(query);
     }
 
-    public async Task<FilmeReadDto?> GetFilmeDetalhesAsync(int filmeId)
+    public async Task<FilmeReadDTO?> ObterDetalhesFilmeAsync(int filmeId)
     {
-        var filme = await _filmeRepository.GetDetalheByIdAsync(filmeId);
+        var filme = await _filmeRepository.ObterDetalhePorIdAsync(filmeId);
 
         if (filme == null)
             return null;
 
-        return FilmeMapper.MapToReadDto(filme);
+        return FilmeMapper.MapToReadDTO(filme);
     }
 
-    private async Task<IEnumerable<Filme>> GetFilmesDoFestivalAsync(int festivalId)
+    private async Task<IEnumerable<Filme>> ObterFilmesDoFestivalAsync(int festivalId)
     {
-        var festival = await _festivalRepository.GetByIdAsync(festivalId);
+        var festival = await _festivalRepository.ObterPorIdAsync(festivalId);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival não encontrado.");
 
-        return await _festivalFilmeRepository.GetFilmesByFestivalIdAsync(festivalId);
+        return await _festivalFilmeRepository.ObterFilmesPorFestivalIdAsync(festivalId);
     }
 
     private static IEnumerable<Filme> AplicarFiltros(
         IEnumerable<Filme> filmes,
-        CatalogoQueryDto query
+        CatalogoQueryDTO query
     )
     {
         if (!string.IsNullOrWhiteSpace(query.Pesquisa))
@@ -109,7 +109,7 @@ public class CatalogoService : ICatalogoService
         return filmes;
     }
 
-    private IEnumerable<Filme> AplicarOrdenacao(IEnumerable<Filme> filmes, CatalogoQueryDto query)
+    private IEnumerable<Filme> AplicarOrdenacao(IEnumerable<Filme> filmes, CatalogoQueryDTO query)
     {
         var strategy = _ordenacaoFactory.GetStrategy(query.OrdenarPor);
 

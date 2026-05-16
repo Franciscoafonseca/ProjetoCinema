@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ListaPessoalItemReadDto
+public class ListaPessoalItemReadDTO
 {
     public int FilmeId { get; set; }
 

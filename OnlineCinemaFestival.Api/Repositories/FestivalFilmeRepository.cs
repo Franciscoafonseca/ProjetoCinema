@@ -37,7 +37,7 @@ public class FestivalFilmeRepository : IFestivalFilmeRepository
         _context.FestivalFilmes.Remove(festivalFilme);
     }
 
-    public async Task<IEnumerable<Filme>> GetFilmesByFestivalIdAsync(int festivalId)
+    public async Task<IEnumerable<Filme>> ObterFilmesPorFestivalIdAsync(int festivalId)
     {
         return await _context
             .FestivalFilmes.Where(ff => ff.FestivalId == festivalId)

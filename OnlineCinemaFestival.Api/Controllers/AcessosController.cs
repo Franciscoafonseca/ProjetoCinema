@@ -27,18 +27,18 @@ public class AcessosController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<AcessoDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<AcessoDTO>>> ObterTodos()
     {
-        var acessos = await _service.GetAllAsync();
+        var acessos = await _service.ObterTodosAsync();
 
         return Ok(acessos);
     }
 
     [HttpGet("{id:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<AcessoDto>> GetById(int id)
+    public async Task<ActionResult<AcessoDTO>> ObterPorId(int id)
     {
-        var acesso = await _service.GetByIdAsync(id);
+        var acesso = await _service.ObterPorIdAsync(id);
 
         if (acesso == null)
             return NotFound("Acesso não encontrado.");
@@ -48,7 +48,7 @@ public class AcessosController : ControllerBase
 
     [HttpGet("tipos")]
     [AllowAnonymous]
-    public ActionResult<IEnumerable<TipoAcessoReadDto>> GetTipos()
+    public ActionResult<IEnumerable<TipoAcessoReadDTO>> ObterTipos()
     {
         var tipos = _service.GetTiposAcesso();
 
@@ -57,7 +57,7 @@ public class AcessosController : ControllerBase
 
     [HttpGet("meus")]
     [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
-    public async Task<ActionResult<IEnumerable<AcessoUtilizadorDto>>> ObterMeusAcessos()
+    public async Task<ActionResult<IEnumerable<AcessoUtilizadorDTO>>> ObterMeusAcessos()
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
@@ -70,7 +70,7 @@ public class AcessosController : ControllerBase
 
     [HttpGet("validar-filme/{filmeId:int}")]
     [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
-    public async Task<ActionResult<ValidacaoAcessoReadDto>> ValidarFilme(
+    public async Task<ActionResult<ValidacaoAcessoReadDTO>> ValidarFilme(
         int filmeId,
         [FromQuery] int? festivalId
     )
@@ -84,7 +84,7 @@ public class AcessosController : ControllerBase
         );
 
         return Ok(
-            new ValidacaoAcessoReadDto
+            new ValidacaoAcessoReadDTO
             {
                 TemAcesso = temAcesso,
                 Mensagem = temAcesso ? "Acesso valido." : "Sem acesso valido para este filme.",
@@ -94,7 +94,7 @@ public class AcessosController : ControllerBase
 
     [HttpGet("validar-sessao/{sessaoId:int}")]
     [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
-    public async Task<ActionResult<ValidacaoAcessoReadDto>> ValidarSessao(int sessaoId)
+    public async Task<ActionResult<ValidacaoAcessoReadDTO>> ValidarSessao(int sessaoId)
     {
         try
         {
@@ -106,7 +106,7 @@ public class AcessosController : ControllerBase
             );
 
             return Ok(
-                new ValidacaoAcessoReadDto
+                new ValidacaoAcessoReadDTO
                 {
                     TemAcesso = temAcesso,
                     Mensagem = temAcesso ? "Acesso valido." : "Sem acesso valido para esta sessao.",
@@ -121,13 +121,13 @@ public class AcessosController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<ActionResult<AcessoDto>> Create(CriarAcessoDto dto)
+    public async Task<ActionResult<AcessoDTO>> Criar(CriarAcessoDTO dto)
     {
         try
         {
-            var acesso = await _service.CreateAsync(dto);
+            var acesso = await _service.CriarAsync(dto);
 
-            return CreatedAtAction(nameof(GetById), new { id = acesso.Id }, acesso);
+            return CreatedAtAction(nameof(ObterPorId), new { id = acesso.Id }, acesso);
         }
         catch (KeyNotFoundException ex)
         {
@@ -141,11 +141,11 @@ public class AcessosController : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<IActionResult> Update(int id, AcessoUpdateDto dto)
+    public async Task<IActionResult> Atualizar(int id, AcessoUpdateDTO dto)
     {
         try
         {
-            await _service.UpdateAsync(id, dto);
+            await _service.AtualizarAsync(id, dto);
 
             return NoContent();
         }
@@ -161,11 +161,11 @@ public class AcessosController : ControllerBase
 
     [HttpDelete("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Eliminar(int id)
     {
         try
         {
-            await _service.DeleteAsync(id);
+            await _service.EliminarAsync(id);
 
             return NoContent();
         }

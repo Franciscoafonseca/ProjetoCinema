@@ -98,14 +98,14 @@
 </div>
 
 @code {
-    private List<SessaoDto> _sessoes = new();
+    private List<SessaoDTO> _sessoes = new();
     private string? _pesquisa;
     private string _estado = string.Empty;
     private bool _apenasDisponiveis = true;
     private bool _aAtualizar;
     private string? _feedback;
 
-    private List<SessaoDto> SessoesFiltradas =>
+    private List<SessaoDTO> SessoesFiltradas =>
         _sessoes
             .Where(s => !_apenasDisponiveis || !SessaoTerminada(s))
             .Where(s => string.IsNullOrWhiteSpace(_estado) || EstadoTexto(s) == _estado)
@@ -119,7 +119,7 @@
 
     protected override async Task CarregarDadosAsync()
     {
-        _sessoes = await SessaoService.GetSessoesAsync();
+        _sessoes = await SessaoService.ObterSessoesAsync();
     }
 
     private void OnPesquisaAlterada(ChangeEventArgs e)
@@ -147,13 +147,13 @@
         }
     }
 
-    private static bool SessaoTerminada(SessaoDto sessao)
+    private static bool SessaoTerminada(SessaoDTO sessao)
     {
         return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase)
             || sessao.Fim.ToUniversalTime() <= DateTime.UtcNow;
     }
 
-    private static string EstadoTexto(SessaoDto sessao)
+    private static string EstadoTexto(SessaoDTO sessao)
     {
         if (!string.IsNullOrWhiteSpace(sessao.Estado))
             return sessao.Estado;
@@ -176,7 +176,7 @@
         return "scheduled";
     }
 
-    private static string TituloSessao(SessaoDto sessao)
+    private static string TituloSessao(SessaoDTO sessao)
     {
         return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
     }

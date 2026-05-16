@@ -4,7 +4,7 @@
 @inject SessaoService SessaoService
 @inject AcessoService AcessoService
 @inject CarrinhoService CarrinhoService
-@inject ReviewService ReviewService
+@inject AvaliacaoService AvaliacaoService
 @inject ListaService ListaService
 @inject NavigationManager Nav
 
@@ -355,10 +355,10 @@
 @code {
     [Parameter] public int Id { get; set; }
 
-    private FilmeDto? _filme;
-    private List<SessaoDto> _sessoes = new();
-    private List<AcessoDto> _acessos = new();
-    private List<ListaPessoalDto> _listas = new();
+    private FilmeDTO? _filme;
+    private List<SessaoDTO> _sessoes = new();
+    private List<AcessoDTO> _acessos = new();
+    private List<ListaPessoalDTO> _listas = new();
     private int? _sessaoSelecionadaId;
     private int? _festivalSelecionadoId;
     private DateTime _dataPasseDiario = DateTime.Today;
@@ -371,26 +371,26 @@
     private Severity _mensagemReviewSeveridade = Severity.Info;
     private string? _mensagemListas;
     private Severity _mensagemListasSeveridade = Severity.Info;
-    private CriarAvaliacaoDto _novaReview = new() { Pontuacao = 8 };
+    private CriarAvaliacaoDTO _novaReview = new() { Pontuacao = 8 };
 
     private string? TrailerEmbedUrl => ConverterParaEmbed(_filme?.TrailerUrl);
 
     protected override async Task CarregarDadosAsync()
     {
-        _filme = await FilmeService.GetFilmeByIdAsync(Id);
+        _filme = await FilmeService.ObterFilmePorIdAsync(Id);
 
         if (_filme == null)
             return;
 
         _sessoes = _filme.Sessoes.Count > 0
             ? _filme.Sessoes.OrderBy(s => s.Inicio).ToList()
-            : (await SessaoService.GetSessoesPorFilmeAsync(Id)).OrderBy(s => s.Inicio).ToList();
+            : (await SessaoService.ObterSessoesPorFilmeAsync(Id)).OrderBy(s => s.Inicio).ToList();
 
         _acessos = _filme.AcessosDisponiveis.Count > 0
             ? _filme.AcessosDisponiveis
-            : await AcessoService.GetAcessosAsync();
+            : await AcessoService.ObterAcessosAsync();
 
-        _listas = await ListaService.GetMinhasListasAsync();
+        _listas = await ListaService.ObterMinhasListasAsync();
     }
 
     private async Task AdicionarBilheteSelecionado()
@@ -416,7 +416,7 @@
         await AdicionarAoCarrinho(() => CarrinhoService.AdicionarAluguerDigitalAsync(Id), "Aluguer digital adicionado ao carrinho. Valido por 48h apos a compra.");
     }
 
-    private async Task AdicionarAoCarrinho(Func<Task<CarrinhoDto>> acao, string sucesso)
+    private async Task AdicionarAoCarrinho(Func<Task<CarrinhoDTO>> acao, string sucesso)
     {
         _mensagemCarrinho = null;
         _aAtualizarCarrinho = true;
@@ -452,9 +452,9 @@
 
         try
         {
-            var review = await ReviewService.CriarAsync(Id, _novaReview);
+            var review = await AvaliacaoService.CriarAsync(Id, _novaReview);
             _filme?.ReviewsAplicacao.Insert(0, review);
-            _novaReview = new CriarAvaliacaoDto { Pontuacao = 8 };
+            _novaReview = new CriarAvaliacaoDTO { Pontuacao = 8 };
             _mensagemReviewSeveridade = Severity.Success;
             _mensagemReview = "Review publicada.";
         }
@@ -469,7 +469,7 @@
         }
     }
 
-    private async Task AlternarLista(ListaPessoalDto lista)
+    private async Task AlternarLista(ListaPessoalDTO lista)
     {
         _aAtualizarLista = true;
         _mensagemListas = null;
@@ -485,7 +485,7 @@
             else
             {
                 await ListaService.AdicionarFilmeAsync(lista.Id, Id);
-                lista.Items.Add(new ListaPessoalItemDto { FilmeId = Id, Titulo = _filme?.Titulo ?? "" });
+                lista.Items.Add(new ListaPessoalItemDTO { FilmeId = Id, Titulo = _filme?.Titulo ?? "" });
                 _mensagemListas = "Filme adicionado a lista.";
             }
 
@@ -502,17 +502,17 @@
         }
     }
 
-    private IEnumerable<ListaPessoalDto> ListasOrdenadas()
+    private IEnumerable<ListaPessoalDTO> ListasOrdenadas()
     {
         return _listas.OrderBy(l => l.Tipo == TipoListaPessoal.Custom ? 1 : 0).ThenBy(l => l.Name);
     }
 
-    private bool ListaTemFilme(ListaPessoalDto lista)
+    private bool ListaTemFilme(ListaPessoalDTO lista)
     {
         return lista.Items.Any(i => i.FilmeId == Id);
     }
 
-    private static string RotuloLista(ListaPessoalDto lista)
+    private static string RotuloLista(ListaPessoalDTO lista)
     {
         return lista.Tipo switch
         {
@@ -529,24 +529,24 @@
 
     private void Voltar() => Nav.NavigateTo("/catalogo");
 
-    private static string ImagemFilme(FilmeDto filme)
+    private static string ImagemFilme(FilmeDTO filme)
     {
         return string.IsNullOrWhiteSpace(filme.CapaUrl)
             ? "https://placehold.co/500x750/111827/ffffff?text=OCF"
             : filme.CapaUrl;
     }
 
-    private static string AnoFilme(FilmeDto filme)
+    private static string AnoFilme(FilmeDTO filme)
     {
         return filme.DataLancamento == default ? "N/D" : filme.DataLancamento.Year.ToString();
     }
 
-    private static string Duracao(FilmeDto filme)
+    private static string Duracao(FilmeDTO filme)
     {
         return filme.DuracaoMinutos.HasValue ? $"{filme.DuracaoMinutos} min" : "Duracao N/D";
     }
 
-    private static string GeneroFilme(FilmeDto filme)
+    private static string GeneroFilme(FilmeDTO filme)
     {
         if (filme.Generos.Count > 0)
             return string.Join(", ", filme.Generos);
@@ -559,7 +559,7 @@
         return string.IsNullOrWhiteSpace(valor) ? "N/D" : valor;
     }
 
-    private static string TituloSessao(SessaoDto sessao)
+    private static string TituloSessao(SessaoDTO sessao)
     {
         return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
     }

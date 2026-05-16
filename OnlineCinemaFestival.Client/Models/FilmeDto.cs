@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Client.Models;
 
-public class FilmeDto
+public class FilmeDTO
 {
     public int Id { get; set; }
 
@@ -38,17 +38,17 @@ public class FilmeDto
 
     public List<string> Atores { get; set; } = new();
 
-    public List<TmdbReviewDto> ReviewsTmdb { get; set; } = new();
+    public List<TmdbReviewDTO> ReviewsTmdb { get; set; } = new();
 
-    public List<AvaliacaoDto> ReviewsAplicacao { get; set; } = new();
+    public List<AvaliacaoDTO> ReviewsAplicacao { get; set; } = new();
 
-    public List<FestivalDto> Festivais { get; set; } = new();
+    public List<FestivalDTO> Festivais { get; set; } = new();
 
     public string? Premios { get; set; }
 
-    public List<SessaoDto> Sessoes { get; set; } = new();
+    public List<SessaoDTO> Sessoes { get; set; } = new();
 
-    public List<AcessoDto> AcessosDisponiveis { get; set; } = new();
+    public List<AcessoDTO> AcessosDisponiveis { get; set; } = new();
 
     public bool PodeVer { get; set; }
 
@@ -58,7 +58,7 @@ public class FilmeDto
     public string UrlCartaz => CapaUrl;
 }
 
-public class TmdbReviewDto
+public class TmdbReviewDTO
 {
     public string Autor { get; set; } = string.Empty;
 
@@ -71,7 +71,7 @@ public class TmdbReviewDto
     public double? Nota { get; set; }
 }
 
-public class AvaliacaoDto
+public class AvaliacaoDTO
 {
     public int Id { get; set; }
 
@@ -90,7 +90,7 @@ public class AvaliacaoDto
     public DateTime Data { get; set; }
 }
 
-public class CriarAvaliacaoDto
+public class CriarAvaliacaoDTO
 {
     public int Pontuacao { get; set; }
 

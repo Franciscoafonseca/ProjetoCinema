@@ -4,20 +4,20 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IVisualizacaoService
 {
-    Task<VisualizacaoReadDto> ObterVisualizacaoFilmeAsync(
+    Task<VisualizacaoReadDTO> ObterVisualizacaoFilmeAsync(
         int utilizadorId,
         int filmeId,
         int? festivalId
     );
 
-    Task<VisualizacaoReadDto> ObterVisualizacaoSessaoAsync(int utilizadorId, int sessaoId);
+    Task<VisualizacaoReadDTO> ObterVisualizacaoSessaoAsync(int utilizadorId, int sessaoId);
 
-    Task<IEnumerable<VisualizacaoHistoricoReadDto>> ObterHistoricoDoUtilizadorAsync(
+    Task<IEnumerable<VisualizacaoHistoricoReadDTO>> ObterHistoricoDoUtilizadorAsync(
         int utilizadorId
     );
 
-    Task<VisualizacaoHistoricoReadDto> RegistarVisualizacaoAsync(
+    Task<VisualizacaoHistoricoReadDTO> RegistarVisualizacaoAsync(
         int utilizadorId,
-        RegistarVisualizacaoDto dto
+        RegistarVisualizacaoDTO dto
     );
 }

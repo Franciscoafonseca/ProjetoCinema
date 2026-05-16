@@ -20,28 +20,28 @@ public class AcessoService : IAcessoService
         _fabricaValidacao = fabricaValidacao;
     }
 
-    public async Task<IEnumerable<AcessoReadDto>> GetAllAsync()
+    public async Task<IEnumerable<AcessoReadDTO>> ObterTodosAsync()
     {
-        var acessos = await _repository.GetAllAsync();
+        var acessos = await _repository.ObterTodosAsync();
 
-        return acessos.Select(AcessoMapper.MapToReadDto);
+        return acessos.Select(AcessoMapper.MapToReadDTO);
     }
 
-    public async Task<AcessoReadDto?> GetByIdAsync(int id)
+    public async Task<AcessoReadDTO?> ObterPorIdAsync(int id)
     {
-        var acesso = await _repository.GetByIdAsync(id);
+        var acesso = await _repository.ObterPorIdAsync(id);
 
         if (acesso == null)
             return null;
 
-        return AcessoMapper.MapToReadDto(acesso);
+        return AcessoMapper.MapToReadDTO(acesso);
     }
 
-    public IEnumerable<TipoAcessoReadDto> GetTiposAcesso()
+    public IEnumerable<TipoAcessoReadDTO> GetTiposAcesso()
     {
         return _fabricaValidacao
             .ObterTodas()
-            .Select(estrategia => new TipoAcessoReadDto
+            .Select(estrategia => new TipoAcessoReadDTO
             {
                 Tipo = estrategia.Tipo,
                 Nome = estrategia.Nome,
@@ -49,7 +49,7 @@ public class AcessoService : IAcessoService
             });
     }
 
-    public async Task<AcessoReadDto> CreateAsync(AcessoCreateDto dto)
+    public async Task<AcessoReadDTO> CriarAsync(AcessoCreateDTO dto)
     {
         ValidateCommonData(dto.Nome, dto.Preco);
 
@@ -57,21 +57,21 @@ public class AcessoService : IAcessoService
 
         await estrategia.ValidarAsync(dto);
 
-        var acesso = AcessoMapper.MapFromCreateDto(dto);
+        var acesso = AcessoMapper.MapFromCreateDTO(dto);
 
         await _repository.AddAsync(acesso);
         await _repository.SaveChangesAsync();
 
-        var created = await _repository.GetByIdAsync(acesso.Id);
+        var created = await _repository.ObterPorIdAsync(acesso.Id);
 
-        return AcessoMapper.MapToReadDto(created!);
+        return AcessoMapper.MapToReadDTO(created!);
     }
 
-    public async Task UpdateAsync(int id, AcessoUpdateDto dto)
+    public async Task AtualizarAsync(int id, AcessoUpdateDTO dto)
     {
         ValidateCommonData(dto.Nome, dto.Preco);
 
-        var acesso = await _repository.GetByIdAsync(id);
+        var acesso = await _repository.ObterPorIdAsync(id);
 
         if (acesso == null)
             throw new KeyNotFoundException("Acesso não encontrado.");
@@ -81,9 +81,9 @@ public class AcessoService : IAcessoService
         await _repository.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task EliminarAsync(int id)
     {
-        var acesso = await _repository.GetByIdAsync(id);
+        var acesso = await _repository.ObterPorIdAsync(id);
 
         if (acesso == null)
             throw new KeyNotFoundException("Acesso não encontrado.");

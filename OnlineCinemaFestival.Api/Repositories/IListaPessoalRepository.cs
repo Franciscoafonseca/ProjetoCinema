@@ -8,13 +8,13 @@ public interface IListaPessoalRepository
 
     Task<bool> ExisteNomeParaUtilizadorAsync(int utilizadorId, string nome);
 
-    Task<ListaPessoal?> GetByIdAsync(int id);
+    Task<ListaPessoal?> ObterPorIdAsync(int id);
 
     Task AddAsync(ListaPessoal lista);
 
     Task<bool> FilmeExisteAsync(int filmeId);
 
-    Task<ListaPessoalItem?> GetItemAsync(int listaId, int filmeId);
+    Task<ListaPessoalItem?> ObterItemAsync(int listaId, int filmeId);
 
     Task AddItemAsync(ListaPessoalItem item);
 

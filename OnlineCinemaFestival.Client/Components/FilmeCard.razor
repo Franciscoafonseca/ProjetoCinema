@@ -24,7 +24,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public FilmeDto Filme { get; set; } = new();
+    [Parameter, EditorRequired] public FilmeDTO Filme { get; set; } = new();
 
     private void Navegar() => Nav.NavigateTo($"/filmes/{Filme.Id}");
 }

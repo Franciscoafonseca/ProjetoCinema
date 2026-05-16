@@ -3,7 +3,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ListaPessoalCreateDto
+public class ListaPessoalCreateDTO
 {
     [Required]
     [MaxLength(120)]

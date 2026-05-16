@@ -6,9 +6,9 @@ public interface ICompraRepository
 {
     Task AddAsync(Compra compra);
 
-    Task<Compra?> GetByIdAsync(int id);
+    Task<Compra?> ObterPorIdAsync(int id);
 
-    Task<IEnumerable<Compra>> GetByUtilizadorIdAsync(int utilizadorId);
+    Task<IEnumerable<Compra>> ObterPorUtilizadorIdAsync(int utilizadorId);
 
     Task SaveChangesAsync();
 }

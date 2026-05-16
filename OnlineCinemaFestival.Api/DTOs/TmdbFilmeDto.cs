@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class TmdbFilmeDto
+public class TmdbFilmeDTO
 {
     public int TmdbId { get; set; }
     public string Titulo { get; set; } = "";
@@ -16,16 +16,16 @@ public class TmdbFilmeDto
     public string? TrailerUrl { get; set; }
     public string? Realizador { get; set; }
     public List<string> Atores { get; set; } = new();
-    public List<TmdbReviewDto> Reviews { get; set; } = new();
+    public List<TmdbReviewDTO> Reviews { get; set; } = new();
 }
 
-public class TmdbGeneroDto
+public class TmdbGeneroDTO
 {
     public int Id { get; set; }
     public string Nome { get; set; } = string.Empty;
 }
 
-public class TmdbReviewDto
+public class TmdbReviewDTO
 {
     public string Autor { get; set; } = string.Empty;
     public string Texto { get; set; } = string.Empty;

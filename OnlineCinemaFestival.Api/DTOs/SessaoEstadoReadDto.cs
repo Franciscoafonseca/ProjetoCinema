@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class SessaoEstadoReadDto
+public class SessaoEstadoReadDTO
 {
     public int SessaoId { get; set; }
 

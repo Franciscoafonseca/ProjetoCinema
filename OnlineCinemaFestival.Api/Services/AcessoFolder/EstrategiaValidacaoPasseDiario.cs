@@ -19,7 +19,7 @@ public class EstrategiaValidacaoPasseDiario : IEstrategiaValidacaoAcesso
 
     public string Descricao => "Passe que dá acesso às sessões de um festival durante um dia.";
 
-    public async Task ValidarAsync(AcessoCreateDto dto)
+    public async Task ValidarAsync(AcessoCreateDTO dto)
     {
         if (!dto.FestivalId.HasValue)
             throw new ArgumentException("Um passe diário precisa de FestivalId.");
@@ -32,7 +32,7 @@ public class EstrategiaValidacaoPasseDiario : IEstrategiaValidacaoAcesso
                 "Passe diario deve indicar apenas FestivalId e DataAcesso como alvo."
             );
 
-        var festival = await _festivalRepository.GetByIdAsync(dto.FestivalId.Value);
+        var festival = await _festivalRepository.ObterPorIdAsync(dto.FestivalId.Value);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival não encontrado.");

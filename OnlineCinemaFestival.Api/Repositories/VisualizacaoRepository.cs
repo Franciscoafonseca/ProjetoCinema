@@ -13,12 +13,12 @@ public class VisualizacaoRepository : IVisualizacaoRepository
         _context = context;
     }
 
-    public async Task<Filme?> GetFilmeByIdAsync(int filmeId)
+    public async Task<Filme?> ObterFilmePorIdAsync(int filmeId)
     {
         return await _context.Filmes.AsNoTracking().FirstOrDefaultAsync(f => f.Id == filmeId);
     }
 
-    public async Task<Sessao?> GetSessaoByIdAsync(int sessaoId)
+    public async Task<Sessao?> ObterSessaoPorIdAsync(int sessaoId)
     {
         return await _context
             .Sessoes.Include(s => s.Festival)
@@ -107,7 +107,7 @@ public class VisualizacaoRepository : IVisualizacaoRepository
         await _context.Visualizacoes.AddRangeAsync(visualizacoes);
     }
 
-    public async Task<IEnumerable<Visualizacao>> GetByUtilizadorIdAsync(int utilizadorId)
+    public async Task<IEnumerable<Visualizacao>> ObterPorUtilizadorIdAsync(int utilizadorId)
     {
         return await _context
             .Visualizacoes.Where(v => v.UtilizadorId == utilizadorId)

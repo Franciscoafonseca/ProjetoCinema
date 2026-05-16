@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class FestivalResumoDto
+public class FestivalResumoDTO
 {
     public int Id { get; set; }
 
@@ -11,17 +11,17 @@ public class FestivalResumoDto
     public DateTime EndDate { get; set; }
 }
 
-public class FestivalDetalheDto : FestivalResumoDto
+public class FestivalDetalheDTO : FestivalResumoDTO
 {
     public string Description { get; set; } = string.Empty;
 
     public string? Premios { get; set; }
 
-    public List<FilmeResumoDto> Filmes { get; set; } = new();
+    public List<FilmeResumoDTO> Filmes { get; set; } = new();
 
-    public List<SessaoResumoDto> Sessoes { get; set; } = new();
+    public List<SessaoResumoDTO> Sessoes { get; set; } = new();
 
-    public List<AcessoReadDto> PassesDisponiveis { get; set; } = new();
+    public List<AcessoReadDTO> PassesDisponiveis { get; set; } = new();
 }
 
-public class FestivalReadDto : FestivalDetalheDto { }
+public class FestivalReadDTO : FestivalDetalheDTO { }

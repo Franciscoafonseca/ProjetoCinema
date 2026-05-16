@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ComentarioCreateDto
+public class ComentarioCreateDTO
 {
     [Required]
     [StringLength(600, MinimumLength = 1)]

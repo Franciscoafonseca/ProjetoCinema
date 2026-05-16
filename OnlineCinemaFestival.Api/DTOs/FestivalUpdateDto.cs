@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class FestivalUpdateDto
+public class FestivalUpdateDTO
 {
     [Required]
     [MaxLength(150)]

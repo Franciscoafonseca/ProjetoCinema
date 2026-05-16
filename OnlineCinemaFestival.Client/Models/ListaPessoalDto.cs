@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Client.Models;
 
-public class ListaPessoalDto
+public class ListaPessoalDTO
 {
     public int Id { get; set; }
 
@@ -24,10 +24,10 @@ public class ListaPessoalDto
 
     public int TotalFilmes { get; set; }
 
-    public List<ListaPessoalItemDto> Items { get; set; } = new();
+    public List<ListaPessoalItemDTO> Items { get; set; } = new();
 }
 
-public class ListaPessoalItemDto
+public class ListaPessoalItemDTO
 {
     public int FilmeId { get; set; }
 

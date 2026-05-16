@@ -156,7 +156,7 @@
 </AuthorizeView>
 
 @code {
-    private List<ListaPessoalDto> _listas = new();
+    private List<ListaPessoalDTO> _listas = new();
     private bool _loading = true;
     private string? _erro;
 
@@ -177,7 +177,7 @@
         {
             _loading = true;
             _erro = null;
-            _listas = await ListaService.GetMinhasListasAsync();
+            _listas = await ListaService.ObterMinhasListasAsync();
         }
         catch
         {
@@ -242,7 +242,7 @@
         }
     }
 
-    private async Task ApagarLista(ListaPessoalDto lista)
+    private async Task ApagarLista(ListaPessoalDTO lista)
     {
         if (_aApagar) return;
 

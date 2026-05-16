@@ -1,5 +1,5 @@
 @inherits LayoutComponentBase
-@inject AuthService AuthService
+@inject AutenticacaoService AutenticacaoService
 @inject NavigationManager Nav
 
 <MudThemeProvider Theme="_tema" IsDarkMode="true" />
@@ -19,7 +19,7 @@
             <NavLink class="nav-btn" href="catalogo">Catalogo</NavLink>
             <NavLink class="nav-btn" href="festivais">Festivais</NavLink>
             <NavLink class="nav-btn" href="sessoes">Sessoes</NavLink>
-            <NavLink class="nav-btn" href="about">About</NavLink>
+            <NavLink class="nav-btn" href="about">Sobre</NavLink>
             <NavLink class="nav-btn" href="suporte">Suporte</NavLink>
 
             <AuthorizeView>
@@ -27,6 +27,11 @@
                     <NavLink class="nav-btn" href="acessos">Acessos</NavLink>
                     <NavLink class="nav-btn" href="compras">Compras</NavLink>
                     <NavLink class="nav-btn" href="listas">Listas</NavLink>
+                    <AuthorizeView Roles="Administrador" Context="adminAuth">
+                        <Authorized>
+                            <NavLink class="nav-btn" href="admin">Admin</NavLink>
+                        </Authorized>
+                    </AuthorizeView>
                 </Authorized>
             </AuthorizeView>
         </nav>
@@ -70,7 +75,7 @@
 
     private async Task Sair()
     {
-        await AuthService.TerminarSessaoAsync();
+        await AutenticacaoService.TerminarSessaoAsync();
         Nav.NavigateTo("/");
     }
 

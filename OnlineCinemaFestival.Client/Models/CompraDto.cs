@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Client.Models;
 
-public class CompraDto
+public class CompraDTO
 {
     public int Id { get; set; }
 
@@ -18,19 +18,19 @@ public class CompraDto
 
     public DateTime? PagaEm { get; set; }
 
-    public PagamentoDto? Pagamento { get; set; }
+    public PagamentoDTO? Pagamento { get; set; }
 
-    public List<ItemCompraDto> Itens { get; set; } = new();
+    public List<ItemCompraDTO> Itens { get; set; } = new();
 }
 
-public class CheckoutResultadoDto : CompraDto
+public class ResultadoFinalizacaoCompraDTO : CompraDTO
 {
     public string Mensagem { get; set; } = string.Empty;
 
     public int AcessosGerados { get; set; }
 }
 
-public class CompraResumoDto
+public class CompraResumoDTO
 {
     public int Id { get; set; }
 
@@ -45,7 +45,7 @@ public class CompraResumoDto
     public int NumeroItens { get; set; }
 }
 
-public class ItemCompraDto
+public class ItemCompraDTO
 {
     public int Id { get; set; }
 
@@ -64,7 +64,7 @@ public class ItemCompraDto
     public decimal Subtotal { get; set; }
 }
 
-public class PagamentoDto
+public class PagamentoDTO
 {
     public int Id { get; set; }
 

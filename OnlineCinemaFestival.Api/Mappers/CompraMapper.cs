@@ -5,15 +5,15 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class CompraMapper
 {
-    public static CheckoutResultadoDto MapToCheckoutResultadoDto(
+    public static ResultadoFinalizacaoCompraDTO MapToCheckoutResultadoDTO(
         Compra compra,
         int acessosGerados,
         string mensagem
     )
     {
-        var dto = MapToReadDto(compra);
+        var dto = MapToReadDTO(compra);
 
-        return new CheckoutResultadoDto
+        return new ResultadoFinalizacaoCompraDTO
         {
             Id = dto.Id,
             Referencia = dto.Referencia,
@@ -30,9 +30,9 @@ public static class CompraMapper
         };
     }
 
-    public static CompraResumoDto MapToResumoDto(Compra compra)
+    public static CompraResumoDTO MapToResumoDTO(Compra compra)
     {
-        return new CompraResumoDto
+        return new CompraResumoDTO
         {
             Id = compra.Id,
             Referencia = compra.Referencia,
@@ -43,9 +43,9 @@ public static class CompraMapper
         };
     }
 
-    public static CompraReadDto MapToReadDto(Compra compra)
+    public static CompraReadDTO MapToReadDTO(Compra compra)
     {
-        return new CompraReadDto
+        return new CompraReadDTO
         {
             Id = compra.Id,
             Referencia = compra.Referencia,
@@ -58,7 +58,7 @@ public static class CompraMapper
             Pagamento =
                 compra.Pagamento == null
                     ? null
-                    : new PagamentoReadDto
+                    : new PagamentoReadDTO
                     {
                         Id = compra.Pagamento.Id,
                         Referencia = compra.Pagamento.Referencia,
@@ -71,7 +71,7 @@ public static class CompraMapper
                         Mensagem = compra.Pagamento.Mensagem,
                     },
             Itens = compra
-                .Itens.Select(item => new ItemCompraReadDto
+                .Itens.Select(item => new ItemCompraReadDTO
                 {
                     Id = item.Id,
                     AcessoId = item.AcessoId,

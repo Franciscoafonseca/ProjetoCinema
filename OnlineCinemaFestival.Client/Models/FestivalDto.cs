@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Client.Models;
 
-public class FestivalDto
+public class FestivalDTO
 {
     public int Id { get; set; }
 

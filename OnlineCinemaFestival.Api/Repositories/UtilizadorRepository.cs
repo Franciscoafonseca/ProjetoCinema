@@ -13,12 +13,12 @@ public class UtilizadorRepository : IUtilizadorRepository
         _context = context;
     }
 
-    public async Task<Utilizador?> GetByIdAsync(int id)
+    public async Task<Utilizador?> ObterPorIdAsync(int id)
     {
         return await _context.Utilizadores.FindAsync(id);
     }
 
-    public async Task<Utilizador?> GetByEmailAsync(string email)
+    public async Task<Utilizador?> ObterPorEmailAsync(string email)
     {
         var normalizedEmail = email.Trim().ToLower();
 
@@ -27,7 +27,7 @@ public class UtilizadorRepository : IUtilizadorRepository
             .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
     }
 
-    public async Task<Utilizador?> GetWithProfileAsync(int id)
+    public async Task<Utilizador?> ObterComPerfilAsync(int id)
     {
         return await _context
             .Utilizadores.Include(u => u.Perfil)
@@ -39,7 +39,7 @@ public class UtilizadorRepository : IUtilizadorRepository
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public async Task<List<Utilizador>> GetPublicProfilesAsync()
+    public async Task<List<Utilizador>> ObterPerfisPublicosAsync()
     {
         return await _context
             .Utilizadores.Include(u => u.Perfil)

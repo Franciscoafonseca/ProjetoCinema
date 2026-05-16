@@ -12,7 +12,7 @@ public interface IFestivalFilmeRepository
 
     void Remove(FestivalFilme festivalFilme);
 
-    Task<IEnumerable<Filme>> GetFilmesByFestivalIdAsync(int festivalId);
+    Task<IEnumerable<Filme>> ObterFilmesPorFestivalIdAsync(int festivalId);
 
     Task SaveChangesAsync();
 }

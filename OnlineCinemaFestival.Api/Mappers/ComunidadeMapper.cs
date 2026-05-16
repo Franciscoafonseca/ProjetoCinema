@@ -5,8 +5,8 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class ComunidadeMapper
 {
-    // From Dto (ComunidadeCreateDto) to Entity (BD)
-    public static Comunidade ToEntity(ComunidadeCreateDto dto, int criatedByUserId)
+    // From DTO (ComunidadeCreateDTO) to Entity (BD)
+    public static Comunidade ToEntity(ComunidadeCreateDTO dto, int criatedByUserId)
     {
         return new Comunidade
         {
@@ -19,10 +19,10 @@ public static class ComunidadeMapper
         };
     }
 
-    // From Entity (BD) to Dto (ComunidadeReadDto)
-    public static ComunidadeReadDto ToReadDto(Comunidade comunidade)
+    // From Entity (BD) to DTO (ComunidadeReadDTO)
+    public static ComunidadeReadDTO ToReadDTO(Comunidade comunidade)
     {
-        return new ComunidadeReadDto
+        return new ComunidadeReadDTO
         {
             Id = comunidade.Id,
             Name = comunidade.Name,

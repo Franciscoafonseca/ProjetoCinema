@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class CarrinhoErroValidacaoDto
+public class CarrinhoErroValidacaoDTO
 {
     public int? ItemId { get; set; }
 

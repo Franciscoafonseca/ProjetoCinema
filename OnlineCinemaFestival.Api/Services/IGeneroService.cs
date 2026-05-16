@@ -4,7 +4,7 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IGeneroService
 {
-    Task<IEnumerable<GeneroDto>> GetAllAsync();
+    Task<IEnumerable<GeneroDTO>> ObterTodosAsync();
 
-    Task<GeneroDto> CreateAsync(CriarGeneroDto dto);
+    Task<GeneroDTO> CriarAsync(CriarGeneroDTO dto);
 }

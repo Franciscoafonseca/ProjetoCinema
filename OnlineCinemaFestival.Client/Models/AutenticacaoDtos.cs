@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Client.Models;
 
-public class LoginRequest
+public class PedidoLoginDTO
 {
     [Required(ErrorMessage = "Email é obrigatório.")]
     [EmailAddress(ErrorMessage = "Email inválido.")]
@@ -12,7 +12,7 @@ public class LoginRequest
     public string Password { get; set; } = string.Empty;
 }
 
-public class RegisterRequest
+public class PedidoRegistoDTO
 {
     [Required(ErrorMessage = "Nome é obrigatório.")]
     [MaxLength(120)]
@@ -31,7 +31,7 @@ public class RegisterRequest
     public string Nationality { get; set; } = string.Empty;
 }
 
-public class AuthResponse
+public class AutenticacaoRespostaDTO
 {
     public string Token { get; set; } = string.Empty;
 

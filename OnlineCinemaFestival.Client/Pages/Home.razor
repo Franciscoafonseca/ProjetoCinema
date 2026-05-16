@@ -337,11 +337,11 @@
 @code {
     private const int MaxDestaques = 10;
 
-    private List<FilmeDto> _filmes = new();
-    private List<SessaoDto> _sessoes = new();
-    private List<FestivalDto> _festivais = new();
+    private List<FilmeDTO> _filmes = new();
+    private List<SessaoDTO> _sessoes = new();
+    private List<FestivalDTO> _festivais = new();
 
-    private FilmeDto? FilmeDestaque => _filmes.FirstOrDefault();
+    private FilmeDTO? FilmeDestaque => _filmes.FirstOrDefault();
 
     private int FestivaisADecorrer => _festivais.Count(EstaFestivalADecorrer);
 
@@ -359,37 +359,37 @@
 
     protected override async Task CarregarDadosAsync()
     {
-        var todos = await FilmeService.GetFilmesAsync(ordenarPor: 2, descendente: true);
+        var todos = await FilmeService.ObterFilmesAsync(ordenarPor: 2, descendente: true);
 
         _filmes = todos
             .Take(MaxDestaques)
             .ToList();
 
-        _sessoes = (await SessaoService.GetSessoesDisponiveisAsync())
+        _sessoes = (await SessaoService.ObterSessoesDisponiveisAsync())
             .OrderBy(s => Math.Abs((s.Inicio.ToLocalTime() - DateTime.Now).TotalMinutes))
             .Take(8)
             .ToList();
 
-        _festivais = (await FestivalService.GetFestivaisAsync())
+        _festivais = (await FestivalService.ObterFestivaisAsync())
             .OrderBy(OrdemFestival)
             .ThenBy(f => f.StartDate)
             .Take(8)
             .ToList();
     }
 
-    private static string TituloSessao(SessaoDto sessao)
+    private static string TituloSessao(SessaoDTO sessao)
     {
         return string.IsNullOrWhiteSpace(sessao.Filme)
             ? $"Sessão #{sessao.Id}"
             : sessao.Filme;
     }
 
-    private static string FormatarPeriodo(FestivalDto festival)
+    private static string FormatarPeriodo(FestivalDTO festival)
     {
         return $"{festival.StartDate:dd/MM} - {festival.EndDate:dd/MM}";
     }
 
-    private static string EstadoFestival(FestivalDto festival)
+    private static string EstadoFestival(FestivalDTO festival)
     {
         var hoje = DateTime.Now.Date;
 
@@ -402,7 +402,7 @@
         return "Terminado";
     }
 
-    private static string ClasseEstadoFestival(FestivalDto festival)
+    private static string ClasseEstadoFestival(FestivalDTO festival)
     {
         return EstadoFestival(festival) switch
         {
@@ -412,13 +412,13 @@
         };
     }
 
-    private static bool EstaFestivalADecorrer(FestivalDto festival)
+    private static bool EstaFestivalADecorrer(FestivalDTO festival)
     {
         var hoje = DateTime.Now.Date;
         return festival.StartDate.Date <= hoje && hoje <= festival.EndDate.Date;
     }
 
-    private static int OrdemFestival(FestivalDto festival)
+    private static int OrdemFestival(FestivalDTO festival)
     {
         var hoje = DateTime.Now.Date;
 
@@ -431,7 +431,7 @@
         return 2;
     }
 
-    private static string EstadoSessao(SessaoDto sessao)
+    private static string EstadoSessao(SessaoDTO sessao)
     {
         var inicio = sessao.Inicio.ToLocalTime();
         var agora = DateTime.Now;
@@ -445,7 +445,7 @@
         return "Em breve";
     }
 
-    private static string ClasseEstadoSessao(SessaoDto sessao)
+    private static string ClasseEstadoSessao(SessaoDTO sessao)
     {
         return EstadoSessao(sessao) switch
         {
@@ -455,14 +455,14 @@
         };
     }
 
-    private static string GeneroFilme(FilmeDto filme)
+    private static string GeneroFilme(FilmeDTO filme)
     {
         return string.IsNullOrWhiteSpace(filme.Genero)
             ? "Cinema"
             : filme.Genero;
     }
 
-    private static string ClassificacaoFilme(FilmeDto filme)
+    private static string ClassificacaoFilme(FilmeDTO filme)
     {
         return string.IsNullOrWhiteSpace(filme.Classificacao)
             ? "Novo"

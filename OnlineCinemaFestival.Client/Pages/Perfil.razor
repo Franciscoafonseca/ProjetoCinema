@@ -440,10 +440,10 @@
 </AuthorizeView>
 
 @code {
-    private UserProfileResponse? _perfil;
-    private UpdateProfileRequest _pedido = new();
-    private List<ListaPessoalDto> _listas = new();
-    private List<VisualizacaoHistoricoDto> _historico = new();
+    private PerfilUtilizadorRespostaDTO? _perfil;
+    private PedidoAtualizarPerfilDTO _pedido = new();
+    private List<ListaPessoalDTO> _listas = new();
+    private List<VisualizacaoHistoricoDTO> _historico = new();
     private bool _loading = true;
     private bool _emEdicao;
     private bool _aGuardar;
@@ -461,7 +461,7 @@
     {
         try
         {
-            _perfil = await PerfilService.GetMeuPerfilAsync();
+            _perfil = await PerfilService.ObterMeuPerfilAsync();
 
             if (_perfil == null)
             {
@@ -487,7 +487,7 @@
         try
         {
             _erroListas = null;
-            _listas = await ListaService.GetMinhasListasAsync();
+            _listas = await ListaService.ObterMinhasListasAsync();
         }
         catch
         {
@@ -514,7 +514,7 @@
     {
         if (_perfil == null) return;
 
-        _pedido = new UpdateProfileRequest
+        _pedido = new PedidoAtualizarPerfilDTO
         {
             Name = _perfil.Name,
             Nationality = _perfil.Nationality,
@@ -564,7 +564,7 @@
         yield return new PerfilStat("Filmes em listas", _listas.Sum(l => l.TotalFilmes > 0 ? l.TotalFilmes : l.Items.Count).ToString(), Icons.Material.Filled.Movie);
     }
 
-    private IEnumerable<ListaPessoalDto> ObterListasResumo()
+    private IEnumerable<ListaPessoalDTO> ObterListasResumo()
     {
         return _listas
             .OrderBy(l => OrdemLista(l))
@@ -572,7 +572,7 @@
             .Take(6);
     }
 
-    private static int OrdemLista(ListaPessoalDto lista)
+    private static int OrdemLista(ListaPessoalDTO lista)
     {
         var nome = lista.Name.Trim();
 
@@ -588,7 +588,7 @@
         return 3;
     }
 
-    private static string DescricaoLista(ListaPessoalDto lista)
+    private static string DescricaoLista(ListaPessoalDTO lista)
     {
         var total = lista.TotalFilmes > 0 ? lista.TotalFilmes : lista.Items.Count;
         var filmes = total == 1 ? "1 filme" : $"{total} filmes";
@@ -599,7 +599,7 @@
         return filmes;
     }
 
-    private static string TextoHistorico(VisualizacaoHistoricoDto item)
+    private static string TextoHistorico(VisualizacaoHistoricoDTO item)
     {
         var tipoAcesso = string.IsNullOrWhiteSpace(item.TipoAcessoUsado)
             ? string.Empty

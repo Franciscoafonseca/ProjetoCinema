@@ -19,11 +19,11 @@ public class FestivalFilmesController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> GetFilmesByFestival(int festivalId)
+    public async Task<ActionResult<IEnumerable<FilmeResumoDTO>>> GetFilmesByFestival(int festivalId)
     {
         try
         {
-            var filmes = await _service.GetFilmesByFestivalAsync(festivalId);
+            var filmes = await _service.ObterFilmesPorFestivalAsync(festivalId);
 
             return Ok(filmes);
         }
@@ -35,7 +35,7 @@ public class FestivalFilmesController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<IActionResult> AssociarFilme(int festivalId, AssociarFilmeFestivalDto dto)
+    public async Task<IActionResult> AssociarFilme(int festivalId, AssociarFilmeFestivalDTO dto)
     {
         try
         {

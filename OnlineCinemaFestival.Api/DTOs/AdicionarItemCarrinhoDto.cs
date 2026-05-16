@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class AdicionarItemCarrinhoDto
+public class AdicionarItemCarrinhoDTO
 {
     [Required]
     public int AcessoId { get; set; }

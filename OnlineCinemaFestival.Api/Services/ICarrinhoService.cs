@@ -4,23 +4,23 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface ICarrinhoService
 {
-    Task<CarrinhoReadDto> ObterCarrinhoAsync(int utilizadorId);
+    Task<CarrinhoReadDTO> ObterCarrinhoAsync(int utilizadorId);
 
-    Task<CarrinhoReadDto> AdicionarItemAsync(int utilizadorId, AdicionarItemCarrinhoDto dto);
+    Task<CarrinhoReadDTO> AdicionarItemAsync(int utilizadorId, AdicionarItemCarrinhoDTO dto);
 
-    Task<CarrinhoReadDto> AdicionarItemAsync(int utilizadorId, CarrinhoItemCreateDto dto);
+    Task<CarrinhoReadDTO> AdicionarItemAsync(int utilizadorId, CarrinhoItemCreateDTO dto);
 
-    Task<CarrinhoReadDto> AtualizarItemAsync(
+    Task<CarrinhoReadDTO> AtualizarItemAsync(
         int utilizadorId,
         int itemId,
-        CarrinhoItemUpdateDto dto
+        CarrinhoItemUpdateDTO dto
     );
 
     Task RemoverItemAsync(int utilizadorId, int itemId);
 
     Task LimparCarrinhoAsync(int utilizadorId);
 
-    Task<CarrinhoValidacaoDto> ValidarCarrinhoAsync(int utilizadorId);
+    Task<CarrinhoValidacaoDTO> ValidarCarrinhoAsync(int utilizadorId);
 
-    Task<CarrinhoResumoDto> ObterResumoAsync(int utilizadorId);
+    Task<CarrinhoResumoDTO> ObterResumoAsync(int utilizadorId);
 }

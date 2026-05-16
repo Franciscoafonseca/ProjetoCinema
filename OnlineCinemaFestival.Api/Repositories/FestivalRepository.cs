@@ -13,17 +13,17 @@ public class FestivalRepository : IFestivalRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Festival>> GetAllAsync()
+    public async Task<IEnumerable<Festival>> ObterTodosAsync()
     {
         return await _context.Festivals.AsNoTracking().OrderBy(f => f.StartDate).ToListAsync();
     }
 
-    public async Task<Festival?> GetByIdAsync(int id)
+    public async Task<Festival?> ObterPorIdAsync(int id)
     {
         return await _context.Festivals.FirstOrDefaultAsync(f => f.Id == id);
     }
 
-    public async Task<Festival?> GetDetalheByIdAsync(int id)
+    public async Task<Festival?> ObterDetalhePorIdAsync(int id)
     {
         return await _context
             .Festivals.Include(f => f.FestivalFilmes)

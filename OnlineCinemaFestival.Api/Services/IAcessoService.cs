@@ -4,15 +4,15 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IAcessoService
 {
-    Task<IEnumerable<AcessoReadDto>> GetAllAsync();
+    Task<IEnumerable<AcessoReadDTO>> ObterTodosAsync();
 
-    Task<AcessoReadDto?> GetByIdAsync(int id);
+    Task<AcessoReadDTO?> ObterPorIdAsync(int id);
 
-    IEnumerable<TipoAcessoReadDto> GetTiposAcesso();
+    IEnumerable<TipoAcessoReadDTO> GetTiposAcesso();
 
-    Task<AcessoReadDto> CreateAsync(AcessoCreateDto dto);
+    Task<AcessoReadDTO> CriarAsync(AcessoCreateDTO dto);
 
-    Task UpdateAsync(int id, AcessoUpdateDto dto);
+    Task AtualizarAsync(int id, AcessoUpdateDTO dto);
 
-    Task DeleteAsync(int id);
+    Task EliminarAsync(int id);
 }

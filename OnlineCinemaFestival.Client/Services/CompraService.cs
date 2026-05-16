@@ -12,7 +12,7 @@ public class CompraService
         _http = http;
     }
 
-    public async Task<CompraDto> FinalizarCompraAsync()
+    public async Task<CompraDTO> FinalizarCompraAsync()
     {
         var resposta = await _http.PostAsync("api/checkout", null);
 
@@ -26,12 +26,12 @@ public class CompraService
             );
         }
 
-        return await resposta.Content.ReadFromJsonAsync<CompraDto>()
+        return await resposta.Content.ReadFromJsonAsync<CompraDTO>()
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
-    public async Task<List<CompraDto>> ObterMinhasAsync()
+    public async Task<List<CompraDTO>> ObterMinhasAsync()
     {
-        return await _http.GetFromJsonAsync<List<CompraDto>>("api/compras/minhas") ?? new();
+        return await _http.GetFromJsonAsync<List<CompraDTO>>("api/compras/minhas") ?? new();
     }
 }

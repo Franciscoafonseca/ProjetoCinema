@@ -13,17 +13,17 @@ public class ListaService
         _http = http;
     }
 
-    public async Task<List<ListaPessoalDto>> GetMinhasListasAsync()
+    public async Task<List<ListaPessoalDTO>> ObterMinhasListasAsync()
     {
         var resposta = await _http.GetAsync("api/listas");
 
         if (!resposta.IsSuccessStatusCode)
             return new();
 
-        return await resposta.Content.ReadFromJsonAsync<List<ListaPessoalDto>>() ?? new();
+        return await resposta.Content.ReadFromJsonAsync<List<ListaPessoalDTO>>() ?? new();
     }
 
-    public async Task<ListaPessoalDto> CriarAsync(CriarListaRequest pedido)
+    public async Task<ListaPessoalDTO> CriarAsync(CriarListaRequest pedido)
     {
         var resposta = await _http.PostAsJsonAsync("api/listas", pedido);
 
@@ -35,7 +35,7 @@ public class ListaService
             );
         }
 
-        return await resposta.Content.ReadFromJsonAsync<ListaPessoalDto>()
+        return await resposta.Content.ReadFromJsonAsync<ListaPessoalDTO>()
             ?? throw new InvalidOperationException("Resposta inválida do servidor.");
     }
 

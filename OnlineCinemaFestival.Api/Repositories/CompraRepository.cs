@@ -18,7 +18,7 @@ public class CompraRepository : ICompraRepository
         await _context.Compras.AddAsync(compra);
     }
 
-    public async Task<Compra?> GetByIdAsync(int id)
+    public async Task<Compra?> ObterPorIdAsync(int id)
     {
         return await _context
             .Compras.Include(c => c.Itens)
@@ -27,7 +27,7 @@ public class CompraRepository : ICompraRepository
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public async Task<IEnumerable<Compra>> GetByUtilizadorIdAsync(int utilizadorId)
+    public async Task<IEnumerable<Compra>> ObterPorUtilizadorIdAsync(int utilizadorId)
     {
         return await _context
             .Compras.Where(c => c.UtilizadorId == utilizadorId)

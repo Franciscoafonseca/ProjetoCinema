@@ -13,7 +13,7 @@ public class FilmeRepository : IFilmeRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Filme>> GetAllAsync()
+    public async Task<IEnumerable<Filme>> ObterTodosAsync()
     {
         return await _context
             .Filmes.Include(f => f.FilmeGeneros)
@@ -23,12 +23,12 @@ public class FilmeRepository : IFilmeRepository
             .ToListAsync();
     }
 
-    public async Task<Filme?> GetByIdAsync(int id)
+    public async Task<Filme?> ObterPorIdAsync(int id)
     {
         return await _context.Filmes.FirstOrDefaultAsync(f => f.Id == id);
     }
 
-    public async Task<Filme?> GetDetalheByIdAsync(int id)
+    public async Task<Filme?> ObterDetalhePorIdAsync(int id)
     {
         return await _context
             .Filmes.Include(f => f.FilmeGeneros)
@@ -44,7 +44,7 @@ public class FilmeRepository : IFilmeRepository
             .FirstOrDefaultAsync(f => f.Id == id);
     }
 
-    public async Task<Filme?> GetByTmdbIdAsync(int tmdbId)
+    public async Task<Filme?> ObterPorTmdbIdAsync(int tmdbId)
     {
         return await _context
             .Filmes.Include(f => f.FilmeGeneros)
@@ -53,7 +53,7 @@ public class FilmeRepository : IFilmeRepository
             .FirstOrDefaultAsync(f => f.TmdbId == tmdbId);
     }
 
-    public async Task<List<Filme>> GetTopAsync(int quantidade)
+    public async Task<List<Filme>> ObterPrincipaisAsync(int quantidade)
     {
         return await _context
             .Filmes.Include(f => f.FilmeGeneros)
@@ -86,7 +86,7 @@ public class FilmeRepository : IFilmeRepository
         );
     }
 
-    public async Task<Avaliacao?> GetAvaliacaoAsync(int utilizadorId, int filmeId)
+    public async Task<Avaliacao?> ObterAvaliacaoAsync(int utilizadorId, int filmeId)
     {
         return await _context.Avaliacoes.FirstOrDefaultAsync(a =>
             a.UsuarioId == utilizadorId && a.FilmeId == filmeId

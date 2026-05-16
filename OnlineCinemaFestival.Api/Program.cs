@@ -15,6 +15,10 @@ using OnlineCinemaFestival.Api.Services.Catalogo;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -119,7 +123,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUtilizadorAtualService, UtilizadorAtualService>();
 
 builder.Services.AddScoped<IGeradorReferenciaCompra, GeradorReferenciaCompra>();
-builder.Services.AddScoped<IValidadorCheckout, ValidadorCheckout>();
+builder.Services.AddScoped<IValidadorFinalizacaoCompra, ValidadorFinalizacaoCompra>();
 
 builder.Services.AddScoped<IAcessoUtilizadorFactory, FabricaAcessoUtilizador>();
 
@@ -133,7 +137,7 @@ builder.Services.AddScoped<IFestivalFilmeService, FestivalFilmeService>();
 builder.Services.AddScoped<ICompraRepository, CompraRepository>();
 builder.Services.AddScoped<IAcessoUtilizadorRepository, AcessoUtilizadorRepository>();
 
-builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.AddScoped<IFinalizacaoCompraService, FinalizacaoCompraService>();
 builder.Services.AddScoped<ICompraService, CompraService>();
 builder.Services.AddScoped<IPagamentoService, PagamentoSimuladoService>();
 builder.Services.AddScoped<IAcessoUtilizadorService, AcessoUtilizadorService>();
@@ -169,8 +173,8 @@ builder.Services.AddScoped<IGeneroRepository, GeneroRepository>();
 // Novos services de autenticação/perfil
 builder.Services.AddScoped<IPasswordHashingStrategy, PasswordHashingStrategy>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+builder.Services.AddScoped<IAutenticacaoService, AutenticacaoService>();
+builder.Services.AddScoped<IPerfilUtilizadorService, PerfilUtilizadorService>();
 
 // Listas pessoais
 builder.Services.AddScoped<IListaPessoalRepository, ListaPessoalRepository>();

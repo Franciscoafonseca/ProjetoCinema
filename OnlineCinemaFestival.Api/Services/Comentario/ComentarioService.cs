@@ -21,13 +21,13 @@ public class ComentarioService : IComentarioService
         _comunidadeRepository = comunidadeRepository;
     }
 
-    public async Task<ComentarioReadDto> CriarComentarioAsync(
+    public async Task<ComentarioReadDTO> CriarComentarioAsync(
         int comunidadeId,
-        ComentarioCreateDto dto,
+        ComentarioCreateDTO dto,
         int usuarioId
     )
     {
-        var comunidade = await _comunidadeRepository.GetComunidadeByIdAsync(comunidadeId);
+        var comunidade = await _comunidadeRepository.ObterComunidadePorIdAsync(comunidadeId);
         if (comunidade == null)
             throw new Exception("Comunidade não encontrada");
 
@@ -38,7 +38,7 @@ public class ComentarioService : IComentarioService
                 throw new UnauthorizedAccessException("Acesso negado à comunidade privada");
         }
 
-        var usuario = await _utilizadorRepository.GetByIdAsync(usuarioId);
+        var usuario = await _utilizadorRepository.ObterPorIdAsync(usuarioId);
         if (usuario == null)
             throw new Exception("Usuário não encontrado");
 
@@ -47,14 +47,14 @@ public class ComentarioService : IComentarioService
 
         result.Usuario = usuario; // Para preencher o NomeUsuario no DTO
         result.Comunidade = comunidade; // Para preencher o NomeComunidade no DTO
-        return ComentarioMapper.ToReadDto(result);
+        return ComentarioMapper.ToReadDTO(result);
     }
 
-    public async Task<IEnumerable<ComentarioReadDto>> ObterComentariosPorComunidadeIdAsync(
+    public async Task<IEnumerable<ComentarioReadDTO>> ObterComentariosPorComunidadeIdAsync(
         int comunidadeId
     )
     {
-        var listaDeComentarios = await _comentarioRepository.GetByComunidadeIdAsync(comunidadeId);
-        return listaDeComentarios.Select(ComentarioMapper.ToReadDto);
+        var listaDeComentarios = await _comentarioRepository.ObterPorComunidadeIdAsync(comunidadeId);
+        return listaDeComentarios.Select(ComentarioMapper.ToReadDTO);
     }
 }

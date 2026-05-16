@@ -13,10 +13,10 @@ public class CompraService : ICompraService
         _compraRepository = compraRepository;
     }
 
-    public async Task<IEnumerable<CompraReadDto>> ObterComprasDoUtilizadorAsync(int utilizadorId)
+    public async Task<IEnumerable<CompraReadDTO>> ObterComprasDoUtilizadorAsync(int utilizadorId)
     {
-        var compras = await _compraRepository.GetByUtilizadorIdAsync(utilizadorId);
+        var compras = await _compraRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
-        return compras.Select(CompraMapper.MapToReadDto);
+        return compras.Select(CompraMapper.MapToReadDTO);
     }
 }

@@ -98,7 +98,7 @@
 </div>
 
 @code {
-    private List<AcessoUtilizadorDto> _acessos = new();
+    private List<AcessoUtilizadorDTO> _acessos = new();
     private bool _aCarregar = true;
     private string? _erro;
 
@@ -106,7 +106,7 @@
     {
         try
         {
-            _acessos = await AcessoService.GetMeusAcessosAsync();
+            _acessos = await AcessoService.ObterMeusAcessosAsync();
         }
         catch (Exception ex)
         {
@@ -124,7 +124,7 @@
 
     private void AbrirFestival(int festivalId) => Nav.NavigateTo($"/festivais/{festivalId}");
 
-    private static string TituloAcesso(AcessoUtilizadorDto acesso)
+    private static string TituloAcesso(AcessoUtilizadorDTO acesso)
     {
         return string.IsNullOrWhiteSpace(acesso.NomeAcesso)
             ? $"Acesso #{acesso.AcessoId}"

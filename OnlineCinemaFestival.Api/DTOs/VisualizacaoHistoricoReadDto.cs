@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class VisualizacaoHistoricoReadDto
+public class VisualizacaoHistoricoReadDTO
 {
     public int Id { get; set; }
 

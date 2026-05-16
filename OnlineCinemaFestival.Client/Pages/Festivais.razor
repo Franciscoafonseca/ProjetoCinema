@@ -60,11 +60,11 @@
 </div>
 
 @code {
-    private List<FestivalDto> _festivais = new();
+    private List<FestivalDTO> _festivais = new();
 
     protected override async Task CarregarDadosAsync()
     {
-        _festivais = await FestivalService.GetFestivaisAsync();
+        _festivais = await FestivalService.ObterFestivaisAsync();
         _festivais = _festivais
             .OrderByDescending(f => f.StartDate)
             .ToList();
@@ -72,7 +72,7 @@
 
     private void AbrirFestival(int id) => Nav.NavigateTo($"/festivais/{id}");
 
-    private static bool EstaAtivo(FestivalDto f)
+    private static bool EstaAtivo(FestivalDTO f)
     {
         var agora = DateTime.Now;
         return agora >= f.StartDate && agora <= f.EndDate;

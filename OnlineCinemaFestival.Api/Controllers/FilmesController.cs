@@ -21,18 +21,18 @@ public class FilmesController : ControllerBase
     // GET: api/filmes
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> GetFilmes()
+    public async Task<ActionResult<IEnumerable<FilmeResumoDTO>>> GetFilmes()
     {
-        var filmes = await _service.GetAllFilmesAsync();
+        var filmes = await _service.ObterTodosFilmesAsync();
         return Ok(filmes);
     }
 
     [HttpGet("{id:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<FilmeDetalheDto>> GetFilme(int id)
+    public async Task<ActionResult<FilmeDetalheDTO>> GetFilme(int id)
     {
         var utilizadorId = User.Identity?.IsAuthenticated == true ? User.GetUserId() : (int?)null;
-        var filme = await _service.GetDetalheAsync(id, utilizadorId);
+        var filme = await _service.ObterDetalheAsync(id, utilizadorId);
 
         if (filme == null)
             return NotFound("Filme nao encontrado.");
@@ -43,7 +43,7 @@ public class FilmesController : ControllerBase
     // GET: api/filmes/pesquisar-tmdb?query=Matrix
     [HttpGet("pesquisar-tmdb")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> SearchTmdb([FromQuery] string query)
+    public async Task<ActionResult<IEnumerable<FilmeResumoDTO>>> PesquisarTmdb([FromQuery] string query)
     {
         if (string.IsNullOrWhiteSpace(query))
             return BadRequest("O termo de pesquisa não pode estar vazio.");
@@ -56,7 +56,7 @@ public class FilmesController : ControllerBase
     [HttpPost("importar/{tmdbId}")]
     [HttpPost("importar-tmdb/{tmdbId}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<ActionResult<FilmeDetalheDto>> Import(int tmdbId)
+    public async Task<ActionResult<FilmeDetalheDTO>> Importar(int tmdbId)
     {
         try
         {
@@ -72,9 +72,9 @@ public class FilmesController : ControllerBase
 
     [HttpPost("{filmeId:int}/reviews")]
     [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
-    public async Task<ActionResult<AvaliacaoDto>> CriarReview(
+    public async Task<ActionResult<AvaliacaoDTO>> CriarReview(
         int filmeId,
-        [FromBody] CriarAvaliacaoDto dto
+        [FromBody] CriarAvaliacaoDTO dto
     )
     {
         try

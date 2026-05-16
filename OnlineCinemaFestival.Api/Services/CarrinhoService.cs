@@ -33,22 +33,22 @@ public class CarrinhoService : ICarrinhoService
         _filmeRepository = filmeRepository;
     }
 
-    public async Task<CarrinhoReadDto> ObterCarrinhoAsync(int utilizadorId)
+    public async Task<CarrinhoReadDTO> ObterCarrinhoAsync(int utilizadorId)
     {
-        var carrinho = await _carrinhoRepository.GetOrCreateByUtilizadorIdAsync(utilizadorId);
+        var carrinho = await _carrinhoRepository.ObterOuCriarPorUtilizadorIdAsync(utilizadorId);
 
-        return CarrinhoMapper.MapToReadDto(carrinho);
+        return CarrinhoMapper.MapToReadDTO(carrinho);
     }
 
-    public async Task<CarrinhoReadDto> AdicionarItemAsync(
+    public async Task<CarrinhoReadDTO> AdicionarItemAsync(
         int utilizadorId,
-        AdicionarItemCarrinhoDto dto
+        AdicionarItemCarrinhoDTO dto
     )
     {
         if (dto.AcessoId <= 0)
             throw new ArgumentException("O acesso indicado e invalido.");
 
-        var acesso = await _acessoRepository.GetByIdAsync(dto.AcessoId);
+        var acesso = await _acessoRepository.ObterPorIdAsync(dto.AcessoId);
 
         if (acesso == null)
             throw new KeyNotFoundException("Acesso nao encontrado.");
@@ -56,9 +56,9 @@ public class CarrinhoService : ICarrinhoService
         return await AdicionarAcessoAoCarrinhoAsync(utilizadorId, acesso, dto.Quantidade);
     }
 
-    public async Task<CarrinhoReadDto> AdicionarItemAsync(
+    public async Task<CarrinhoReadDTO> AdicionarItemAsync(
         int utilizadorId,
-        CarrinhoItemCreateDto dto
+        CarrinhoItemCreateDTO dto
     )
     {
         ValidarPedidoCriacao(dto);
@@ -80,10 +80,10 @@ public class CarrinhoService : ICarrinhoService
         return await AdicionarAcessoAoCarrinhoAsync(utilizadorId, acesso, dto.Quantidade);
     }
 
-    public async Task<CarrinhoReadDto> AtualizarItemAsync(
+    public async Task<CarrinhoReadDTO> AtualizarItemAsync(
         int utilizadorId,
         int itemId,
-        CarrinhoItemUpdateDto dto
+        CarrinhoItemUpdateDTO dto
     )
     {
         if (dto.Quantidade <= 0)
@@ -92,12 +92,12 @@ public class CarrinhoService : ICarrinhoService
         if (dto.Quantidade > QuantidadeMaxima)
             throw new ArgumentException($"A quantidade nao pode exceder {QuantidadeMaxima}.");
 
-        var carrinho = await _carrinhoRepository.GetByUtilizadorIdAsync(utilizadorId);
+        var carrinho = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
         if (carrinho == null)
             throw new KeyNotFoundException("Carrinho nao encontrado.");
 
-        var item = await _carrinhoRepository.GetItemAsync(carrinho.Id, itemId);
+        var item = await _carrinhoRepository.ObterItemAsync(carrinho.Id, itemId);
 
         if (item == null)
             throw new KeyNotFoundException("Item nao encontrado no carrinho.");
@@ -112,18 +112,18 @@ public class CarrinhoService : ICarrinhoService
 
         await _carrinhoRepository.SaveChangesAsync();
 
-        var atualizado = await _carrinhoRepository.GetByUtilizadorIdAsync(utilizadorId);
-        return CarrinhoMapper.MapToReadDto(atualizado!);
+        var atualizado = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
+        return CarrinhoMapper.MapToReadDTO(atualizado!);
     }
 
     public async Task RemoverItemAsync(int utilizadorId, int itemId)
     {
-        var carrinho = await _carrinhoRepository.GetByUtilizadorIdAsync(utilizadorId);
+        var carrinho = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
         if (carrinho == null)
             throw new KeyNotFoundException("Carrinho nao encontrado.");
 
-        var item = await _carrinhoRepository.GetItemAsync(carrinho.Id, itemId);
+        var item = await _carrinhoRepository.ObterItemAsync(carrinho.Id, itemId);
 
         if (item == null)
             throw new KeyNotFoundException("Item nao encontrado no carrinho.");
@@ -137,7 +137,7 @@ public class CarrinhoService : ICarrinhoService
 
     public async Task LimparCarrinhoAsync(int utilizadorId)
     {
-        var carrinho = await _carrinhoRepository.GetByUtilizadorIdAsync(utilizadorId);
+        var carrinho = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
         if (carrinho == null)
             return;
@@ -149,10 +149,10 @@ public class CarrinhoService : ICarrinhoService
         await _carrinhoRepository.SaveChangesAsync();
     }
 
-    public async Task<CarrinhoValidacaoDto> ValidarCarrinhoAsync(int utilizadorId)
+    public async Task<CarrinhoValidacaoDTO> ValidarCarrinhoAsync(int utilizadorId)
     {
-        var carrinho = await _carrinhoRepository.GetByUtilizadorIdAsync(utilizadorId);
-        var resultado = new CarrinhoValidacaoDto();
+        var carrinho = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
+        var resultado = new CarrinhoValidacaoDTO();
 
         if (carrinho == null || !carrinho.Itens.Any())
         {
@@ -170,7 +170,7 @@ public class CarrinhoService : ICarrinhoService
             catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
             {
                 resultado.Erros.Add(
-                    new CarrinhoErroValidacaoDto
+                    new CarrinhoErroValidacaoDTO
                     {
                         ItemId = item.Id,
                         Campo = item.Acesso.Tipo.ToString(),
@@ -185,12 +185,12 @@ public class CarrinhoService : ICarrinhoService
         return resultado;
     }
 
-    public async Task<CarrinhoResumoDto> ObterResumoAsync(int utilizadorId)
+    public async Task<CarrinhoResumoDTO> ObterResumoAsync(int utilizadorId)
     {
-        var carrinho = await _carrinhoRepository.GetOrCreateByUtilizadorIdAsync(utilizadorId);
-        var dto = CarrinhoMapper.MapToReadDto(carrinho);
+        var carrinho = await _carrinhoRepository.ObterOuCriarPorUtilizadorIdAsync(utilizadorId);
+        var dto = CarrinhoMapper.MapToReadDTO(carrinho);
 
-        return new CarrinhoResumoDto
+        return new CarrinhoResumoDTO
         {
             CarrinhoId = dto.Id,
             NumeroItens = dto.Itens.Sum(i => i.Quantidade),
@@ -199,7 +199,7 @@ public class CarrinhoService : ICarrinhoService
         };
     }
 
-    private async Task<CarrinhoReadDto> AdicionarAcessoAoCarrinhoAsync(
+    private async Task<CarrinhoReadDTO> AdicionarAcessoAoCarrinhoAsync(
         int utilizadorId,
         Acesso acesso,
         int quantidade
@@ -208,8 +208,8 @@ public class CarrinhoService : ICarrinhoService
         ValidarAcessoParaCarrinho(acesso, quantidade);
         await ValidarAcessoJaCompradoAsync(utilizadorId, acesso);
 
-        var carrinho = await _carrinhoRepository.GetOrCreateByUtilizadorIdAsync(utilizadorId);
-        var itemExistente = await _carrinhoRepository.GetItemByAcessoAsync(carrinho.Id, acesso.Id);
+        var carrinho = await _carrinhoRepository.ObterOuCriarPorUtilizadorIdAsync(utilizadorId);
+        var itemExistente = await _carrinhoRepository.ObterItemPorAcessoAsync(carrinho.Id, acesso.Id);
 
         if (itemExistente != null)
         {
@@ -225,10 +225,10 @@ public class CarrinhoService : ICarrinhoService
             carrinho.AtualizadoEm = DateTime.UtcNow;
             await _carrinhoRepository.SaveChangesAsync();
 
-            var carrinhoComItemAtualizado = await _carrinhoRepository.GetByUtilizadorIdAsync(
+            var carrinhoComItemAtualizado = await _carrinhoRepository.ObterPorUtilizadorIdAsync(
                 utilizadorId
             );
-            return CarrinhoMapper.MapToReadDto(carrinhoComItemAtualizado!);
+            return CarrinhoMapper.MapToReadDTO(carrinhoComItemAtualizado!);
         }
 
         var item = new CarrinhoItem
@@ -246,9 +246,9 @@ public class CarrinhoService : ICarrinhoService
 
         await _carrinhoRepository.SaveChangesAsync();
 
-        var carrinhoAtualizado = await _carrinhoRepository.GetByUtilizadorIdAsync(utilizadorId);
+        var carrinhoAtualizado = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
-        return CarrinhoMapper.MapToReadDto(carrinhoAtualizado!);
+        return CarrinhoMapper.MapToReadDTO(carrinhoAtualizado!);
     }
 
     private async Task ValidarAcessoJaCompradoAsync(int utilizadorId, Acesso acesso)
@@ -263,7 +263,7 @@ public class CarrinhoService : ICarrinhoService
             throw new InvalidOperationException("O utilizador ja possui este acesso ativo.");
     }
 
-    private static void ValidarPedidoCriacao(CarrinhoItemCreateDto dto)
+    private static void ValidarPedidoCriacao(CarrinhoItemCreateDTO dto)
     {
         if (dto.Quantidade <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
@@ -324,14 +324,14 @@ public class CarrinhoService : ICarrinhoService
         }
     }
 
-    private async Task ValidarAlvoPedidoCriacaoAsync(CarrinhoItemCreateDto dto)
+    private async Task ValidarAlvoPedidoCriacaoAsync(CarrinhoItemCreateDTO dto)
     {
         var agora = DateTime.UtcNow;
 
         switch (dto.TipoAcesso)
         {
             case TipoAcesso.BilheteSessao:
-                var sessao = await _sessaoRepository.GetByIdAsync(dto.SessaoId!.Value);
+                var sessao = await _sessaoRepository.ObterPorIdAsync(dto.SessaoId!.Value);
 
                 if (sessao == null)
                     throw new KeyNotFoundException("Sessao nao encontrada.");
@@ -341,7 +341,7 @@ public class CarrinhoService : ICarrinhoService
                 break;
 
             case TipoAcesso.PasseDiario:
-                var festivalDiario = await _festivalRepository.GetByIdAsync(dto.FestivalId!.Value);
+                var festivalDiario = await _festivalRepository.ObterPorIdAsync(dto.FestivalId!.Value);
 
                 if (festivalDiario == null)
                     throw new KeyNotFoundException("Festival nao encontrado.");
@@ -361,7 +361,7 @@ public class CarrinhoService : ICarrinhoService
                 break;
 
             case TipoAcesso.PasseCompleto:
-                var festivalCompleto = await _festivalRepository.GetByIdAsync(
+                var festivalCompleto = await _festivalRepository.ObterPorIdAsync(
                     dto.FestivalId!.Value
                 );
 
@@ -373,7 +373,7 @@ public class CarrinhoService : ICarrinhoService
                 break;
 
             case TipoAcesso.AluguerDigital:
-                var filme = await _filmeRepository.GetByIdAsync(dto.FilmeId!.Value);
+                var filme = await _filmeRepository.ObterPorIdAsync(dto.FilmeId!.Value);
 
                 if (filme == null)
                     throw new KeyNotFoundException("Filme nao encontrado.");

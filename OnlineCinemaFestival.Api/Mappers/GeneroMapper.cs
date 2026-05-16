@@ -5,12 +5,12 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class GeneroMapper
 {
-    public static GeneroDto MapToDto(Genero genero)
+    public static GeneroDTO MapToDTO(Genero genero)
     {
-        return new GeneroDto { Id = genero.Id, Name = genero.Name };
+        return new GeneroDTO { Id = genero.Id, Name = genero.Name };
     }
 
-    public static Genero MapFromCreateDto(CriarGeneroDto dto)
+    public static Genero MapFromCreateDTO(CriarGeneroDTO dto)
     {
         return new Genero { Name = dto.Name.Trim() };
     }

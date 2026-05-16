@@ -5,8 +5,8 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class ComentarioMapper
 {
-    // DTO (ComentarioCreateDto) para Entity (BD)
-    public static Comentario ToEntity(int comunidadeId, int usuarioId, ComentarioCreateDto dto)
+    // DTO (ComentarioCreateDTO) para Entity (BD)
+    public static Comentario ToEntity(int comunidadeId, int usuarioId, ComentarioCreateDTO dto)
     {
         return new Comentario
         {
@@ -19,10 +19,10 @@ public static class ComentarioMapper
         };
     }
 
-    // Entity (BD) para DTO (ComentarioReadDto)
-    public static ComentarioReadDto ToReadDto(Comentario comentario)
+    // Entity (BD) para DTO (ComentarioReadDTO)
+    public static ComentarioReadDTO ToReadDTO(Comentario comentario)
     {
-        return new ComentarioReadDto
+        return new ComentarioReadDTO
         {
             Id = comentario.Id,
             UsuarioId = comentario.UsuarioId,

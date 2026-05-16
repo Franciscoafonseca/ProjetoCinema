@@ -8,13 +8,13 @@
 <div class="carrinho-page">
     <header class="page-heading">
         <div>
-            <p class="eyebrow">Checkout</p>
+            <p class="eyebrow">Finalizacao</p>
             <h1>Carrinho</h1>
             <p class="lead">
                 Revê os bilhetes, passes e alugueres antes de finalizar a compra.
             </p>
         </div>
-        <a class="heading-action" href="/checkout">Checkout</a>
+        <a class="heading-action" href="/checkout">Finalizar compra</a>
     </header>
 
     @if (_aCarregar)
@@ -150,8 +150,8 @@
 </div>
 
 @code {
-    private CarrinhoDto _carrinho = new();
-    private CarrinhoValidacaoDto? _validacao;
+    private CarrinhoDTO _carrinho = new();
+    private CarrinhoValidacaoDTO? _validacao;
     private bool _aCarregar = true;
     private bool _aAtualizar;
     private string? _erro;
@@ -191,7 +191,7 @@
         });
     }
 
-    private async Task AlterarQuantidade(ItemCarrinhoDto item, int quantidade)
+    private async Task AlterarQuantidade(ItemCarrinhoDTO item, int quantidade)
     {
         if (quantidade < 1 || quantidade == item.Quantidade)
             return;
@@ -260,7 +260,7 @@
         return _validacao?.Erros.FirstOrDefault(e => e.ItemId == itemId)?.Mensagem;
     }
 
-    private static string NomeItem(ItemCarrinhoDto item)
+    private static string NomeItem(ItemCarrinhoDTO item)
     {
         if (!string.IsNullOrWhiteSpace(item.NomeAcesso))
             return item.NomeAcesso;
@@ -274,7 +274,7 @@
         return $"Acesso #{item.AcessoId}";
     }
 
-    private static string RotuloTipo(ItemCarrinhoDto item)
+    private static string RotuloTipo(ItemCarrinhoDTO item)
     {
         if (!string.IsNullOrWhiteSpace(item.TipoAcessoNome))
             return item.TipoAcessoNome;
@@ -289,7 +289,7 @@
         };
     }
 
-    private static IEnumerable<string> DetalhesItem(ItemCarrinhoDto item)
+    private static IEnumerable<string> DetalhesItem(ItemCarrinhoDTO item)
     {
         if (!string.IsNullOrWhiteSpace(item.NomeFestival))
             yield return item.NomeFestival;

@@ -21,7 +21,7 @@ public class ComunidadeRepository : IComunidadeRepository
         return comunidade;
     }
 
-    public async Task<Comunidade?> GetComunidadeByIdAsync(int id)
+    public async Task<Comunidade?> ObterComunidadePorIdAsync(int id)
     {
         return await _context
             .Comunidades.Include(c => c.CreatedByUser)

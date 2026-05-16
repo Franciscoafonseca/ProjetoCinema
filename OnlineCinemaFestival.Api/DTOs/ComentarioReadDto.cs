@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ComentarioDto
+public class ComentarioDTO
 {
     public int Id { get; set; }
 
@@ -25,4 +25,4 @@ public class ComentarioDto
     public bool Reportado { get; set; }
 }
 
-public class ComentarioReadDto : ComentarioDto { }
+public class ComentarioReadDTO : ComentarioDTO { }

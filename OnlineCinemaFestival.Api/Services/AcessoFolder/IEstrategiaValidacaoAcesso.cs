@@ -11,5 +11,5 @@ public interface IEstrategiaValidacaoAcesso
 
     string Descricao { get; }
 
-    Task ValidarAsync(AcessoCreateDto dto);
+    Task ValidarAsync(AcessoCreateDTO dto);
 }

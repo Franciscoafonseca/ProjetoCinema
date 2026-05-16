@@ -4,13 +4,13 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IFestivalService
 {
-    Task<IEnumerable<FestivalReadDto>> GetAllAsync();
+    Task<IEnumerable<FestivalReadDTO>> ObterTodosAsync();
 
-    Task<FestivalReadDto?> GetByIdAsync(int id);
+    Task<FestivalReadDTO?> ObterPorIdAsync(int id);
 
-    Task<FestivalReadDto> CreateAsync(FestivalCreateDto dto);
+    Task<FestivalReadDTO> CriarAsync(FestivalCreateDTO dto);
 
-    Task UpdateAsync(int id, FestivalUpdateDto dto);
+    Task AtualizarAsync(int id, FestivalUpdateDTO dto);
 
-    Task DeleteAsync(int id);
+    Task EliminarAsync(int id);
 }

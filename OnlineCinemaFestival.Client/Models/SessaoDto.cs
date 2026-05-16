@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Client.Models;
 
-public class SessaoDto
+public class SessaoDTO
 {
     public int Id { get; set; }
 
@@ -30,7 +30,7 @@ public class SessaoDto
 
     public string? Observacoes { get; set; }
 
-    public List<FilmeSessaoDto> Filmes { get; set; } = new();
+    public List<FilmeSessaoDTO> Filmes { get; set; } = new();
 
     public string Festival =>
         !string.IsNullOrWhiteSpace(NomeFestival) ? NomeFestival : FestivalName;
@@ -43,7 +43,7 @@ public class SessaoDto
     public int? FilmePrincipalId => FilmeId ?? Filmes.FirstOrDefault()?.Id;
 }
 
-public class FilmeSessaoDto
+public class FilmeSessaoDTO
 {
     public int Id { get; set; }
 
@@ -52,7 +52,7 @@ public class FilmeSessaoDto
     public int Ordem { get; set; }
 }
 
-public class SessaoEstadoDto
+public class SessaoEstadoDTO
 {
     public int SessaoId { get; set; }
 

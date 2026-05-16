@@ -4,11 +4,11 @@ namespace OnlineCinemaFestival.Api.Repositories;
 
 public interface IFestivalRepository
 {
-    Task<IEnumerable<Festival>> GetAllAsync();
+    Task<IEnumerable<Festival>> ObterTodosAsync();
 
-    Task<Festival?> GetByIdAsync(int id);
+    Task<Festival?> ObterPorIdAsync(int id);
 
-    Task<Festival?> GetDetalheByIdAsync(int id);
+    Task<Festival?> ObterDetalhePorIdAsync(int id);
 
     Task AddAsync(Festival festival);
 

@@ -25,7 +25,7 @@ public class AcessosUtilizadorController : ControllerBase
     }
 
     [HttpGet("meus")]
-    public async Task<ActionResult<IEnumerable<AcessoUtilizadorDto>>> ObterMeusAcessos()
+    public async Task<ActionResult<IEnumerable<AcessoUtilizadorDTO>>> ObterMeusAcessos()
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 

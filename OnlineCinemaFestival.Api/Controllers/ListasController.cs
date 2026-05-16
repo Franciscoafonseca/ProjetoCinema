@@ -19,26 +19,26 @@ public class ListasController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ListaPessoalDto>>> GetMinhasListas()
+    public async Task<ActionResult<IEnumerable<ListaPessoalDTO>>> GetMinhasListas()
     {
-        var userId = GetCurrentUserId();
+        var userId = ObterUtilizadorAtualId();
         if (userId == null)
             return Unauthorized();
 
-        var listas = await _service.GetMinhasListasAsync(userId.Value);
+        var listas = await _service.ObterMinhasListasAsync(userId.Value);
         return Ok(listas);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ListaPessoalDto>> Create(ListaPessoalCreateDto dto)
+    public async Task<ActionResult<ListaPessoalDTO>> Criar(ListaPessoalCreateDTO dto)
     {
-        var userId = GetCurrentUserId();
+        var userId = ObterUtilizadorAtualId();
         if (userId == null)
             return Unauthorized();
 
         try
         {
-            var lista = await _service.CreateAsync(userId.Value, dto);
+            var lista = await _service.CriarAsync(userId.Value, dto);
             return CreatedAtAction(nameof(GetMinhasListas), new { id = lista.Id }, lista);
         }
         catch (ArgumentException ex)
@@ -48,9 +48,9 @@ public class ListasController : ControllerBase
     }
 
     [HttpPost("{id:int}/filmes/{filmeId:int}")]
-    public async Task<ActionResult<ListaPessoalItemReadDto>> AdicionarFilme(int id, int filmeId)
+    public async Task<ActionResult<ListaPessoalItemReadDTO>> AdicionarFilme(int id, int filmeId)
     {
-        var userId = GetCurrentUserId();
+        var userId = ObterUtilizadorAtualId();
         if (userId == null)
             return Unauthorized();
 
@@ -76,7 +76,7 @@ public class ListasController : ControllerBase
     [HttpDelete("{id:int}/filmes/{filmeId:int}")]
     public async Task<IActionResult> RemoverFilme(int id, int filmeId)
     {
-        var userId = GetCurrentUserId();
+        var userId = ObterUtilizadorAtualId();
         if (userId == null)
             return Unauthorized();
 
@@ -98,7 +98,7 @@ public class ListasController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> RemoverLista(int id)
     {
-        var userId = GetCurrentUserId();
+        var userId = ObterUtilizadorAtualId();
         if (userId == null)
             return Unauthorized();
 
@@ -121,7 +121,7 @@ public class ListasController : ControllerBase
         }
     }
 
-    private int? GetCurrentUserId()
+    private int? ObterUtilizadorAtualId()
     {
         var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

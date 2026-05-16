@@ -164,14 +164,14 @@ else
 @code {
     [Parameter] public int Id { get; set; }
 
-    private FestivalDto? _festival;
-    private List<FilmeDto> _filmes = new();
-    private List<SessaoDto> _sessoes = new();
-    private List<AcessoDto> _acessos = new();
+    private FestivalDTO? _festival;
+    private List<FilmeDTO> _filmes = new();
+    private List<SessaoDTO> _sessoes = new();
+    private List<AcessoDTO> _acessos = new();
     private bool _aAtualizarCarrinho;
     private string? _mensagemCarrinho;
 
-    private List<AcessoDto> AcessosDoFestival =>
+    private List<AcessoDTO> AcessosDoFestival =>
         _acessos
             .Where(a =>
                 a.IsAtivo
@@ -186,19 +186,19 @@ else
 
     protected override async Task CarregarDadosAsync()
     {
-        _festival = await FestivalService.GetFestivalPorIdAsync(Id);
+        _festival = await FestivalService.ObterFestivalPorIdAsync(Id);
 
         if (_festival == null)
             return;
 
-        _filmes = await FestivalService.GetFilmesDoFestivalAsync(Id);
-        _sessoes = (await SessaoService.GetSessoesPorFestivalAsync(Id))
+        _filmes = await FestivalService.ObterFilmesDoFestivalAsync(Id);
+        _sessoes = (await SessaoService.ObterSessoesPorFestivalAsync(Id))
             .OrderBy(s => s.Inicio)
             .ToList();
-        _acessos = await AcessoService.GetAcessosAsync();
+        _acessos = await AcessoService.ObterAcessosAsync();
     }
 
-    private async Task AdicionarPasse(AcessoDto acesso)
+    private async Task AdicionarPasse(AcessoDTO acesso)
     {
         await ExecutarCarrinho(async () =>
         {
@@ -253,12 +253,12 @@ else
 
     private void AbrirPlayer(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
 
-    private static string TituloSessao(SessaoDto sessao)
+    private static string TituloSessao(SessaoDTO sessao)
     {
         return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
     }
 
-    private static string DescricaoAcesso(AcessoDto acesso)
+    private static string DescricaoAcesso(AcessoDTO acesso)
     {
         if (acesso.Tipo == TiposAcesso.PasseDiario && acesso.DataAcesso.HasValue)
             return $"{acesso.TipoNome} - {acesso.DataAcesso.Value.ToLocalTime():dd/MM/yyyy}";
@@ -266,13 +266,13 @@ else
         return acesso.TipoNome;
     }
 
-    private static bool SessaoTerminada(SessaoDto sessao)
+    private static bool SessaoTerminada(SessaoDTO sessao)
     {
         return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase)
             || sessao.Fim.ToUniversalTime() <= DateTime.UtcNow;
     }
 
-    private static string EstadoTexto(SessaoDto sessao)
+    private static string EstadoTexto(SessaoDTO sessao)
     {
         if (!string.IsNullOrWhiteSpace(sessao.Estado))
             return sessao.Estado;
@@ -295,7 +295,7 @@ else
         return "scheduled";
     }
 
-    private static string EstadoFestival(FestivalDto festival)
+    private static string EstadoFestival(FestivalDTO festival)
     {
         var agora = DateTime.Now;
 

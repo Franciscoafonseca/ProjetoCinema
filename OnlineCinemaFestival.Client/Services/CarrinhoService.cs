@@ -13,42 +13,42 @@ public class CarrinhoService
         _http = http;
     }
 
-    public async Task<CarrinhoDto> ObterAsync()
+    public async Task<CarrinhoDTO> ObterAsync()
     {
-        return await _http.GetFromJsonAsync<CarrinhoDto>("api/carrinho") ?? new CarrinhoDto();
+        return await _http.GetFromJsonAsync<CarrinhoDTO>("api/carrinho") ?? new CarrinhoDTO();
     }
 
-    public async Task<CarrinhoResumoDto> ObterResumoAsync()
+    public async Task<CarrinhoResumoDTO> ObterResumoAsync()
     {
-        return await _http.GetFromJsonAsync<CarrinhoResumoDto>("api/carrinho/resumo")
-            ?? new CarrinhoResumoDto();
+        return await _http.GetFromJsonAsync<CarrinhoResumoDTO>("api/carrinho/resumo")
+            ?? new CarrinhoResumoDTO();
     }
 
-    public async Task<CarrinhoValidacaoDto> ValidarAsync()
+    public async Task<CarrinhoValidacaoDTO> ValidarAsync()
     {
         var resposta = await _http.PostAsync("api/carrinho/validar", null);
 
         if (!resposta.IsSuccessStatusCode)
             throw new InvalidOperationException(await ObterMensagemErroAsync(resposta));
 
-        return await resposta.Content.ReadFromJsonAsync<CarrinhoValidacaoDto>()
-            ?? new CarrinhoValidacaoDto();
+        return await resposta.Content.ReadFromJsonAsync<CarrinhoValidacaoDTO>()
+            ?? new CarrinhoValidacaoDTO();
     }
 
-    public async Task<CarrinhoDto> AdicionarItemAsync(int acessoId, int quantidade = 1)
+    public async Task<CarrinhoDTO> AdicionarItemAsync(int acessoId, int quantidade = 1)
     {
         var resposta = await _http.PostAsJsonAsync(
             "api/carrinho/itens",
-            new AdicionarItemCarrinhoDto { AcessoId = acessoId, Quantidade = quantidade }
+            new AdicionarItemCarrinhoDTO { AcessoId = acessoId, Quantidade = quantidade }
         );
 
         return await LerCarrinhoAsync(resposta);
     }
 
-    public Task<CarrinhoDto> AdicionarBilheteSessaoAsync(int sessaoId, int quantidade = 1)
+    public Task<CarrinhoDTO> AdicionarBilheteSessaoAsync(int sessaoId, int quantidade = 1)
     {
         return AdicionarPorTipoAsync(
-            new CarrinhoItemCreateDto
+            new CarrinhoItemCreateDTO
             {
                 TipoAcesso = TiposAcesso.BilheteSessao,
                 SessaoId = sessaoId,
@@ -57,10 +57,10 @@ public class CarrinhoService
         );
     }
 
-    public Task<CarrinhoDto> AdicionarPasseDiarioAsync(int festivalId, DateTime dataPasse)
+    public Task<CarrinhoDTO> AdicionarPasseDiarioAsync(int festivalId, DateTime dataPasse)
     {
         return AdicionarPorTipoAsync(
-            new CarrinhoItemCreateDto
+            new CarrinhoItemCreateDTO
             {
                 TipoAcesso = TiposAcesso.PasseDiario,
                 FestivalId = festivalId,
@@ -70,10 +70,10 @@ public class CarrinhoService
         );
     }
 
-    public Task<CarrinhoDto> AdicionarPasseCompletoAsync(int festivalId)
+    public Task<CarrinhoDTO> AdicionarPasseCompletoAsync(int festivalId)
     {
         return AdicionarPorTipoAsync(
-            new CarrinhoItemCreateDto
+            new CarrinhoItemCreateDTO
             {
                 TipoAcesso = TiposAcesso.PasseCompleto,
                 FestivalId = festivalId,
@@ -82,10 +82,10 @@ public class CarrinhoService
         );
     }
 
-    public Task<CarrinhoDto> AdicionarAluguerDigitalAsync(int filmeId)
+    public Task<CarrinhoDTO> AdicionarAluguerDigitalAsync(int filmeId)
     {
         return AdicionarPorTipoAsync(
-            new CarrinhoItemCreateDto
+            new CarrinhoItemCreateDTO
             {
                 TipoAcesso = TiposAcesso.AluguerDigital,
                 FilmeId = filmeId,
@@ -94,11 +94,11 @@ public class CarrinhoService
         );
     }
 
-    public async Task<CarrinhoDto> AtualizarQuantidadeAsync(int itemId, int quantidade)
+    public async Task<CarrinhoDTO> AtualizarQuantidadeAsync(int itemId, int quantidade)
     {
         var resposta = await _http.PutAsJsonAsync(
             $"api/carrinho/items/{itemId}",
-            new CarrinhoItemUpdateDto { Quantidade = quantidade }
+            new CarrinhoItemUpdateDTO { Quantidade = quantidade }
         );
 
         return await LerCarrinhoAsync(resposta);
@@ -120,18 +120,18 @@ public class CarrinhoService
             throw new InvalidOperationException(await ObterMensagemErroAsync(resposta));
     }
 
-    private async Task<CarrinhoDto> AdicionarPorTipoAsync(CarrinhoItemCreateDto dto)
+    private async Task<CarrinhoDTO> AdicionarPorTipoAsync(CarrinhoItemCreateDTO dto)
     {
         var resposta = await _http.PostAsJsonAsync("api/carrinho/items", dto);
         return await LerCarrinhoAsync(resposta);
     }
 
-    private static async Task<CarrinhoDto> LerCarrinhoAsync(HttpResponseMessage resposta)
+    private static async Task<CarrinhoDTO> LerCarrinhoAsync(HttpResponseMessage resposta)
     {
         if (!resposta.IsSuccessStatusCode)
             throw new InvalidOperationException(await ObterMensagemErroAsync(resposta));
 
-        return await resposta.Content.ReadFromJsonAsync<CarrinhoDto>() ?? new CarrinhoDto();
+        return await resposta.Content.ReadFromJsonAsync<CarrinhoDTO>() ?? new CarrinhoDTO();
     }
 
     private static async Task<string> ObterMensagemErroAsync(HttpResponseMessage resposta)

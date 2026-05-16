@@ -4,9 +4,9 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IAcessoUtilizadorService
 {
-    Task<IEnumerable<AcessoUtilizadorReadDto>> ObterAcessosDoUtilizadorAsync(int utilizadorId);
+    Task<IEnumerable<AcessoUtilizadorReadDTO>> ObterAcessosDoUtilizadorAsync(int utilizadorId);
 
-    Task<IEnumerable<AcessoUtilizadorReadDto>> ObterAcessosAtivosDoUtilizadorAsync(
+    Task<IEnumerable<AcessoUtilizadorReadDTO>> ObterAcessosAtivosDoUtilizadorAsync(
         int utilizadorId
     );
 

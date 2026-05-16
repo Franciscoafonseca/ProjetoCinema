@@ -4,21 +4,21 @@ namespace OnlineCinemaFestival.Api.Repositories;
 
 public interface IFilmeRepository
 {
-    Task<IEnumerable<Filme>> GetAllAsync();
+    Task<IEnumerable<Filme>> ObterTodosAsync();
 
-    Task<Filme?> GetByIdAsync(int id);
+    Task<Filme?> ObterPorIdAsync(int id);
 
-    Task<Filme?> GetDetalheByIdAsync(int id);
+    Task<Filme?> ObterDetalhePorIdAsync(int id);
 
-    Task<Filme?> GetByTmdbIdAsync(int tmdbId);
+    Task<Filme?> ObterPorTmdbIdAsync(int tmdbId);
 
-    Task<List<Filme>> GetTopAsync(int quantidade);
+    Task<List<Filme>> ObterPrincipaisAsync(int quantidade);
 
     Task<Genero> ObterOuCriarGeneroAsync(string nome);
 
     Task<bool> UtilizadorViuFilmeAsync(int utilizadorId, int filmeId);
 
-    Task<Avaliacao?> GetAvaliacaoAsync(int utilizadorId, int filmeId);
+    Task<Avaliacao?> ObterAvaliacaoAsync(int utilizadorId, int filmeId);
 
     Task AddAvaliacaoAsync(Avaliacao avaliacao);
 

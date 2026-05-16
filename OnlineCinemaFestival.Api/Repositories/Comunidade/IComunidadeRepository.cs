@@ -6,7 +6,7 @@ namespace OnlineCinemaFestival.Api.Repositories;
 public interface IComunidadeRepository
 {
     Task<Comunidade> AddComunidadeAsync(Comunidade comunidade);
-    Task<Comunidade?> GetComunidadeByIdAsync(int id);
+    Task<Comunidade?> ObterComunidadePorIdAsync(int id);
     Task<IEnumerable<Comunidade>> FindComunidadesAsync(
         Expression<Func<Comunidade, bool>> predicate
     );

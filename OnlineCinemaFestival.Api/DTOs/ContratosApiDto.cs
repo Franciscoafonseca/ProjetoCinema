@@ -2,32 +2,32 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class CriarFestivalDto : FestivalCreateDto { }
+public class CriarFestivalDTO : FestivalCreateDTO { }
 
-public class AtualizarFestivalDto : FestivalUpdateDto { }
+public class AtualizarFestivalDTO : FestivalUpdateDTO { }
 
-public class CriarSessaoDto : SessaoCreateDto { }
+public class CriarSessaoDTO : SessaoCreateDTO { }
 
-public class CriarAcessoDto : AcessoCreateDto { }
+public class CriarAcessoDTO : AcessoCreateDTO { }
 
-public class CriarComentarioDto : ComentarioCreateDto { }
+public class CriarComentarioDTO : ComentarioCreateDTO { }
 
-public class CheckoutRequestDto { }
+public class PedidoFinalizacaoCompraDTO { }
 
-public class FinalizarCheckoutRequest
+public class PedidoFinalizarCompraDTO
 {
     [Required]
     public string MetodoPagamento { get; set; } = "CartaoCredito";
 }
 
-public class CheckoutResultadoDto : CompraReadDto
+public class ResultadoFinalizacaoCompraDTO : CompraReadDTO
 {
     public string Mensagem { get; set; } = string.Empty;
 
     public int AcessosGerados { get; set; }
 }
 
-public class CompraResumoDto
+public class CompraResumoDTO
 {
     public int Id { get; set; }
 
@@ -42,9 +42,9 @@ public class CompraResumoDto
     public int NumeroItens { get; set; }
 }
 
-public class AcessoAtivoDto : AcessoUtilizadorReadDto { }
+public class AcessoAtivoDTO : AcessoUtilizadorReadDTO { }
 
-public class CriarAvaliacaoDto
+public class CriarAvaliacaoDTO
 {
     [Range(1, 10)]
     public int Pontuacao { get; set; }
@@ -53,7 +53,7 @@ public class CriarAvaliacaoDto
     public string Texto { get; set; } = string.Empty;
 }
 
-public class AvaliacaoDto
+public class AvaliacaoDTO
 {
     public int Id { get; set; }
 
@@ -72,20 +72,20 @@ public class AvaliacaoDto
     public DateTime Data { get; set; }
 }
 
-public class ReportarComentarioDto
+public class ReportarComentarioDTO
 {
     [MaxLength(500)]
     public string Motivo { get; set; } = string.Empty;
 }
 
-public class GeneroDto
+public class GeneroDTO
 {
     public int Id { get; set; }
 
     public string Name { get; set; } = string.Empty;
 }
 
-public class CriarGeneroDto
+public class CriarGeneroDTO
 {
     [Required]
     [MaxLength(100)]

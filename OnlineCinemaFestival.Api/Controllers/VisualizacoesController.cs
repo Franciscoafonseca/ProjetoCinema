@@ -24,7 +24,7 @@ public class VisualizacoesController : ControllerBase
     }
 
     [HttpGet("minhas")]
-    public async Task<ActionResult<IEnumerable<VisualizacaoHistoricoReadDto>>> ObterMinhas()
+    public async Task<ActionResult<IEnumerable<VisualizacaoHistoricoReadDTO>>> ObterMinhas()
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
@@ -36,8 +36,8 @@ public class VisualizacoesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<VisualizacaoHistoricoReadDto>> Registar(
-        RegistarVisualizacaoDto dto
+    public async Task<ActionResult<VisualizacaoHistoricoReadDTO>> Registar(
+        RegistarVisualizacaoDTO dto
     )
     {
         try

@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs
 {
-    public class FilmeResumoDto
+    public class FilmeResumoDTO
     {
         public int Id { get; set; }
         public int TmdbId { get; set; }
@@ -19,19 +19,19 @@ namespace OnlineCinemaFestival.Api.DTOs
         public int Popularidade { get; set; }
     }
 
-    public class FilmeDetalheDto : FilmeResumoDto
+    public class FilmeDetalheDTO : FilmeResumoDTO
     {
         public string? Realizador { get; set; }
         public List<string> Atores { get; set; } = new();
-        public List<TmdbReviewDto> ReviewsTmdb { get; set; } = new();
-        public List<AvaliacaoDto> ReviewsAplicacao { get; set; } = new();
-        public List<FestivalResumoDto> Festivais { get; set; } = new();
+        public List<TmdbReviewDTO> ReviewsTmdb { get; set; } = new();
+        public List<AvaliacaoDTO> ReviewsAplicacao { get; set; } = new();
+        public List<FestivalResumoDTO> Festivais { get; set; } = new();
         public string? Premios { get; set; }
-        public List<FilmeSessaoReadDto> Sessoes { get; set; } = new();
-        public List<AcessoReadDto> AcessosDisponiveis { get; set; } = new();
+        public List<FilmeSessaoReadDTO> Sessoes { get; set; } = new();
+        public List<AcessoReadDTO> AcessosDisponiveis { get; set; } = new();
         public bool PodeVer { get; set; }
         public bool PodeAvaliar { get; set; }
     }
 
-    public class FilmeReadDto : FilmeDetalheDto { }
+    public class FilmeReadDTO : FilmeDetalheDTO { }
 }

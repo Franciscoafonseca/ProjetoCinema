@@ -6,5 +6,5 @@ public interface IComentarioRepository
 {
     Task<Comentario> AddAsync(Comentario comentario);
 
-    Task<IEnumerable<Comentario>> GetByComunidadeIdAsync(int comunidadeId);
+    Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(int comunidadeId);
 }

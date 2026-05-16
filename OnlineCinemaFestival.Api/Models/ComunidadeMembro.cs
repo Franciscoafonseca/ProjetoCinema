@@ -10,7 +10,7 @@ public class ComunidadeMembro
 
     public Utilizador Utilizador { get; set; } = null!;
 
-    public CommunityMemberRole Role { get; set; } = CommunityMemberRole.Member;
+    public PapelMembroComunidade Role { get; set; } = PapelMembroComunidade.Membro;
 
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
 }

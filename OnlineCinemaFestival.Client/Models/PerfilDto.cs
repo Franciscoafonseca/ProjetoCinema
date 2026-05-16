@@ -2,15 +2,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Client.Models;
 
-public class UserProfileResponse
+public class PerfilPublicoDTO
 {
     public int UserId { get; set; }
 
     public string Name { get; set; } = string.Empty;
 
-    public string Email { get; set; } = string.Empty;
-
     public string Nationality { get; set; } = string.Empty;
+
+    public string CountryCode { get; set; } = string.Empty;
+
+    public string CountryFlag { get; set; } = string.Empty;
 
     public string Bio { get; set; } = string.Empty;
 
@@ -29,7 +31,12 @@ public class UserProfileResponse
     public int PublicListsCount { get; set; }
 }
 
-public class UpdateProfileRequest
+public class PerfilUtilizadorRespostaDTO : PerfilPublicoDTO
+{
+    public string Email { get; set; } = string.Empty;
+}
+
+public class PedidoAtualizarPerfilDTO
 {
     [MaxLength(120)]
     public string Name { get; set; } = string.Empty;

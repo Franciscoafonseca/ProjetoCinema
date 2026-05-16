@@ -19,7 +19,7 @@ public class ValidacaoPasseCompletoStrategy : IEstrategiaValidacaoAcesso
 
     public string Descricao => "Passe que da acesso a todas as sessoes de um festival.";
 
-    public async Task ValidarAsync(AcessoCreateDto dto)
+    public async Task ValidarAsync(AcessoCreateDTO dto)
     {
         if (!dto.FestivalId.HasValue)
             throw new ArgumentException("Um passe completo precisa de FestivalId.");
@@ -32,7 +32,7 @@ public class ValidacaoPasseCompletoStrategy : IEstrategiaValidacaoAcesso
         )
             throw new ArgumentException("Passe completo deve indicar apenas FestivalId como alvo.");
 
-        var festival = await _festivalRepository.GetByIdAsync(dto.FestivalId.Value);
+        var festival = await _festivalRepository.ObterPorIdAsync(dto.FestivalId.Value);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival nao encontrado.");

@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ValidacaoAcessoReadDto
+public class ValidacaoAcessoReadDTO
 {
     public bool TemAcesso { get; set; }
 

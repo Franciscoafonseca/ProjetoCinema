@@ -12,53 +12,53 @@ public class SessaoService
         _http = http;
     }
 
-    public async Task<List<SessaoDto>> GetSessoesAsync()
+    public async Task<List<SessaoDTO>> ObterSessoesAsync()
     {
-        return await _http.GetFromJsonAsync<List<SessaoDto>>("api/sessoes") ?? new();
+        return await _http.GetFromJsonAsync<List<SessaoDTO>>("api/sessoes") ?? new();
     }
 
-    public async Task<List<SessaoDto>> GetSessoesDisponiveisAsync()
+    public async Task<List<SessaoDTO>> ObterSessoesDisponiveisAsync()
     {
-        return await _http.GetFromJsonAsync<List<SessaoDto>>("api/sessoes/disponiveis") ?? new();
+        return await _http.GetFromJsonAsync<List<SessaoDTO>>("api/sessoes/disponiveis") ?? new();
     }
 
-    public async Task<SessaoDto?> GetSessaoAsync(int id)
+    public async Task<SessaoDTO?> ObterSessaoAsync(int id)
     {
         var resposta = await _http.GetAsync($"api/sessoes/{id}");
 
         if (!resposta.IsSuccessStatusCode)
             return null;
 
-        return await resposta.Content.ReadFromJsonAsync<SessaoDto>();
+        return await resposta.Content.ReadFromJsonAsync<SessaoDTO>();
     }
 
-    public async Task<SessaoEstadoDto?> GetEstadoAsync(int id)
+    public async Task<SessaoEstadoDTO?> ObterEstadoAsync(int id)
     {
         var resposta = await _http.GetAsync($"api/sessoes/{id}/estado");
 
         if (!resposta.IsSuccessStatusCode)
             return null;
 
-        return await resposta.Content.ReadFromJsonAsync<SessaoEstadoDto>();
+        return await resposta.Content.ReadFromJsonAsync<SessaoEstadoDTO>();
     }
 
-    public async Task<List<SessaoDto>> GetSessoesPorFilmeAsync(int filmeId)
+    public async Task<List<SessaoDTO>> ObterSessoesPorFilmeAsync(int filmeId)
     {
         var resposta = await _http.GetAsync($"api/sessoes/filme/{filmeId}");
 
         if (!resposta.IsSuccessStatusCode)
             return new();
 
-        return await resposta.Content.ReadFromJsonAsync<List<SessaoDto>>() ?? new();
+        return await resposta.Content.ReadFromJsonAsync<List<SessaoDTO>>() ?? new();
     }
 
-    public async Task<List<SessaoDto>> GetSessoesPorFestivalAsync(int festivalId)
+    public async Task<List<SessaoDTO>> ObterSessoesPorFestivalAsync(int festivalId)
     {
         var resposta = await _http.GetAsync($"api/sessoes/festival/{festivalId}");
 
         if (!resposta.IsSuccessStatusCode)
             return new();
 
-        return await resposta.Content.ReadFromJsonAsync<List<SessaoDto>>() ?? new();
+        return await resposta.Content.ReadFromJsonAsync<List<SessaoDTO>>() ?? new();
     }
 }

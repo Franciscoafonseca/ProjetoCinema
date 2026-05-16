@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class AcessoUtilizadorDto
+public class AcessoUtilizadorDTO
 {
     public int Id { get; set; }
 
@@ -27,4 +27,4 @@ public class AcessoUtilizadorDto
     public bool Ativo { get; set; }
 }
 
-public class AcessoUtilizadorReadDto : AcessoUtilizadorDto { }
+public class AcessoUtilizadorReadDTO : AcessoUtilizadorDTO { }

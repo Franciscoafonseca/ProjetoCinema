@@ -4,13 +4,13 @@ namespace OnlineCinemaFestival.Api.Repositories;
 
 public interface IUtilizadorRepository
 {
-    Task<Utilizador?> GetByIdAsync(int id);
+    Task<Utilizador?> ObterPorIdAsync(int id);
 
-    Task<Utilizador?> GetByEmailAsync(string email);
+    Task<Utilizador?> ObterPorEmailAsync(string email);
 
-    Task<Utilizador?> GetWithProfileAsync(int id);
+    Task<Utilizador?> ObterComPerfilAsync(int id);
 
-    Task<List<Utilizador>> GetPublicProfilesAsync();
+    Task<List<Utilizador>> ObterPerfisPublicosAsync();
 
     Task AddAsync(Utilizador utilizador);
 

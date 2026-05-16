@@ -5,7 +5,7 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class AcessoMapper
 {
-    public static Acesso MapFromCreateDto(AcessoCreateDto dto)
+    public static Acesso MapFromCreateDTO(AcessoCreateDTO dto)
     {
         return new Acesso
         {
@@ -24,9 +24,9 @@ public static class AcessoMapper
         };
     }
 
-    public static AcessoReadDto MapToReadDto(Acesso acesso)
+    public static AcessoReadDTO MapToReadDTO(Acesso acesso)
     {
-        return new AcessoReadDto
+        return new AcessoReadDTO
         {
             Id = acesso.Id,
             Nome = acesso.Nome,
@@ -52,7 +52,7 @@ public static class AcessoMapper
         };
     }
 
-    public static void MapToExistingAcesso(AcessoUpdateDto dto, Acesso acesso)
+    public static void MapToExistingAcesso(AcessoUpdateDTO dto, Acesso acesso)
     {
         acesso.Nome = dto.Nome.Trim();
         acesso.Descricao = dto.Descricao?.Trim();

@@ -12,19 +12,19 @@ public class FestivalService
         _http = http;
     }
 
-    public async Task<List<FestivalDto>> GetFestivaisAsync()
+    public async Task<List<FestivalDTO>> ObterFestivaisAsync()
     {
-        return await _http.GetFromJsonAsync<List<FestivalDto>>("api/festivals") ?? new();
+        return await _http.GetFromJsonAsync<List<FestivalDTO>>("api/festivals") ?? new();
     }
 
-    public async Task<FestivalDto?> GetFestivalPorIdAsync(int id)
+    public async Task<FestivalDTO?> ObterFestivalPorIdAsync(int id)
     {
-        return await _http.GetFromJsonAsync<FestivalDto>($"api/festivals/{id}");
+        return await _http.GetFromJsonAsync<FestivalDTO>($"api/festivals/{id}");
     }
 
-    public async Task<List<FilmeDto>> GetFilmesDoFestivalAsync(int festivalId)
+    public async Task<List<FilmeDTO>> ObterFilmesDoFestivalAsync(int festivalId)
     {
-        return await _http.GetFromJsonAsync<List<FilmeDto>>($"api/festivals/{festivalId}/filmes")
+        return await _http.GetFromJsonAsync<List<FilmeDTO>>($"api/festivals/{festivalId}/filmes")
             ?? new();
     }
 }

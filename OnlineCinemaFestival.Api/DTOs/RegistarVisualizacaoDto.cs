@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class RegistarVisualizacaoDto
+public class RegistarVisualizacaoDTO
 {
     [Required]
     public int FilmeId { get; set; }

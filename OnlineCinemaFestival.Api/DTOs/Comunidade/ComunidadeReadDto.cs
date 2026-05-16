@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ComunidadeReadDto
+public class ComunidadeReadDTO
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

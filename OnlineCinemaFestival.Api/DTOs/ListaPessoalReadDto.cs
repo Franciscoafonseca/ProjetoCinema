@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ListaPessoalDto
+public class ListaPessoalDTO
 {
     public int Id { get; set; }
 
@@ -24,7 +24,7 @@ public class ListaPessoalDto
 
     public int TotalFilmes { get; set; }
 
-    public List<ListaPessoalItemReadDto> Items { get; set; } = new();
+    public List<ListaPessoalItemReadDTO> Items { get; set; } = new();
 }
 
-public class ListaPessoalReadDto : ListaPessoalDto { }
+public class ListaPessoalReadDTO : ListaPessoalDTO { }

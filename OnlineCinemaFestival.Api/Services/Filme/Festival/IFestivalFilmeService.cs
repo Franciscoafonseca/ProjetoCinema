@@ -8,5 +8,5 @@ public interface IFestivalFilmeService
 
     Task RemoverFilmeAsync(int festivalId, int filmeId);
 
-    Task<IEnumerable<FilmeReadDto>> GetFilmesByFestivalAsync(int festivalId);
+    Task<IEnumerable<FilmeReadDTO>> ObterFilmesPorFestivalAsync(int festivalId);
 }

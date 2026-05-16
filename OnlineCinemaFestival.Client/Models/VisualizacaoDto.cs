@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Client.Models;
 
-public class VisualizacaoDto
+public class VisualizacaoDTO
 {
     public string TipoConteudo { get; set; } = string.Empty;
 
@@ -12,10 +12,10 @@ public class VisualizacaoDto
 
     public string Mensagem { get; set; } = string.Empty;
 
-    public List<ConteudoVisualizacaoDto> Conteudos { get; set; } = new();
+    public List<ConteudoVisualizacaoDTO> Conteudos { get; set; } = new();
 }
 
-public class ConteudoVisualizacaoDto
+public class ConteudoVisualizacaoDTO
 {
     public int FilmeId { get; set; }
 
@@ -28,7 +28,7 @@ public class ConteudoVisualizacaoDto
     public string UrlVisualizacao { get; set; } = string.Empty;
 }
 
-public class VisualizacaoHistoricoDto
+public class VisualizacaoHistoricoDTO
 {
     public int Id { get; set; }
 
@@ -57,7 +57,7 @@ public class VisualizacaoHistoricoDto
     public DateTime VisualizadoEm { get; set; }
 }
 
-public class ValidacaoAcessoDto
+public class ValidacaoAcessoDTO
 {
     public bool TemAcesso { get; set; }
 

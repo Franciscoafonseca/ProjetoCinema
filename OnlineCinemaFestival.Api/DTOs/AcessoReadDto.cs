@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class AcessoDto
+public class AcessoDTO
 {
     public int Id { get; set; }
 
@@ -35,4 +35,4 @@ public class AcessoDto
     public DateTime CriadoEm { get; set; }
 }
 
-public class AcessoReadDto : AcessoDto { }
+public class AcessoReadDTO : AcessoDTO { }

@@ -19,13 +19,13 @@ public class CatalogoController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> GetCatalogo(
-        [FromQuery] CatalogoQueryDto query
+    public async Task<ActionResult<IEnumerable<FilmeResumoDTO>>> GetCatalogo(
+        [FromQuery] CatalogoQueryDTO query
     )
     {
         try
         {
-            var filmes = await _service.GetCatalogoAsync(query);
+            var filmes = await _service.ObterCatalogoAsync(query);
 
             return Ok(filmes);
         }
@@ -40,14 +40,14 @@ public class CatalogoController : ControllerBase
     }
 
     [HttpGet("festival/{festivalId:int}")]
-    public async Task<ActionResult<IEnumerable<FilmeResumoDto>>> GetCatalogoByFestival(
+    public async Task<ActionResult<IEnumerable<FilmeResumoDTO>>> GetCatalogoByFestival(
         int festivalId,
-        [FromQuery] CatalogoQueryDto query
+        [FromQuery] CatalogoQueryDTO query
     )
     {
         try
         {
-            var filmes = await _service.GetFilmesByFestivalAsync(festivalId, query);
+            var filmes = await _service.ObterFilmesPorFestivalAsync(festivalId, query);
 
             return Ok(filmes);
         }
@@ -62,9 +62,9 @@ public class CatalogoController : ControllerBase
     }
 
     [HttpGet("filmes/{filmeId:int}")]
-    public async Task<ActionResult<FilmeDetalheDto>> GetFilmeDetalhes(int filmeId)
+    public async Task<ActionResult<FilmeDetalheDTO>> GetFilmeDetalhes(int filmeId)
     {
-        var filme = await _service.GetFilmeDetalhesAsync(filmeId);
+        var filme = await _service.ObterDetalhesFilmeAsync(filmeId);
 
         if (filme == null)
             return NotFound("Filme não encontrado.");

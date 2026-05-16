@@ -21,13 +21,13 @@ public class VisualizacaoService : IVisualizacaoService
         _tmdbService = tmdbService;
     }
 
-    public async Task<VisualizacaoReadDto> ObterVisualizacaoFilmeAsync(
+    public async Task<VisualizacaoReadDTO> ObterVisualizacaoFilmeAsync(
         int utilizadorId,
         int filmeId,
         int? festivalId
     )
     {
-        var filme = await _visualizacaoRepository.GetFilmeByIdAsync(filmeId);
+        var filme = await _visualizacaoRepository.ObterFilmePorIdAsync(filmeId);
 
         if (filme == null)
             throw new KeyNotFoundException("Filme nao encontrado.");
@@ -55,14 +55,14 @@ public class VisualizacaoService : IVisualizacaoService
             url
         );
 
-        return new VisualizacaoReadDto
+        return new VisualizacaoReadDTO
         {
             TipoConteudo = "Filme",
             FilmeId = filme.Id,
             SessaoId = null,
             TemChatAoVivo = false,
             Mensagem = "Acesso autorizado ao filme.",
-            Conteudos = new List<ConteudoVisualizacaoDto>
+            Conteudos = new List<ConteudoVisualizacaoDTO>
             {
                 new()
                 {
@@ -76,12 +76,12 @@ public class VisualizacaoService : IVisualizacaoService
         };
     }
 
-    public async Task<VisualizacaoReadDto> ObterVisualizacaoSessaoAsync(
+    public async Task<VisualizacaoReadDTO> ObterVisualizacaoSessaoAsync(
         int utilizadorId,
         int sessaoId
     )
     {
-        var sessao = await _visualizacaoRepository.GetSessaoByIdAsync(sessaoId);
+        var sessao = await _visualizacaoRepository.ObterSessaoPorIdAsync(sessaoId);
 
         if (sessao == null)
             throw new KeyNotFoundException("Sessao nao encontrada.");
@@ -96,7 +96,7 @@ public class VisualizacaoService : IVisualizacaoService
                 "Nao possui acesso valido para visualizar esta sessao."
             );
 
-        var conteudos = new List<ConteudoVisualizacaoDto>();
+        var conteudos = new List<ConteudoVisualizacaoDTO>();
 
         foreach (var sessaoFilme in sessao.FilmesDaSessao.OrderBy(sf => sf.Ordem))
         {
@@ -108,7 +108,7 @@ public class VisualizacaoService : IVisualizacaoService
             var url = await ObterUrlVisualizacaoAsync(filme);
 
             conteudos.Add(
-                new ConteudoVisualizacaoDto
+                new ConteudoVisualizacaoDTO
                 {
                     FilmeId = filme.Id,
                     Titulo = filme.Titulo,
@@ -127,7 +127,7 @@ public class VisualizacaoService : IVisualizacaoService
             conteudos
         );
 
-        return new VisualizacaoReadDto
+        return new VisualizacaoReadDTO
         {
             TipoConteudo = "Sessao",
             FilmeId = null,
@@ -138,21 +138,21 @@ public class VisualizacaoService : IVisualizacaoService
         };
     }
 
-    public async Task<IEnumerable<VisualizacaoHistoricoReadDto>> ObterHistoricoDoUtilizadorAsync(
+    public async Task<IEnumerable<VisualizacaoHistoricoReadDTO>> ObterHistoricoDoUtilizadorAsync(
         int utilizadorId
     )
     {
-        var visualizacoes = await _visualizacaoRepository.GetByUtilizadorIdAsync(utilizadorId);
+        var visualizacoes = await _visualizacaoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
-        return visualizacoes.Select(MapToHistoricoDto);
+        return visualizacoes.Select(MapToHistoricoDTO);
     }
 
-    public async Task<VisualizacaoHistoricoReadDto> RegistarVisualizacaoAsync(
+    public async Task<VisualizacaoHistoricoReadDTO> RegistarVisualizacaoAsync(
         int utilizadorId,
-        RegistarVisualizacaoDto dto
+        RegistarVisualizacaoDTO dto
     )
     {
-        var filme = await _visualizacaoRepository.GetFilmeByIdAsync(dto.FilmeId);
+        var filme = await _visualizacaoRepository.ObterFilmePorIdAsync(dto.FilmeId);
 
         if (filme == null)
             throw new KeyNotFoundException("Filme nao encontrado.");
@@ -163,7 +163,7 @@ public class VisualizacaoService : IVisualizacaoService
 
         if (dto.SessaoId.HasValue)
         {
-            var sessao = await _visualizacaoRepository.GetSessaoByIdAsync(dto.SessaoId.Value);
+            var sessao = await _visualizacaoRepository.ObterSessaoPorIdAsync(dto.SessaoId.Value);
 
             if (sessao == null)
                 throw new KeyNotFoundException("Sessao nao encontrada.");
@@ -215,7 +215,7 @@ public class VisualizacaoService : IVisualizacaoService
         await _visualizacaoRepository.AddAsync(visualizacao);
         await _visualizacaoRepository.SaveChangesAsync();
 
-        return new VisualizacaoHistoricoReadDto
+        return new VisualizacaoHistoricoReadDTO
         {
             Id = visualizacao.Id,
             FilmeId = filme.Id,
@@ -241,7 +241,7 @@ public class VisualizacaoService : IVisualizacaoService
         if (!string.IsNullOrWhiteSpace(filme.ConteudoLocalPath))
             return filme.ConteudoLocalPath;
 
-        var trailerUrl = await _tmdbService.GetTrailerUrlAsync(filme.TmdbId);
+        var trailerUrl = await _tmdbService.ObterTrailerUrlAsync(filme.TmdbId);
 
         if (!string.IsNullOrWhiteSpace(trailerUrl))
             return trailerUrl;
@@ -281,7 +281,7 @@ public class VisualizacaoService : IVisualizacaoService
         int sessaoId,
         int festivalId,
         TipoAcesso tipoAcessoUsado,
-        IEnumerable<ConteudoVisualizacaoDto> conteudos
+        IEnumerable<ConteudoVisualizacaoDTO> conteudos
     )
     {
         var agora = DateTime.UtcNow;
@@ -301,9 +301,9 @@ public class VisualizacaoService : IVisualizacaoService
         await _visualizacaoRepository.SaveChangesAsync();
     }
 
-    private static VisualizacaoHistoricoReadDto MapToHistoricoDto(Visualizacao visualizacao)
+    private static VisualizacaoHistoricoReadDTO MapToHistoricoDTO(Visualizacao visualizacao)
     {
-        return new VisualizacaoHistoricoReadDto
+        return new VisualizacaoHistoricoReadDTO
         {
             Id = visualizacao.Id,
             FilmeId = visualizacao.FilmeId,

@@ -19,7 +19,7 @@ public class BilheteSessaoValidacaoStrategy : IEstrategiaValidacaoAcesso
 
     public string Descricao => "Bilhete válido para uma sessão específica.";
 
-    public async Task ValidarAsync(AcessoCreateDto dto)
+    public async Task ValidarAsync(AcessoCreateDTO dto)
     {
         if (!dto.SessaoId.HasValue)
             throw new ArgumentException("Um bilhete de sessão precisa de SessaoId.");
@@ -34,7 +34,7 @@ public class BilheteSessaoValidacaoStrategy : IEstrategiaValidacaoAcesso
                 "Bilhete de sessao deve indicar apenas SessaoId como alvo."
             );
 
-        var sessao = await _sessaoRepository.GetByIdAsync(dto.SessaoId.Value);
+        var sessao = await _sessaoRepository.ObterPorIdAsync(dto.SessaoId.Value);
 
         if (sessao == null)
             throw new KeyNotFoundException("Sessão não encontrada.");

@@ -1,0 +1,139 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Administrador")]
+@inject FilmeService FilmeService
+@inject FestivalService FestivalService
+@inject SessaoService SessaoService
+@inject AcessoService AcessoService
+
+<PageTitle>Admin - Online Cinema Festival</PageTitle>
+
+<main class="cinema-page admin-page">
+    <section class="cinema-shell">
+        <header class="cinema-page-head">
+            <div>
+                <span class="cinema-kicker">Admin basico</span>
+                <h1>Painel operacional</h1>
+                <p>
+                    Visao rapida do catalogo, festivais, sessoes e acessos para acompanhar o estado
+                    principal da plataforma.
+                </p>
+            </div>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Movie"
+                       Href="/catalogo">
+                Catalogo
+            </MudButton>
+        </header>
+
+        @if (_aCarregar)
+        {
+            <div class="cinema-state">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <p>A carregar painel...</p>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_erro))
+        {
+            <div class="cinema-state error">@_erro</div>
+        }
+        else
+        {
+            <section class="admin-metricas">
+                @foreach (var metrica in _metricas)
+                {
+                    <MudCard Elevation="0" Class="cinema-panel admin-metrica">
+                        <MudCardContent>
+                            <MudIcon Icon="@metrica.Icone" Color="@metrica.Cor" Size="Size.Large" />
+                            <strong>@metrica.Valor</strong>
+                            <span>@metrica.Rotulo</span>
+                        </MudCardContent>
+                    </MudCard>
+                }
+            </section>
+
+            <section class="admin-acoes">
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <span class="cinema-kicker">Gestao</span>
+                        <h2>Atalhos</h2>
+                        <div class="admin-links">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="/festivais">Festivais</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="/sessoes">Sessoes</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="/acessos">Acessos</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="/compras">Compras</MudButton>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <span class="cinema-kicker">Estado</span>
+                        <h2>Proximas sessoes</h2>
+                        @if (_sessoes.Count == 0)
+                        {
+                            <p class="admin-muted">Sem sessoes disponiveis.</p>
+                        }
+                        else
+                        {
+                            <div class="admin-lista">
+                                @foreach (var sessao in _sessoes.Take(5))
+                                {
+                                    <a href="@($"/visualizar/sessao/{sessao.Id}")">
+                                        <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM HH:mm")</span>
+                                        <strong>@TituloSessao(sessao)</strong>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </section>
+        }
+    </section>
+</main>
+
+@code {
+    private readonly List<MetricaAdmin> _metricas = new();
+    private List<SessaoDTO> _sessoes = new();
+    private bool _aCarregar = true;
+    private string? _erro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var filmes = await FilmeService.ObterFilmesAsync();
+            var festivais = await FestivalService.ObterFestivaisAsync();
+            _sessoes = await SessaoService.ObterSessoesDisponiveisAsync();
+            var acessos = await AcessoService.ObterAcessosAsync();
+
+            _metricas.AddRange(
+                new[]
+                {
+                    new MetricaAdmin("Filmes", filmes.Count, Icons.Material.Filled.Movie, Color.Primary),
+                    new MetricaAdmin("Festivais", festivais.Count, Icons.Material.Filled.Festival, Color.Secondary),
+                    new MetricaAdmin("Sessoes", _sessoes.Count, Icons.Material.Filled.Event, Color.Warning),
+                    new MetricaAdmin("Acessos", acessos.Count, Icons.Material.Filled.ConfirmationNumber, Color.Success),
+                }
+            );
+        }
+        catch
+        {
+            _erro = "Nao foi possivel carregar os dados administrativos.";
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private static string TituloSessao(SessaoDTO sessao)
+    {
+        return string.IsNullOrWhiteSpace(sessao.Filme)
+            ? $"Sessao #{sessao.Id}"
+            : sessao.Filme;
+    }
+
+    private sealed record MetricaAdmin(string Rotulo, int Valor, string Icone, Color Cor);
+}

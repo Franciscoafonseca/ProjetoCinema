@@ -5,11 +5,11 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class CarrinhoMapper
 {
-    public static CarrinhoReadDto MapToReadDto(Carrinho carrinho)
+    public static CarrinhoReadDTO MapToReadDTO(Carrinho carrinho)
     {
-        var itens = carrinho.Itens.OrderBy(i => i.DataAdicao).Select(MapItemToReadDto).ToList();
+        var itens = carrinho.Itens.OrderBy(i => i.DataAdicao).Select(MapItemToReadDTO).ToList();
 
-        return new CarrinhoReadDto
+        return new CarrinhoReadDTO
         {
             Id = carrinho.Id,
             UtilizadorId = carrinho.UtilizadorId,
@@ -18,13 +18,13 @@ public static class CarrinhoMapper
         };
     }
 
-    private static ItemCarrinhoReadDto MapItemToReadDto(CarrinhoItem item)
+    private static ItemCarrinhoReadDTO MapItemToReadDTO(CarrinhoItem item)
     {
         var primeiroFilmeSessao = item
             .Acesso.Sessao?.FilmesDaSessao.OrderBy(sf => sf.Ordem)
             .FirstOrDefault();
 
-        return new ItemCarrinhoReadDto
+        return new ItemCarrinhoReadDTO
         {
             Id = item.Id,
             AcessoId = item.AcessoId,

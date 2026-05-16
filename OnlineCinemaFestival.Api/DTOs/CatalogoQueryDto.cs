@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class CatalogoQueryDto
+public class CatalogoQueryDTO
 {
     public int? FestivalId { get; set; }
 

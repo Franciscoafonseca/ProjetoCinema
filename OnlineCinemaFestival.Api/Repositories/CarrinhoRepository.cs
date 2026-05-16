@@ -13,7 +13,7 @@ public class CarrinhoRepository : ICarrinhoRepository
         _context = context;
     }
 
-    public async Task<Carrinho?> GetByUtilizadorIdAsync(int utilizadorId)
+    public async Task<Carrinho?> ObterPorUtilizadorIdAsync(int utilizadorId)
     {
         return await _context
             .Carrinhos.Include(c => c.Itens)
@@ -34,9 +34,9 @@ public class CarrinhoRepository : ICarrinhoRepository
             .FirstOrDefaultAsync(c => c.UtilizadorId == utilizadorId);
     }
 
-    public async Task<Carrinho> GetOrCreateByUtilizadorIdAsync(int utilizadorId)
+    public async Task<Carrinho> ObterOuCriarPorUtilizadorIdAsync(int utilizadorId)
     {
-        var carrinho = await GetByUtilizadorIdAsync(utilizadorId);
+        var carrinho = await ObterPorUtilizadorIdAsync(utilizadorId);
 
         if (carrinho != null)
             return carrinho;
@@ -49,7 +49,7 @@ public class CarrinhoRepository : ICarrinhoRepository
         return carrinho;
     }
 
-    public async Task<CarrinhoItem?> GetItemAsync(int carrinhoId, int itemId)
+    public async Task<CarrinhoItem?> ObterItemAsync(int carrinhoId, int itemId)
     {
         return await _context
             .ItensCarrinho.Include(i => i.Acesso)
@@ -66,7 +66,7 @@ public class CarrinhoRepository : ICarrinhoRepository
             .FirstOrDefaultAsync(i => i.CarrinhoId == carrinhoId && i.Id == itemId);
     }
 
-    public async Task<CarrinhoItem?> GetItemByAcessoAsync(int carrinhoId, int acessoId)
+    public async Task<CarrinhoItem?> ObterItemPorAcessoAsync(int carrinhoId, int acessoId)
     {
         return await _context.ItensCarrinho.FirstOrDefaultAsync(i =>
             i.CarrinhoId == carrinhoId && i.AcessoId == acessoId

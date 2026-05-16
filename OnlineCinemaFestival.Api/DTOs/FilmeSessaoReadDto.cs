@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class FilmeSessaoReadDto
+public class FilmeSessaoReadDTO
 {
     public int Id { get; set; }
     public string Titulo { get; set; } = string.Empty;

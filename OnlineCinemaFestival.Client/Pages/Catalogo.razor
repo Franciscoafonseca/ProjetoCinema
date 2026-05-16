@@ -160,10 +160,10 @@
 </main>
 
 @code {
-    private List<FilmeDto> _filmesInternos = new();
-    private List<FilmeDto> _filmesFiltrados = new();
-    private List<FilmeDto> _tmdbIniciais = new();
-    private List<FilmeDto> _resultadosPesquisa = new();
+    private List<FilmeDTO> _filmesInternos = new();
+    private List<FilmeDTO> _filmesFiltrados = new();
+    private List<FilmeDTO> _tmdbIniciais = new();
+    private List<FilmeDTO> _resultadosPesquisa = new();
     private List<string> _generos = new();
     private readonly HashSet<string> _generosSelecionados = new(StringComparer.OrdinalIgnoreCase);
     private string? _pesquisa;
@@ -172,14 +172,14 @@
     private bool _aPesquisar;
     private bool _aImportar;
 
-    private List<FilmeDto> ResultadosAtuais => _aPesquisar ? _resultadosPesquisa : _tmdbIniciais;
+    private List<FilmeDTO> ResultadosAtuais => _aPesquisar ? _resultadosPesquisa : _tmdbIniciais;
 
     protected override async Task CarregarDadosAsync()
     {
-        _filmesInternos = await FilmeService.GetFilmesAsync();
+        _filmesInternos = await FilmeService.ObterFilmesAsync();
         _filmesFiltrados = _filmesInternos.Take(20).ToList();
         _generos = ExtrairGeneros(_filmesInternos).ToList();
-        _tmdbIniciais = await TmdbService.GetFilmesIniciaisAsync();
+        _tmdbIniciais = await TmdbService.ObterFilmesIniciaisAsync();
     }
 
     private async Task OnPesquisaAlterada(string? valor)
@@ -200,7 +200,7 @@
         await AplicarFiltrosInternos();
     }
 
-    private async Task Importar(FilmeDto filme)
+    private async Task Importar(FilmeDTO filme)
     {
         _mensagemImportacao = null;
         _aImportar = true;
@@ -208,7 +208,7 @@
         try
         {
             var importado = await FilmeService.ImportarTmdbAsync(filme.TmdbId);
-            _filmesInternos = await FilmeService.GetFilmesAsync();
+            _filmesInternos = await FilmeService.ObterFilmesAsync();
             _filmesFiltrados = _filmesInternos.Take(20).ToList();
             Nav.NavigateTo($"/filmes/{importado.Id}");
         }
@@ -223,7 +223,7 @@
         }
     }
 
-    private void AbrirExistente(FilmeDto filme)
+    private void AbrirExistente(FilmeDTO filme)
     {
         var existente = _filmesInternos.FirstOrDefault(f => f.TmdbId == filme.TmdbId);
         if (existente != null)
@@ -246,7 +246,7 @@
 
     private Task AplicarFiltrosInternos()
     {
-        IEnumerable<FilmeDto> filmes = _filmesInternos;
+        IEnumerable<FilmeDTO> filmes = _filmesInternos;
 
         if (!string.IsNullOrWhiteSpace(_pesquisa))
         {
@@ -269,19 +269,19 @@
         return Task.CompletedTask;
     }
 
-    private bool FilmeJaExiste(FilmeDto filme)
+    private bool FilmeJaExiste(FilmeDTO filme)
     {
         return filme.TmdbId > 0 && _filmesInternos.Any(f => f.TmdbId == filme.TmdbId);
     }
 
-    private static IEnumerable<string> ExtrairGeneros(IEnumerable<FilmeDto> filmes)
+    private static IEnumerable<string> ExtrairGeneros(IEnumerable<FilmeDTO> filmes)
     {
         return filmes.SelectMany(GenerosDoFilme)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(g => g);
     }
 
-    private static IEnumerable<string> GenerosDoFilme(FilmeDto filme)
+    private static IEnumerable<string> GenerosDoFilme(FilmeDTO filme)
     {
         if (filme.Generos.Count > 0)
             return filme.Generos.Where(g => !string.IsNullOrWhiteSpace(g));
@@ -304,19 +304,19 @@
         };
     }
 
-    private static string ImagemFilme(FilmeDto filme)
+    private static string ImagemFilme(FilmeDTO filme)
     {
         return string.IsNullOrWhiteSpace(filme.CapaUrl)
             ? "https://placehold.co/500x750/111827/ffffff?text=OCF"
             : filme.CapaUrl;
     }
 
-    private static string AnoFilme(FilmeDto filme)
+    private static string AnoFilme(FilmeDTO filme)
     {
         return filme.DataLancamento == default ? "N/D" : filme.DataLancamento.Year.ToString();
     }
 
-    private static string GeneroFilme(FilmeDto filme)
+    private static string GeneroFilme(FilmeDTO filme)
     {
         if (filme.Generos.Count > 0)
             return string.Join(", ", filme.Generos.Take(2));
@@ -324,7 +324,7 @@
         return filme.Genero ?? string.Empty;
     }
 
-    private static string SinopseCurta(FilmeDto filme)
+    private static string SinopseCurta(FilmeDTO filme)
     {
         if (string.IsNullOrWhiteSpace(filme.Sinopse))
             return "Sem sinopse disponivel.";

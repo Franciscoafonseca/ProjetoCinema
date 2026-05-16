@@ -196,7 +196,7 @@ public static class DbSeeder
         {
             Name = "Administrador",
             Email = emailAdmin,
-            Role = UserRole.Admin,
+            Role = PapelUtilizador.Administrador,
             IsActive = true,
             Nationality = "Portugal",
             CreatedAt = DateTime.UtcNow,
@@ -237,7 +237,7 @@ public static class DbSeeder
             {
                 Name = i <= 8 ? $"Utilizador Teste {i}" : faker.Name.FullName(),
                 Email = email,
-                Role = UserRole.User,
+                Role = PapelUtilizador.Utilizador,
                 IsActive = true,
                 Nationality = Nacionalidades[SeedRandom.Next(Nacionalidades.Length)],
                 CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 180)),

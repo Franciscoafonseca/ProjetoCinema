@@ -5,9 +5,9 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class FestivalMapper
 {
-    public static FestivalReadDto MapToReadDto(Festival festival)
+    public static FestivalReadDTO MapToReadDTO(Festival festival)
     {
-        return new FestivalReadDto
+        return new FestivalReadDTO
         {
             Id = festival.Id,
             Name = festival.Name,
@@ -15,8 +15,8 @@ public static class FestivalMapper
             StartDate = festival.StartDate,
             EndDate = festival.EndDate,
             Premios = festival.Premios,
-            Filmes = festival.FestivalFilmes.Select(ff => (FilmeResumoDto)FilmeMapper.MapToReadDto(ff.Filme)).ToList(),
-            Sessoes = festival.Sessoes.Select(s => (SessaoResumoDto)SessaoMapper.MapToReadDto(s)).ToList(),
+            Filmes = festival.FestivalFilmes.Select(ff => (FilmeResumoDTO)FilmeMapper.MapToReadDTO(ff.Filme)).ToList(),
+            Sessoes = festival.Sessoes.Select(s => (SessaoResumoDTO)SessaoMapper.MapToReadDTO(s)).ToList(),
             PassesDisponiveis = festival
                 .Acessos.Where(a =>
                     a.IsAtivo
@@ -25,12 +25,12 @@ public static class FestivalMapper
                         || a.Tipo == TipoAcesso.PasseCompleto
                     )
                 )
-                .Select(AcessoMapper.MapToReadDto)
+                .Select(AcessoMapper.MapToReadDTO)
                 .ToList(),
         };
     }
 
-    public static Festival MapFromCreateDto(FestivalCreateDto dto)
+    public static Festival MapFromCreateDTO(FestivalCreateDTO dto)
     {
         return new Festival
         {
@@ -41,7 +41,7 @@ public static class FestivalMapper
         };
     }
 
-    public static void MapToExistingFestival(FestivalUpdateDto dto, Festival festival)
+    public static void MapToExistingFestival(FestivalUpdateDTO dto, Festival festival)
     {
         festival.Name = dto.Name.Trim();
         festival.Description = dto.Description.Trim();

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class ComunidadeCreateDto
+public class ComunidadeCreateDTO
 {
     [Required]
     public string Name { get; set; } = string.Empty;

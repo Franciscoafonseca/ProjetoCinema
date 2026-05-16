@@ -23,7 +23,7 @@ public class VisualizacaoService
         _http = http;
     }
 
-    public async Task<VisualizacaoDto> ObterFilmeAsync(int filmeId, int? festivalId = null)
+    public async Task<VisualizacaoDTO> ObterFilmeAsync(int filmeId, int? festivalId = null)
     {
         var url = festivalId.HasValue
             ? $"api/visualizacao/filme/{filmeId}?festivalId={festivalId.Value}"
@@ -32,19 +32,19 @@ public class VisualizacaoService
         return await ObterVisualizacaoAsync(url);
     }
 
-    public async Task<VisualizacaoDto> ObterSessaoAsync(int sessaoId)
+    public async Task<VisualizacaoDTO> ObterSessaoAsync(int sessaoId)
     {
         return await ObterVisualizacaoAsync($"api/visualizacao/sessao/{sessaoId}");
     }
 
-    public async Task<List<VisualizacaoHistoricoDto>> ObterHistoricoAsync()
+    public async Task<List<VisualizacaoHistoricoDTO>> ObterHistoricoAsync()
     {
-        return await _http.GetFromJsonAsync<List<VisualizacaoHistoricoDto>>(
+        return await _http.GetFromJsonAsync<List<VisualizacaoHistoricoDTO>>(
                 "api/visualizacao/historico"
             ) ?? new();
     }
 
-    private async Task<VisualizacaoDto> ObterVisualizacaoAsync(string url)
+    private async Task<VisualizacaoDTO> ObterVisualizacaoAsync(string url)
     {
         var resposta = await _http.GetAsync(url);
 
@@ -57,7 +57,7 @@ public class VisualizacaoService
             );
         }
 
-        return await resposta.Content.ReadFromJsonAsync<VisualizacaoDto>()
+        return await resposta.Content.ReadFromJsonAsync<VisualizacaoDTO>()
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 }

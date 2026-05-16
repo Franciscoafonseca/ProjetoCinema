@@ -4,5 +4,5 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface ICompraService
 {
-    Task<IEnumerable<CompraReadDto>> ObterComprasDoUtilizadorAsync(int utilizadorId);
+    Task<IEnumerable<CompraReadDTO>> ObterComprasDoUtilizadorAsync(int utilizadorId);
 }

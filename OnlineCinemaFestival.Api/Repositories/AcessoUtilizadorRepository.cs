@@ -18,7 +18,7 @@ public class AcessoUtilizadorRepository : IAcessoUtilizadorRepository
         await _context.AcessosUtilizador.AddRangeAsync(acessos);
     }
 
-    public async Task<IEnumerable<AcessoUtilizador>> GetByUtilizadorIdAsync(int utilizadorId)
+    public async Task<IEnumerable<AcessoUtilizador>> ObterPorUtilizadorIdAsync(int utilizadorId)
     {
         return await _context
             .AcessosUtilizador.Where(a => a.UtilizadorId == utilizadorId)
@@ -27,7 +27,7 @@ public class AcessoUtilizadorRepository : IAcessoUtilizadorRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<AcessoUtilizador>> GetAtivosByUtilizadorIdAsync(
+    public async Task<IEnumerable<AcessoUtilizador>> ObterAtivosPorUtilizadorIdAsync(
         int utilizadorId,
         DateTime dataAtual
     )

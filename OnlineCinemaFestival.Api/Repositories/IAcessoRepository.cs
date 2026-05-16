@@ -4,9 +4,9 @@ namespace OnlineCinemaFestival.Api.Repositories;
 
 public interface IAcessoRepository
 {
-    Task<IEnumerable<Acesso>> GetAllAsync();
+    Task<IEnumerable<Acesso>> ObterTodosAsync();
 
-    Task<Acesso?> GetByIdAsync(int id);
+    Task<Acesso?> ObterPorIdAsync(int id);
 
     Task<Acesso?> GetAtivoParaCarrinhoAsync(
         TipoAcesso tipo,

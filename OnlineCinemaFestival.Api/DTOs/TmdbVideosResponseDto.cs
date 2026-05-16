@@ -2,16 +2,16 @@ using System.Text.Json.Serialization;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class TmdbVideosResponseDto
+public class TmdbVideosResponseDTO
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
 
     [JsonPropertyName("results")]
-    public List<TmdbVideoDto> Results { get; set; } = new();
+    public List<TmdbVideoDTO> Results { get; set; } = new();
 }
 
-public class TmdbVideoDto
+public class TmdbVideoDTO
 {
     [JsonPropertyName("key")]
     public string Key { get; set; } = string.Empty;

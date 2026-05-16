@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class FilmeDto
+public class FilmeDTO
 {
     public int Id { get; set; }
 

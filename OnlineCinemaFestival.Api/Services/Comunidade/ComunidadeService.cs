@@ -20,26 +20,26 @@ public class ComunidadeService : IComunidadeService
         _utilizadorRepository = utilizadorRepository;
     }
 
-    public async Task<IEnumerable<ComunidadeReadDto>> GetAllComunidadesAsync(int usuarioIdPedido)
+    public async Task<IEnumerable<ComunidadeReadDTO>> ObterTodasComunidadesAsync(int usuarioIdPedido)
     {
         var comunidades = await _comunidadeRepository.FindComunidadesAsync(c =>
             c.IsPublic && !c.Members.Any(m => m.UtilizadorId == usuarioIdPedido)
         );
-        return comunidades.Select(ComunidadeMapper.ToReadDto);
+        return comunidades.Select(ComunidadeMapper.ToReadDTO);
     }
 
-    public async Task<IEnumerable<ComunidadeReadDto>> GetMinhasComunidadesAsync(int usuarioId)
+    public async Task<IEnumerable<ComunidadeReadDTO>> ObterMinhasComunidadesAsync(int usuarioId)
     {
         var comunidades = await _comunidadeRepository.FindComunidadesAsync(c =>
             c.Members.Any(m => m.UtilizadorId == usuarioId)
         );
 
-        return comunidades.Select(ComunidadeMapper.ToReadDto);
+        return comunidades.Select(ComunidadeMapper.ToReadDTO);
     }
 
-    public async Task<ComunidadeReadDto?> GetComunidadeByIdAsync(int id, int usuarioIdPedido)
+    public async Task<ComunidadeReadDTO?> ObterComunidadePorIdAsync(int id, int usuarioIdPedido)
     {
-        var comunidade = await _comunidadeRepository.GetComunidadeByIdAsync(id);
+        var comunidade = await _comunidadeRepository.ObterComunidadePorIdAsync(id);
         if (comunidade == null)
             return null;
 
@@ -49,15 +49,15 @@ public class ComunidadeService : IComunidadeService
         if (acessoProibido)
             throw new UnauthorizedAccessException("Acesso negado à comunidade privada");
 
-        return ComunidadeMapper.ToReadDto(comunidade);
+        return ComunidadeMapper.ToReadDTO(comunidade);
     }
 
-    public async Task<ComunidadeReadDto> CreateComunidadeAsync(
-        ComunidadeCreateDto dto,
+    public async Task<ComunidadeReadDTO> CreateComunidadeAsync(
+        ComunidadeCreateDTO dto,
         int criadorUserId
     )
     {
-        var criadorUser = await _utilizadorRepository.GetByIdAsync(criadorUserId);
+        var criadorUser = await _utilizadorRepository.ObterPorIdAsync(criadorUserId);
         if (criadorUser == null)
             throw new Exception("Criador não encontrado");
 
@@ -67,7 +67,7 @@ public class ComunidadeService : IComunidadeService
             new ComunidadeMembro
             {
                 UtilizadorId = criadorUserId,
-                Role = CommunityMemberRole.Owner,
+                Role = PapelMembroComunidade.Proprietario,
                 JoinedAt = DateTime.UtcNow,
             }
         );
@@ -77,6 +77,6 @@ public class ComunidadeService : IComunidadeService
         // Carregar o usuário criador para incluir o nome no DTO de leitura
         result.CreatedByUser = criadorUser;
 
-        return ComunidadeMapper.ToReadDto(result);
+        return ComunidadeMapper.ToReadDTO(result);
     }
 }

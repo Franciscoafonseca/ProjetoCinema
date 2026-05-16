@@ -1,17 +1,17 @@
 namespace OnlineCinemaFestival.Client.Models;
 
-public class CarrinhoDto
+public class CarrinhoDTO
 {
     public int Id { get; set; }
 
     public int UtilizadorId { get; set; }
 
-    public List<ItemCarrinhoDto> Itens { get; set; } = new();
+    public List<ItemCarrinhoDTO> Itens { get; set; } = new();
 
     public decimal Total { get; set; }
 }
 
-public class ItemCarrinhoDto
+public class ItemCarrinhoDTO
 {
     public int Id { get; set; }
 
@@ -50,14 +50,14 @@ public class ItemCarrinhoDto
     public DateTime DataAdicao { get; set; }
 }
 
-public class AdicionarItemCarrinhoDto
+public class AdicionarItemCarrinhoDTO
 {
     public int AcessoId { get; set; }
 
     public int Quantidade { get; set; } = 1;
 }
 
-public class CarrinhoItemCreateDto
+public class CarrinhoItemCreateDTO
 {
     public int TipoAcesso { get; set; }
 
@@ -72,12 +72,12 @@ public class CarrinhoItemCreateDto
     public int Quantidade { get; set; } = 1;
 }
 
-public class CarrinhoItemUpdateDto
+public class CarrinhoItemUpdateDTO
 {
     public int Quantidade { get; set; } = 1;
 }
 
-public class CarrinhoResumoDto
+public class CarrinhoResumoDTO
 {
     public int CarrinhoId { get; set; }
 
@@ -85,21 +85,21 @@ public class CarrinhoResumoDto
 
     public decimal Subtotal { get; set; }
 
-    public List<ItemCarrinhoDto> Itens { get; set; } = new();
+    public List<ItemCarrinhoDTO> Itens { get; set; } = new();
 }
 
-public class CarrinhoValidacaoDto
+public class CarrinhoValidacaoDTO
 {
     public bool Valido { get; set; }
 
     public decimal Total { get; set; }
 
-    public List<CarrinhoErroValidacaoDto> Erros { get; set; } = new();
+    public List<CarrinhoErroValidacaoDTO> Erros { get; set; } = new();
 
     public List<string> Avisos { get; set; } = new();
 }
 
-public class CarrinhoErroValidacaoDto
+public class CarrinhoErroValidacaoDTO
 {
     public int? ItemId { get; set; }
 

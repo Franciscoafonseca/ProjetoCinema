@@ -4,12 +4,12 @@ namespace OnlineCinemaFestival.Api.Repositories;
 
 public interface IGeneroRepository
 {
-    Task<IEnumerable<Genero>> GetAllAsync();
+    Task<IEnumerable<Genero>> ObterTodosAsync();
 
-    Task<Genero?> GetByIdAsync(int id);
+    Task<Genero?> ObterPorIdAsync(int id);
 
     Task AddAsync(Genero genero);
 
     Task SaveChangesAsync();
-    Task<List<Genero>> GetByIdsAsync(IEnumerable<int> ids);
+    Task<List<Genero>> ObterPorIdsAsync(IEnumerable<int> ids);
 }

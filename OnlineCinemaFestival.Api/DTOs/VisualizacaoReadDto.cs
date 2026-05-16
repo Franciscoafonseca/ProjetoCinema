@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class VisualizacaoDto
+public class VisualizacaoDTO
 {
     public string TipoConteudo { get; set; } = string.Empty;
 
@@ -12,7 +12,7 @@ public class VisualizacaoDto
 
     public string Mensagem { get; set; } = string.Empty;
 
-    public List<ConteudoVisualizacaoDto> Conteudos { get; set; } = new();
+    public List<ConteudoVisualizacaoDTO> Conteudos { get; set; } = new();
 }
 
-public class VisualizacaoReadDto : VisualizacaoDto { }
+public class VisualizacaoReadDTO : VisualizacaoDTO { }

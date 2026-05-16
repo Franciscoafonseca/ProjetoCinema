@@ -4,21 +4,21 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface ISessaoService
 {
-    Task<IEnumerable<SessaoReadDto>> GetAllAsync();
+    Task<IEnumerable<SessaoReadDTO>> ObterTodosAsync();
 
-    Task<SessaoReadDto?> GetByIdAsync(int id);
+    Task<SessaoReadDTO?> ObterPorIdAsync(int id);
 
-    Task<IEnumerable<SessaoReadDto>> GetByFestivalIdAsync(int festivalId);
+    Task<IEnumerable<SessaoReadDTO>> ObterPorFestivalIdAsync(int festivalId);
 
-    Task<IEnumerable<SessaoReadDto>> GetByFilmeIdAsync(int filmeId);
+    Task<IEnumerable<SessaoReadDTO>> ObterPorFilmeIdAsync(int filmeId);
 
-    Task<IEnumerable<SessaoReadDto>> GetDisponiveisAsync();
+    Task<IEnumerable<SessaoReadDTO>> ObterDisponiveisAsync();
 
-    Task<SessaoEstadoReadDto> GetEstadoAsync(int id);
+    Task<SessaoEstadoReadDTO> ObterEstadoAsync(int id);
 
-    Task<SessaoReadDto> CreateAsync(SessaoCreateDto dto);
+    Task<SessaoReadDTO> CriarAsync(SessaoCreateDTO dto);
 
-    Task UpdateAsync(int id, SessaoUpdateDto dto);
+    Task AtualizarAsync(int id, SessaoUpdateDTO dto);
 
-    Task DeleteAsync(int id);
+    Task EliminarAsync(int id);
 }

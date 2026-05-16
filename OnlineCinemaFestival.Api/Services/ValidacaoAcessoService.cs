@@ -57,7 +57,7 @@ public class ValidacaoAcessoService : IValidacaoAcessoService
 
     public async Task<bool> PodeVisualizarFilmeAsync(int utilizadorId, int filmeId, int? festivalId)
     {
-        var filme = await _visualizacaoRepository.GetFilmeByIdAsync(filmeId);
+        var filme = await _visualizacaoRepository.ObterFilmePorIdAsync(filmeId);
 
         if (filme == null)
             return false;

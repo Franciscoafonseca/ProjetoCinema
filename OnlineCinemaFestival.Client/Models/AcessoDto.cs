@@ -1,6 +1,6 @@
 namespace OnlineCinemaFestival.Client.Models;
 
-public class AcessoDto
+public class AcessoDTO
 {
     public int Id { get; set; }
 
@@ -33,7 +33,7 @@ public class AcessoDto
     public DateTime CriadoEm { get; set; }
 }
 
-public class TipoAcessoDto
+public class TipoAcessoDTO
 {
     public int Tipo { get; set; }
 
@@ -42,7 +42,7 @@ public class TipoAcessoDto
     public string Descricao { get; set; } = string.Empty;
 }
 
-public class AcessoUtilizadorDto
+public class AcessoUtilizadorDTO
 {
     public int Id { get; set; }
 
@@ -67,4 +67,4 @@ public class AcessoUtilizadorDto
     public bool Ativo { get; set; }
 }
 
-public class AcessoAtivoDto : AcessoUtilizadorDto { }
+public class AcessoAtivoDTO : AcessoUtilizadorDTO { }

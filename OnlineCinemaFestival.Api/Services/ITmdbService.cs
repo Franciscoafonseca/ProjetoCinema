@@ -4,12 +4,12 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface ITmdbService
 {
-    Task<IEnumerable<TmdbFilmeDto>> SearchFilmesTmdbAsync(string query);
-    Task<IEnumerable<TmdbFilmeDto>> GetFilmesIniciaisAsync();
-    Task<TmdbFilmeDto?> GetFilmeByTmdbIdAsync(int tmdbId);
-    Task<IEnumerable<string>> GetAtoresAsync(int tmdbId);
-    Task<string?> GetRealizadorAsync(int tmdbId);
-    Task<IEnumerable<TmdbReviewDto>> GetReviewsAsync(int tmdbId);
-    Task<IEnumerable<TmdbGeneroDto>> GetGenerosAsync();
-    Task<string?> GetTrailerUrlAsync(int tmdbId);
+    Task<IEnumerable<TmdbFilmeDTO>> SearchFilmesTmdbAsync(string query);
+    Task<IEnumerable<TmdbFilmeDTO>> ObterFilmesIniciaisAsync();
+    Task<TmdbFilmeDTO?> ObterFilmePorTmdbIdAsync(int tmdbId);
+    Task<IEnumerable<string>> ObterAtoresAsync(int tmdbId);
+    Task<string?> ObterRealizadorAsync(int tmdbId);
+    Task<IEnumerable<TmdbReviewDTO>> ObterAvaliacoesExternasAsync(int tmdbId);
+    Task<IEnumerable<TmdbGeneroDTO>> ObterGenerosAsync();
+    Task<string?> ObterTrailerUrlAsync(int tmdbId);
 }

@@ -4,12 +4,12 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface ICatalogoService
 {
-    Task<IEnumerable<FilmeReadDto>> GetCatalogoAsync(CatalogoQueryDto query);
+    Task<IEnumerable<FilmeReadDTO>> ObterCatalogoAsync(CatalogoQueryDTO query);
 
-    Task<IEnumerable<FilmeReadDto>> GetFilmesByFestivalAsync(
+    Task<IEnumerable<FilmeReadDTO>> ObterFilmesPorFestivalAsync(
         int festivalId,
-        CatalogoQueryDto query
+        CatalogoQueryDTO query
     );
 
-    Task<FilmeReadDto?> GetFilmeDetalhesAsync(int filmeId);
+    Task<FilmeReadDTO?> ObterDetalhesFilmeAsync(int filmeId);
 }

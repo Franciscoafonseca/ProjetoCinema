@@ -4,15 +4,15 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IFilmeService
 {
-    Task<IEnumerable<FilmeReadDto>> GetAllFilmesAsync();
+    Task<IEnumerable<FilmeReadDTO>> ObterTodosFilmesAsync();
 
-    Task<IEnumerable<FilmeReadDto>> SearchFilmesTmdbAsync(string query);
+    Task<IEnumerable<FilmeReadDTO>> SearchFilmesTmdbAsync(string query);
 
-    Task<IEnumerable<FilmeReadDto>> GetFilmesIniciaisTmdbAsync();
+    Task<IEnumerable<FilmeReadDTO>> ObterFilmesIniciaisTmdbAsync();
 
-    Task<FilmeReadDto> ImportFilmeFromTmdbAsync(int tmdbId);
+    Task<FilmeReadDTO> ImportFilmeFromTmdbAsync(int tmdbId);
 
-    Task<FilmeDetalheDto?> GetDetalheAsync(int filmeId, int? utilizadorId);
+    Task<FilmeDetalheDTO?> ObterDetalheAsync(int filmeId, int? utilizadorId);
 
-    Task<AvaliacaoDto> CriarReviewAsync(int utilizadorId, int filmeId, CriarAvaliacaoDto dto);
+    Task<AvaliacaoDTO> CriarReviewAsync(int utilizadorId, int filmeId, CriarAvaliacaoDTO dto);
 }

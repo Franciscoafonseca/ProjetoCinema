@@ -18,7 +18,7 @@ public class TmdbController : ControllerBase
     }
 
     [HttpGet("pesquisar")]
-    public async Task<ActionResult<IEnumerable<TmdbFilmeDto>>> Pesquisar([FromQuery] string termo)
+    public async Task<ActionResult<IEnumerable<TmdbFilmeDTO>>> Pesquisar([FromQuery] string termo)
     {
         if (string.IsNullOrWhiteSpace(termo))
             return BadRequest("O termo de pesquisa e obrigatorio.");
@@ -27,14 +27,14 @@ public class TmdbController : ControllerBase
     }
 
     [HttpGet("filmes-iniciais")]
-    public async Task<ActionResult<IEnumerable<TmdbFilmeDto>>> FilmesIniciais()
+    public async Task<ActionResult<IEnumerable<TmdbFilmeDTO>>> FilmesIniciais()
     {
-        return Ok(await _tmdbService.GetFilmesIniciaisAsync());
+        return Ok(await _tmdbService.ObterFilmesIniciaisAsync());
     }
 
     [HttpGet("generos")]
-    public async Task<ActionResult<IEnumerable<TmdbGeneroDto>>> Generos()
+    public async Task<ActionResult<IEnumerable<TmdbGeneroDTO>>> Generos()
     {
-        return Ok(await _tmdbService.GetGenerosAsync());
+        return Ok(await _tmdbService.ObterGenerosAsync());
     }
 }

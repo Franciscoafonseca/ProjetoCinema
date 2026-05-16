@@ -8,8 +8,8 @@ public static class FilmeMapper
 {
     // Mapear um filme para o DTO de leitura
     // BD -> API
-    public static FilmeReadDto MapToReadDto(Filme f) =>
-        new FilmeReadDto
+    public static FilmeReadDTO MapToReadDTO(Filme f) =>
+        new FilmeReadDTO
         {
             Id = f.Id,
             TmdbId = f.TmdbId,
@@ -30,7 +30,7 @@ public static class FilmeMapper
             Atores = SepararLista(f.AtoresPrincipais),
             ReviewsTmdb = DesserializarReviews(f.TmdbReviewsJson),
             Premios = f.Premios,
-            ReviewsAplicacao = f.Avaliacoes.Select(a => new AvaliacaoDto
+            ReviewsAplicacao = f.Avaliacoes.Select(a => new AvaliacaoDTO
             {
                 Id = a.Id,
                 FilmeId = a.FilmeId,
@@ -41,14 +41,14 @@ public static class FilmeMapper
                 Texto = a.Texto,
                 Data = a.Data,
             }).OrderByDescending(a => a.Data).ToList(),
-            Festivais = f.FestivalFilmes.Select(ff => new FestivalResumoDto
+            Festivais = f.FestivalFilmes.Select(ff => new FestivalResumoDTO
             {
                 Id = ff.FestivalId,
                 Name = ff.Festival?.Name ?? string.Empty,
                 StartDate = ff.Festival?.StartDate ?? default,
                 EndDate = ff.Festival?.EndDate ?? default,
             }).ToList(),
-            Sessoes = f.SessoesDoFilme.Select(sf => new FilmeSessaoReadDto
+            Sessoes = f.SessoesDoFilme.Select(sf => new FilmeSessaoReadDTO
             {
                 Id = sf.SessaoId,
                 Titulo = sf.Sessao?.Festival?.Name ?? f.Titulo,
@@ -56,11 +56,11 @@ public static class FilmeMapper
                 HoraInicio = sf.HoraInicio ?? sf.Sessao?.Inicio,
                 HoraFim = sf.HoraFim ?? sf.Sessao?.Fim,
             }).OrderBy(s => s.HoraInicio).ToList(),
-            AcessosDisponiveis = f.Acessos.Where(a => a.IsAtivo).Select(AcessoMapper.MapToReadDto).ToList(),
+            AcessosDisponiveis = f.Acessos.Where(a => a.IsAtivo).Select(AcessoMapper.MapToReadDTO).ToList(),
         };
 
     // TMDB -> BD
-    public static Filme MapFromTmdbDto(TmdbFilmeDto f) =>
+    public static Filme MapFromTmdbDTO(TmdbFilmeDTO f) =>
         new Filme
         {
             TmdbId = f.TmdbId,
@@ -80,8 +80,8 @@ public static class FilmeMapper
         };
 
     // TMDB -> API (para resultados de busca, que são mais leves que os detalhes)
-    public static FilmeReadDto MapToReadDtoFromTmdb(TmdbFilmeDto f) =>
-        new FilmeReadDto
+    public static FilmeReadDTO MapToReadDTOFromTmdb(TmdbFilmeDTO f) =>
+        new FilmeReadDTO
         {
             TmdbId = f.TmdbId,
             Titulo = f.Titulo,
@@ -98,8 +98,8 @@ public static class FilmeMapper
         };
 
     // Genero fica vazio na pesquisa; so e preenchido no detalhe do filme.
-    public static TmdbFilmeDto MapFromTmdbResult(TmdbFilmeResult r) =>
-        new TmdbFilmeDto
+    public static TmdbFilmeDTO MapFromTmdbResult(TmdbFilmeResult r) =>
+        new TmdbFilmeDTO
         {
             TmdbId = r.TmdbId,
             Titulo = r.Titulo,
@@ -122,19 +122,19 @@ public static class FilmeMapper
             : valor.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
     }
 
-    private static List<TmdbReviewDto> DesserializarReviews(string? json)
+    private static List<TmdbReviewDTO> DesserializarReviews(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
-            return new List<TmdbReviewDto>();
+            return new List<TmdbReviewDTO>();
 
         try
         {
-            return System.Text.Json.JsonSerializer.Deserialize<List<TmdbReviewDto>>(json)
-                ?? new List<TmdbReviewDto>();
+            return System.Text.Json.JsonSerializer.Deserialize<List<TmdbReviewDTO>>(json)
+                ?? new List<TmdbReviewDTO>();
         }
         catch
         {
-            return new List<TmdbReviewDto>();
+            return new List<TmdbReviewDTO>();
         }
     }
 }

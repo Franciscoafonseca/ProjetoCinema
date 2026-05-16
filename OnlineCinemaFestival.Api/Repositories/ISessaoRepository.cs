@@ -4,15 +4,15 @@ namespace OnlineCinemaFestival.Api.Repositories;
 
 public interface ISessaoRepository
 {
-    Task<IEnumerable<Sessao>> GetAllAsync();
+    Task<IEnumerable<Sessao>> ObterTodosAsync();
 
-    Task<Sessao?> GetByIdAsync(int id);
+    Task<Sessao?> ObterPorIdAsync(int id);
 
-    Task<IEnumerable<Sessao>> GetByFestivalIdAsync(int festivalId);
+    Task<IEnumerable<Sessao>> ObterPorFestivalIdAsync(int festivalId);
 
-    Task<IEnumerable<Sessao>> GetByFilmeIdAsync(int filmeId);
+    Task<IEnumerable<Sessao>> ObterPorFilmeIdAsync(int filmeId);
 
-    Task<IEnumerable<Sessao>> GetDisponiveisAsync(DateTime dataAtual);
+    Task<IEnumerable<Sessao>> ObterDisponiveisAsync(DateTime dataAtual);
 
     Task<bool> HasOverlapAsync(
         int festivalId,

@@ -19,9 +19,9 @@ public class ComentariosController : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<ComentarioDto>> CriarComentario(
+    public async Task<ActionResult<ComentarioDTO>> CriarComentario(
         int comunidadeId,
-        [FromBody] CriarComentarioDto dto
+        [FromBody] CriarComentarioDTO dto
     )
     {
         try
@@ -41,7 +41,7 @@ public class ComentariosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ComentarioDto>>> ObterComentarios(
+    public async Task<ActionResult<IEnumerable<ComentarioDTO>>> ObterComentarios(
         int comunidadeId
     )
     {

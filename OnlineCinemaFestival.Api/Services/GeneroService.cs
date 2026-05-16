@@ -13,16 +13,16 @@ public class GeneroService : IGeneroService
         _generoRepository = generoRepository;
     }
 
-    public async Task<IEnumerable<GeneroDto>> GetAllAsync()
+    public async Task<IEnumerable<GeneroDTO>> ObterTodosAsync()
     {
-        var generos = await _generoRepository.GetAllAsync();
+        var generos = await _generoRepository.ObterTodosAsync();
 
-        return generos.Select(GeneroMapper.MapToDto);
+        return generos.Select(GeneroMapper.MapToDTO);
     }
 
-    public async Task<GeneroDto> CreateAsync(CriarGeneroDto dto)
+    public async Task<GeneroDTO> CriarAsync(CriarGeneroDTO dto)
     {
-        var genero = GeneroMapper.MapFromCreateDto(dto);
+        var genero = GeneroMapper.MapFromCreateDTO(dto);
 
         genero.Name = genero.Name.Trim();
 
@@ -32,6 +32,6 @@ public class GeneroService : IGeneroService
         await _generoRepository.AddAsync(genero);
         await _generoRepository.SaveChangesAsync();
 
-        return GeneroMapper.MapToDto(genero);
+        return GeneroMapper.MapToDTO(genero);
     }
 }

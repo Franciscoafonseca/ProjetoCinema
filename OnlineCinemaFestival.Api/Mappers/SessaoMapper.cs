@@ -5,11 +5,11 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class SessaoMapper
 {
-    public static SessaoReadDto MapToReadDto(Sessao sessao)
+    public static SessaoReadDTO MapToReadDTO(Sessao sessao)
     {
         var primeiroFilme = sessao.FilmesDaSessao.OrderBy(sf => sf.Ordem).FirstOrDefault();
 
-        return new SessaoReadDto
+        return new SessaoReadDTO
         {
             Id = sessao.Id,
             FestivalId = sessao.FestivalId,
@@ -26,7 +26,7 @@ public static class SessaoMapper
             Observacoes = sessao.Observacoes,
             Filmes = sessao
                 .FilmesDaSessao.OrderBy(sf => sf.Ordem)
-                .Select(sf => new FilmeSessaoReadDto
+                .Select(sf => new FilmeSessaoReadDTO
                 {
                     Id = sf.FilmeId,
                     Titulo = sf.Filme?.Titulo ?? string.Empty,
@@ -51,7 +51,7 @@ public static class SessaoMapper
         return "Terminada";
     }
 
-    public static Sessao MapFromCreateDto(SessaoCreateDto dto)
+    public static Sessao MapFromCreateDTO(SessaoCreateDTO dto)
     {
         return new Sessao
         {
@@ -65,7 +65,7 @@ public static class SessaoMapper
         };
     }
 
-    public static void MapToExistingSessao(SessaoUpdateDto dto, Sessao sessao)
+    public static void MapToExistingSessao(SessaoUpdateDTO dto, Sessao sessao)
     {
         sessao.Tipo = dto.Tipo;
         sessao.Inicio = dto.Inicio;
@@ -86,7 +86,7 @@ public static class SessaoMapper
 
     private static List<SessaoFilme> ObterFilmesSessao(
         List<int> filmeIds,
-        List<SessaoFilmeCreateDto> filmes
+        List<SessaoFilmeCreateDTO> filmes
     )
     {
         if (filmes.Any())

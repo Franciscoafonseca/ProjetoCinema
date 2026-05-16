@@ -3,7 +3,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class CarrinhoItemCreateDto
+public class CarrinhoItemCreateDTO
 {
     [Required]
     public TipoAcesso TipoAcesso { get; set; }

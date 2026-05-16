@@ -34,7 +34,7 @@ public class ListaPessoalRepository : IListaPessoalRepository
         );
     }
 
-    public async Task<ListaPessoal?> GetByIdAsync(int id)
+    public async Task<ListaPessoal?> ObterPorIdAsync(int id)
     {
         return await _context
             .ListasPessoais.Include(l => l.Items)
@@ -52,7 +52,7 @@ public class ListaPessoalRepository : IListaPessoalRepository
         return await _context.Filmes.AnyAsync(f => f.Id == filmeId);
     }
 
-    public async Task<ListaPessoalItem?> GetItemAsync(int listaId, int filmeId)
+    public async Task<ListaPessoalItem?> ObterItemAsync(int listaId, int filmeId)
     {
         return await _context.ListaPessoalItems.FirstOrDefaultAsync(i =>
             i.ListaPessoalId == listaId && i.FilmeId == filmeId

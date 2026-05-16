@@ -20,7 +20,7 @@ public class AluguerDigitalValidacaoStrategy : IEstrategiaValidacaoAcesso
     public string Descricao =>
         "Aluguer digital de um filme durante uma janela temporal, por exemplo 48 horas.";
 
-    public async Task ValidarAsync(AcessoCreateDto dto)
+    public async Task ValidarAsync(AcessoCreateDTO dto)
     {
         if (!dto.FilmeId.HasValue)
             throw new ArgumentException("Um aluguer digital precisa de FilmeId.");
@@ -28,7 +28,7 @@ public class AluguerDigitalValidacaoStrategy : IEstrategiaValidacaoAcesso
         if (dto.SessaoId.HasValue || dto.FestivalId.HasValue || dto.DataAcesso.HasValue)
             throw new ArgumentException("Aluguer digital deve indicar apenas FilmeId como alvo.");
 
-        var filme = await _filmeRepository.GetByIdAsync(dto.FilmeId.Value);
+        var filme = await _filmeRepository.ObterPorIdAsync(dto.FilmeId.Value);
 
         if (filme == null)
             throw new KeyNotFoundException("Filme não encontrado.");

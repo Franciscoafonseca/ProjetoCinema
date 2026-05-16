@@ -13,7 +13,7 @@ public class SessaoRepository : ISessaoRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Sessao>> GetAllAsync()
+    public async Task<IEnumerable<Sessao>> ObterTodosAsync()
     {
         return await _context
             .Sessoes.Include(s => s.Festival)
@@ -24,7 +24,7 @@ public class SessaoRepository : ISessaoRepository
             .ToListAsync();
     }
 
-    public async Task<Sessao?> GetByIdAsync(int id)
+    public async Task<Sessao?> ObterPorIdAsync(int id)
     {
         return await _context
             .Sessoes.Include(s => s.Festival)
@@ -33,7 +33,7 @@ public class SessaoRepository : ISessaoRepository
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
-    public async Task<IEnumerable<Sessao>> GetByFestivalIdAsync(int festivalId)
+    public async Task<IEnumerable<Sessao>> ObterPorFestivalIdAsync(int festivalId)
     {
         return await _context
             .Sessoes.Where(s => s.FestivalId == festivalId)
@@ -45,7 +45,7 @@ public class SessaoRepository : ISessaoRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Sessao>> GetByFilmeIdAsync(int filmeId)
+    public async Task<IEnumerable<Sessao>> ObterPorFilmeIdAsync(int filmeId)
     {
         return await _context
             .Sessoes.Where(s => s.FilmesDaSessao.Any(sf => sf.FilmeId == filmeId))
@@ -57,7 +57,7 @@ public class SessaoRepository : ISessaoRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Sessao>> GetDisponiveisAsync(DateTime dataAtual)
+    public async Task<IEnumerable<Sessao>> ObterDisponiveisAsync(DateTime dataAtual)
     {
         return await _context
             .Sessoes.Where(s => s.Fim >= dataAtual)

@@ -1,0 +1,165 @@
+@page "/perfis/{UtilizadorId:int}"
+@page "/perfil/{UtilizadorId:int}"
+@inject PerfilService PerfilService
+@inject NavigationManager Nav
+
+<PageTitle>Perfil publico - Online Cinema Festival</PageTitle>
+
+<main class="cinema-page perfil-publico-page">
+    <section class="cinema-shell">
+        @if (_aCarregar)
+        {
+            <div class="cinema-state">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <p>A carregar perfil publico...</p>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_erro))
+        {
+            <div class="cinema-state error">
+                <p>@_erro</p>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Voltar">
+                    Voltar ao catalogo
+                </MudButton>
+            </div>
+        }
+        else if (_perfil is not null)
+        {
+            <header class="cinema-page-head perfil-publico-head">
+                <div>
+                    <span class="cinema-kicker">Perfil publico</span>
+                    <h1>@_perfil.Name</h1>
+                    <p>@DescricaoPerfil</p>
+                </div>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Secondary"
+                           StartIcon="@Icons.Material.Filled.ArrowBack"
+                           OnClick="Voltar">
+                    Voltar
+                </MudButton>
+            </header>
+
+            <section class="perfil-publico-grid">
+                <MudCard Elevation="0" Class="cinema-panel perfil-publico-avatar">
+                    <MudCardContent>
+                        @if (!string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl))
+                        {
+                            <img src="@_perfil.ProfileImageUrl" alt="@_perfil.Name" />
+                        }
+                        else
+                        {
+                            <div class="perfil-publico-iniciais">@Iniciais</div>
+                        }
+                    </MudCardContent>
+                </MudCard>
+
+                <MudCard Elevation="0" Class="cinema-panel perfil-publico-info">
+                    <MudCardContent>
+                        <MudStack Spacing="3">
+                            <MudStack Row="true" Class="perfil-publico-chips">
+                                @if (!string.IsNullOrWhiteSpace(_perfil.Nationality))
+                                {
+                                    <MudChip T="string" Color="Color.Secondary" Variant="Variant.Outlined">
+                                        @_perfil.CountryFlag @_perfil.Nationality
+                                    </MudChip>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(_perfil.Location))
+                                {
+                                    <MudChip T="string" Color="Color.Default" Variant="Variant.Outlined">
+                                        @_perfil.Location
+                                    </MudChip>
+                                }
+                            </MudStack>
+
+                            <MudText Typo="Typo.h5">Atividade</MudText>
+                            <div class="perfil-publico-metricas">
+                                <article>
+                                    <strong>@_perfil.ReviewsCount</strong>
+                                    <span>Avaliacoes</span>
+                                </article>
+                                <article>
+                                    <strong>@_perfil.CommunitiesCount</strong>
+                                    <span>Comunidades</span>
+                                </article>
+                                <article>
+                                    <strong>@_perfil.PublicListsCount</strong>
+                                    <span>Listas publicas</span>
+                                </article>
+                            </div>
+
+                            <div>
+                                <MudText Typo="Typo.h6">Generos favoritos</MudText>
+                                @if (_perfil.FavoriteGenres.Count == 0)
+                                {
+                                    <MudText Color="Color.Secondary">Sem generos favoritos publicos.</MudText>
+                                }
+                                else
+                                {
+                                    <MudStack Row="true" Class="perfil-publico-chips">
+                                        @foreach (var genero in _perfil.FavoriteGenres)
+                                        {
+                                            <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">
+                                                @genero
+                                            </MudChip>
+                                        }
+                                    </MudStack>
+                                }
+                            </div>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </section>
+        }
+    </section>
+</main>
+
+@code {
+    [Parameter] public int UtilizadorId { get; set; }
+
+    private PerfilPublicoDTO? _perfil;
+    private bool _aCarregar = true;
+    private string? _erro;
+
+    private string DescricaoPerfil =>
+        string.IsNullOrWhiteSpace(_perfil?.Bio)
+            ? "Membro da comunidade Online Cinema Festival."
+            : _perfil.Bio;
+
+    private string Iniciais
+    {
+        get
+        {
+            var partes = (_perfil?.Name ?? "OCF")
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            return string.Concat(partes.Take(2).Select(p => p[0])).ToUpperInvariant();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _aCarregar = true;
+        _erro = null;
+
+        try
+        {
+            _perfil = await PerfilService.ObterPerfilPublicoAsync(UtilizadorId);
+
+            if (_perfil is null)
+                _erro = "Perfil publico nao encontrado ou indisponivel.";
+        }
+        catch
+        {
+            _erro = "Nao foi possivel carregar o perfil publico.";
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private void Voltar()
+    {
+        Nav.NavigateTo("/catalogo");
+    }
+}

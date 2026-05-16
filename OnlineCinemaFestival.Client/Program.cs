@@ -32,17 +32,17 @@ builder
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
 
-builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<AutenticacaoService>();
 builder.Services.AddScoped<FilmeService>();
 builder.Services.AddScoped<TmdbService>();
 builder.Services.AddScoped<FestivalService>();
 builder.Services.AddScoped<SessaoService>();
 builder.Services.AddScoped<AcessoService>();
 builder.Services.AddScoped<CarrinhoService>();
-builder.Services.AddScoped<CheckoutService>();
+builder.Services.AddScoped<FinalizacaoCompraService>();
 builder.Services.AddScoped<CompraService>();
 builder.Services.AddScoped<VisualizacaoService>();
-builder.Services.AddScoped<ReviewService>();
+builder.Services.AddScoped<AvaliacaoService>();
 builder.Services.AddScoped<PerfilService>();
 builder.Services.AddScoped<ListaService>();
 

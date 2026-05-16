@@ -18,7 +18,7 @@ public class Utilizador
     [Required]
     public string PasswordHash { get; set; } = string.Empty;
 
-    public UserRole Role { get; set; } = UserRole.User;
+    public PapelUtilizador Role { get; set; } = PapelUtilizador.Utilizador;
 
     public bool IsActive { get; set; } = true;
 

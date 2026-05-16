@@ -12,34 +12,34 @@ public class AcessoService
         _http = http;
     }
 
-    public async Task<List<AcessoDto>> GetAcessosAsync()
+    public async Task<List<AcessoDTO>> ObterAcessosAsync()
     {
-        return await _http.GetFromJsonAsync<List<AcessoDto>>("api/acessos") ?? new();
+        return await _http.GetFromJsonAsync<List<AcessoDTO>>("api/acessos") ?? new();
     }
 
-    public async Task<List<TipoAcessoDto>> GetTiposAcessoAsync()
+    public async Task<List<TipoAcessoDTO>> ObterTiposAcessoAsync()
     {
-        return await _http.GetFromJsonAsync<List<TipoAcessoDto>>("api/acessos/tipos") ?? new();
+        return await _http.GetFromJsonAsync<List<TipoAcessoDTO>>("api/acessos/tipos") ?? new();
     }
 
-    public async Task<List<AcessoUtilizadorDto>> GetMeusAcessosAsync()
+    public async Task<List<AcessoUtilizadorDTO>> ObterMeusAcessosAsync()
     {
-        return await _http.GetFromJsonAsync<List<AcessoUtilizadorDto>>("api/acessos/meus") ?? new();
+        return await _http.GetFromJsonAsync<List<AcessoUtilizadorDTO>>("api/acessos/meus") ?? new();
     }
 
-    public async Task<ValidacaoAcessoDto> ValidarFilmeAsync(int filmeId, int? festivalId = null)
+    public async Task<ValidacaoAcessoDTO> ValidarFilmeAsync(int filmeId, int? festivalId = null)
     {
         var url = festivalId.HasValue
             ? $"api/acessos/validar-filme/{filmeId}?festivalId={festivalId.Value}"
             : $"api/acessos/validar-filme/{filmeId}";
 
-        return await _http.GetFromJsonAsync<ValidacaoAcessoDto>(url) ?? new ValidacaoAcessoDto();
+        return await _http.GetFromJsonAsync<ValidacaoAcessoDTO>(url) ?? new ValidacaoAcessoDTO();
     }
 
-    public async Task<ValidacaoAcessoDto> ValidarSessaoAsync(int sessaoId)
+    public async Task<ValidacaoAcessoDTO> ValidarSessaoAsync(int sessaoId)
     {
-        return await _http.GetFromJsonAsync<ValidacaoAcessoDto>(
+        return await _http.GetFromJsonAsync<ValidacaoAcessoDTO>(
                 $"api/acessos/validar-sessao/{sessaoId}"
-            ) ?? new ValidacaoAcessoDto();
+            ) ?? new ValidacaoAcessoDTO();
     }
 }

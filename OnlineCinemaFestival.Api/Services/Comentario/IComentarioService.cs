@@ -4,10 +4,10 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IComentarioService
 {
-    Task<ComentarioReadDto> CriarComentarioAsync(
+    Task<ComentarioReadDTO> CriarComentarioAsync(
         int comunidadeId,
-        ComentarioCreateDto dto,
+        ComentarioCreateDTO dto,
         int usuarioId
     );
-    Task<IEnumerable<ComentarioReadDto>> ObterComentariosPorComunidadeIdAsync(int comunidadeId);
+    Task<IEnumerable<ComentarioReadDTO>> ObterComentariosPorComunidadeIdAsync(int comunidadeId);
 }

@@ -137,8 +137,8 @@
 </div>
 
 @code {
-    private List<CompraDto> _compras = new();
-    private List<VisualizacaoHistoricoDto> _visualizacoes = new();
+    private List<CompraDTO> _compras = new();
+    private List<VisualizacaoHistoricoDTO> _visualizacoes = new();
     private bool _aCarregar = true;
     private string? _erro;
 
@@ -159,7 +159,7 @@
         }
     }
 
-    private void Reabrir(VisualizacaoHistoricoDto visualizacao)
+    private void Reabrir(VisualizacaoHistoricoDTO visualizacao)
     {
         if (visualizacao.SessaoId.HasValue)
         {
@@ -170,7 +170,7 @@
         Nav.NavigateTo($"/visualizar/filme/{visualizacao.FilmeId}");
     }
 
-    private static string DescricaoVisualizacao(VisualizacaoHistoricoDto visualizacao)
+    private static string DescricaoVisualizacao(VisualizacaoHistoricoDTO visualizacao)
     {
         if (!string.IsNullOrWhiteSpace(visualizacao.FestivalNome))
             return AcrescentarTipoAcesso(visualizacao.FestivalNome, visualizacao.TipoAcessoUsado);

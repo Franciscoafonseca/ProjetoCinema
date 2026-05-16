@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -124,9 +124,9 @@ namespace OnlineCinemaFestival.Api.Migrations
 
             migrationBuilder.Sql(
                 """
-                UPDATE ListasPessoais SET Tipo = 1 WHERE Name = 'Quero ver' AND Tipo = 0;
-                UPDATE ListasPessoais SET Tipo = 2 WHERE Name = 'Vistos' AND Tipo = 0;
-                UPDATE ListasPessoais SET Tipo = 3 WHERE Name = 'Favoritos' AND Tipo = 0;
+                Atualizar ListasPessoais SET Tipo = 1 WHERE Name = 'Quero ver' AND Tipo = 0;
+                Atualizar ListasPessoais SET Tipo = 2 WHERE Name = 'Vistos' AND Tipo = 0;
+                Atualizar ListasPessoais SET Tipo = 3 WHERE Name = 'Favoritos' AND Tipo = 0;
                 """
             );
 

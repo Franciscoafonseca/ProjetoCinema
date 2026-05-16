@@ -90,9 +90,9 @@
 @code {
     [Parameter] public int SessaoId { get; set; }
 
-    private VisualizacaoDto? _visualizacao;
-    private List<ConteudoVisualizacaoDto> _conteudos = new();
-    private ConteudoVisualizacaoDto? _conteudoSelecionado;
+    private VisualizacaoDTO? _visualizacao;
+    private List<ConteudoVisualizacaoDTO> _conteudos = new();
+    private ConteudoVisualizacaoDTO? _conteudoSelecionado;
     private bool _aCarregar = true;
     private string? _erro;
     private Severity _erroSeveridade = Severity.Error;
@@ -129,7 +129,7 @@
         }
     }
 
-    private void Selecionar(ConteudoVisualizacaoDto conteudo)
+    private void Selecionar(ConteudoVisualizacaoDTO conteudo)
     {
         _conteudoSelecionado = conteudo;
     }

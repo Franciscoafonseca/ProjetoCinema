@@ -3,7 +3,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class SessaoCreateDto
+public class SessaoCreateDTO
 {
     [Required]
     public int FestivalId { get; set; }
@@ -11,7 +11,7 @@ public class SessaoCreateDto
     [MinLength(1, ErrorMessage = "A sessao deve ter pelo menos um filme.")]
     public List<int> FilmeIds { get; set; } = new();
 
-    public List<SessaoFilmeCreateDto> Filmes { get; set; } = new();
+    public List<SessaoFilmeCreateDTO> Filmes { get; set; } = new();
 
     [Required]
     public TipoSessao Tipo { get; set; }
@@ -28,7 +28,7 @@ public class SessaoCreateDto
     public string? Observacoes { get; set; }
 }
 
-public class SessaoFilmeCreateDto
+public class SessaoFilmeCreateDTO
 {
     [Required]
     public int FilmeId { get; set; }

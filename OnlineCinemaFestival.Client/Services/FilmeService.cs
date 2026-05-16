@@ -12,7 +12,7 @@ public class FilmeService
         _http = http;
     }
 
-    public async Task<List<FilmeDto>> GetFilmesAsync(
+    public async Task<List<FilmeDTO>> ObterFilmesAsync(
         string? genero = null,
         string? pesquisa = null,
         int? ordenarPor = null,
@@ -36,32 +36,32 @@ public class FilmeService
         var url =
             parametros.Count > 0 ? "api/catalogo?" + string.Join("&", parametros) : "api/catalogo";
 
-        return await _http.GetFromJsonAsync<List<FilmeDto>>(url) ?? new();
+        return await _http.GetFromJsonAsync<List<FilmeDTO>>(url) ?? new();
     }
 
-    public async Task<FilmeDto?> GetFilmeByIdAsync(int id)
+    public async Task<FilmeDTO?> ObterFilmePorIdAsync(int id)
     {
-        return await _http.GetFromJsonAsync<FilmeDto>($"api/filmes/{id}");
+        return await _http.GetFromJsonAsync<FilmeDTO>($"api/filmes/{id}");
     }
 
-    public async Task<List<FilmeDto>> GetFilmesIniciaisTmdbAsync()
+    public async Task<List<FilmeDTO>> ObterFilmesIniciaisTmdbAsync()
     {
-        return await _http.GetFromJsonAsync<List<FilmeDto>>("api/tmdb/filmes-iniciais")
+        return await _http.GetFromJsonAsync<List<FilmeDTO>>("api/tmdb/filmes-iniciais")
             ?? new();
     }
 
-    public async Task<List<FilmeDto>> PesquisarTmdbAsync(string termo)
+    public async Task<List<FilmeDTO>> PesquisarTmdbAsync(string termo)
     {
         if (string.IsNullOrWhiteSpace(termo))
             return new();
 
-        return await _http.GetFromJsonAsync<List<FilmeDto>>(
+        return await _http.GetFromJsonAsync<List<FilmeDTO>>(
                 $"api/tmdb/pesquisar?termo={Uri.EscapeDataString(termo)}"
             )
             ?? new();
     }
 
-    public async Task<FilmeDto> ImportarTmdbAsync(int tmdbId)
+    public async Task<FilmeDTO> ImportarTmdbAsync(int tmdbId)
     {
         var resposta = await _http.PostAsync($"api/filmes/importar-tmdb/{tmdbId}", null);
 
@@ -75,13 +75,13 @@ public class FilmeService
             );
         }
 
-        return await resposta.Content.ReadFromJsonAsync<FilmeDto>()
+        return await resposta.Content.ReadFromJsonAsync<FilmeDTO>()
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
-    public async Task<List<string>> GetGenerosAsync()
+    public async Task<List<string>> ObterGenerosAsync()
     {
-        var filmes = await GetFilmesAsync();
+        var filmes = await ObterFilmesAsync();
 
         return filmes
             .Where(f => !string.IsNullOrWhiteSpace(f.Genero))

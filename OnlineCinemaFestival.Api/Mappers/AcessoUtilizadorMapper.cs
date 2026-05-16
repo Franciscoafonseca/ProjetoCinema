@@ -5,9 +5,9 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class AcessoUtilizadorMapper
 {
-    public static AcessoUtilizadorReadDto MapToReadDto(AcessoUtilizador acessoUtilizador)
+    public static AcessoUtilizadorReadDTO MapToReadDTO(AcessoUtilizador acessoUtilizador)
     {
-        return new AcessoUtilizadorReadDto
+        return new AcessoUtilizadorReadDTO
         {
             Id = acessoUtilizador.Id,
             AcessoId = acessoUtilizador.AcessoId,

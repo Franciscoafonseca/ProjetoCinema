@@ -6,9 +6,9 @@ public interface IAcessoUtilizadorRepository
 {
     Task AddRangeAsync(IEnumerable<AcessoUtilizador> acessos);
 
-    Task<IEnumerable<AcessoUtilizador>> GetByUtilizadorIdAsync(int utilizadorId);
+    Task<IEnumerable<AcessoUtilizador>> ObterPorUtilizadorIdAsync(int utilizadorId);
 
-    Task<IEnumerable<AcessoUtilizador>> GetAtivosByUtilizadorIdAsync(
+    Task<IEnumerable<AcessoUtilizador>> ObterAtivosPorUtilizadorIdAsync(
         int utilizadorId,
         DateTime dataAtual
     );

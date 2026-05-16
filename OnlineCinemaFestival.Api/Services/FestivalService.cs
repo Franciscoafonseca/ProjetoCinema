@@ -27,13 +27,13 @@ public class FestivalService : IFestivalService
     /// Obtém todos os festivais existentes no sistema.
     /// </summary>
     /// <returns>Lista de festivais convertidos para DTOs de leitura.</returns>
-    public async Task<IEnumerable<FestivalReadDto>> GetAllAsync()
+    public async Task<IEnumerable<FestivalReadDTO>> ObterTodosAsync()
     {
         // Obtém todos os festivais guardados na base de dados.
-        var festivals = await _repository.GetAllAsync();
+        var festivals = await _repository.ObterTodosAsync();
 
         // Converte as entidades Festival para DTOs antes de devolver a resposta.
-        return festivals.Select(FestivalMapper.MapToReadDto);
+        return festivals.Select(FestivalMapper.MapToReadDTO);
     }
 
     /// <summary>
@@ -43,16 +43,16 @@ public class FestivalService : IFestivalService
     /// <returns>
     /// O festival correspondente ao identificador indicado, ou null caso não exista.
     /// </returns>
-    public async Task<FestivalReadDto?> GetByIdAsync(int id)
+    public async Task<FestivalReadDTO?> ObterPorIdAsync(int id)
     {
         // Procura o festival pelo seu identificador.
-        var festival = await _repository.GetDetalheByIdAsync(id);
+        var festival = await _repository.ObterDetalhePorIdAsync(id);
 
         if (festival == null)
             return null;
 
         // Converte a entidade encontrada para DTO de leitura.
-        return FestivalMapper.MapToReadDto(festival);
+        return FestivalMapper.MapToReadDTO(festival);
     }
 
     /// <summary>
@@ -63,20 +63,20 @@ public class FestivalService : IFestivalService
     /// <exception cref="ArgumentException">
     /// Lançada quando os dados do festival são inválidos.
     /// </exception>
-    public async Task<FestivalReadDto> CreateAsync(FestivalCreateDto dto)
+    public async Task<FestivalReadDTO> CriarAsync(FestivalCreateDTO dto)
     {
         // Valida os dados principais antes de criar o festival.
         ValidateFestivalData(dto.Name, dto.StartDate, dto.EndDate);
 
         // Converte o DTO de criação para uma entidade Festival.
-        var festival = FestivalMapper.MapFromCreateDto(dto);
+        var festival = FestivalMapper.MapFromCreateDTO(dto);
 
         // Guarda o novo festival na base de dados.
         await _repository.AddAsync(festival);
         await _repository.SaveChangesAsync();
 
         // Devolve o festival criado em formato DTO.
-        return FestivalMapper.MapToReadDto(festival);
+        return FestivalMapper.MapToReadDTO(festival);
     }
 
     /// <summary>
@@ -90,13 +90,13 @@ public class FestivalService : IFestivalService
     /// <exception cref="KeyNotFoundException">
     /// Lançada quando o festival não é encontrado.
     /// </exception>
-    public async Task UpdateAsync(int id, FestivalUpdateDto dto)
+    public async Task AtualizarAsync(int id, FestivalUpdateDTO dto)
     {
         // Valida os dados recebidos antes da atualização.
         ValidateFestivalData(dto.Name, dto.StartDate, dto.EndDate);
 
         // Procura o festival existente.
-        var festival = await _repository.GetByIdAsync(id);
+        var festival = await _repository.ObterPorIdAsync(id);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival não encontrado.");
@@ -115,10 +115,10 @@ public class FestivalService : IFestivalService
     /// <exception cref="KeyNotFoundException">
     /// Lançada quando o festival não é encontrado.
     /// </exception>
-    public async Task DeleteAsync(int id)
+    public async Task EliminarAsync(int id)
     {
         // Procura o festival pelo seu identificador.
-        var festival = await _repository.GetByIdAsync(id);
+        var festival = await _repository.ObterPorIdAsync(id);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival não encontrado.");

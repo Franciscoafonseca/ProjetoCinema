@@ -24,54 +24,54 @@ public class SessaoService : ISessaoService
         _festivalFilmeRepository = festivalFilmeRepository;
     }
 
-    public async Task<IEnumerable<SessaoReadDto>> GetAllAsync()
+    public async Task<IEnumerable<SessaoReadDTO>> ObterTodosAsync()
     {
-        var sessoes = await _sessaoRepository.GetAllAsync();
-        return sessoes.Select(SessaoMapper.MapToReadDto);
+        var sessoes = await _sessaoRepository.ObterTodosAsync();
+        return sessoes.Select(SessaoMapper.MapToReadDTO);
     }
 
-    public async Task<SessaoReadDto?> GetByIdAsync(int id)
+    public async Task<SessaoReadDTO?> ObterPorIdAsync(int id)
     {
-        var sessao = await _sessaoRepository.GetByIdAsync(id);
-        return sessao == null ? null : SessaoMapper.MapToReadDto(sessao);
+        var sessao = await _sessaoRepository.ObterPorIdAsync(id);
+        return sessao == null ? null : SessaoMapper.MapToReadDTO(sessao);
     }
 
-    public async Task<IEnumerable<SessaoReadDto>> GetByFestivalIdAsync(int festivalId)
+    public async Task<IEnumerable<SessaoReadDTO>> ObterPorFestivalIdAsync(int festivalId)
     {
-        var festival = await _festivalRepository.GetByIdAsync(festivalId);
+        var festival = await _festivalRepository.ObterPorIdAsync(festivalId);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival não encontrado.");
 
-        var sessoes = await _sessaoRepository.GetByFestivalIdAsync(festivalId);
-        return sessoes.Select(SessaoMapper.MapToReadDto);
+        var sessoes = await _sessaoRepository.ObterPorFestivalIdAsync(festivalId);
+        return sessoes.Select(SessaoMapper.MapToReadDTO);
     }
 
-    public async Task<IEnumerable<SessaoReadDto>> GetByFilmeIdAsync(int filmeId)
+    public async Task<IEnumerable<SessaoReadDTO>> ObterPorFilmeIdAsync(int filmeId)
     {
-        var filme = await _filmeRepository.GetByIdAsync(filmeId);
+        var filme = await _filmeRepository.ObterPorIdAsync(filmeId);
 
         if (filme == null)
             throw new KeyNotFoundException("Filme não encontrado.");
 
-        var sessoes = await _sessaoRepository.GetByFilmeIdAsync(filmeId);
-        return sessoes.Select(SessaoMapper.MapToReadDto);
+        var sessoes = await _sessaoRepository.ObterPorFilmeIdAsync(filmeId);
+        return sessoes.Select(SessaoMapper.MapToReadDTO);
     }
 
-    public async Task<IEnumerable<SessaoReadDto>> GetDisponiveisAsync()
+    public async Task<IEnumerable<SessaoReadDTO>> ObterDisponiveisAsync()
     {
-        var sessoes = await _sessaoRepository.GetDisponiveisAsync(DateTime.UtcNow);
-        return sessoes.Select(SessaoMapper.MapToReadDto);
+        var sessoes = await _sessaoRepository.ObterDisponiveisAsync(DateTime.UtcNow);
+        return sessoes.Select(SessaoMapper.MapToReadDTO);
     }
 
-    public async Task<SessaoEstadoReadDto> GetEstadoAsync(int id)
+    public async Task<SessaoEstadoReadDTO> ObterEstadoAsync(int id)
     {
-        var sessao = await _sessaoRepository.GetByIdAsync(id);
+        var sessao = await _sessaoRepository.ObterPorIdAsync(id);
 
         if (sessao == null)
             throw new KeyNotFoundException("Sessao nao encontrada.");
 
-        return new SessaoEstadoReadDto
+        return new SessaoEstadoReadDTO
         {
             SessaoId = sessao.Id,
             Estado = SessaoMapper.ObterEstado(sessao.Inicio, sessao.Fim),
@@ -80,26 +80,26 @@ public class SessaoService : ISessaoService
         };
     }
 
-    public async Task<SessaoReadDto> CreateAsync(SessaoCreateDto dto)
+    public async Task<SessaoReadDTO> CriarAsync(SessaoCreateDTO dto)
     {
         await ValidateCreateAsync(dto);
 
-        var sessao = SessaoMapper.MapFromCreateDto(dto);
+        var sessao = SessaoMapper.MapFromCreateDTO(dto);
 
         await _sessaoRepository.AddAsync(sessao);
         await _sessaoRepository.SaveChangesAsync();
 
-        var created = await _sessaoRepository.GetByIdAsync(sessao.Id);
-        return SessaoMapper.MapToReadDto(created!);
+        var created = await _sessaoRepository.ObterPorIdAsync(sessao.Id);
+        return SessaoMapper.MapToReadDTO(created!);
     }
 
-    public async Task UpdateAsync(int id, SessaoUpdateDto dto)
+    public async Task AtualizarAsync(int id, SessaoUpdateDTO dto)
     {
         ValidateDates(dto.Inicio, dto.Fim);
         var filmeIds = ObterFilmeIds(dto.FilmeIds, dto.Filmes);
         ValidateFilmes(filmeIds);
 
-        var sessao = await _sessaoRepository.GetByIdAsync(id);
+        var sessao = await _sessaoRepository.ObterPorIdAsync(id);
 
         if (sessao == null)
             throw new KeyNotFoundException("Sessão não encontrada.");
@@ -129,9 +129,9 @@ public class SessaoService : ISessaoService
         await _sessaoRepository.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task EliminarAsync(int id)
     {
-        var sessao = await _sessaoRepository.GetByIdAsync(id);
+        var sessao = await _sessaoRepository.ObterPorIdAsync(id);
 
         if (sessao == null)
             throw new KeyNotFoundException("Sessão não encontrada.");
@@ -147,13 +147,13 @@ public class SessaoService : ISessaoService
         await _sessaoRepository.SaveChangesAsync();
     }
 
-    private async Task ValidateCreateAsync(SessaoCreateDto dto)
+    private async Task ValidateCreateAsync(SessaoCreateDTO dto)
     {
         ValidateDates(dto.Inicio, dto.Fim);
         var filmeIds = ObterFilmeIds(dto.FilmeIds, dto.Filmes);
         ValidateFilmes(filmeIds);
 
-        var festival = await _festivalRepository.GetByIdAsync(dto.FestivalId);
+        var festival = await _festivalRepository.ObterPorIdAsync(dto.FestivalId);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival não encontrado.");
@@ -199,7 +199,7 @@ public class SessaoService : ISessaoService
 
     private static List<int> ObterFilmeIds(
         IEnumerable<int> filmeIds,
-        IEnumerable<SessaoFilmeCreateDto> filmes
+        IEnumerable<SessaoFilmeCreateDTO> filmes
     )
     {
         var idsComHorario = filmes.Select(f => f.FilmeId).Where(id => id > 0).ToList();
@@ -207,7 +207,7 @@ public class SessaoService : ISessaoService
     }
 
     private static void ValidateHorariosFilmes(
-        IEnumerable<SessaoFilmeCreateDto> filmes,
+        IEnumerable<SessaoFilmeCreateDTO> filmes,
         DateTime inicioSessao,
         DateTime fimSessao
     )
@@ -229,7 +229,7 @@ public class SessaoService : ISessaoService
     {
         foreach (var filmeId in filmeIds.Distinct())
         {
-            var filme = await _filmeRepository.GetByIdAsync(filmeId);
+            var filme = await _filmeRepository.ObterPorIdAsync(filmeId);
 
             if (filme == null)
                 throw new KeyNotFoundException($"Filme com id {filmeId} não encontrado.");

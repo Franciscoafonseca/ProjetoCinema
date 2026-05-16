@@ -19,18 +19,18 @@ public class SessoesController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SessaoResumoDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<SessaoResumoDTO>>> ObterTodos()
     {
-        var sessoes = await _service.GetAllAsync();
+        var sessoes = await _service.ObterTodosAsync();
 
         return Ok(sessoes);
     }
 
     [HttpGet("{id:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<SessaoDetalheDto>> GetById(int id)
+    public async Task<ActionResult<SessaoDetalheDTO>> ObterPorId(int id)
     {
-        var sessao = await _service.GetByIdAsync(id);
+        var sessao = await _service.ObterPorIdAsync(id);
 
         if (sessao == null)
             return NotFound("Sessão não encontrada.");
@@ -40,20 +40,20 @@ public class SessoesController : ControllerBase
 
     [HttpGet("disponiveis")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SessaoResumoDto>>> GetDisponiveis()
+    public async Task<ActionResult<IEnumerable<SessaoResumoDTO>>> GetDisponiveis()
     {
-        var sessoes = await _service.GetDisponiveisAsync();
+        var sessoes = await _service.ObterDisponiveisAsync();
 
         return Ok(sessoes);
     }
 
     [HttpGet("{id:int}/estado")]
     [AllowAnonymous]
-    public async Task<ActionResult<SessaoEstadoReadDto>> GetEstado(int id)
+    public async Task<ActionResult<SessaoEstadoReadDTO>> GetEstado(int id)
     {
         try
         {
-            var estado = await _service.GetEstadoAsync(id);
+            var estado = await _service.ObterEstadoAsync(id);
 
             return Ok(estado);
         }
@@ -65,11 +65,11 @@ public class SessoesController : ControllerBase
 
     [HttpGet("festival/{festivalId:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SessaoResumoDto>>> GetByFestival(int festivalId)
+    public async Task<ActionResult<IEnumerable<SessaoResumoDTO>>> GetByFestival(int festivalId)
     {
         try
         {
-            var sessoes = await _service.GetByFestivalIdAsync(festivalId);
+            var sessoes = await _service.ObterPorFestivalIdAsync(festivalId);
 
             return Ok(sessoes);
         }
@@ -81,11 +81,11 @@ public class SessoesController : ControllerBase
 
     [HttpGet("filme/{filmeId:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SessaoResumoDto>>> GetByFilme(int filmeId)
+    public async Task<ActionResult<IEnumerable<SessaoResumoDTO>>> GetByFilme(int filmeId)
     {
         try
         {
-            var sessoes = await _service.GetByFilmeIdAsync(filmeId);
+            var sessoes = await _service.ObterPorFilmeIdAsync(filmeId);
 
             return Ok(sessoes);
         }
@@ -97,13 +97,13 @@ public class SessoesController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<ActionResult<SessaoDetalheDto>> Create(CriarSessaoDto dto)
+    public async Task<ActionResult<SessaoDetalheDTO>> Criar(CriarSessaoDTO dto)
     {
         try
         {
-            var sessao = await _service.CreateAsync(dto);
+            var sessao = await _service.CriarAsync(dto);
 
-            return CreatedAtAction(nameof(GetById), new { id = sessao.Id }, sessao);
+            return CreatedAtAction(nameof(ObterPorId), new { id = sessao.Id }, sessao);
         }
         catch (KeyNotFoundException ex)
         {
@@ -121,11 +121,11 @@ public class SessoesController : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<IActionResult> Update(int id, SessaoUpdateDto dto)
+    public async Task<IActionResult> Atualizar(int id, SessaoUpdateDTO dto)
     {
         try
         {
-            await _service.UpdateAsync(id, dto);
+            await _service.AtualizarAsync(id, dto);
 
             return NoContent();
         }
@@ -145,11 +145,11 @@ public class SessoesController : ControllerBase
 
     [HttpDelete("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Eliminar(int id)
     {
         try
         {
-            await _service.DeleteAsync(id);
+            await _service.EliminarAsync(id);
 
             return NoContent();
         }

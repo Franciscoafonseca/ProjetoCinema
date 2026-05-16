@@ -52,13 +52,13 @@ public class FestivalFilmeService : IFestivalFilmeService
     public async Task AssociarFilmeAsync(int festivalId, int filmeId)
     {
         // Verifica se o festival existe antes de criar a associação.
-        var festival = await _festivalRepository.GetByIdAsync(festivalId);
+        var festival = await _festivalRepository.ObterPorIdAsync(festivalId);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival não encontrado.");
 
         // Verifica se o filme existe antes de criar a associação.
-        var filme = await _filmeRepository.GetByIdAsync(filmeId);
+        var filme = await _filmeRepository.ObterPorIdAsync(filmeId);
 
         if (filme == null)
             throw new KeyNotFoundException("Filme não encontrado.");
@@ -108,18 +108,18 @@ public class FestivalFilmeService : IFestivalFilmeService
     /// <exception cref="KeyNotFoundException">
     /// Lançada quando o festival não é encontrado.
     /// </exception>
-    public async Task<IEnumerable<FilmeReadDto>> GetFilmesByFestivalAsync(int festivalId)
+    public async Task<IEnumerable<FilmeReadDTO>> ObterFilmesPorFestivalAsync(int festivalId)
     {
         // Verifica se o festival existe antes de procurar os seus filmes.
-        var festival = await _festivalRepository.GetByIdAsync(festivalId);
+        var festival = await _festivalRepository.ObterPorIdAsync(festivalId);
 
         if (festival == null)
             throw new KeyNotFoundException("Festival não encontrado.");
 
         // Obtém os filmes associados ao festival.
-        var filmes = await _festivalFilmeRepository.GetFilmesByFestivalIdAsync(festivalId);
+        var filmes = await _festivalFilmeRepository.ObterFilmesPorFestivalIdAsync(festivalId);
 
         // Converte as entidades Filme para DTOs de leitura antes de devolver a resposta.
-        return filmes.Select(FilmeMapper.MapToReadDto);
+        return filmes.Select(FilmeMapper.MapToReadDTO);
     }
 }

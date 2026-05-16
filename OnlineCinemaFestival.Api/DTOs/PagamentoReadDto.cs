@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class PagamentoReadDto
+public class PagamentoReadDTO
 {
     public int Id { get; set; }
 

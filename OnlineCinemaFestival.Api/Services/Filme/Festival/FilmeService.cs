@@ -22,37 +22,37 @@ public class FilmeService : IFilmeService
         _validacaoAcessoService = validacaoAcessoService;
     }
 
-    public async Task<IEnumerable<FilmeReadDto>> GetAllFilmesAsync()
+    public async Task<IEnumerable<FilmeReadDTO>> ObterTodosFilmesAsync()
     {
-        var filmes = await _filmeRepository.GetAllAsync();
-        return filmes.Select(FilmeMapper.MapToReadDto);
+        var filmes = await _filmeRepository.ObterTodosAsync();
+        return filmes.Select(FilmeMapper.MapToReadDTO);
     }
 
-    public async Task<IEnumerable<FilmeReadDto>> SearchFilmesTmdbAsync(string query)
+    public async Task<IEnumerable<FilmeReadDTO>> SearchFilmesTmdbAsync(string query)
     {
         var filmesTmdb = await _tmdbService.SearchFilmesTmdbAsync(query);
-        return filmesTmdb.Select(FilmeMapper.MapToReadDtoFromTmdb);
+        return filmesTmdb.Select(FilmeMapper.MapToReadDTOFromTmdb);
     }
 
-    public async Task<IEnumerable<FilmeReadDto>> GetFilmesIniciaisTmdbAsync()
+    public async Task<IEnumerable<FilmeReadDTO>> ObterFilmesIniciaisTmdbAsync()
     {
-        var filmesTmdb = await _tmdbService.GetFilmesIniciaisAsync();
-        return filmesTmdb.Select(FilmeMapper.MapToReadDtoFromTmdb);
+        var filmesTmdb = await _tmdbService.ObterFilmesIniciaisAsync();
+        return filmesTmdb.Select(FilmeMapper.MapToReadDTOFromTmdb);
     }
 
-    public async Task<FilmeReadDto> ImportFilmeFromTmdbAsync(int tmdbId)
+    public async Task<FilmeReadDTO> ImportFilmeFromTmdbAsync(int tmdbId)
     {
-        var filmeExistente = await _filmeRepository.GetByTmdbIdAsync(tmdbId);
+        var filmeExistente = await _filmeRepository.ObterPorTmdbIdAsync(tmdbId);
 
         if (filmeExistente != null)
-            return FilmeMapper.MapToReadDto(filmeExistente);
+            return FilmeMapper.MapToReadDTO(filmeExistente);
 
-        var filmeTmdb = await _tmdbService.GetFilmeByTmdbIdAsync(tmdbId);
+        var filmeTmdb = await _tmdbService.ObterFilmePorTmdbIdAsync(tmdbId);
 
         if (filmeTmdb == null)
             throw new KeyNotFoundException($"Filme com TMDb ID {tmdbId} nao encontrado.");
 
-        var novoFilme = FilmeMapper.MapFromTmdbDto(filmeTmdb);
+        var novoFilme = FilmeMapper.MapFromTmdbDTO(filmeTmdb);
 
         foreach (var nomeGenero in filmeTmdb.Generos.Where(g => !string.IsNullOrWhiteSpace(g)).Distinct())
         {
@@ -63,17 +63,17 @@ public class FilmeService : IFilmeService
         await _filmeRepository.AddAsync(novoFilme);
         await _filmeRepository.SaveChangesAsync();
 
-        return FilmeMapper.MapToReadDto(novoFilme);
+        return FilmeMapper.MapToReadDTO(novoFilme);
     }
 
-    public async Task<FilmeDetalheDto?> GetDetalheAsync(int filmeId, int? utilizadorId)
+    public async Task<FilmeDetalheDTO?> ObterDetalheAsync(int filmeId, int? utilizadorId)
     {
-        var filme = await _filmeRepository.GetDetalheByIdAsync(filmeId);
+        var filme = await _filmeRepository.ObterDetalhePorIdAsync(filmeId);
 
         if (filme == null)
             return null;
 
-        var dto = FilmeMapper.MapToReadDto(filme);
+        var dto = FilmeMapper.MapToReadDTO(filme);
 
         if (utilizadorId.HasValue)
         {
@@ -92,13 +92,13 @@ public class FilmeService : IFilmeService
         return dto;
     }
 
-    public async Task<AvaliacaoDto> CriarReviewAsync(
+    public async Task<AvaliacaoDTO> CriarReviewAsync(
         int utilizadorId,
         int filmeId,
-        CriarAvaliacaoDto dto
+        CriarAvaliacaoDTO dto
     )
     {
-        var filme = await _filmeRepository.GetDetalheByIdAsync(filmeId);
+        var filme = await _filmeRepository.ObterDetalhePorIdAsync(filmeId);
 
         if (filme == null)
             throw new KeyNotFoundException("Filme nao encontrado.");
@@ -106,7 +106,7 @@ public class FilmeService : IFilmeService
         if (!await _filmeRepository.UtilizadorViuFilmeAsync(utilizadorId, filmeId))
             throw new UnauthorizedAccessException("So podes avaliar depois de ver o filme.");
 
-        if (await _filmeRepository.GetAvaliacaoAsync(utilizadorId, filmeId) != null)
+        if (await _filmeRepository.ObterAvaliacaoAsync(utilizadorId, filmeId) != null)
             throw new InvalidOperationException("Ja existe uma review tua para este filme.");
 
         var avaliacao = new Avaliacao
@@ -121,7 +121,7 @@ public class FilmeService : IFilmeService
         await _filmeRepository.AddAvaliacaoAsync(avaliacao);
         await _filmeRepository.SaveChangesAsync();
 
-        return new AvaliacaoDto
+        return new AvaliacaoDTO
         {
             Id = avaliacao.Id,
             FilmeId = filmeId,

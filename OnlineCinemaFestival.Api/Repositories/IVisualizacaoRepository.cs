@@ -4,9 +4,9 @@ namespace OnlineCinemaFestival.Api.Repositories;
 
 public interface IVisualizacaoRepository
 {
-    Task<Filme?> GetFilmeByIdAsync(int filmeId);
+    Task<Filme?> ObterFilmePorIdAsync(int filmeId);
 
-    Task<Sessao?> GetSessaoByIdAsync(int sessaoId);
+    Task<Sessao?> ObterSessaoPorIdAsync(int sessaoId);
 
     Task<bool> FilmePertenceAoFestivalAsync(int filmeId, int festivalId);
 
@@ -25,7 +25,7 @@ public interface IVisualizacaoRepository
 
     Task AddRangeAsync(IEnumerable<Visualizacao> visualizacoes);
 
-    Task<IEnumerable<Visualizacao>> GetByUtilizadorIdAsync(int utilizadorId);
+    Task<IEnumerable<Visualizacao>> ObterPorUtilizadorIdAsync(int utilizadorId);
 
     Task SaveChangesAsync();
 }

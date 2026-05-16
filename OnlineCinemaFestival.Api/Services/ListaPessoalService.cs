@@ -22,17 +22,17 @@ public class ListaPessoalService : IListaPessoalService
     /// <summary>
     /// Devolve todas as listas pessoais do utilizador autenticado.
     /// </summary>
-    public async Task<IEnumerable<ListaPessoalReadDto>> GetMinhasListasAsync(int utilizadorId)
+    public async Task<IEnumerable<ListaPessoalReadDTO>> ObterMinhasListasAsync(int utilizadorId)
     {
         var listas = await _repository.GetByUtilizadorAsync(utilizadorId);
-        return listas.Select(ListaPessoalMapper.MapToReadDto);
+        return listas.Select(ListaPessoalMapper.MapToReadDTO);
     }
 
     /// <summary>
     /// Cria uma nova lista pessoal para o utilizador autenticado.
     /// </summary>
     /// <exception cref="ArgumentException">Quando o nome é inválido.</exception>
-    public async Task<ListaPessoalReadDto> CreateAsync(int utilizadorId, ListaPessoalCreateDto dto)
+    public async Task<ListaPessoalReadDTO> CriarAsync(int utilizadorId, ListaPessoalCreateDTO dto)
     {
         var nome = ValidarNome(dto.Name);
 
@@ -41,12 +41,12 @@ public class ListaPessoalService : IListaPessoalService
 
         dto.Name = nome;
 
-        var lista = ListaPessoalMapper.MapFromCreateDto(dto, utilizadorId);
+        var lista = ListaPessoalMapper.MapFromCreateDTO(dto, utilizadorId);
 
         await _repository.AddAsync(lista);
         await _repository.SaveChangesAsync();
 
-        return ListaPessoalMapper.MapToReadDto(lista);
+        return ListaPessoalMapper.MapToReadDTO(lista);
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class ListaPessoalService : IListaPessoalService
     /// <exception cref="KeyNotFoundException">Lista ou filme inexistentes.</exception>
     /// <exception cref="UnauthorizedAccessException">Lista pertence a outro utilizador.</exception>
     /// <exception cref="InvalidOperationException">Filme já presente na lista.</exception>
-    public async Task<ListaPessoalItemReadDto> AdicionarFilmeAsync(
+    public async Task<ListaPessoalItemReadDTO> AdicionarFilmeAsync(
         int utilizadorId,
         int listaId,
         int filmeId
@@ -66,7 +66,7 @@ public class ListaPessoalService : IListaPessoalService
         if (!await _repository.FilmeExisteAsync(filmeId))
             throw new KeyNotFoundException("Filme não encontrado.");
 
-        var jaExiste = await _repository.GetItemAsync(listaId, filmeId);
+        var jaExiste = await _repository.ObterItemAsync(listaId, filmeId);
 
         if (jaExiste != null)
             throw new InvalidOperationException("O filme já se encontra nesta lista.");
@@ -82,8 +82,8 @@ public class ListaPessoalService : IListaPessoalService
         lista.UpdatedAt = DateTime.UtcNow;
         await _repository.SaveChangesAsync();
 
-        var itemCompleto = await _repository.GetItemAsync(listaId, filmeId);
-        return ListaPessoalMapper.MapToItemReadDto(itemCompleto!);
+        var itemCompleto = await _repository.ObterItemAsync(listaId, filmeId);
+        return ListaPessoalMapper.MapToItemReadDTO(itemCompleto!);
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class ListaPessoalService : IListaPessoalService
     {
         var lista = await GarantirAcessoLista(utilizadorId, listaId);
 
-        var item = await _repository.GetItemAsync(listaId, filmeId);
+        var item = await _repository.ObterItemAsync(listaId, filmeId);
 
         if (item == null)
             throw new KeyNotFoundException("Filme não encontrado nesta lista.");
@@ -128,7 +128,7 @@ public class ListaPessoalService : IListaPessoalService
     /// </summary>
     private async Task<ListaPessoal> GarantirAcessoLista(int utilizadorId, int listaId)
     {
-        var lista = await _repository.GetByIdAsync(listaId);
+        var lista = await _repository.ObterPorIdAsync(listaId);
 
         if (lista == null)
             throw new KeyNotFoundException("Lista não encontrada.");

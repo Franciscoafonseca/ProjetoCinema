@@ -4,8 +4,8 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IComunidadeService
 {
-    Task<IEnumerable<ComunidadeReadDto>> GetAllComunidadesAsync(int usuarioIdPedido);
-    Task<IEnumerable<ComunidadeReadDto>> GetMinhasComunidadesAsync(int usuarioId);
-    Task<ComunidadeReadDto?> GetComunidadeByIdAsync(int id, int usuarioIdPedido);
-    Task<ComunidadeReadDto> CreateComunidadeAsync(ComunidadeCreateDto dto, int criadorUserId);
+    Task<IEnumerable<ComunidadeReadDTO>> ObterTodasComunidadesAsync(int usuarioIdPedido);
+    Task<IEnumerable<ComunidadeReadDTO>> ObterMinhasComunidadesAsync(int usuarioId);
+    Task<ComunidadeReadDTO?> ObterComunidadePorIdAsync(int id, int usuarioIdPedido);
+    Task<ComunidadeReadDTO> CreateComunidadeAsync(ComunidadeCreateDTO dto, int criadorUserId);
 }

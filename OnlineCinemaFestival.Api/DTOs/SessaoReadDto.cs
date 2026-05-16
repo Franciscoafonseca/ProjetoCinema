@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class SessaoResumoDto
+public class SessaoResumoDTO
 {
     public int Id { get; set; }
 
@@ -26,9 +26,9 @@ public class SessaoResumoDto
 
     public string? Observacoes { get; set; }
 
-    public List<FilmeSessaoReadDto> Filmes { get; set; } = new();
+    public List<FilmeSessaoReadDTO> Filmes { get; set; } = new();
 }
 
-public class SessaoDetalheDto : SessaoResumoDto { }
+public class SessaoDetalheDTO : SessaoResumoDTO { }
 
-public class SessaoReadDto : SessaoDetalheDto { }
+public class SessaoReadDTO : SessaoDetalheDTO { }

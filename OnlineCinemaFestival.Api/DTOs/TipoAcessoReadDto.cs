@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
-public class TipoAcessoReadDto
+public class TipoAcessoReadDTO
 {
     public TipoAcesso Tipo { get; set; }
 

@@ -21,25 +21,25 @@ public class AcessoUtilizadorService : IAcessoUtilizadorService
         _visualizacaoRepository = visualizacaoRepository;
     }
 
-    public async Task<IEnumerable<AcessoUtilizadorReadDto>> ObterAcessosDoUtilizadorAsync(
+    public async Task<IEnumerable<AcessoUtilizadorReadDTO>> ObterAcessosDoUtilizadorAsync(
         int utilizadorId
     )
     {
-        var acessos = await _acessoUtilizadorRepository.GetByUtilizadorIdAsync(utilizadorId);
+        var acessos = await _acessoUtilizadorRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
-        return acessos.Select(AcessoUtilizadorMapper.MapToReadDto);
+        return acessos.Select(AcessoUtilizadorMapper.MapToReadDTO);
     }
 
-    public async Task<IEnumerable<AcessoUtilizadorReadDto>> ObterAcessosAtivosDoUtilizadorAsync(
+    public async Task<IEnumerable<AcessoUtilizadorReadDTO>> ObterAcessosAtivosDoUtilizadorAsync(
         int utilizadorId
     )
     {
-        var acessos = await _acessoUtilizadorRepository.GetAtivosByUtilizadorIdAsync(
+        var acessos = await _acessoUtilizadorRepository.ObterAtivosPorUtilizadorIdAsync(
             utilizadorId,
             DateTime.UtcNow
         );
 
-        return acessos.Select(AcessoUtilizadorMapper.MapToReadDto);
+        return acessos.Select(AcessoUtilizadorMapper.MapToReadDTO);
     }
 
     public async Task<bool> UtilizadorTemAcessoAFilmeAsync(
@@ -57,7 +57,7 @@ public class AcessoUtilizadorService : IAcessoUtilizadorService
 
     public async Task<bool> UtilizadorTemAcessoASessaoAsync(int utilizadorId, int sessaoId)
     {
-        var sessao = await _visualizacaoRepository.GetSessaoByIdAsync(sessaoId);
+        var sessao = await _visualizacaoRepository.ObterSessaoPorIdAsync(sessaoId);
 
         if (sessao == null)
             throw new KeyNotFoundException("Sessao nao encontrada.");

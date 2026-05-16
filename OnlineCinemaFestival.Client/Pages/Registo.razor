@@ -1,5 +1,5 @@
 @page "/registo"
-@inject AuthService AuthService
+@inject AutenticacaoService AutenticacaoService
 @inject NavigationManager Nav
 
 <PageTitle>Criar Conta — Online Cinema Festival</PageTitle>
@@ -48,13 +48,13 @@
         </EditForm>
 
         <p class="auth-rodape">
-            Já tens conta? <a href="/login">Entrar</a>
+            Ja tens conta? <a href="/login">Entrar</a>
         </p>
     </div>
 </div>
 
 @code {
-    private readonly RegisterRequest _modelo = new();
+    private readonly PedidoRegistoDTO _modelo = new();
     private string? _erro;
     private bool _aSubmeter;
 
@@ -65,7 +65,7 @@
 
         try
         {
-            await AuthService.RegistarAsync(_modelo);
+            await AutenticacaoService.RegistarAsync(_modelo);
             Nav.NavigateTo("/perfil");
         }
         catch (Exception ex)

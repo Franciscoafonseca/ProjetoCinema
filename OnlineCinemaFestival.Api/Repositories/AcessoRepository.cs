@@ -13,7 +13,7 @@ public class AcessoRepository : IAcessoRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Acesso>> GetAllAsync()
+    public async Task<IEnumerable<Acesso>> ObterTodosAsync()
     {
         return await _context
             .Acessos.Include(a => a.Sessao)
@@ -29,7 +29,7 @@ public class AcessoRepository : IAcessoRepository
             .ToListAsync();
     }
 
-    public async Task<Acesso?> GetByIdAsync(int id)
+    public async Task<Acesso?> ObterPorIdAsync(int id)
     {
         return await _context
             .Acessos.Include(a => a.Sessao)
