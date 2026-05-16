@@ -14,4 +14,6 @@ public class Genero
 
     public ICollection<UtilizadorGeneroFavorito> UtilizadoresFavoritos { get; set; } =
         new List<UtilizadorGeneroFavorito>();
+
+    public ICollection<FilmeGenero> Filmes { get; set; } = new List<FilmeGenero>();
 }

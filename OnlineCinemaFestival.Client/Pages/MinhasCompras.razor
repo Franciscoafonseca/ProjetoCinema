@@ -1,4 +1,5 @@
 @page "/minhas-compras"
+@page "/compras"
 @attribute [Authorize]
 @inject CompraService CompraService
 @inject VisualizacaoService VisualizacaoService
@@ -162,22 +163,27 @@
     {
         if (visualizacao.SessaoId.HasValue)
         {
-            Nav.NavigateTo($"/player/sessao/{visualizacao.SessaoId.Value}");
+            Nav.NavigateTo($"/visualizar/sessao/{visualizacao.SessaoId.Value}");
             return;
         }
 
-        Nav.NavigateTo($"/player/filme/{visualizacao.FilmeId}");
+        Nav.NavigateTo($"/visualizar/filme/{visualizacao.FilmeId}");
     }
 
     private static string DescricaoVisualizacao(VisualizacaoHistoricoDto visualizacao)
     {
         if (!string.IsNullOrWhiteSpace(visualizacao.FestivalNome))
-            return visualizacao.FestivalNome;
+            return AcrescentarTipoAcesso(visualizacao.FestivalNome, visualizacao.TipoAcessoUsado);
 
         if (visualizacao.SessaoId.HasValue)
-            return $"Sessao #{visualizacao.SessaoId}";
+            return AcrescentarTipoAcesso($"Sessao #{visualizacao.SessaoId}", visualizacao.TipoAcessoUsado);
 
-        return "Filme digital";
+        return AcrescentarTipoAcesso("Filme digital", visualizacao.TipoAcessoUsado);
+    }
+
+    private static string AcrescentarTipoAcesso(string texto, string tipoAcesso)
+    {
+        return string.IsNullOrWhiteSpace(tipoAcesso) ? texto : $"{texto} - {tipoAcesso}";
     }
 
     private static string Moeda(decimal valor)

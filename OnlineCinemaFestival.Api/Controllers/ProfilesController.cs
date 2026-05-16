@@ -43,6 +43,26 @@ public class ProfilesController : ControllerBase
         return Ok(await _profileService.UpdateMyProfileAsync(userId.Value, request));
     }
 
+    [Authorize]
+    [HttpPost("me/foto")]
+    [RequestSizeLimit(2 * 1024 * 1024)]
+    public async Task<ActionResult<PerfilPrivadoDto>> UploadFoto(IFormFile ficheiro)
+    {
+        var userId = GetCurrentUserId();
+
+        if (userId == null)
+            return Unauthorized();
+
+        try
+        {
+            return Ok(await _profileService.UploadProfilePhotoAsync(userId.Value, ficheiro));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpGet("public")]
     public async Task<ActionResult<List<PerfilPublicoDto>>> GetPublicProfiles()
     {

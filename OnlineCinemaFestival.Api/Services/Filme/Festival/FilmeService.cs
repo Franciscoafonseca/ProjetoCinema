@@ -5,88 +5,131 @@ using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
 
-/// <summary>
-/// Serviço responsável pela gestão dos filmes.
-/// Inclui operações de consulta, pesquisa no TMDb e importação de filmes externos.
-/// </summary>
 public class FilmeService : IFilmeService
 {
     private readonly IFilmeRepository _filmeRepository;
     private readonly ITmdbService _tmdbService;
+    private readonly IValidacaoAcessoService _validacaoAcessoService;
 
-    /// <summary>
-    /// Inicializa uma nova instância do serviço de filmes.
-    /// </summary>
-    /// <param name="filmeRepository">
-    /// Repositório responsável pelo acesso aos dados dos filmes guardados localmente.
-    /// </param>
-    /// <param name="tmdbService">
-    /// Serviço responsável pela comunicação com a API externa TMDb.
-    /// </param>
-    public FilmeService(IFilmeRepository filmeRepository, ITmdbService tmdbService)
+    public FilmeService(
+        IFilmeRepository filmeRepository,
+        ITmdbService tmdbService,
+        IValidacaoAcessoService validacaoAcessoService
+    )
     {
         _filmeRepository = filmeRepository;
         _tmdbService = tmdbService;
+        _validacaoAcessoService = validacaoAcessoService;
     }
 
-    /// <summary>
-    /// Obtém todos os filmes guardados na base de dados local.
-    /// </summary>
-    /// <returns>Lista de filmes convertidos para DTOs de leitura.</returns>
     public async Task<IEnumerable<FilmeReadDto>> GetAllFilmesAsync()
     {
-        // Obtém todos os filmes existentes na base de dados.
         var filmes = await _filmeRepository.GetAllAsync();
-
-        // Converte as entidades Filme para DTOs de leitura.
         return filmes.Select(FilmeMapper.MapToReadDto);
     }
 
-    /// <summary>
-    /// Pesquisa filmes na API externa TMDb com base numa expressão de pesquisa.
-    /// </summary>
-    /// <param name="query">Texto usado para pesquisar filmes no TMDb.</param>
-    /// <returns>Lista de filmes encontrados no TMDb convertidos para DTOs de leitura.</returns>
     public async Task<IEnumerable<FilmeReadDto>> SearchFilmesTmdbAsync(string query)
     {
-        // Pesquisa filmes na API externa TMDb.
         var filmesTmdb = await _tmdbService.SearchFilmesTmdbAsync(query);
-
-        // Converte os resultados externos para DTOs compatíveis com a aplicação.
         return filmesTmdb.Select(FilmeMapper.MapToReadDtoFromTmdb);
     }
 
-    /// <summary>
-    /// Importa um filme da API TMDb para a base de dados local.
-    /// Caso o filme já exista localmente, devolve o registo existente.
-    /// </summary>
-    /// <param name="tmdbId">Identificador do filme na API TMDb.</param>
-    /// <returns>Filme importado ou já existente, convertido para DTO de leitura.</returns>
-    /// <exception cref="Exception">
-    /// Lançada quando o filme não é encontrado na API TMDb.
-    /// </exception>
+    public async Task<IEnumerable<FilmeReadDto>> GetFilmesIniciaisTmdbAsync()
+    {
+        var filmesTmdb = await _tmdbService.GetFilmesIniciaisAsync();
+        return filmesTmdb.Select(FilmeMapper.MapToReadDtoFromTmdb);
+    }
+
     public async Task<FilmeReadDto> ImportFilmeFromTmdbAsync(int tmdbId)
     {
-        // Verifica se o filme já foi importado anteriormente para evitar duplicações.
         var filmeExistente = await _filmeRepository.GetByTmdbIdAsync(tmdbId);
 
         if (filmeExistente != null)
             return FilmeMapper.MapToReadDto(filmeExistente);
 
-        // Obtém os dados completos do filme através da API externa TMDb.
         var filmeTmdb = await _tmdbService.GetFilmeByTmdbIdAsync(tmdbId);
 
         if (filmeTmdb == null)
-            throw new Exception($"Filme com TMDb ID {tmdbId} não encontrado.");
+            throw new KeyNotFoundException($"Filme com TMDb ID {tmdbId} nao encontrado.");
 
-        // Converte o DTO recebido do TMDb para a entidade interna Filme.
         var novoFilme = FilmeMapper.MapFromTmdbDto(filmeTmdb);
 
-        // Guarda o novo filme na base de dados local.
+        foreach (var nomeGenero in filmeTmdb.Generos.Where(g => !string.IsNullOrWhiteSpace(g)).Distinct())
+        {
+            var genero = await _filmeRepository.ObterOuCriarGeneroAsync(nomeGenero);
+            novoFilme.FilmeGeneros.Add(new FilmeGenero { Filme = novoFilme, Genero = genero });
+        }
+
         await _filmeRepository.AddAsync(novoFilme);
         await _filmeRepository.SaveChangesAsync();
 
-        // Devolve o filme importado em formato DTO.
         return FilmeMapper.MapToReadDto(novoFilme);
+    }
+
+    public async Task<FilmeDetalheDto?> GetDetalheAsync(int filmeId, int? utilizadorId)
+    {
+        var filme = await _filmeRepository.GetDetalheByIdAsync(filmeId);
+
+        if (filme == null)
+            return null;
+
+        var dto = FilmeMapper.MapToReadDto(filme);
+
+        if (utilizadorId.HasValue)
+        {
+            dto.PodeAvaliar = await _filmeRepository.UtilizadorViuFilmeAsync(
+                utilizadorId.Value,
+                filmeId
+            );
+            dto.PodeVer =
+                await _validacaoAcessoService.ObterAcessoValidoParaFilmeAsync(
+                    utilizadorId.Value,
+                    filme,
+                    null
+                ) != null;
+        }
+
+        return dto;
+    }
+
+    public async Task<AvaliacaoDto> CriarReviewAsync(
+        int utilizadorId,
+        int filmeId,
+        CriarAvaliacaoDto dto
+    )
+    {
+        var filme = await _filmeRepository.GetDetalheByIdAsync(filmeId);
+
+        if (filme == null)
+            throw new KeyNotFoundException("Filme nao encontrado.");
+
+        if (!await _filmeRepository.UtilizadorViuFilmeAsync(utilizadorId, filmeId))
+            throw new UnauthorizedAccessException("So podes avaliar depois de ver o filme.");
+
+        if (await _filmeRepository.GetAvaliacaoAsync(utilizadorId, filmeId) != null)
+            throw new InvalidOperationException("Ja existe uma review tua para este filme.");
+
+        var avaliacao = new Avaliacao
+        {
+            FilmeId = filmeId,
+            UsuarioId = utilizadorId,
+            Pontuacao = dto.Pontuacao,
+            Texto = dto.Texto.Trim(),
+            Data = DateTime.UtcNow,
+        };
+
+        await _filmeRepository.AddAvaliacaoAsync(avaliacao);
+        await _filmeRepository.SaveChangesAsync();
+
+        return new AvaliacaoDto
+        {
+            Id = avaliacao.Id,
+            FilmeId = filmeId,
+            TituloFilme = filme.Titulo,
+            UsuarioId = utilizadorId,
+            Pontuacao = avaliacao.Pontuacao,
+            Texto = avaliacao.Texto,
+            Data = avaliacao.Data,
+        };
     }
 }

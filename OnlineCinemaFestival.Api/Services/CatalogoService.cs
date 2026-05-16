@@ -57,7 +57,7 @@ public class CatalogoService : ICatalogoService
 
     public async Task<FilmeReadDto?> GetFilmeDetalhesAsync(int filmeId)
     {
-        var filme = await _filmeRepository.GetByIdAsync(filmeId);
+        var filme = await _filmeRepository.GetDetalheByIdAsync(filmeId);
 
         if (filme == null)
             return null;

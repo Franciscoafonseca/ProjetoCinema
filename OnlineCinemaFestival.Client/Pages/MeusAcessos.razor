@@ -1,4 +1,5 @@
 @page "/meus-acessos"
+@page "/acessos"
 @attribute [Authorize]
 @inject AcessoService AcessoService
 @inject NavigationManager Nav
@@ -117,9 +118,9 @@
         }
     }
 
-    private void AbrirSessao(int sessaoId) => Nav.NavigateTo($"/player/sessao/{sessaoId}");
+    private void AbrirSessao(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
 
-    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/player/filme/{filmeId}");
+    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/visualizar/filme/{filmeId}");
 
     private void AbrirFestival(int festivalId) => Nav.NavigateTo($"/festivais/{festivalId}");
 

@@ -8,6 +8,10 @@ public class PerfilPublicoDto
 
     public string Nationality { get; set; } = string.Empty;
 
+    public string CountryCode { get; set; } = string.Empty;
+
+    public string CountryFlag { get; set; } = string.Empty;
+
     public string Bio { get; set; } = string.Empty;
 
     public string ProfileImageUrl { get; set; } = string.Empty;

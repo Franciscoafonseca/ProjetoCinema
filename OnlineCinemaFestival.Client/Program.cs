@@ -34,6 +34,7 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FilmeService>();
+builder.Services.AddScoped<TmdbService>();
 builder.Services.AddScoped<FestivalService>();
 builder.Services.AddScoped<SessaoService>();
 builder.Services.AddScoped<AcessoService>();
@@ -41,6 +42,7 @@ builder.Services.AddScoped<CarrinhoService>();
 builder.Services.AddScoped<CheckoutService>();
 builder.Services.AddScoped<CompraService>();
 builder.Services.AddScoped<VisualizacaoService>();
+builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<PerfilService>();
 builder.Services.AddScoped<ListaService>();
 

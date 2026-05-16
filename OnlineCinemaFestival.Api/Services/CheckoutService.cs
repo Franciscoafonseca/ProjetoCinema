@@ -34,7 +34,10 @@ public class CheckoutService : ICheckoutService
         _pagamentoService = pagamentoService;
     }
 
-    public async Task<CheckoutResultadoDto> FinalizarCompraAsync(int utilizadorId)
+    public async Task<CheckoutResultadoDto> FinalizarCompraAsync(
+        int utilizadorId,
+        string metodoPagamento = "CartaoCredito"
+    )
     {
         var carrinho = await _carrinhoRepository.GetByUtilizadorIdAsync(utilizadorId);
 
@@ -44,7 +47,11 @@ public class CheckoutService : ICheckoutService
 
         var compra = CriarCompra(utilizadorId, carrinho!, agora);
 
-        compra.Pagamento = await _pagamentoService.ProcessarPagamentoSimuladoAsync(compra, agora);
+        compra.Pagamento = await _pagamentoService.ProcessarPagamentoSimuladoAsync(
+            compra,
+            agora,
+            metodoPagamento
+        );
 
         await _compraRepository.AddAsync(compra);
 

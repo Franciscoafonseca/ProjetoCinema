@@ -12,5 +12,7 @@ public class Avaliacao
 
     public int Pontuacao { get; set; }
 
+    public string Texto { get; set; } = string.Empty;
+
     public DateTime Data { get; set; } = DateTime.UtcNow;
 }

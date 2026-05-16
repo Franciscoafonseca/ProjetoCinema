@@ -46,7 +46,7 @@ public class FestivalService : IFestivalService
     public async Task<FestivalReadDto?> GetByIdAsync(int id)
     {
         // Procura o festival pelo seu identificador.
-        var festival = await _repository.GetByIdAsync(id);
+        var festival = await _repository.GetDetalheByIdAsync(id);
 
         if (festival == null)
             return null;

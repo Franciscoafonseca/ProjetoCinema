@@ -17,6 +17,9 @@ public class Festival
 
     public DateTime EndDate { get; set; }
 
+    [MaxLength(1000)]
+    public string? Premios { get; set; }
+
     public ICollection<FestivalFilme> FestivalFilmes { get; set; } = new List<FestivalFilme>();
 
     public ICollection<Sessao> Sessoes { get; set; } = new List<Sessao>();

@@ -41,7 +41,42 @@ public class FilmeService
 
     public async Task<FilmeDto?> GetFilmeByIdAsync(int id)
     {
-        return await _http.GetFromJsonAsync<FilmeDto>($"api/catalogo/filmes/{id}");
+        return await _http.GetFromJsonAsync<FilmeDto>($"api/filmes/{id}");
+    }
+
+    public async Task<List<FilmeDto>> GetFilmesIniciaisTmdbAsync()
+    {
+        return await _http.GetFromJsonAsync<List<FilmeDto>>("api/tmdb/filmes-iniciais")
+            ?? new();
+    }
+
+    public async Task<List<FilmeDto>> PesquisarTmdbAsync(string termo)
+    {
+        if (string.IsNullOrWhiteSpace(termo))
+            return new();
+
+        return await _http.GetFromJsonAsync<List<FilmeDto>>(
+                $"api/tmdb/pesquisar?termo={Uri.EscapeDataString(termo)}"
+            )
+            ?? new();
+    }
+
+    public async Task<FilmeDto> ImportarTmdbAsync(int tmdbId)
+    {
+        var resposta = await _http.PostAsync($"api/filmes/importar-tmdb/{tmdbId}", null);
+
+        if (!resposta.IsSuccessStatusCode)
+        {
+            var conteudo = await resposta.Content.ReadAsStringAsync();
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(conteudo)
+                    ? "Nao foi possivel importar o filme."
+                    : conteudo.Trim('"')
+            );
+        }
+
+        return await resposta.Content.ReadFromJsonAsync<FilmeDto>()
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
     public async Task<List<string>> GetGenerosAsync()

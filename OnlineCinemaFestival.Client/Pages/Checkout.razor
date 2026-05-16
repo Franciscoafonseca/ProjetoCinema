@@ -1,0 +1,187 @@
+@page "/checkout"
+@attribute [Authorize]
+@inject CarrinhoService CarrinhoService
+@inject CheckoutService CheckoutService
+@inject NavigationManager Nav
+
+<PageTitle>Checkout - Online Cinema Festival</PageTitle>
+
+<main class="cinema-page checkout-page">
+    <section class="cinema-shell">
+        <header class="cinema-page-head">
+            <div>
+                <span class="cinema-kicker">Pagamento</span>
+                <h1>Checkout</h1>
+                <p>Escolhe o metodo de pagamento e finaliza a compra. O pagamento e simulado pelo backend.</p>
+            </div>
+        </header>
+
+        @if (_aCarregar)
+        {
+            <div class="cinema-state">A carregar checkout...</div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_erro))
+        {
+            <div class="cinema-state error">@_erro</div>
+        }
+        else if (_carrinho.Itens.Count == 0)
+        {
+            <div class="cinema-state">
+                <p>O carrinho esta vazio.</p>
+                <a class="cinema-btn primary" href="/catalogo">Voltar ao catalogo</a>
+            </div>
+        }
+        else
+        {
+            <div class="checkout-layout">
+                <section class="cinema-panel payment-panel">
+                    <div class="cinema-section-head compact">
+                        <div>
+                            <span class="cinema-kicker">Metodo</span>
+                            <h2>Pagamento simulado</h2>
+                        </div>
+                    </div>
+
+                    <div class="payment-options">
+                        @foreach (var metodo in _metodosPagamento)
+                        {
+                            <label class="payment-option @(_metodoPagamento == metodo.Codigo ? "selected" : null)">
+                                <input type="radio" name="metodo" value="@metodo.Codigo" @onchange="() => _metodoPagamento = metodo.Codigo" checked="@(_metodoPagamento == metodo.Codigo)" />
+                                <span>@metodo.Nome</span>
+                                <small>@metodo.Descricao</small>
+                            </label>
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_mensagem))
+                    {
+                        <MudAlert Severity="@_mensagemSeveridade" Variant="Variant.Filled">@_mensagem</MudAlert>
+                    }
+
+                    <div class="checkout-actions">
+                        <button class="cinema-btn secondary" @onclick="VoltarCarrinho">Voltar ao carrinho</button>
+                        <button class="cinema-btn primary" disabled="@_aFinalizar" @onclick="Finalizar">
+                            @(_aFinalizar ? "A finalizar..." : "Finalizar compra")
+                        </button>
+                    </div>
+                </section>
+
+                <aside class="cinema-panel summary-panel">
+                    <span class="cinema-kicker">Resumo</span>
+                    <div class="summary-items">
+                        @foreach (var item in _carrinho.Itens)
+                        {
+                            <article>
+                                <div>
+                                    <strong>@NomeItem(item)</strong>
+                                    <small>@RotuloTipo(item) x @item.Quantidade</small>
+                                </div>
+                                <span>@Moeda(item.Subtotal)</span>
+                            </article>
+                        }
+                    </div>
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <strong>@Moeda(_carrinho.Total)</strong>
+                    </div>
+                </aside>
+            </div>
+        }
+    </section>
+</main>
+
+@code {
+    private readonly List<MetodoPagamentoOpcao> _metodosPagamento = new()
+    {
+        new("CartaoCredito", "Cartao", "Cartao de credito ou debito"),
+        new("PayPal", "PayPal", "Conta PayPal"),
+        new("MBWay", "MBWay", "Pagamento movel simulado"),
+        new("Multibanco", "Referencia Multibanco", "Referencia gerada na compra"),
+        new("ApplePay", "Apple Pay", "Carteira digital Apple"),
+        new("GooglePay", "Google Pay", "Carteira digital Google"),
+    };
+
+    private CarrinhoDto _carrinho = new();
+    private string _metodoPagamento = "CartaoCredito";
+    private bool _aCarregar = true;
+    private bool _aFinalizar;
+    private string? _erro;
+    private string? _mensagem;
+    private Severity _mensagemSeveridade = Severity.Info;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _carrinho = await CarrinhoService.ObterAsync();
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private async Task Finalizar()
+    {
+        _aFinalizar = true;
+        _mensagem = null;
+
+        try
+        {
+            var resultado = await CheckoutService.FinalizarCompraAsync(_metodoPagamento);
+            _mensagemSeveridade = Severity.Success;
+            _mensagem = string.IsNullOrWhiteSpace(resultado.Mensagem)
+                ? "Compra finalizada com sucesso."
+                : resultado.Mensagem;
+            Nav.NavigateTo("/compras");
+        }
+        catch (Exception ex)
+        {
+            _mensagemSeveridade = Severity.Error;
+            _mensagem = ex.Message;
+        }
+        finally
+        {
+            _aFinalizar = false;
+        }
+    }
+
+    private void VoltarCarrinho() => Nav.NavigateTo("/carrinho");
+
+    private static string NomeItem(ItemCarrinhoDto item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.NomeAcesso))
+            return item.NomeAcesso;
+
+        if (!string.IsNullOrWhiteSpace(item.TituloFilme))
+            return item.TituloFilme;
+
+        return string.IsNullOrWhiteSpace(item.NomeFestival) ? $"Acesso #{item.AcessoId}" : item.NomeFestival;
+    }
+
+    private static string RotuloTipo(ItemCarrinhoDto item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.TipoAcessoNome))
+            return item.TipoAcessoNome;
+
+        return item.TipoAcesso switch
+        {
+            TiposAcesso.BilheteSessao => "Bilhete de sessao",
+            TiposAcesso.PasseDiario => "Passe diario",
+            TiposAcesso.PasseCompleto => "Passe completo",
+            TiposAcesso.AluguerDigital => "Aluguer digital",
+            _ => "Acesso",
+        };
+    }
+
+    private static string Moeda(decimal valor)
+    {
+        return valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+    }
+
+    private sealed record MetodoPagamentoOpcao(string Codigo, string Nome, string Descricao);
+}

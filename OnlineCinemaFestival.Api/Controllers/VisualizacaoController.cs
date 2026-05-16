@@ -76,4 +76,16 @@ public class VisualizacaoController : ControllerBase
             return NotFound(ex.Message);
         }
     }
+
+    [HttpGet("historico")]
+    public async Task<ActionResult<IEnumerable<VisualizacaoHistoricoReadDto>>> ObterHistorico()
+    {
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+
+        var visualizacoes = await _visualizacaoService.ObterHistoricoDoUtilizadorAsync(
+            utilizadorId
+        );
+
+        return Ok(visualizacoes);
+    }
 }

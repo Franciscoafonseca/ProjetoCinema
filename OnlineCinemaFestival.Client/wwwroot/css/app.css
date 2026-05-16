@@ -120,6 +120,202 @@ code {
   color: #c02d76;
 }
 
+:root {
+  --ocf-bg: #050913;
+  --ocf-bg-2: #09101d;
+  --ocf-panel: rgba(13, 19, 35, 0.78);
+  --ocf-panel-strong: rgba(14, 21, 39, 0.92);
+  --ocf-line: rgba(255, 255, 255, 0.1);
+  --ocf-line-strong: rgba(255, 255, 255, 0.18);
+  --ocf-text: #f7f8fc;
+  --ocf-muted: #a7b0c2;
+  --ocf-sunset: #ff7e5f;
+  --ocf-sunset-strong: #ff4f6d;
+  --ocf-gold: #ffcb70;
+  --ocf-teal: #1fd3c6;
+  --ocf-teal-soft: #7cf5e8;
+  --ocf-green: #4ade80;
+  --ocf-shadow-xl: 0 30px 80px rgba(0, 0, 0, 0.38);
+  --ocf-shadow-md: 0 18px 50px rgba(0, 0, 0, 0.22);
+  --ocf-max-content: 1680px;
+}
+
+.cinema-page {
+  min-height: 100vh;
+  color: var(--ocf-text);
+  background:
+    radial-gradient(circle at 0% 10%, rgba(31, 211, 198, 0.12), transparent 32%),
+    radial-gradient(circle at 100% 0%, rgba(255, 126, 95, 0.18), transparent 34%),
+    linear-gradient(180deg, #040811 0%, #07101f 35%, #050913 100%);
+}
+
+.cinema-shell {
+  width: min(var(--ocf-max-content), calc(100vw - 48px));
+  margin: 0 auto;
+  padding: 42px 0 72px;
+}
+
+.cinema-page-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 26px;
+}
+
+.cinema-page-head h1,
+.cinema-section-head h2 {
+  margin: 10px 0 0;
+  font-family: "Playfair Display", Georgia, serif;
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.cinema-page-head h1 {
+  max-width: 980px;
+  font-size: clamp(3rem, 6vw, 6.4rem);
+}
+
+.cinema-page-head p {
+  max-width: 760px;
+  margin: 18px 0 0;
+  color: var(--ocf-muted);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.cinema-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ocf-teal);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.cinema-panel {
+  padding: 22px;
+  border-radius: 30px;
+  border: 1px solid var(--ocf-line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+    var(--ocf-panel);
+  box-shadow: var(--ocf-shadow-md);
+}
+
+.cinema-section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.cinema-section-head.compact {
+  align-items: start;
+}
+
+.cinema-section-head h2 {
+  font-size: clamp(2rem, 3.4vw, 3.8rem);
+}
+
+.cinema-section-head.compact h2 {
+  font-family: inherit;
+  font-size: 1.55rem;
+  letter-spacing: -0.04em;
+}
+
+.cinema-btn,
+.cinema-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0 17px;
+  color: var(--ocf-text);
+  text-decoration: none;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.cinema-btn.primary {
+  background: linear-gradient(135deg, var(--ocf-sunset-strong), var(--ocf-sunset));
+  box-shadow: 0 16px 34px rgba(255, 94, 108, 0.28);
+}
+
+.cinema-btn.secondary,
+.cinema-link {
+  border-color: rgba(31, 211, 198, 0.25);
+  background: rgba(31, 211, 198, 0.08);
+  color: var(--ocf-teal-soft);
+}
+
+.cinema-btn.ghost {
+  border-color: var(--ocf-line-strong);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.cinema-btn:hover,
+.cinema-link:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+.cinema-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.cinema-state {
+  border-radius: 28px;
+  border: 1px solid var(--ocf-line);
+  background: rgba(10, 16, 29, 0.84);
+  padding: 42px 24px;
+  text-align: center;
+  color: var(--ocf-muted);
+}
+
+.cinema-state.slim {
+  padding: 20px;
+}
+
+.cinema-state.error {
+  color: #ffb4b8;
+  border-color: rgba(255, 79, 109, 0.28);
+}
+
+.spinner {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 18px;
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  border-top-color: var(--ocf-sunset-strong);
+  border-right-color: var(--ocf-teal);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@media (max-width: 760px) {
+  .cinema-shell {
+    width: min(100vw - 24px, var(--ocf-max-content));
+    padding-top: 28px;
+  }
+
+  .cinema-page-head,
+  .cinema-section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 .auth-required {
   max-width: 620px;
   margin: 72px auto;

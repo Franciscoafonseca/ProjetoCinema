@@ -1,98 +1,233 @@
 @page "/catalogo"
 @inherits FilmePageBase
 @inject FilmeService FilmeService
+@inject TmdbService TmdbService
+@inject NavigationManager Nav
 
-<PageTitle>Catálogo — Online Cinema Festival</PageTitle>
+<PageTitle>Catalogo - Online Cinema Festival</PageTitle>
 
-<div class="catalogo-container">
-    <h1 class="catalogo-titulo">Catálogo</h1>
+<main class="cinema-page catalogo-page">
+    <section class="cinema-shell">
+        <header class="cinema-page-head">
+            <div>
+                <span class="cinema-kicker">Catalogo TMDB</span>
+                <h1>Explora, pesquisa e adiciona filmes</h1>
+                <p>
+                    Os destaques iniciais chegam do backend/TMDB. Pesquisa por titulo, importa para o
+                    catalogo interno e abre a pagina de detalhe do filme.
+                </p>
+            </div>
+        </header>
 
-    <div class="catalogo-filtros">
-        <input class="pesquisa-input"
-               type="text"
-               placeholder="Pesquisar por título ou sinopse..."
-               value="@_pesquisa"
-               @oninput="OnPesquisaAlterada" />
+        <section class="cinema-panel search-panel">
+            <MudTextField T="string"
+                          Value="_pesquisa"
+                          ValueChanged="OnPesquisaAlterada"
+                          Label="Pesquisar no TMDB"
+                          Placeholder="Escreve o nome de um filme"
+                          Variant="Variant.Outlined"
+                          Immediate="true"
+                          DebounceInterval="350"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" />
 
-        <div class="filtro-genero">
-            <MudMenu Label="@RotuloFiltro()"
-                     Variant="Variant.Outlined"
-                     Color="Color.Primary"
-                     StartIcon="@Icons.Material.Filled.FilterList"
-                     EndIcon="@Icons.Material.Filled.ArrowDropDown"
-                     IconColor="Color.Primary"
-                     AnchorOrigin="Origin.BottomLeft"
-                     TransformOrigin="Origin.TopLeft"
-                     MaxHeight="360">
-                @if (_generosSelecionados.Count > 0)
-                {
-                    <MudMenuItem OnClick="LimparGeneros" AutoClose="false">
-                        Limpar seleção
-                    </MudMenuItem>
-                    <MudDivider />
-                }
-                @foreach (var genero in _generos)
-                {
-                    <MudMenuItem OnClick="() => AlternarGenero(genero)" AutoClose="false">
-                        @(_generosSelecionados.Contains(genero) ? $"✓ {genero}" : genero)
-                    </MudMenuItem>
-                }
-            </MudMenu>
-
-            @if (_generosSelecionados.Count > 0)
+            @if (!string.IsNullOrWhiteSpace(_mensagemImportacao))
             {
-                <div class="chips-selecionados">
-                    @foreach (var genero in _generosSelecionados.OrderBy(g => g))
-                    {
-                        <MudChip T="string"
-                                 Color="Color.Primary"
-                                 Variant="Variant.Filled"
-                                 OnClose="() => AlternarGenero(genero)"
-                                 CloseIcon="@Icons.Material.Filled.Close">
-                            @genero
-                        </MudChip>
-                    }
+                <MudAlert Severity="@_mensagemSeveridade" Variant="Variant.Filled">
+                    @_mensagemImportacao
+                </MudAlert>
+            }
+        </section>
+
+        @if (_loading)
+        {
+            <div class="cinema-state">
+                <div class="spinner"></div>
+                <p>A carregar filmes...</p>
+            </div>
+        }
+        else if (_erro != null)
+        {
+            <div class="cinema-state error">@_erro</div>
+        }
+        else
+        {
+            <section class="catalogo-section">
+                <div class="cinema-section-head">
+                    <div>
+                        <span class="cinema-kicker">@(_aPesquisar ? "Resultados TMDB" : "Sugestoes TMDB")</span>
+                        <h2>@(_aPesquisar ? "Escolhe um resultado para importar" : "20 filmes iniciais")</h2>
+                    </div>
                 </div>
-            }
-        </div>
-    </div>
 
-    @if (_loading)
-    {
-        <div class="loading-state">
-            <div class="spinner"></div>
-            <p>A carregar filmes...</p>
-        </div>
-    }
-    else if (_erro != null)
-    {
-        <p class="erro-state">@_erro</p>
-    }
-    else if (_filmes.Count == 0)
-    {
-        <p class="empty-state">Nenhum filme encontrado.</p>
-    }
-    else
-    {
-        <div class="catalogo-grid">
-            @foreach (var filme in _filmes)
-            {
-                <FilmeCard Filme="filme" />
-            }
-        </div>
-    }
-</div>
+                @if (ResultadosAtuais.Count == 0)
+                {
+                    <div class="cinema-state">Nenhum resultado encontrado.</div>
+                }
+                else
+                {
+                    <div class="tmdb-grid">
+                        @foreach (var filme in ResultadosAtuais)
+                        {
+                            var existente = FilmeJaExiste(filme);
+
+                            <article class="tmdb-card">
+                                <div class="tmdb-poster">
+                                    <img src="@ImagemFilme(filme)" alt="@filme.Titulo" />
+                                    @if (existente)
+                                    {
+                                        <span class="catalog-badge">No catalogo</span>
+                                    }
+                                </div>
+
+                                <div class="tmdb-body">
+                                    <div class="tmdb-meta">
+                                        <span>@AnoFilme(filme)</span>
+                                        @if (!string.IsNullOrWhiteSpace(GeneroFilme(filme)))
+                                        {
+                                            <span>@GeneroFilme(filme)</span>
+                                        }
+                                    </div>
+                                    <h3>@filme.Titulo</h3>
+                                    <p>@SinopseCurta(filme)</p>
+
+                                    <div class="tmdb-actions">
+                                        @if (existente)
+                                        {
+                                            <button type="button" class="cinema-btn secondary" @onclick="() => AbrirExistente(filme)">
+                                                Abrir detalhe
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="cinema-btn primary"
+                                                    disabled="@_aImportar"
+                                                    @onclick="() => Importar(filme)">
+                                                @(_aImportar ? "A importar..." : "Adicionar ao catalogo")
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+
+            <section class="catalogo-section">
+                <div class="cinema-section-head">
+                    <div>
+                        <span class="cinema-kicker">Catalogo interno</span>
+                        <h2>Filmes ja disponiveis</h2>
+                    </div>
+                    <div class="genre-filter">
+                        <MudMenu Label="@RotuloFiltro()"
+                                 Variant="Variant.Outlined"
+                                 Color="Color.Secondary"
+                                 StartIcon="@Icons.Material.Filled.FilterList">
+                            @if (_generosSelecionados.Count > 0)
+                            {
+                                <MudMenuItem OnClick="LimparGeneros" AutoClose="false">Limpar selecao</MudMenuItem>
+                                <MudDivider />
+                            }
+                            @foreach (var genero in _generos)
+                            {
+                                <MudMenuItem OnClick="() => AlternarGenero(genero)" AutoClose="false">
+                                    @(_generosSelecionados.Contains(genero) ? $"* {genero}" : genero)
+                                </MudMenuItem>
+                            }
+                        </MudMenu>
+                    </div>
+                </div>
+
+                @if (_filmesFiltrados.Count == 0)
+                {
+                    <div class="cinema-state">Nenhum filme interno encontrado.</div>
+                }
+                else
+                {
+                    <div class="catalogo-grid">
+                        @foreach (var filme in _filmesFiltrados.Take(20))
+                        {
+                            <FilmeCard Filme="filme" />
+                        }
+                    </div>
+                }
+            </section>
+        }
+    </section>
+</main>
 
 @code {
-    private List<FilmeDto> _filmes = new();
+    private List<FilmeDto> _filmesInternos = new();
+    private List<FilmeDto> _filmesFiltrados = new();
+    private List<FilmeDto> _tmdbIniciais = new();
+    private List<FilmeDto> _resultadosPesquisa = new();
     private List<string> _generos = new();
     private readonly HashSet<string> _generosSelecionados = new(StringComparer.OrdinalIgnoreCase);
     private string? _pesquisa;
+    private string? _mensagemImportacao;
+    private Severity _mensagemSeveridade = Severity.Info;
+    private bool _aPesquisar;
+    private bool _aImportar;
+
+    private List<FilmeDto> ResultadosAtuais => _aPesquisar ? _resultadosPesquisa : _tmdbIniciais;
 
     protected override async Task CarregarDadosAsync()
     {
-        _generos = await FilmeService.GetGenerosAsync();
-        _filmes = await FilmeService.GetFilmesAsync();
+        _filmesInternos = await FilmeService.GetFilmesAsync();
+        _filmesFiltrados = _filmesInternos.Take(20).ToList();
+        _generos = ExtrairGeneros(_filmesInternos).ToList();
+        _tmdbIniciais = await TmdbService.GetFilmesIniciaisAsync();
+    }
+
+    private async Task OnPesquisaAlterada(string? valor)
+    {
+        _pesquisa = valor;
+        _mensagemImportacao = null;
+
+        if (string.IsNullOrWhiteSpace(_pesquisa) || _pesquisa.Trim().Length < 2)
+        {
+            _aPesquisar = false;
+            _resultadosPesquisa.Clear();
+            await AplicarFiltrosInternos();
+            return;
+        }
+
+        _aPesquisar = true;
+        _resultadosPesquisa = await TmdbService.PesquisarAsync(_pesquisa.Trim());
+        await AplicarFiltrosInternos();
+    }
+
+    private async Task Importar(FilmeDto filme)
+    {
+        _mensagemImportacao = null;
+        _aImportar = true;
+
+        try
+        {
+            var importado = await FilmeService.ImportarTmdbAsync(filme.TmdbId);
+            _filmesInternos = await FilmeService.GetFilmesAsync();
+            _filmesFiltrados = _filmesInternos.Take(20).ToList();
+            Nav.NavigateTo($"/filmes/{importado.Id}");
+        }
+        catch (Exception ex)
+        {
+            _mensagemSeveridade = Severity.Error;
+            _mensagemImportacao = ex.Message;
+        }
+        finally
+        {
+            _aImportar = false;
+        }
+    }
+
+    private void AbrirExistente(FilmeDto filme)
+    {
+        var existente = _filmesInternos.FirstOrDefault(f => f.TmdbId == filme.TmdbId);
+        if (existente != null)
+            Nav.NavigateTo($"/filmes/{existente.Id}");
     }
 
     private async Task AlternarGenero(string genero)
@@ -100,46 +235,61 @@
         if (!_generosSelecionados.Add(genero))
             _generosSelecionados.Remove(genero);
 
-        await AplicarFiltros();
+        await AplicarFiltrosInternos();
     }
 
     private async Task LimparGeneros()
     {
         _generosSelecionados.Clear();
-        await AplicarFiltros();
+        await AplicarFiltrosInternos();
     }
 
-    private async Task OnPesquisaAlterada(ChangeEventArgs e)
+    private Task AplicarFiltrosInternos()
     {
-        _pesquisa = e.Value?.ToString();
-        await AplicarFiltros();
-    }
+        IEnumerable<FilmeDto> filmes = _filmesInternos;
 
-    private async Task AplicarFiltros()
-    {
-        var filmes = await FilmeService.GetFilmesAsync(null, _pesquisa);
+        if (!string.IsNullOrWhiteSpace(_pesquisa))
+        {
+            filmes = filmes.Where(f =>
+                f.Titulo.Contains(_pesquisa, StringComparison.OrdinalIgnoreCase)
+                || (f.Sinopse?.Contains(_pesquisa, StringComparison.OrdinalIgnoreCase) ?? false)
+            );
+        }
 
         if (_generosSelecionados.Count > 0)
         {
-            filmes = filmes
-                .Where(f =>
-                {
-                    var generos = GenerosDoFilme(f.Genero).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                    return _generosSelecionados.All(g => generos.Contains(g));
-                })
-                .ToList();
+            filmes = filmes.Where(f =>
+            {
+                var generos = GenerosDoFilme(f).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                return _generosSelecionados.All(g => generos.Contains(g));
+            });
         }
 
-        _filmes = filmes;
+        _filmesFiltrados = filmes.Take(20).ToList();
+        return Task.CompletedTask;
     }
 
-    private static IEnumerable<string> GenerosDoFilme(string? generos)
+    private bool FilmeJaExiste(FilmeDto filme)
     {
-        if (string.IsNullOrWhiteSpace(generos))
+        return filme.TmdbId > 0 && _filmesInternos.Any(f => f.TmdbId == filme.TmdbId);
+    }
+
+    private static IEnumerable<string> ExtrairGeneros(IEnumerable<FilmeDto> filmes)
+    {
+        return filmes.SelectMany(GenerosDoFilme)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(g => g);
+    }
+
+    private static IEnumerable<string> GenerosDoFilme(FilmeDto filme)
+    {
+        if (filme.Generos.Count > 0)
+            return filme.Generos.Where(g => !string.IsNullOrWhiteSpace(g));
+
+        if (string.IsNullOrWhiteSpace(filme.Genero))
             return Array.Empty<string>();
 
-        return generos
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+        return filme.Genero.Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(g => g.Trim())
             .Where(g => g.Length > 0);
     }
@@ -148,9 +298,37 @@
     {
         return _generosSelecionados.Count switch
         {
-            0 => "Filtrar por género",
+            0 => "Filtrar por genero",
             1 => _generosSelecionados.First(),
-            _ => $"{_generosSelecionados.Count} géneros",
+            _ => $"{_generosSelecionados.Count} generos",
         };
+    }
+
+    private static string ImagemFilme(FilmeDto filme)
+    {
+        return string.IsNullOrWhiteSpace(filme.CapaUrl)
+            ? "https://placehold.co/500x750/111827/ffffff?text=OCF"
+            : filme.CapaUrl;
+    }
+
+    private static string AnoFilme(FilmeDto filme)
+    {
+        return filme.DataLancamento == default ? "N/D" : filme.DataLancamento.Year.ToString();
+    }
+
+    private static string GeneroFilme(FilmeDto filme)
+    {
+        if (filme.Generos.Count > 0)
+            return string.Join(", ", filme.Generos.Take(2));
+
+        return filme.Genero ?? string.Empty;
+    }
+
+    private static string SinopseCurta(FilmeDto filme)
+    {
+        if (string.IsNullOrWhiteSpace(filme.Sinopse))
+            return "Sem sinopse disponivel.";
+
+        return filme.Sinopse.Length <= 150 ? filme.Sinopse : filme.Sinopse[..150] + "...";
     }
 }

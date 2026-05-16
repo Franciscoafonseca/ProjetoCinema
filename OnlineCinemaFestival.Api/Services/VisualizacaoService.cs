@@ -30,17 +30,17 @@ public class VisualizacaoService : IVisualizacaoService
         var filme = await _visualizacaoRepository.GetFilmeByIdAsync(filmeId);
 
         if (filme == null)
-            throw new KeyNotFoundException("Filme não encontrado.");
+            throw new KeyNotFoundException("Filme nao encontrado.");
 
-        var podeVisualizar = await _validacaoAcessoService.PodeVisualizarFilmeAsync(
+        var acesso = await _validacaoAcessoService.ObterAcessoValidoParaFilmeAsync(
             utilizadorId,
-            filmeId,
+            filme,
             festivalId
         );
 
-        if (!podeVisualizar)
+        if (acesso == null)
             throw new UnauthorizedAccessException(
-                "Não possui acesso válido para visualizar este filme."
+                "Nao possui acesso valido para visualizar este filme."
             );
 
         var url = await ObterUrlVisualizacaoAsync(filme);
@@ -49,8 +49,9 @@ public class VisualizacaoService : IVisualizacaoService
             utilizadorId,
             filme.Id,
             null,
-            festivalId,
+            acesso.FestivalId ?? festivalId,
             "Filme",
+            acesso.TipoAcesso,
             url
         );
 
@@ -67,6 +68,7 @@ public class VisualizacaoService : IVisualizacaoService
                 {
                     FilmeId = filme.Id,
                     Titulo = filme.Titulo,
+                    PosterUrl = filme.CapaUrl,
                     Ordem = 1,
                     UrlVisualizacao = url,
                 },
@@ -82,16 +84,16 @@ public class VisualizacaoService : IVisualizacaoService
         var sessao = await _visualizacaoRepository.GetSessaoByIdAsync(sessaoId);
 
         if (sessao == null)
-            throw new KeyNotFoundException("Sessão não encontrada.");
+            throw new KeyNotFoundException("Sessao nao encontrada.");
 
-        var podeVisualizar = await _validacaoAcessoService.PodeVisualizarSessaoAsync(
+        var acesso = await _validacaoAcessoService.ObterAcessoValidoParaSessaoAsync(
             utilizadorId,
             sessao
         );
 
-        if (!podeVisualizar)
+        if (acesso == null)
             throw new UnauthorizedAccessException(
-                "Não possui acesso válido para visualizar esta sessão."
+                "Nao possui acesso valido para visualizar esta sessao."
             );
 
         var conteudos = new List<ConteudoVisualizacaoDto>();
@@ -110,6 +112,7 @@ public class VisualizacaoService : IVisualizacaoService
                 {
                     FilmeId = filme.Id,
                     Titulo = filme.Titulo,
+                    PosterUrl = filme.CapaUrl,
                     Ordem = sessaoFilme.Ordem,
                     UrlVisualizacao = url,
                 }
@@ -120,6 +123,7 @@ public class VisualizacaoService : IVisualizacaoService
             utilizadorId,
             sessao.Id,
             sessao.FestivalId,
+            acesso.TipoAcesso,
             conteudos
         );
 
@@ -129,7 +133,7 @@ public class VisualizacaoService : IVisualizacaoService
             FilmeId = null,
             SessaoId = sessao.Id,
             TemChatAoVivo = sessao.TemChatAoVivo,
-            Mensagem = "Acesso autorizado à sessão.",
+            Mensagem = "Acesso autorizado a sessao.",
             Conteudos = conteudos,
         };
     }
@@ -155,6 +159,7 @@ public class VisualizacaoService : IVisualizacaoService
 
         var tipoConteudo = "Filme";
         int? festivalId = dto.FestivalId;
+        TipoAcesso? tipoAcessoUsado;
 
         if (dto.SessaoId.HasValue)
         {
@@ -166,32 +171,34 @@ public class VisualizacaoService : IVisualizacaoService
             if (!sessao.FilmesDaSessao.Any(sf => sf.FilmeId == dto.FilmeId))
                 throw new InvalidOperationException("O filme nao pertence a esta sessao.");
 
-            var podeVisualizarSessao = await _validacaoAcessoService.PodeVisualizarSessaoAsync(
+            var acesso = await _validacaoAcessoService.ObterAcessoValidoParaSessaoAsync(
                 utilizadorId,
                 sessao
             );
 
-            if (!podeVisualizarSessao)
+            if (acesso == null)
                 throw new UnauthorizedAccessException("Sem acesso valido para esta sessao.");
 
             tipoConteudo = "Sessao";
             festivalId = sessao.FestivalId;
+            tipoAcessoUsado = acesso.TipoAcesso;
         }
         else
         {
-            var podeVisualizarFilme = await _validacaoAcessoService.PodeVisualizarFilmeAsync(
+            var acesso = await _validacaoAcessoService.ObterAcessoValidoParaFilmeAsync(
                 utilizadorId,
-                dto.FilmeId,
+                filme,
                 dto.FestivalId
             );
 
-            if (!podeVisualizarFilme)
+            if (acesso == null)
                 throw new UnauthorizedAccessException("Sem acesso valido para este filme.");
+
+            festivalId = acesso.FestivalId ?? festivalId;
+            tipoAcessoUsado = acesso.TipoAcesso;
         }
 
-        var url = string.IsNullOrWhiteSpace(dto.UrlVisualizacao)
-            ? await ObterUrlVisualizacaoAsync(filme)
-            : dto.UrlVisualizacao;
+        var url = await ObterUrlVisualizacaoAsync(filme);
 
         var visualizacao = new Visualizacao
         {
@@ -200,6 +207,7 @@ public class VisualizacaoService : IVisualizacaoService
             SessaoId = dto.SessaoId,
             FestivalId = festivalId,
             TipoConteudo = tipoConteudo,
+            TipoAcessoUsado = tipoAcessoUsado,
             UrlVisualizacao = url,
             VisualizadoEm = DateTime.UtcNow,
         };
@@ -212,10 +220,12 @@ public class VisualizacaoService : IVisualizacaoService
             Id = visualizacao.Id,
             FilmeId = filme.Id,
             FilmeTitulo = filme.Titulo,
+            FilmePosterUrl = filme.CapaUrl,
             SessaoId = visualizacao.SessaoId,
             FestivalId = visualizacao.FestivalId,
             TipoConteudo = visualizacao.TipoConteudo,
-            UrlVisualizacao = visualizacao.UrlVisualizacao,
+            TipoAcessoUsado = visualizacao.TipoAcessoUsado?.ToString() ?? string.Empty,
+            UrlVisualizacao = ObterUrlHistorico(visualizacao),
             VisualizadoEm = visualizacao.VisualizadoEm,
         };
     }
@@ -245,6 +255,7 @@ public class VisualizacaoService : IVisualizacaoService
         int? sessaoId,
         int? festivalId,
         string tipoConteudo,
+        TipoAcesso tipoAcessoUsado,
         string urlVisualizacao
     )
     {
@@ -256,6 +267,7 @@ public class VisualizacaoService : IVisualizacaoService
                 SessaoId = sessaoId,
                 FestivalId = festivalId,
                 TipoConteudo = tipoConteudo,
+                TipoAcessoUsado = tipoAcessoUsado,
                 UrlVisualizacao = urlVisualizacao,
                 VisualizadoEm = DateTime.UtcNow,
             }
@@ -268,6 +280,7 @@ public class VisualizacaoService : IVisualizacaoService
         int utilizadorId,
         int sessaoId,
         int festivalId,
+        TipoAcesso tipoAcessoUsado,
         IEnumerable<ConteudoVisualizacaoDto> conteudos
     )
     {
@@ -279,6 +292,7 @@ public class VisualizacaoService : IVisualizacaoService
             SessaoId = sessaoId,
             FestivalId = festivalId,
             TipoConteudo = "Sessao",
+            TipoAcessoUsado = tipoAcessoUsado,
             UrlVisualizacao = conteudo.UrlVisualizacao,
             VisualizadoEm = agora,
         });
@@ -294,12 +308,23 @@ public class VisualizacaoService : IVisualizacaoService
             Id = visualizacao.Id,
             FilmeId = visualizacao.FilmeId,
             FilmeTitulo = visualizacao.Filme?.Titulo ?? string.Empty,
+            FilmePosterUrl = visualizacao.Filme?.CapaUrl ?? string.Empty,
             SessaoId = visualizacao.SessaoId,
+            SessaoInicio = visualizacao.Sessao?.Inicio,
+            SessaoFim = visualizacao.Sessao?.Fim,
             FestivalId = visualizacao.FestivalId,
             FestivalNome = visualizacao.Festival?.Name ?? string.Empty,
             TipoConteudo = visualizacao.TipoConteudo,
-            UrlVisualizacao = visualizacao.UrlVisualizacao,
+            TipoAcessoUsado = visualizacao.TipoAcessoUsado?.ToString() ?? string.Empty,
+            UrlVisualizacao = ObterUrlHistorico(visualizacao),
             VisualizadoEm = visualizacao.VisualizadoEm,
         };
+    }
+
+    private static string ObterUrlHistorico(Visualizacao visualizacao)
+    {
+        return visualizacao.SessaoId.HasValue
+            ? $"/visualizar/sessao/{visualizacao.SessaoId.Value}"
+            : $"/visualizar/filme/{visualizacao.FilmeId}";
     }
 }

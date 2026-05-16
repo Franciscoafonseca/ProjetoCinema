@@ -181,7 +181,7 @@
         return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
     }
 
-    private void AbrirPlayer(int sessaoId) => Nav.NavigateTo($"/player/sessao/{sessaoId}");
+    private void AbrirPlayer(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
 
     private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
 }

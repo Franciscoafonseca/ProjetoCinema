@@ -12,6 +12,7 @@ public class UserProfileService : IUserProfileService
 {
     private readonly IUtilizadorRepository _utilizadorRepository;
     private readonly IGeneroRepository _generoRepository;
+    private readonly IWebHostEnvironment _environment;
 
     /// <summary>
     /// Inicializa uma nova instância do serviço de perfis de utilizador.
@@ -24,11 +25,13 @@ public class UserProfileService : IUserProfileService
     /// </param>
     public UserProfileService(
         IUtilizadorRepository utilizadorRepository,
-        IGeneroRepository generoRepository
+        IGeneroRepository generoRepository,
+        IWebHostEnvironment environment
     )
     {
         _utilizadorRepository = utilizadorRepository;
         _generoRepository = generoRepository;
+        _environment = environment;
     }
 
     /// <summary>
@@ -76,10 +79,9 @@ public class UserProfileService : IUserProfileService
             utilizador.Name = request.Name.Trim();
 
         // Atualiza os dados pessoais e públicos do perfil.
-        utilizador.Nationality = request.Nationality.Trim();
+        utilizador.Nationality = ValidarCountryCode(request.Nationality);
         utilizador.Perfil.Bio = request.Bio.Trim();
-        utilizador.Perfil.ProfileImageUrl = request.ProfileImageUrl.Trim();
-        utilizador.Perfil.Location = request.Location.Trim();
+        utilizador.Perfil.Location = ValidarLocalidade(request.Location);
         utilizador.Perfil.IsPublic = request.IsPublic;
 
         // Regista as datas de atualização do perfil e do utilizador.
@@ -107,6 +109,57 @@ public class UserProfileService : IUserProfileService
         await _utilizadorRepository.SaveChangesAsync();
 
         // Devolve o perfil atualizado, incluindo o email do próprio utilizador.
+        return ToPrivadoDto(utilizador);
+    }
+
+    public async Task<PerfilPrivadoDto> UploadProfilePhotoAsync(int userId, IFormFile ficheiro)
+    {
+        var utilizador = await _utilizadorRepository.GetWithProfileAsync(userId);
+
+        if (utilizador == null || utilizador.Perfil == null)
+            throw new ArgumentException("Perfil nao encontrado.");
+
+        if (ficheiro == null || ficheiro.Length == 0)
+            throw new ArgumentException("Ficheiro obrigatorio.");
+
+        const long maxBytes = 2 * 1024 * 1024;
+        if (ficheiro.Length > maxBytes)
+            throw new ArgumentException("A foto nao pode exceder 2MB.");
+
+        var extensao = Path.GetExtension(ficheiro.FileName).ToLowerInvariant();
+        var contentTypesValidos = new Dictionary<string, string>
+        {
+            [".jpg"] = "image/jpeg",
+            [".jpeg"] = "image/jpeg",
+            [".png"] = "image/png",
+            [".webp"] = "image/webp",
+        };
+
+        if (!contentTypesValidos.TryGetValue(extensao, out var contentTypeEsperado)
+            || !string.Equals(ficheiro.ContentType, contentTypeEsperado, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Formato invalido. Usa jpg, png ou webp.");
+
+        var webRoot = _environment.WebRootPath;
+        if (string.IsNullOrWhiteSpace(webRoot))
+            webRoot = Path.Combine(_environment.ContentRootPath, "wwwroot");
+
+        var pasta = Path.Combine(webRoot, "uploads", "perfis");
+        Directory.CreateDirectory(pasta);
+
+        var nomeFicheiro = $"{Guid.NewGuid():N}{extensao}";
+        var caminhoCompleto = Path.Combine(pasta, nomeFicheiro);
+
+        await using (var stream = File.Create(caminhoCompleto))
+        {
+            await ficheiro.CopyToAsync(stream);
+        }
+
+        utilizador.Perfil.ProfileImageUrl = $"/uploads/perfis/{nomeFicheiro}";
+        utilizador.Perfil.UpdatedAt = DateTime.UtcNow;
+        utilizador.UpdatedAt = DateTime.UtcNow;
+
+        await _utilizadorRepository.SaveChangesAsync();
+
         return ToPrivadoDto(utilizador);
     }
 
@@ -155,6 +208,8 @@ public class UserProfileService : IUserProfileService
             UserId = utilizador.Id,
             Name = utilizador.Name,
             Nationality = utilizador.Nationality,
+            CountryCode = utilizador.Nationality,
+            CountryFlag = ObterBandeira(utilizador.Nationality),
             Bio = utilizador.Perfil?.Bio ?? string.Empty,
             ProfileImageUrl = utilizador.Perfil?.ProfileImageUrl ?? string.Empty,
             Location = utilizador.Perfil?.Location ?? string.Empty,
@@ -183,6 +238,8 @@ public class UserProfileService : IUserProfileService
             Name = publico.Name,
             Email = utilizador.Email,
             Nationality = publico.Nationality,
+            CountryCode = publico.CountryCode,
+            CountryFlag = publico.CountryFlag,
             Bio = publico.Bio,
             ProfileImageUrl = publico.ProfileImageUrl,
             Location = publico.Location,
@@ -192,5 +249,47 @@ public class UserProfileService : IUserProfileService
             CommunitiesCount = publico.CommunitiesCount,
             PublicListsCount = publico.PublicListsCount,
         };
+    }
+
+    private static string ValidarCountryCode(string countryCode)
+    {
+        if (string.IsNullOrWhiteSpace(countryCode))
+            return string.Empty;
+
+        var normalizado = countryCode.Trim().ToUpperInvariant();
+
+        if (normalizado.Length != 2 || normalizado.Any(c => c < 'A' || c > 'Z'))
+            throw new ArgumentException("A nacionalidade deve usar CountryCode ISO-2, por exemplo PT, BR ou US.");
+
+        return normalizado;
+    }
+
+    private static string ValidarLocalidade(string localidade)
+    {
+        if (string.IsNullOrWhiteSpace(localidade))
+            return string.Empty;
+
+        var normalizada = localidade.Trim();
+
+        if (normalizada.Length > 120)
+            throw new ArgumentException("A localidade deve ter no maximo 120 caracteres.");
+
+        if (normalizada.Any(c => char.IsControl(c)))
+            throw new ArgumentException("A localidade contem caracteres invalidos.");
+
+        return normalizada;
+    }
+
+    private static string ObterBandeira(string countryCode)
+    {
+        if (string.IsNullOrWhiteSpace(countryCode))
+            return string.Empty;
+
+        var codigo = countryCode.Trim().ToUpperInvariant();
+
+        if (codigo.Length != 2 || codigo.Any(c => c < 'A' || c > 'Z'))
+            return string.Empty;
+
+        return string.Concat(codigo.Select(c => char.ConvertFromUtf32(0x1F1E6 + c - 'A')));
     }
 }

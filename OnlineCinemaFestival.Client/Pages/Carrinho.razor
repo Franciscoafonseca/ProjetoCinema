@@ -1,7 +1,6 @@
 @page "/carrinho"
 @attribute [Authorize]
 @inject CarrinhoService CarrinhoService
-@inject CompraService CompraService
 @inject NavigationManager Nav
 
 <PageTitle>Carrinho - Online Cinema Festival</PageTitle>
@@ -15,7 +14,7 @@
                 Revê os bilhetes, passes e alugueres antes de finalizar a compra.
             </p>
         </div>
-        <a class="heading-action" href="/minhas-compras">Compras</a>
+        <a class="heading-action" href="/checkout">Checkout</a>
     </header>
 
     @if (_aCarregar)
@@ -136,8 +135,8 @@
                 <button type="button"
                         class="checkout"
                         disabled="@(_aAtualizar || (_validacao != null && !_validacao.Valido))"
-                        @onclick="Finalizar">
-                    @(_aAtualizar ? "A processar..." : "Finalizar compra")
+                        @onclick="IrParaCheckout">
+                    Ir para checkout
                 </button>
                 <button type="button"
                         class="secondary"
@@ -224,7 +223,7 @@
         });
     }
 
-    private async Task Finalizar()
+    private async Task IrParaCheckout()
     {
         await ExecutarAtualizacao(async () =>
         {
@@ -233,8 +232,7 @@
             if (!_validacao.Valido)
                 return;
 
-            await CompraService.FinalizarCompraAsync();
-            Nav.NavigateTo("/minhas-compras");
+            Nav.NavigateTo("/checkout");
         });
     }
 

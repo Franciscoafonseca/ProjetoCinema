@@ -8,5 +8,9 @@ public class SessaoFilme
     public int FilmeId { get; set; }
     public Filme Filme { get; set; } = null!;
 
+    public DateTime? HoraInicio { get; set; }
+
+    public DateTime? HoraFim { get; set; }
+
     public int Ordem { get; set; }
 }

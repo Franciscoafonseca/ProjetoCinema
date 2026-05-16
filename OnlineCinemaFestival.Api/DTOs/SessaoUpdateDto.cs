@@ -5,9 +5,10 @@ namespace OnlineCinemaFestival.Api.DTOs;
 
 public class SessaoUpdateDto
 {
-    [Required]
-    [MinLength(1, ErrorMessage = "A sessão deve ter pelo menos um filme.")]
+    [MinLength(1, ErrorMessage = "A sessao deve ter pelo menos um filme.")]
     public List<int> FilmeIds { get; set; } = new();
+
+    public List<SessaoFilmeCreateDto> Filmes { get; set; } = new();
 
     [Required]
     public TipoSessao Tipo { get; set; }

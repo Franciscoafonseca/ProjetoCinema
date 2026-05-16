@@ -14,6 +14,19 @@ public static class FestivalMapper
             Description = festival.Description,
             StartDate = festival.StartDate,
             EndDate = festival.EndDate,
+            Premios = festival.Premios,
+            Filmes = festival.FestivalFilmes.Select(ff => (FilmeResumoDto)FilmeMapper.MapToReadDto(ff.Filme)).ToList(),
+            Sessoes = festival.Sessoes.Select(s => (SessaoResumoDto)SessaoMapper.MapToReadDto(s)).ToList(),
+            PassesDisponiveis = festival
+                .Acessos.Where(a =>
+                    a.IsAtivo
+                    && (
+                        a.Tipo == TipoAcesso.PasseDiario
+                        || a.Tipo == TipoAcesso.PasseCompleto
+                    )
+                )
+                .Select(AcessoMapper.MapToReadDto)
+                .ToList(),
         };
     }
 

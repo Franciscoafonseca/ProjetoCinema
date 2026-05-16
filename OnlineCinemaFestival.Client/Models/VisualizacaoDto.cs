@@ -21,6 +21,8 @@ public class ConteudoVisualizacaoDto
 
     public string Titulo { get; set; } = string.Empty;
 
+    public string PosterUrl { get; set; } = string.Empty;
+
     public int Ordem { get; set; }
 
     public string UrlVisualizacao { get; set; } = string.Empty;
@@ -34,13 +36,21 @@ public class VisualizacaoHistoricoDto
 
     public string FilmeTitulo { get; set; } = string.Empty;
 
+    public string FilmePosterUrl { get; set; } = string.Empty;
+
     public int? SessaoId { get; set; }
+
+    public DateTime? SessaoInicio { get; set; }
+
+    public DateTime? SessaoFim { get; set; }
 
     public int? FestivalId { get; set; }
 
     public string FestivalNome { get; set; } = string.Empty;
 
     public string TipoConteudo { get; set; } = string.Empty;
+
+    public string TipoAcessoUsado { get; set; } = string.Empty;
 
     public string? UrlVisualizacao { get; set; }
 

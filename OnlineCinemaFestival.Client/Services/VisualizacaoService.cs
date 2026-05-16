@@ -3,6 +3,17 @@ using OnlineCinemaFestival.Client.Models;
 
 namespace OnlineCinemaFestival.Client.Services;
 
+public class VisualizacaoApiException : Exception
+{
+    public VisualizacaoApiException(int statusCode, string message)
+        : base(message)
+    {
+        StatusCode = statusCode;
+    }
+
+    public int StatusCode { get; }
+}
+
 public class VisualizacaoService
 {
     private readonly HttpClient _http;
@@ -29,7 +40,7 @@ public class VisualizacaoService
     public async Task<List<VisualizacaoHistoricoDto>> ObterHistoricoAsync()
     {
         return await _http.GetFromJsonAsync<List<VisualizacaoHistoricoDto>>(
-                "api/visualizacoes/minhas"
+                "api/visualizacao/historico"
             ) ?? new();
     }
 
@@ -40,7 +51,8 @@ public class VisualizacaoService
         if (!resposta.IsSuccessStatusCode)
         {
             var conteudo = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(
+            throw new VisualizacaoApiException(
+                (int)resposta.StatusCode,
                 string.IsNullOrWhiteSpace(conteudo) ? "Sem acesso valido ao conteudo." : conteudo
             );
         }

@@ -97,6 +97,22 @@ builder.Services.AddScoped<IFestivalService, FestivalService>();
 
 builder.Services.AddScoped<IVisualizacaoRepository, VisualizacaoRepository>();
 builder.Services.AddScoped<IValidacaoAcessoService, ValidacaoAcessoService>();
+builder.Services.AddScoped<
+    OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.IEstrategiaValidacaoAcesso,
+    OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.ValidacaoBilheteSessaoStrategy
+>();
+builder.Services.AddScoped<
+    OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.IEstrategiaValidacaoAcesso,
+    OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.ValidacaoPasseDiarioStrategy
+>();
+builder.Services.AddScoped<
+    OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.IEstrategiaValidacaoAcesso,
+    OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.ValidacaoPasseCompletoStrategy
+>();
+builder.Services.AddScoped<
+    OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.IEstrategiaValidacaoAcesso,
+    OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.ValidacaoAluguerDigitalStrategy
+>();
 builder.Services.AddScoped<IVisualizacaoService, VisualizacaoService>();
 
 builder.Services.AddHttpContextAccessor();
@@ -198,6 +214,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("BlazorClient");
+
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -18,6 +18,8 @@ public class Visualizacao
 
     public string TipoConteudo { get; set; } = string.Empty;
 
+    public TipoAcesso? TipoAcessoUsado { get; set; }
+
     public string? UrlVisualizacao { get; set; }
 
     public DateTime VisualizadoEm { get; set; } = DateTime.UtcNow;

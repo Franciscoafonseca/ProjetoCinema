@@ -30,6 +30,8 @@ public static class SessaoMapper
                 {
                     Id = sf.FilmeId,
                     Titulo = sf.Filme?.Titulo ?? string.Empty,
+                    HoraInicio = sf.HoraInicio ?? sessao.Inicio,
+                    HoraFim = sf.HoraFim ?? sessao.Fim,
                     Ordem = sf.Ordem,
                 })
                 .ToList(),
@@ -59,12 +61,7 @@ public static class SessaoMapper
             Fim = dto.Fim,
             TemChatAoVivo = dto.TemChatAoVivo,
             Observacoes = dto.Observacoes?.Trim(),
-            FilmesDaSessao = dto
-                .FilmeIds.Distinct()
-                .Select(
-                    (filmeId, index) => new SessaoFilme { FilmeId = filmeId, Ordem = index + 1 }
-                )
-                .ToList(),
+            FilmesDaSessao = ObterFilmesSessao(dto.FilmeIds, dto.Filmes),
         };
     }
 
@@ -78,18 +75,41 @@ public static class SessaoMapper
 
         sessao.FilmesDaSessao.Clear();
 
-        foreach (
-            var item in dto.FilmeIds.Distinct().Select((filmeId, index) => new { filmeId, index })
-        )
+        foreach (var item in ObterFilmesSessao(dto.FilmeIds, dto.Filmes))
         {
+            item.SessaoId = sessao.Id;
             sessao.FilmesDaSessao.Add(
-                new SessaoFilme
-                {
-                    SessaoId = sessao.Id,
-                    FilmeId = item.filmeId,
-                    Ordem = item.index + 1,
-                }
+                item
             );
         }
+    }
+
+    private static List<SessaoFilme> ObterFilmesSessao(
+        List<int> filmeIds,
+        List<SessaoFilmeCreateDto> filmes
+    )
+    {
+        if (filmes.Any())
+        {
+            return filmes
+                .GroupBy(f => f.FilmeId)
+                .Select(g => g.First())
+                .Select(
+                    (filme, index) => new SessaoFilme
+                    {
+                        FilmeId = filme.FilmeId,
+                        HoraInicio = filme.HoraInicio,
+                        HoraFim = filme.HoraFim,
+                        Ordem = filme.Ordem ?? index + 1,
+                    }
+                )
+                .OrderBy(sf => sf.Ordem)
+                .ToList();
+        }
+
+        return filmeIds
+            .Distinct()
+            .Select((filmeId, index) => new SessaoFilme { FilmeId = filmeId, Ordem = index + 1 })
+            .ToList();
     }
 }

@@ -23,6 +23,20 @@ public class FestivalRepository : IFestivalRepository
         return await _context.Festivals.FirstOrDefaultAsync(f => f.Id == id);
     }
 
+    public async Task<Festival?> GetDetalheByIdAsync(int id)
+    {
+        return await _context
+            .Festivals.Include(f => f.FestivalFilmes)
+                .ThenInclude(ff => ff.Filme)
+                    .ThenInclude(f => f.FilmeGeneros)
+                        .ThenInclude(fg => fg.Genero)
+            .Include(f => f.Sessoes)
+                .ThenInclude(s => s.FilmesDaSessao)
+                    .ThenInclude(sf => sf.Filme)
+            .Include(f => f.Acessos)
+            .FirstOrDefaultAsync(f => f.Id == id);
+    }
+
     public async Task AddAsync(Festival festival)
     {
         await _context.Festivals.AddAsync(festival);

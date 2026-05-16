@@ -13,9 +13,12 @@ public class CheckoutService
         _http = http;
     }
 
-    public async Task<CheckoutResultadoDto> FinalizarCompraAsync()
+    public async Task<CheckoutResultadoDto> FinalizarCompraAsync(string metodoPagamento)
     {
-        var resposta = await _http.PostAsync("api/checkout", null);
+        var resposta = await _http.PostAsJsonAsync(
+            "api/checkout",
+            new FinalizarCheckoutRequest { MetodoPagamento = metodoPagamento }
+        );
 
         if (!resposta.IsSuccessStatusCode)
             throw new InvalidOperationException(await ObterMensagemErroAsync(resposta));
@@ -46,4 +49,9 @@ public class CheckoutService
         var conteudo = await resposta.Content.ReadAsStringAsync();
         return string.IsNullOrWhiteSpace(conteudo) ? padrao : conteudo.Trim('"');
     }
+}
+
+public class FinalizarCheckoutRequest
+{
+    public string MetodoPagamento { get; set; } = "CartaoCredito";
 }

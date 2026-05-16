@@ -5,14 +5,23 @@ public class Filme
     public int Id { get; set; }
     public int TmdbId { get; set; }
     public string Titulo { get; set; } = "";
+    public string? TituloOriginal { get; set; }
     public string? Sinopse { get; set; }
     public DateTime DataLancamento { get; set; }
+    public int? DuracaoMinutos { get; set; }
     public string? Genero { get; set; }
     public string? Classificacao { get; set; }
+    public double? AvaliacaoTmdb { get; set; }
     public string CapaUrl { get; set; } = "";
     public string? TrailerUrl { get; set; }
     public string? VideoUrl { get; set; }
     public string? ConteudoLocalPath { get; set; }
+    public string? Realizador { get; set; }
+    public string? AtoresPrincipais { get; set; }
+    public string? TmdbReviewsJson { get; set; }
+    public string? Premios { get; set; }
+
+    public ICollection<FilmeGenero> FilmeGeneros { get; set; } = new List<FilmeGenero>();
 
     public ICollection<FestivalFilme> FestivalFilmes { get; set; } = new List<FestivalFilme>();
 

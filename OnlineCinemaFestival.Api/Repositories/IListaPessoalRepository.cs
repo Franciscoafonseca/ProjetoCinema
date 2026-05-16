@@ -6,6 +6,8 @@ public interface IListaPessoalRepository
 {
     Task<IEnumerable<ListaPessoal>> GetByUtilizadorAsync(int utilizadorId);
 
+    Task<bool> ExisteNomeParaUtilizadorAsync(int utilizadorId, string nome);
+
     Task<ListaPessoal?> GetByIdAsync(int id);
 
     Task AddAsync(ListaPessoal lista);

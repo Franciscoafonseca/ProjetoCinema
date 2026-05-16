@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<SessaoFilme> SessaoFilmes => Set<SessaoFilme>();
     public DbSet<Festival> Festivals => Set<Festival>();
     public DbSet<Filme> Filmes => Set<Filme>();
+    public DbSet<FilmeGenero> FilmeGeneros => Set<FilmeGenero>();
 
     public DbSet<Sessao> Sessoes => Set<Sessao>();
 
@@ -89,6 +90,22 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Genero>().HasIndex(g => g.Name).IsUnique();
+
+        modelBuilder.Entity<FilmeGenero>().HasKey(fg => new { fg.FilmeId, fg.GeneroId });
+
+        modelBuilder
+            .Entity<FilmeGenero>()
+            .HasOne(fg => fg.Filme)
+            .WithMany(f => f.FilmeGeneros)
+            .HasForeignKey(fg => fg.FilmeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<FilmeGenero>()
+            .HasOne(fg => fg.Genero)
+            .WithMany(g => g.Filmes)
+            .HasForeignKey(fg => fg.GeneroId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Avaliacao>()

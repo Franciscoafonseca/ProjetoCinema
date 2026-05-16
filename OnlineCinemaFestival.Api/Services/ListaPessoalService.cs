@@ -2,6 +2,7 @@ using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
+using System.Text.RegularExpressions;
 
 namespace OnlineCinemaFestival.Api.Services;
 
@@ -33,8 +34,12 @@ public class ListaPessoalService : IListaPessoalService
     /// <exception cref="ArgumentException">Quando o nome é inválido.</exception>
     public async Task<ListaPessoalReadDto> CreateAsync(int utilizadorId, ListaPessoalCreateDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Name))
-            throw new ArgumentException("O nome da lista é obrigatório.");
+        var nome = ValidarNome(dto.Name);
+
+        if (await _repository.ExisteNomeParaUtilizadorAsync(utilizadorId, nome))
+            throw new ArgumentException("Ja existe uma lista com esse nome.");
+
+        dto.Name = nome;
 
         var lista = ListaPessoalMapper.MapFromCreateDto(dto, utilizadorId);
 
@@ -132,5 +137,24 @@ public class ListaPessoalService : IListaPessoalService
             throw new UnauthorizedAccessException("Não tens acesso a esta lista.");
 
         return lista;
+    }
+
+    private static string ValidarNome(string nome)
+    {
+        if (string.IsNullOrWhiteSpace(nome))
+            throw new ArgumentException("O nome da lista e obrigatorio.");
+
+        var normalizado = nome.Trim();
+
+        if (normalizado.Length < 3)
+            throw new ArgumentException("O nome da lista deve ter pelo menos 3 caracteres.");
+
+        if (normalizado.Length > 50)
+            throw new ArgumentException("O nome da lista deve ter no maximo 50 caracteres.");
+
+        if (!Regex.IsMatch(normalizado, @"^[\p{L}\p{N}\s._'-]+$"))
+            throw new ArgumentException("O nome da lista contem caracteres invalidos.");
+
+        return normalizado;
     }
 }

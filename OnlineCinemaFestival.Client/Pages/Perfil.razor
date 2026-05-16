@@ -405,7 +405,14 @@
                                                         <MudAvatar Rounded="true"
                                                                    Color="Color.Primary"
                                                                    Variant="Variant.Outlined">
-                                                            <MudIcon Icon="@Icons.Material.Filled.PlayCircle" />
+                                                            @if (!string.IsNullOrWhiteSpace(item.FilmePosterUrl))
+                                                            {
+                                                                <img src="@item.FilmePosterUrl" alt="@item.FilmeTitulo" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <MudIcon Icon="@Icons.Material.Filled.PlayCircle" />
+                                                            }
                                                         </MudAvatar>
                                                         <div>
                                                             <MudText Typo="Typo.subtitle1">@item.FilmeTitulo</MudText>
@@ -594,10 +601,16 @@
 
     private static string TextoHistorico(VisualizacaoHistoricoDto item)
     {
-        if (!string.IsNullOrWhiteSpace(item.FestivalNome))
-            return $"{item.TipoConteudo} em {item.FestivalNome}";
+        var tipoAcesso = string.IsNullOrWhiteSpace(item.TipoAcessoUsado)
+            ? string.Empty
+            : $" - {item.TipoAcessoUsado}";
 
-        return string.IsNullOrWhiteSpace(item.TipoConteudo) ? "Visualizacao" : item.TipoConteudo;
+        if (!string.IsNullOrWhiteSpace(item.FestivalNome))
+            return $"{item.TipoConteudo} em {item.FestivalNome}{tipoAcesso}";
+
+        return string.IsNullOrWhiteSpace(item.TipoConteudo)
+            ? $"Visualizacao{tipoAcesso}"
+            : $"{item.TipoConteudo}{tipoAcesso}";
     }
 
     private static string FormatarData(DateTime data)

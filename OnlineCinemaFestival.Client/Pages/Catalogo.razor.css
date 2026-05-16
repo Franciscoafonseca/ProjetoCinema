@@ -1,152 +1,128 @@
-.catalogo-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 48px 20px;
+.catalogo-page .search-panel {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
-.catalogo-titulo {
-  color: #fff;
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 32px;
-  position: relative;
-  padding-bottom: 12px;
+.catalogo-section {
+  margin-top: 34px;
 }
 
-.catalogo-titulo::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 48px;
-  height: 3px;
-  background: #e50914;
-  border-radius: 2px;
-}
-
-.catalogo-filtros {
+.genre-filter {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 36px;
+  justify-content: flex-end;
 }
 
-.pesquisa-input {
+.tmdb-grid,
+.catalogo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.tmdb-card {
+  min-width: 0;
+  border: 1px solid var(--ocf-line);
+  border-radius: 24px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+    rgba(10, 16, 29, 0.86);
+  box-shadow: var(--ocf-shadow-md);
+}
+
+.tmdb-poster {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  background: #111827;
+}
+
+.tmdb-poster img {
   width: 100%;
-  padding: 12px 16px;
-  background-color: #1a1a2e;
-  border: 1px solid #333;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s ease;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.pesquisa-input::placeholder {
-  color: #999;
+.catalog-badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #042720;
+  background: linear-gradient(135deg, var(--ocf-green), var(--ocf-teal));
+  font-size: 0.72rem;
+  font-weight: 900;
 }
 
-.pesquisa-input:focus {
-  border-color: #e50914;
+.tmdb-body {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
 }
 
-.generos-chips {
+.tmdb-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  .filtro-genero {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
+  color: var(--ocf-teal-soft);
+  font-size: 0.76rem;
+  font-weight: 850;
 }
 
-.chip {
-  padding: 6px 16px;
-  border-radius: 20px;
-  border: 1px solid #444;
-  background-color: transparent;
-  color: #ccc;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.3px;
-}
-
-.chip:hover {
-  border-color: #e50914;
-  color: #fff;
-}
-
-.chip-ativo {
-  background-color: #e50914;
-  border-color: #e50914;
-  color: #fff;
-}
-
-.chips-selecionados {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.catalogo-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
-}
-
-@media (max-width: 1100px) {
-  .catalogo-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .catalogo-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .catalogo-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.loading-state {
-  text-align: center;
-  padding: 80px 0;
-  color: #aaa;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #333;
-  border-top-color: #e50914;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 16px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.erro-state,
-.empty-state {
-  text-align: center;
-  padding: 80px 0;
-  color: #aaa;
+.tmdb-body h3 {
+  margin: 0;
+  color: var(--ocf-text);
   font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 950;
 }
 
-.erro-state {
-  color: #e50914;
+.tmdb-body p {
+  min-height: 66px;
+  margin: 0;
+  color: var(--ocf-muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.tmdb-actions {
+  display: flex;
+}
+
+.tmdb-actions .cinema-btn {
+  width: 100%;
+}
+
+@media (max-width: 1280px) {
+  .tmdb-grid,
+  .catalogo-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 940px) {
+  .tmdb-grid,
+  .catalogo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .tmdb-grid,
+  .catalogo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .genre-filter {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 430px) {
+  .tmdb-grid,
+  .catalogo-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -112,6 +112,7 @@ public class VisualizacaoRepository : IVisualizacaoRepository
         return await _context
             .Visualizacoes.Where(v => v.UtilizadorId == utilizadorId)
             .Include(v => v.Filme)
+            .Include(v => v.Sessao)
             .Include(v => v.Festival)
             .OrderByDescending(v => v.VisualizadoEm)
             .ToListAsync();

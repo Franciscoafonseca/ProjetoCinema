@@ -8,6 +8,8 @@ public interface IUserProfileService
 
     Task<PerfilPrivadoDto> UpdateMyProfileAsync(int userId, UpdateProfileRequest request);
 
+    Task<PerfilPrivadoDto> UploadProfilePhotoAsync(int userId, IFormFile ficheiro);
+
     Task<List<PerfilPublicoDto>> GetPublicProfilesAsync();
 
     Task<PerfilPublicoDto> GetPublicProfileAsync(int userId);

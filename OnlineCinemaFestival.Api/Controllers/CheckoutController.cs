@@ -25,13 +25,18 @@ public class CheckoutController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<CheckoutResultadoDto>> FinalizarCompra()
+    public async Task<ActionResult<CheckoutResultadoDto>> FinalizarCompra(
+        [FromBody] FinalizarCheckoutRequest? request
+    )
     {
         try
         {
             var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var compra = await _checkoutService.FinalizarCompraAsync(utilizadorId);
+            var compra = await _checkoutService.FinalizarCompraAsync(
+                utilizadorId,
+                request?.MetodoPagamento ?? "CartaoCredito"
+            );
 
             return Ok(compra);
         }

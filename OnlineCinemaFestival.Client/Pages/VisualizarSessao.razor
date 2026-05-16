@@ -1,0 +1,173 @@
+@page "/visualizar/sessao/{SessaoId:int}"
+@attribute [Authorize]
+@inject VisualizacaoService VisualizacaoService
+@inject NavigationManager Nav
+
+<PageTitle>Visualizar sessao - Online Cinema Festival</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
+    <MudStack Spacing="3">
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Default"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   OnClick="Voltar">
+            Voltar
+        </MudButton>
+
+        @if (_aCarregar)
+        {
+            <MudPaper Elevation="0" Class="pa-6">
+                <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    <MudText Color="Color.Secondary">A carregar player...</MudText>
+                </MudStack>
+            </MudPaper>
+        }
+        else if (!string.IsNullOrWhiteSpace(_erro))
+        {
+            <MudAlert Severity="@_erroSeveridade" Variant="Variant.Filled">
+                @_erro
+            </MudAlert>
+        }
+        else if (_conteudoSelecionado != null)
+        {
+            <MudPaper Elevation="0" Class="pa-0 overflow-hidden">
+                <div style="aspect-ratio: 16 / 9; width: 100%; background: #111;">
+                    @if (UsarVideoTag(_conteudoSelecionado.UrlVisualizacao))
+                    {
+                        <video src="@_conteudoSelecionado.UrlVisualizacao"
+                               controls
+                               autoplay
+                               style="width: 100%; height: 100%; object-fit: contain;">
+                            O teu browser nao suporta video HTML5.
+                        </video>
+                    }
+                    else
+                    {
+                        <iframe src="@UrlPlayer(_conteudoSelecionado.UrlVisualizacao)"
+                                title="@_conteudoSelecionado.Titulo"
+                                style="width: 100%; height: 100%; border: 0;"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen>
+                        </iframe>
+                    }
+                </div>
+            </MudPaper>
+
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <div>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@_visualizacao?.TipoConteudo</MudText>
+                    <MudText Typo="Typo.h5">@_conteudoSelecionado.Titulo</MudText>
+                </div>
+                @if (_visualizacao?.TemChatAoVivo == true)
+                {
+                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Chat">
+                        Chat ao vivo
+                    </MudChip>
+                }
+            </MudStack>
+
+            @if (_conteudos.Count > 1)
+            {
+                <MudPaper Elevation="0" Class="pa-3">
+                    <MudStack Spacing="1">
+                        @foreach (var conteudo in _conteudos)
+                        {
+                            <MudButton Variant="@(conteudo.FilmeId == _conteudoSelecionado.FilmeId ? Variant.Filled : Variant.Text)"
+                                       Color="Color.Primary"
+                                       OnClick="() => Selecionar(conteudo)"
+                                       StartIcon="@Icons.Material.Filled.PlayArrow">
+                                @($"{conteudo.Ordem}. {conteudo.Titulo}")
+                            </MudButton>
+                        }
+                    </MudStack>
+                </MudPaper>
+            }
+        }
+    </MudStack>
+</MudContainer>
+
+@code {
+    [Parameter] public int SessaoId { get; set; }
+
+    private VisualizacaoDto? _visualizacao;
+    private List<ConteudoVisualizacaoDto> _conteudos = new();
+    private ConteudoVisualizacaoDto? _conteudoSelecionado;
+    private bool _aCarregar = true;
+    private string? _erro;
+    private Severity _erroSeveridade = Severity.Error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _aCarregar = true;
+        _erro = null;
+
+        try
+        {
+            _visualizacao = await VisualizacaoService.ObterSessaoAsync(SessaoId);
+            _conteudos = _visualizacao.Conteudos.OrderBy(c => c.Ordem).ToList();
+            _conteudoSelecionado = _conteudos.FirstOrDefault();
+        }
+        catch (VisualizacaoApiException ex) when (ex.StatusCode == 403)
+        {
+            _erro = "Não tens acesso válido a este conteúdo";
+            _erroSeveridade = Severity.Warning;
+        }
+        catch (VisualizacaoApiException ex) when (ex.StatusCode == 404)
+        {
+            _erro = "Conteúdo não encontrado";
+            _erroSeveridade = Severity.Error;
+        }
+        catch
+        {
+            _erro = "Nao foi possivel abrir esta sessao.";
+            _erroSeveridade = Severity.Error;
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private void Selecionar(ConteudoVisualizacaoDto conteudo)
+    {
+        _conteudoSelecionado = conteudo;
+    }
+
+    private void Voltar() => Nav.NavigateTo("/sessoes");
+
+    private static string UrlPlayer(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        if (url.Contains("/embed/", StringComparison.OrdinalIgnoreCase))
+            return url;
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            if (uri.Host.Contains("youtu.be", StringComparison.OrdinalIgnoreCase))
+                return $"https://www.youtube.com/embed/{uri.AbsolutePath.Trim('/')}";
+
+            var videoId = uri.Query
+                .TrimStart('?')
+                .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                .Select(parte => parte.Split('=', 2))
+                .FirstOrDefault(partes =>
+                    partes.Length == 2 && string.Equals(partes[0], "v", StringComparison.OrdinalIgnoreCase)
+                )?[1];
+
+            if (!string.IsNullOrWhiteSpace(videoId))
+                return $"https://www.youtube.com/embed/{Uri.UnescapeDataString(videoId)}";
+        }
+
+        return url;
+    }
+
+    private static bool UsarVideoTag(string url)
+    {
+        return url.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".webm", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase);
+    }
+}

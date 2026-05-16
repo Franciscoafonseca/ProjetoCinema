@@ -8,6 +8,8 @@ public interface IFestivalRepository
 
     Task<Festival?> GetByIdAsync(int id);
 
+    Task<Festival?> GetDetalheByIdAsync(int id);
+
     Task AddAsync(Festival festival);
 
     void Remove(Festival festival);

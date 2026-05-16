@@ -4,193 +4,353 @@
 @inject SessaoService SessaoService
 @inject AcessoService AcessoService
 @inject CarrinhoService CarrinhoService
+@inject ReviewService ReviewService
+@inject ListaService ListaService
 @inject NavigationManager Nav
 
 <PageTitle>@(_filme?.Titulo ?? "Filme") - Online Cinema Festival</PageTitle>
 
-@if (_loading)
-{
-    <div class="loading-state">
-        <div class="spinner"></div>
-        <p>A carregar filme...</p>
-    </div>
-}
-else if (_erro != null)
-{
-    <div class="nao-encontrado">
-        <p class="erro-msg">@_erro</p>
-        <button class="btn-voltar" @onclick="Voltar">Voltar ao catalogo</button>
-    </div>
-}
-else if (_filme == null)
-{
-    <div class="nao-encontrado">
-        <h2>Filme nao encontrado</h2>
-        <button class="btn-voltar" @onclick="Voltar">Voltar ao catalogo</button>
-    </div>
-}
-else
-{
-    <div class="detalhes-container">
-        <button class="btn-voltar" @onclick="Voltar">Voltar ao catalogo</button>
-
-        <section class="detalhes-hero">
-            <div class="detalhes-poster">
-                <img src="@ImagemFilme(_filme)" alt="@_filme.Titulo" />
+<main class="cinema-page detalhes-page">
+    <section class="cinema-shell">
+        @if (_loading)
+        {
+            <div class="cinema-state">
+                <div class="spinner"></div>
+                <p>A carregar filme...</p>
             </div>
+        }
+        else if (_erro != null)
+        {
+            <div class="cinema-state error">
+                <p>@_erro</p>
+                <button class="cinema-btn secondary" @onclick="Voltar">Voltar ao catalogo</button>
+            </div>
+        }
+        else if (_filme == null)
+        {
+            <div class="cinema-state">
+                <p>Filme nao encontrado.</p>
+                <button class="cinema-btn secondary" @onclick="Voltar">Voltar ao catalogo</button>
+            </div>
+        }
+        else
+        {
+            <button class="back-link" @onclick="Voltar">Voltar ao catalogo</button>
 
-            <div class="detalhes-info">
-                @if (!string.IsNullOrWhiteSpace(_filme.Genero))
-                {
-                    <span class="detalhes-genero">@_filme.Genero</span>
-                }
+            <section class="detalhes-hero cinema-panel">
+                <div class="detalhes-poster">
+                    <img src="@ImagemFilme(_filme)" alt="@_filme.Titulo" />
+                </div>
 
-                <h1 class="detalhes-titulo">@_filme.Titulo</h1>
+                <div class="detalhes-info">
+                    <span class="cinema-kicker">@GeneroFilme(_filme)</span>
+                    <h1>@_filme.Titulo</h1>
 
-                <div class="detalhes-meta">
-                    <div class="meta-item">
-                        <span class="meta-label">Ano</span>
+                    <div class="chip-row">
                         <span>@AnoFilme(_filme)</span>
+                        <span>@Duracao(_filme)</span>
+                        @if (!string.IsNullOrWhiteSpace(_filme.Classificacao))
+                        {
+                            <span>TMDB @_filme.Classificacao</span>
+                        }
                     </div>
-                    @if (!string.IsNullOrWhiteSpace(_filme.Classificacao))
+
+                    @if (!string.IsNullOrWhiteSpace(_filme.Sinopse))
                     {
-                        <div class="meta-item">
-                            <span class="star">*</span>
-                            <span>@_filme.Classificacao</span>
-                        </div>
+                        <p class="sinopse">@_filme.Sinopse</p>
                     }
-                    <div class="meta-item">
-                        <span class="meta-label">Popularidade</span>
-                        <span>@_filme.Popularidade</span>
+
+                    <dl class="facts-grid">
+                        <div>
+                            <dt>Realizador</dt>
+                            <dd>@ValorOuIndisponivel(_filme.Realizador)</dd>
+                        </div>
+                        <div>
+                            <dt>Atores</dt>
+                            <dd>@(_filme.Atores.Count == 0 ? "N/D" : string.Join(", ", _filme.Atores.Take(5)))</dd>
+                        </div>
+                        <div>
+                            <dt>Festivais</dt>
+                            <dd>@(_filme.Festivais.Count == 0 ? "N/D" : string.Join(", ", _filme.Festivais.Select(f => f.Name)))</dd>
+                        </div>
+                        <div>
+                            <dt>Premios</dt>
+                            <dd>@ValorOuIndisponivel(_filme.Premios)</dd>
+                        </div>
+                    </dl>
+
+                    <div class="hero-actions">
+                        @if (_filme.PodeVer)
+                        {
+                            <button class="cinema-btn primary" @onclick="AbrirPlayerFilme">Ver agora</button>
+                        }
+                        else
+                        {
+                            <a class="cinema-btn secondary" href="#acessos">Comprar acesso</a>
+                        }
+                        <a class="cinema-btn ghost" href="/carrinho">Carrinho</a>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_mensagemCarrinho))
+                    {
+                        <MudAlert Severity="@_mensagemCarrinhoSeveridade" Variant="Variant.Filled">
+                            @_mensagemCarrinho
+                        </MudAlert>
+                    }
+                </div>
+            </section>
+
+            @if (!string.IsNullOrWhiteSpace(TrailerEmbedUrl))
+            {
+                <section class="cinema-panel trailer-section">
+                    <div class="cinema-section-head compact">
+                        <div>
+                            <span class="cinema-kicker">Trailer</span>
+                            <h2>Antevisao</h2>
+                        </div>
+                    </div>
+                    <div class="trailer-wrapper">
+                        <iframe src="@TrailerEmbedUrl"
+                                title="Trailer de @_filme.Titulo"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                </section>
+            }
+
+            <section id="acessos" class="access-section">
+                <div class="cinema-section-head">
+                    <div>
+                        <span class="cinema-kicker">Acessos</span>
+                        <h2>Escolhe como queres ver</h2>
                     </div>
                 </div>
 
-                @if (!string.IsNullOrWhiteSpace(_filme.Sinopse))
-                {
-                    <p class="detalhes-sinopse">@_filme.Sinopse</p>
-                }
-
-                <div class="player-acoes">
-                    <AuthorizeView>
-                        <Authorized>
-                            <button class="btn-ver" @onclick="AbrirPlayerFilme">
-                                Ver no player
+                <div class="access-choice-grid">
+                    <article class="access-choice cinema-panel">
+                        <span>Bilhete de sessao</span>
+                        <h3>Comprar bilhete</h3>
+                        <p>Seleciona uma sessao programada para este filme.</p>
+                        @if (_sessoes.Count == 0)
+                        {
+                            <small>Sem sessoes disponiveis.</small>
+                        }
+                        else
+                        {
+                            <select @bind="_sessaoSelecionadaId">
+                                <option value="">Selecionar sessao</option>
+                                @foreach (var sessao in _sessoes)
+                                {
+                                    <option value="@sessao.Id">@TituloSessao(sessao) - @FormatarDataHora(sessao.Inicio)</option>
+                                }
+                            </select>
+                            <button class="cinema-btn primary" disabled="@(!_sessaoSelecionadaId.HasValue || _aAtualizarCarrinho)" @onclick="AdicionarBilheteSelecionado">
+                                Adicionar bilhete
                             </button>
+                        }
+                    </article>
+
+                    <article class="access-choice cinema-panel">
+                        <span>Passe diario</span>
+                        <h3>Acesso de um dia</h3>
+                        <p>Escolhe uma data dentro do festival associado.</p>
+                        <select @bind="_festivalSelecionadoId">
+                            <option value="">Selecionar festival</option>
+                            @foreach (var festival in _filme.Festivais)
+                            {
+                                <option value="@festival.Id">@festival.Name</option>
+                            }
+                        </select>
+                        <InputDate class="date-input" @bind-Value="_dataPasseDiario" />
+                        <button class="cinema-btn secondary" disabled="@(!_festivalSelecionadoId.HasValue || _aAtualizarCarrinho)" @onclick="AdicionarPasseDiario">
+                            Adicionar passe diario
+                        </button>
+                    </article>
+
+                    <article class="access-choice cinema-panel">
+                        <span>Passe completo</span>
+                        <h3>Festival inteiro</h3>
+                        <p>Compra acesso completo ao festival selecionado.</p>
+                        <select @bind="_festivalSelecionadoId">
+                            <option value="">Selecionar festival</option>
+                            @foreach (var festival in _filme.Festivais)
+                            {
+                                <option value="@festival.Id">@festival.Name</option>
+                            }
+                        </select>
+                        <button class="cinema-btn secondary" disabled="@(!_festivalSelecionadoId.HasValue || _aAtualizarCarrinho)" @onclick="AdicionarPasseCompleto">
+                            Adicionar passe completo
+                        </button>
+                    </article>
+
+                    <article class="access-choice cinema-panel">
+                        <span>Aluguer 48h</span>
+                        <h3>Alugar filme</h3>
+                        <p>Depois da compra, o aluguer fica valido durante 48 horas.</p>
+                        <button class="cinema-btn primary" disabled="@_aAtualizarCarrinho" @onclick="AdicionarAluguer">
+                            Alugar por 48h
+                        </button>
+                    </article>
+                </div>
+            </section>
+
+            <section class="cinema-panel sessoes-section">
+                <div class="cinema-section-head compact">
+                    <div>
+                        <span class="cinema-kicker">Programa</span>
+                        <h2>Sessoes deste filme</h2>
+                    </div>
+                    <a class="cinema-link" href="/sessoes">Ver programacao</a>
+                </div>
+
+                @if (_sessoes.Count == 0)
+                {
+                    <div class="cinema-state slim">Ainda nao ha sessoes programadas.</div>
+                }
+                else
+                {
+                    <div class="quick-list">
+                        @foreach (var sessao in _sessoes)
+                        {
+                            <article class="quick-item">
+                                <div class="quick-date">
+                                    <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM")</span>
+                                    <strong>@sessao.Inicio.ToLocalTime().ToString("HH:mm")</strong>
+                                </div>
+                                <div class="quick-main">
+                                    <strong>@TituloSessao(sessao)</strong>
+                                    <small>@sessao.Festival</small>
+                                </div>
+                                <button class="cinema-btn ghost" @onclick="() => AbrirPlayerSessao(sessao.Id)">Ver agora</button>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+
+            <section class="reviews-grid">
+                <article class="cinema-panel">
+                    <div class="cinema-section-head compact">
+                        <div>
+                            <span class="cinema-kicker">Comunidade</span>
+                            <h2>Reviews da aplicacao</h2>
+                        </div>
+                        <div class="review-score">
+                            <strong>@MediaAplicacao()</strong>
+                            <span>@_filme.ReviewsAplicacao.Count reviews</span>
+                        </div>
+                    </div>
+
+                    @if (_filme.ReviewsAplicacao.Count == 0)
+                    {
+                        <div class="cinema-state slim">Ainda nao ha reviews da comunidade.</div>
+                    }
+                    else
+                    {
+                        <div class="review-list featured">
+                            @foreach (var review in _filme.ReviewsAplicacao.OrderByDescending(r => r.Data).Take(6))
+                            {
+                                <article>
+                                    <strong>@review.NomeUsuario</strong>
+                                    <span>Comunidade - @review.Pontuacao/10</span>
+                                    <p>@review.Texto</p>
+                                </article>
+                            }
+                        </div>
+                    }
+
+                    <AuthorizeView>
+                        <Authorized Context="reviewAuth">
+                            @if (_filme.PodeAvaliar)
+                            {
+                                <EditForm Model="_novaReview" OnValidSubmit="EnviarReview">
+                                    <div class="review-form">
+                                        <InputNumber class="text-input" @bind-Value="_novaReview.Pontuacao" />
+                                        <InputTextArea class="text-area" @bind-Value="_novaReview.Texto" placeholder="Escreve a tua review" />
+                                        <button class="cinema-btn primary" disabled="@_aEnviarReview" type="submit">
+                                            @(_aEnviarReview ? "A publicar..." : "Publicar review")
+                                        </button>
+                                    </div>
+                                </EditForm>
+                            }
+                            else
+                            {
+                                <div class="review-lock">So podes avaliar este filme depois de o veres atraves da plataforma.</div>
+                            }
                         </Authorized>
                         <NotAuthorized>
-                            <a class="btn-ver link-login" href="@LoginUrl()">Entrar para ver</a>
+                            <div class="review-lock">Inicia sessao para avaliar depois de veres o filme.</div>
                         </NotAuthorized>
                     </AuthorizeView>
 
-                    <a class="link-carrinho" href="/carrinho">Carrinho</a>
+                    @if (!string.IsNullOrWhiteSpace(_mensagemReview))
+                    {
+                        <MudAlert Severity="@_mensagemReviewSeveridade" Variant="Variant.Filled">@_mensagemReview</MudAlert>
+                    }
+                </article>
+
+                <article class="cinema-panel">
+                    <div class="cinema-section-head compact">
+                        <div>
+                            <span class="cinema-kicker">TMDB</span>
+                            <h2>Reviews externas</h2>
+                        </div>
+                    </div>
+
+                    @if (_filme.ReviewsTmdb.Count == 0)
+                    {
+                        <div class="cinema-state slim">Sem reviews TMDB disponiveis.</div>
+                    }
+                    else
+                    {
+                        <div class="review-list">
+                            @foreach (var review in _filme.ReviewsTmdb.Take(4))
+                            {
+                                <article>
+                                    <strong>@review.Autor</strong>
+                                    <span>TMDB@(review.Nota.HasValue ? $" - {review.Nota:0.0}/10" : "")</span>
+                                    <p>@ResumoReview(review.Texto)</p>
+                                </article>
+                            }
+                        </div>
+                    }
+                </article>
+            </section>
+
+            <section class="cinema-panel listas-section">
+                <div class="cinema-section-head compact">
+                    <div>
+                        <span class="cinema-kicker">Listas</span>
+                        <h2>Guardar filme</h2>
+                    </div>
                 </div>
 
-                @if (!string.IsNullOrWhiteSpace(_mensagemCarrinho))
-                {
-                    <p class="carrinho-feedback">@_mensagemCarrinho</p>
-                }
-            </div>
-        </section>
-
-        @if (!string.IsNullOrWhiteSpace(TrailerEmbedUrl))
-        {
-            <section class="trailer-seccao">
-                <h2 class="seccao-titulo">Trailer</h2>
-                <div class="trailer-wrapper">
-                    <iframe src="@TrailerEmbedUrl"
-                            title="Trailer de @_filme.Titulo"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowfullscreen>
-                    </iframe>
-                </div>
+                <AuthorizeView>
+                    <Authorized Context="listaAuth">
+                        <div class="list-actions">
+                            @foreach (var lista in ListasOrdenadas())
+                            {
+                                <button class="cinema-btn @(ListaTemFilme(lista) ? "primary" : "secondary")"
+                                        disabled="@_aAtualizarLista"
+                                        @onclick="() => AlternarLista(lista)">
+                                    @RotuloLista(lista)
+                                </button>
+                            }
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(_mensagemListas))
+                        {
+                            <MudAlert Severity="@_mensagemListasSeveridade" Variant="Variant.Filled">@_mensagemListas</MudAlert>
+                        }
+                    </Authorized>
+                    <NotAuthorized>
+                        <div class="cinema-state slim">Inicia sessao para adicionar este filme as tuas listas.</div>
+                    </NotAuthorized>
+                </AuthorizeView>
             </section>
         }
-
-        <section class="sessoes-seccao">
-            <div class="section-heading-inline">
-                <h2 class="seccao-titulo">Sessoes</h2>
-                <a href="/sessoes">Ver programacao</a>
-            </div>
-
-            @if (_sessoes.Count == 0)
-            {
-                <p class="empty-state">Ainda nao ha sessoes programadas para este filme.</p>
-            }
-            else
-            {
-                <div class="sessoes-lista">
-                    @foreach (var sessao in _sessoes)
-                    {
-                        <article class="sessao-cartao">
-                            <div class="sessao-cartao-cabecalho">
-                                <div class="sessao-cartao-data">
-                                    <span class="sessao-cartao-dia">@sessao.Inicio.ToLocalTime().ToString("dd")</span>
-                                    <span class="sessao-cartao-mes">@sessao.Inicio.ToLocalTime().ToString("MMM").ToUpperInvariant()</span>
-                                </div>
-
-                                <div class="sessao-cartao-info">
-                                    <div class="sessao-cartao-festival">@sessao.Festival</div>
-                                    <div class="sessao-cartao-hora">
-                                        @sessao.TipoNome - @FormatarDataHora(sessao.Inicio) - @sessao.Fim.ToLocalTime().ToString("HH:mm")
-                                    </div>
-                                </div>
-
-                                <span class="status @EstadoCss(EstadoTexto(sessao))">@EstadoTexto(sessao)</span>
-                            </div>
-
-                            @if (!string.IsNullOrWhiteSpace(sessao.Observacoes))
-                            {
-                                <p class="sessao-observacoes">@sessao.Observacoes</p>
-                            }
-
-                            <div class="sessao-acoes">
-                                <button class="btn-comprar"
-                                        disabled="@(_aAtualizarCarrinho || SessaoTerminada(sessao))"
-                                        @onclick="() => AdicionarBilhete(sessao.Id)">
-                                    Bilhete
-                                </button>
-                                <button class="btn-ver-sessao" @onclick="() => AbrirPlayerSessao(sessao.Id)">
-                                    Player
-                                </button>
-                            </div>
-                        </article>
-                    }
-                </div>
-            }
-        </section>
-
-        <section class="acessos-filme">
-            <h2 class="seccao-titulo">Acessos digitais</h2>
-
-            @if (AcessosDoFilme.Count == 0)
-            {
-                <p class="sem-acessos">Ainda nao ha aluguer digital configurado para este filme.</p>
-            }
-            else
-            {
-                <div class="acessos-lista">
-                    @foreach (var acesso in AcessosDoFilme)
-                    {
-                        <article class="acesso-item">
-                            <div class="acesso-info">
-                                <span class="acesso-nome">@acesso.Nome</span>
-                                <span class="acesso-tipo">@DescricaoAcesso(acesso)</span>
-                            </div>
-                            <div class="acesso-acao">
-                                <span class="acesso-preco">@Moeda(acesso.Preco)</span>
-                                <button class="btn-comprar"
-                                        disabled="@_aAtualizarCarrinho"
-                                        @onclick="() => AdicionarAluguer()">
-                                    Alugar
-                                </button>
-                            </div>
-                        </article>
-                    }
-                </div>
-            }
-        </section>
-    </div>
-}
+    </section>
+</main>
 
 @code {
     [Parameter] public int Id { get; set; }
@@ -198,16 +358,22 @@ else
     private FilmeDto? _filme;
     private List<SessaoDto> _sessoes = new();
     private List<AcessoDto> _acessos = new();
+    private List<ListaPessoalDto> _listas = new();
+    private int? _sessaoSelecionadaId;
+    private int? _festivalSelecionadoId;
+    private DateTime _dataPasseDiario = DateTime.Today;
     private bool _aAtualizarCarrinho;
+    private bool _aEnviarReview;
+    private bool _aAtualizarLista;
     private string? _mensagemCarrinho;
+    private Severity _mensagemCarrinhoSeveridade = Severity.Info;
+    private string? _mensagemReview;
+    private Severity _mensagemReviewSeveridade = Severity.Info;
+    private string? _mensagemListas;
+    private Severity _mensagemListasSeveridade = Severity.Info;
+    private CriarAvaliacaoDto _novaReview = new() { Pontuacao = 8 };
 
     private string? TrailerEmbedUrl => ConverterParaEmbed(_filme?.TrailerUrl);
-
-    private List<AcessoDto> AcessosDoFilme =>
-        _acessos
-            .Where(a => a.IsAtivo && a.Tipo == TiposAcesso.AluguerDigital && a.FilmeId == Id)
-            .OrderBy(a => a.Preco)
-            .ToList();
 
     protected override async Task CarregarDadosAsync()
     {
@@ -216,32 +382,41 @@ else
         if (_filme == null)
             return;
 
-        _sessoes = (await SessaoService.GetSessoesPorFilmeAsync(Id))
-            .OrderBy(s => s.Inicio)
-            .ToList();
+        _sessoes = _filme.Sessoes.Count > 0
+            ? _filme.Sessoes.OrderBy(s => s.Inicio).ToList()
+            : (await SessaoService.GetSessoesPorFilmeAsync(Id)).OrderBy(s => s.Inicio).ToList();
 
-        _acessos = await AcessoService.GetAcessosAsync();
+        _acessos = _filme.AcessosDisponiveis.Count > 0
+            ? _filme.AcessosDisponiveis
+            : await AcessoService.GetAcessosAsync();
+
+        _listas = await ListaService.GetMinhasListasAsync();
     }
 
-    private async Task AdicionarBilhete(int sessaoId)
+    private async Task AdicionarBilheteSelecionado()
     {
-        await ExecutarCarrinho(async () =>
-        {
-            await CarrinhoService.AdicionarBilheteSessaoAsync(sessaoId);
-            _mensagemCarrinho = "Bilhete adicionado ao carrinho.";
-        });
+        if (_sessaoSelecionadaId.HasValue)
+            await AdicionarAoCarrinho(() => CarrinhoService.AdicionarBilheteSessaoAsync(_sessaoSelecionadaId.Value), "Bilhete adicionado ao carrinho.");
+    }
+
+    private async Task AdicionarPasseDiario()
+    {
+        if (_festivalSelecionadoId.HasValue)
+            await AdicionarAoCarrinho(() => CarrinhoService.AdicionarPasseDiarioAsync(_festivalSelecionadoId.Value, _dataPasseDiario), "Passe diario adicionado ao carrinho.");
+    }
+
+    private async Task AdicionarPasseCompleto()
+    {
+        if (_festivalSelecionadoId.HasValue)
+            await AdicionarAoCarrinho(() => CarrinhoService.AdicionarPasseCompletoAsync(_festivalSelecionadoId.Value), "Passe completo adicionado ao carrinho.");
     }
 
     private async Task AdicionarAluguer()
     {
-        await ExecutarCarrinho(async () =>
-        {
-            await CarrinhoService.AdicionarAluguerDigitalAsync(Id);
-            _mensagemCarrinho = "Aluguer digital adicionado ao carrinho.";
-        });
+        await AdicionarAoCarrinho(() => CarrinhoService.AdicionarAluguerDigitalAsync(Id), "Aluguer digital adicionado ao carrinho. Valido por 48h apos a compra.");
     }
 
-    private async Task ExecutarCarrinho(Func<Task> acao)
+    private async Task AdicionarAoCarrinho(Func<Task<CarrinhoDto>> acao, string sucesso)
     {
         _mensagemCarrinho = null;
         _aAtualizarCarrinho = true;
@@ -249,9 +424,12 @@ else
         try
         {
             await acao();
+            _mensagemCarrinhoSeveridade = Severity.Success;
+            _mensagemCarrinho = sucesso;
         }
         catch (Exception ex)
         {
+            _mensagemCarrinhoSeveridade = Severity.Error;
             _mensagemCarrinho = ex.Message;
         }
         finally
@@ -260,18 +438,101 @@ else
         }
     }
 
-    private void AbrirPlayerFilme() => Nav.NavigateTo($"/player/filme/{Id}");
+    private async Task EnviarReview()
+    {
+        if (_novaReview.Pontuacao < 1 || _novaReview.Pontuacao > 10)
+        {
+            _mensagemReviewSeveridade = Severity.Error;
+            _mensagemReview = "A pontuacao deve estar entre 1 e 10.";
+            return;
+        }
 
-    private void AbrirPlayerSessao(int sessaoId) => Nav.NavigateTo($"/player/sessao/{sessaoId}");
+        _aEnviarReview = true;
+        _mensagemReview = null;
+
+        try
+        {
+            var review = await ReviewService.CriarAsync(Id, _novaReview);
+            _filme?.ReviewsAplicacao.Insert(0, review);
+            _novaReview = new CriarAvaliacaoDto { Pontuacao = 8 };
+            _mensagemReviewSeveridade = Severity.Success;
+            _mensagemReview = "Review publicada.";
+        }
+        catch (Exception ex)
+        {
+            _mensagemReviewSeveridade = Severity.Error;
+            _mensagemReview = ex.Message;
+        }
+        finally
+        {
+            _aEnviarReview = false;
+        }
+    }
+
+    private async Task AlternarLista(ListaPessoalDto lista)
+    {
+        _aAtualizarLista = true;
+        _mensagemListas = null;
+
+        try
+        {
+            if (ListaTemFilme(lista))
+            {
+                await ListaService.RemoverFilmeAsync(lista.Id, Id);
+                lista.Items.RemoveAll(i => i.FilmeId == Id);
+                _mensagemListas = "Filme removido da lista.";
+            }
+            else
+            {
+                await ListaService.AdicionarFilmeAsync(lista.Id, Id);
+                lista.Items.Add(new ListaPessoalItemDto { FilmeId = Id, Titulo = _filme?.Titulo ?? "" });
+                _mensagemListas = "Filme adicionado a lista.";
+            }
+
+            _mensagemListasSeveridade = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _mensagemListasSeveridade = Severity.Error;
+            _mensagemListas = ex.Message;
+        }
+        finally
+        {
+            _aAtualizarLista = false;
+        }
+    }
+
+    private IEnumerable<ListaPessoalDto> ListasOrdenadas()
+    {
+        return _listas.OrderBy(l => l.Tipo == TipoListaPessoal.Custom ? 1 : 0).ThenBy(l => l.Name);
+    }
+
+    private bool ListaTemFilme(ListaPessoalDto lista)
+    {
+        return lista.Items.Any(i => i.FilmeId == Id);
+    }
+
+    private static string RotuloLista(ListaPessoalDto lista)
+    {
+        return lista.Tipo switch
+        {
+            TipoListaPessoal.Watchlist => "Quero ver",
+            TipoListaPessoal.Watched => "Vistos",
+            TipoListaPessoal.Favorites => "Favoritos",
+            _ => string.IsNullOrWhiteSpace(lista.Name) ? "Lista personalizada" : lista.Name,
+        };
+    }
+
+    private void AbrirPlayerFilme() => Nav.NavigateTo($"/visualizar/filme/{Id}");
+
+    private void AbrirPlayerSessao(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
 
     private void Voltar() => Nav.NavigateTo("/catalogo");
-
-    private string LoginUrl() => $"/login?returnUrl={Uri.EscapeDataString($"/filmes/{Id}")}";
 
     private static string ImagemFilme(FilmeDto filme)
     {
         return string.IsNullOrWhiteSpace(filme.CapaUrl)
-            ? "https://placehold.co/500x750/171717/ffffff?text=Filme"
+            ? "https://placehold.co/500x750/111827/ffffff?text=OCF"
             : filme.CapaUrl;
     }
 
@@ -280,41 +541,27 @@ else
         return filme.DataLancamento == default ? "N/D" : filme.DataLancamento.Year.ToString();
     }
 
-    private static bool SessaoTerminada(SessaoDto sessao)
+    private static string Duracao(FilmeDto filme)
     {
-        return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase)
-            || sessao.Fim.ToUniversalTime() <= DateTime.UtcNow;
+        return filme.DuracaoMinutos.HasValue ? $"{filme.DuracaoMinutos} min" : "Duracao N/D";
     }
 
-    private static string EstadoTexto(SessaoDto sessao)
+    private static string GeneroFilme(FilmeDto filme)
     {
-        if (!string.IsNullOrWhiteSpace(sessao.Estado))
-            return sessao.Estado;
+        if (filme.Generos.Count > 0)
+            return string.Join(", ", filme.Generos);
 
-        var agora = DateTime.UtcNow;
-        if (sessao.Inicio.ToUniversalTime() > agora)
-            return "Agendada";
-
-        return sessao.Fim.ToUniversalTime() >= agora ? "ADecorrer" : "Terminada";
+        return string.IsNullOrWhiteSpace(filme.Genero) ? "Cinema" : filme.Genero;
     }
 
-    private static string EstadoCss(string estado)
+    private static string ValorOuIndisponivel(string? valor)
     {
-        if (string.Equals(estado, "ADecorrer", StringComparison.OrdinalIgnoreCase))
-            return "live";
-
-        if (string.Equals(estado, "Terminada", StringComparison.OrdinalIgnoreCase))
-            return "ended";
-
-        return "scheduled";
+        return string.IsNullOrWhiteSpace(valor) ? "N/D" : valor;
     }
 
-    private static string DescricaoAcesso(AcessoDto acesso)
+    private static string TituloSessao(SessaoDto sessao)
     {
-        if (acesso.DuracaoHoras.HasValue)
-            return $"{acesso.TipoNome} - {acesso.DuracaoHoras}h";
-
-        return acesso.TipoNome;
+        return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
     }
 
     private static string FormatarDataHora(DateTime valor)
@@ -322,9 +569,20 @@ else
         return valor.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
     }
 
-    private static string Moeda(decimal valor)
+    private string MediaAplicacao()
     {
-        return valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+        if (_filme?.ReviewsAplicacao.Count > 0)
+            return _filme.ReviewsAplicacao.Average(r => r.Pontuacao).ToString("0.0");
+
+        return "N/D";
+    }
+
+    private static string ResumoReview(string texto)
+    {
+        if (string.IsNullOrWhiteSpace(texto))
+            return "Sem texto.";
+
+        return texto.Length <= 260 ? texto : texto[..260] + "...";
     }
 
     private static string? ConverterParaEmbed(string? url)

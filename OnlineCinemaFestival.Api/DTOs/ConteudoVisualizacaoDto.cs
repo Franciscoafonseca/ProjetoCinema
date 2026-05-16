@@ -6,6 +6,8 @@ public class ConteudoVisualizacaoDto
 
     public string Titulo { get; set; } = string.Empty;
 
+    public string PosterUrl { get; set; } = string.Empty;
+
     public int Ordem { get; set; }
 
     public string UrlVisualizacao { get; set; } = string.Empty;

@@ -25,6 +25,15 @@ public class ListaPessoalRepository : IListaPessoalRepository
             .ToListAsync();
     }
 
+    public async Task<bool> ExisteNomeParaUtilizadorAsync(int utilizadorId, string nome)
+    {
+        var normalizado = nome.Trim().ToLower();
+
+        return await _context.ListasPessoais.AnyAsync(l =>
+            l.UtilizadorId == utilizadorId && l.Name.ToLower() == normalizado
+        );
+    }
+
     public async Task<ListaPessoal?> GetByIdAsync(int id)
     {
         return await _context

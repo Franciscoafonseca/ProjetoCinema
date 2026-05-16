@@ -14,6 +14,12 @@ public class CriarComentarioDto : ComentarioCreateDto { }
 
 public class CheckoutRequestDto { }
 
+public class FinalizarCheckoutRequest
+{
+    [Required]
+    public string MetodoPagamento { get; set; } = "CartaoCredito";
+}
+
 public class CheckoutResultadoDto : CompraReadDto
 {
     public string Mensagem { get; set; } = string.Empty;
@@ -40,11 +46,11 @@ public class AcessoAtivoDto : AcessoUtilizadorReadDto { }
 
 public class CriarAvaliacaoDto
 {
-    [Required]
-    public int FilmeId { get; set; }
-
     [Range(1, 10)]
     public int Pontuacao { get; set; }
+
+    [MaxLength(2000)]
+    public string Texto { get; set; } = string.Empty;
 }
 
 public class AvaliacaoDto
@@ -60,6 +66,8 @@ public class AvaliacaoDto
     public string NomeUsuario { get; set; } = string.Empty;
 
     public int Pontuacao { get; set; }
+
+    public string Texto { get; set; } = string.Empty;
 
     public DateTime Data { get; set; }
 }

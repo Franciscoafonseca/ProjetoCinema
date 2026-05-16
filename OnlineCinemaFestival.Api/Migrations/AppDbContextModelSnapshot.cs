@@ -141,6 +141,10 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<int>("Pontuacao")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("UsuarioId")
                         .HasColumnType("INTEGER");
 
@@ -362,6 +366,10 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Premios")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("TEXT");
 
@@ -391,6 +399,12 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("AtoresPrincipais")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("AvaliacaoTmdb")
+                        .HasColumnType("REAL");
+
                     b.Property<string>("CapaUrl")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -404,7 +418,16 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<DateTime>("DataLancamento")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("DuracaoMinutos")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Genero")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Premios")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Realizador")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Sinopse")
@@ -414,8 +437,14 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("TituloOriginal")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("TmdbId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("TmdbReviewsJson")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TrailerUrl")
                         .HasColumnType("TEXT");
@@ -426,6 +455,21 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Filmes");
+                });
+
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.FilmeGenero", b =>
+                {
+                    b.Property<int>("FilmeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GeneroId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("FilmeId", "GeneroId");
+
+                    b.HasIndex("GeneroId");
+
+                    b.ToTable("FilmeGeneros");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Genero", b =>
@@ -667,6 +711,12 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<int>("FilmeId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("HoraFim")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("HoraInicio")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Ordem")
                         .HasColumnType("INTEGER");
 
@@ -756,6 +806,9 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("SessaoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("TipoAcessoUsado")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("TipoConteudo")
@@ -989,6 +1042,25 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Filme");
                 });
 
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.FilmeGenero", b =>
+                {
+                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                        .WithMany("FilmeGeneros")
+                        .HasForeignKey("FilmeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OnlineCinemaFestival.Api.Models.Genero", "Genero")
+                        .WithMany("Filmes")
+                        .HasForeignKey("GeneroId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Filme");
+
+                    b.Navigation("Genero");
+                });
+
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ItemCompra", b =>
                 {
                     b.HasOne("OnlineCinemaFestival.Api.Models.Acesso", "Acesso")
@@ -1197,6 +1269,8 @@ namespace OnlineCinemaFestival.Api.Migrations
 
                     b.Navigation("FestivalFilmes");
 
+                    b.Navigation("FilmeGeneros");
+
                     b.Navigation("ListaPessoalItems");
 
                     b.Navigation("SessoesDoFilme");
@@ -1206,6 +1280,8 @@ namespace OnlineCinemaFestival.Api.Migrations
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Genero", b =>
                 {
+                    b.Navigation("Filmes");
+
                     b.Navigation("UtilizadoresFavoritos");
                 });
 

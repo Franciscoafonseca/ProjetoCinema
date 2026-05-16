@@ -1,0 +1,28 @@
+.simple-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.simple-grid .cinema-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.simple-grid h2 {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 950;
+}
+
+.simple-grid p {
+  margin: 0;
+  color: var(--ocf-muted);
+  line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .simple-grid {
+    grid-template-columns: 1fr;
+  }
+}

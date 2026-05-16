@@ -268,7 +268,7 @@
                         <div class="quick-list">
                             @foreach (var sessao in _sessoes.Take(6))
                             {
-                                <a href="@($"/player/sessao/{sessao.Id}")" class="quick-item">
+                                <a href="@($"/visualizar/sessao/{sessao.Id}")" class="quick-item">
                                     <div class="quick-date">
                                         <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM")</span>
                                         <strong>@sessao.Inicio.ToLocalTime().ToString("HH:mm")</strong>

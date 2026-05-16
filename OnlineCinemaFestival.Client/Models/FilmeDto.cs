@@ -8,13 +8,21 @@ public class FilmeDto
 
     public string Titulo { get; set; } = string.Empty;
 
+    public string? TituloOriginal { get; set; }
+
     public string? Sinopse { get; set; }
 
     public DateTime DataLancamento { get; set; }
 
+    public int? DuracaoMinutos { get; set; }
+
     public string? Genero { get; set; }
 
+    public List<string> Generos { get; set; } = new();
+
     public string? Classificacao { get; set; }
+
+    public double? AvaliacaoTmdb { get; set; }
 
     public string CapaUrl { get; set; } = string.Empty;
 
@@ -26,6 +34,65 @@ public class FilmeDto
 
     public int Popularidade { get; set; }
 
-    // Compatibilidade com páginas antigas tuas que usam UrlCartaz
+    public string? Realizador { get; set; }
+
+    public List<string> Atores { get; set; } = new();
+
+    public List<TmdbReviewDto> ReviewsTmdb { get; set; } = new();
+
+    public List<AvaliacaoDto> ReviewsAplicacao { get; set; } = new();
+
+    public List<FestivalDto> Festivais { get; set; } = new();
+
+    public string? Premios { get; set; }
+
+    public List<SessaoDto> Sessoes { get; set; } = new();
+
+    public List<AcessoDto> AcessosDisponiveis { get; set; } = new();
+
+    public bool PodeVer { get; set; }
+
+    public bool PodeAvaliar { get; set; }
+
+    // Compatibilidade com paginas antigas que usam UrlCartaz.
     public string UrlCartaz => CapaUrl;
+}
+
+public class TmdbReviewDto
+{
+    public string Autor { get; set; } = string.Empty;
+
+    public string Texto { get; set; } = string.Empty;
+
+    public string? Url { get; set; }
+
+    public DateTime? CriadaEm { get; set; }
+
+    public double? Nota { get; set; }
+}
+
+public class AvaliacaoDto
+{
+    public int Id { get; set; }
+
+    public int FilmeId { get; set; }
+
+    public string TituloFilme { get; set; } = string.Empty;
+
+    public int UsuarioId { get; set; }
+
+    public string NomeUsuario { get; set; } = string.Empty;
+
+    public int Pontuacao { get; set; }
+
+    public string Texto { get; set; } = string.Empty;
+
+    public DateTime Data { get; set; }
+}
+
+public class CriarAvaliacaoDto
+{
+    public int Pontuacao { get; set; }
+
+    public string Texto { get; set; } = string.Empty;
 }

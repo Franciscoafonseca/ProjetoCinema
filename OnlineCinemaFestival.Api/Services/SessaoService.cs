@@ -96,7 +96,8 @@ public class SessaoService : ISessaoService
     public async Task UpdateAsync(int id, SessaoUpdateDto dto)
     {
         ValidateDates(dto.Inicio, dto.Fim);
-        ValidateFilmes(dto.FilmeIds);
+        var filmeIds = ObterFilmeIds(dto.FilmeIds, dto.Filmes);
+        ValidateFilmes(filmeIds);
 
         var sessao = await _sessaoRepository.GetByIdAsync(id);
 
@@ -106,12 +107,13 @@ public class SessaoService : ISessaoService
         if (dto.Inicio < sessao.Festival.StartDate || dto.Fim > sessao.Festival.EndDate)
             throw new ArgumentException("A sessao deve ocorrer dentro do periodo do festival.");
 
-        await ValidateFilmesExistemAsync(dto.FilmeIds);
-        await ValidateFilmesPertencemAoFestivalAsync(sessao.FestivalId, dto.FilmeIds);
+        ValidateHorariosFilmes(dto.Filmes, dto.Inicio, dto.Fim);
+        await ValidateFilmesExistemAsync(filmeIds);
+        await ValidateFilmesPertencemAoFestivalAsync(sessao.FestivalId, filmeIds);
 
         var hasOverlap = await _sessaoRepository.HasOverlapAsync(
             sessao.FestivalId,
-            dto.FilmeIds,
+            filmeIds,
             dto.Inicio,
             dto.Fim,
             id
@@ -148,7 +150,8 @@ public class SessaoService : ISessaoService
     private async Task ValidateCreateAsync(SessaoCreateDto dto)
     {
         ValidateDates(dto.Inicio, dto.Fim);
-        ValidateFilmes(dto.FilmeIds);
+        var filmeIds = ObterFilmeIds(dto.FilmeIds, dto.Filmes);
+        ValidateFilmes(filmeIds);
 
         var festival = await _festivalRepository.GetByIdAsync(dto.FestivalId);
 
@@ -158,12 +161,13 @@ public class SessaoService : ISessaoService
         if (dto.Inicio < festival.StartDate || dto.Fim > festival.EndDate)
             throw new ArgumentException("A sessão deve ocorrer dentro do período do festival.");
 
-        await ValidateFilmesExistemAsync(dto.FilmeIds);
-        await ValidateFilmesPertencemAoFestivalAsync(dto.FestivalId, dto.FilmeIds);
+        ValidateHorariosFilmes(dto.Filmes, dto.Inicio, dto.Fim);
+        await ValidateFilmesExistemAsync(filmeIds);
+        await ValidateFilmesPertencemAoFestivalAsync(dto.FestivalId, filmeIds);
 
         var hasOverlap = await _sessaoRepository.HasOverlapAsync(
             dto.FestivalId,
-            dto.FilmeIds,
+            filmeIds,
             dto.Inicio,
             dto.Fim
         );
@@ -191,6 +195,34 @@ public class SessaoService : ISessaoService
             throw new ArgumentException(
                 "Todos os filmes da sessão devem ter identificadores válidos."
             );
+    }
+
+    private static List<int> ObterFilmeIds(
+        IEnumerable<int> filmeIds,
+        IEnumerable<SessaoFilmeCreateDto> filmes
+    )
+    {
+        var idsComHorario = filmes.Select(f => f.FilmeId).Where(id => id > 0).ToList();
+        return idsComHorario.Any() ? idsComHorario : filmeIds.ToList();
+    }
+
+    private static void ValidateHorariosFilmes(
+        IEnumerable<SessaoFilmeCreateDto> filmes,
+        DateTime inicioSessao,
+        DateTime fimSessao
+    )
+    {
+        foreach (var filme in filmes)
+        {
+            if (filme.HoraInicio.HasValue && filme.HoraFim.HasValue && filme.HoraFim <= filme.HoraInicio)
+                throw new ArgumentException("A hora de fim do filme deve ser posterior a hora de inicio.");
+
+            if (filme.HoraInicio.HasValue && filme.HoraInicio < inicioSessao)
+                throw new ArgumentException("A hora de inicio do filme nao pode ser anterior ao inicio da sessao.");
+
+            if (filme.HoraFim.HasValue && filme.HoraFim > fimSessao)
+                throw new ArgumentException("A hora de fim do filme nao pode ultrapassar o fim da sessao.");
+        }
     }
 
     private async Task ValidateFilmesExistemAsync(IEnumerable<int> filmeIds)

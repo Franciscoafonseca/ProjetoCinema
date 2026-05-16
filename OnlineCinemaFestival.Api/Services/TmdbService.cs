@@ -5,156 +5,132 @@ using OnlineCinemaFestival.Api.Mappers;
 
 namespace OnlineCinemaFestival.Api.Services;
 
-/// <summary>
-/// Serviço responsável pela comunicação com a API externa TMDb.
-/// Permite pesquisar filmes e obter detalhes completos de um filme através do seu identificador TMDb.
-/// </summary>
 public class TmdbService : ITmdbService
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
 
-    /// <summary>
-    /// Inicializa uma nova instância do serviço TMDb.
-    /// </summary>
-    /// <param name="httpClient">
-    /// Cliente HTTP utilizado para enviar pedidos à API externa.
-    /// </param>
-    /// <param name="configuration">
-    /// Configuração da aplicação, usada para obter o token e o URL base do TMDb.
-    /// </param>
     public TmdbService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _configuration = configuration;
     }
 
-    /// <summary>
-    /// Pesquisa filmes na API TMDb com base numa expressão de pesquisa.
-    /// </summary>
-    /// <param name="query">Texto usado para pesquisar filmes.</param>
-    /// <returns>Lista de filmes encontrados no TMDb, convertidos para DTOs internos.</returns>
     public async Task<IEnumerable<TmdbFilmeDto>> SearchFilmesTmdbAsync(string query)
     {
-        // Obtém o token de autenticação e o URL base da API TMDb.
-        var token = _configuration["Tmdb:Token"];
-        var baseUrl = _configuration["Tmdb:BaseUrl"];
+        if (string.IsNullOrWhiteSpace(query))
+            return Enumerable.Empty<TmdbFilmeDto>();
 
-        // Constrói o URL de pesquisa, escapando caracteres especiais do texto pesquisado.
-        var url = $"{baseUrl}search/movie?query={Uri.EscapeDataString(query)}&language=pt-PT";
+        var result = await GetAsync<TmdbSearchResponse>(
+            $"search/movie?query={Uri.EscapeDataString(query)}&language=pt-PT"
+        );
 
-        // Cria o pedido HTTP e adiciona o token Bearer no cabeçalho de autorização.
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        // Envia o pedido para a API TMDb.
-        var response = await _httpClient.SendAsync(request);
-
-        // Lança uma exceção caso a resposta indique erro HTTP.
-        response.EnsureSuccessStatusCode();
-
-        // Lê a resposta JSON devolvida pela API.
-        var jsonString = await response.Content.ReadAsStringAsync();
-
-        // Permite desserializar propriedades JSON ignorando diferenças entre maiúsculas e minúsculas.
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-        // Converte o JSON recebido para o modelo de resposta da pesquisa TMDb.
-        var tmdbResult = JsonSerializer.Deserialize<TmdbSearchResponse>(jsonString, options);
-
-        // Converte os resultados externos para DTOs usados internamente pela aplicação.
-        return tmdbResult?.Results?.Select(FilmeMapper.MapFromTmdbResult)
+        return result?.Results?.Select(FilmeMapper.MapFromTmdbResult)
             ?? Enumerable.Empty<TmdbFilmeDto>();
     }
 
-    /// <summary>
-    /// Obtém os detalhes de um filme através do seu identificador TMDb.
-    /// </summary>
-    /// <param name="tmdbId">Identificador do filme na API TMDb.</param>
-    /// <returns>
-    /// DTO com os dados detalhados do filme, ou null caso o filme não seja encontrado.
-    /// </returns>
+    public async Task<IEnumerable<TmdbFilmeDto>> GetFilmesIniciaisAsync()
+    {
+        var result = await GetAsync<TmdbSearchResponse>(
+            "movie/popular?language=pt-PT&page=1"
+        );
+
+        return result?.Results?.Take(20).Select(FilmeMapper.MapFromTmdbResult)
+            ?? Enumerable.Empty<TmdbFilmeDto>();
+    }
+
     public async Task<TmdbFilmeDto?> GetFilmeByTmdbIdAsync(int tmdbId)
     {
-        // Obtém o token de autenticação e o URL base da API TMDb.
-        var token = _configuration["Tmdb:Token"];
-        var baseUrl = _configuration["Tmdb:BaseUrl"];
-
-        // Constrói o URL para obter os detalhes de um filme específico.
-        var url = $"{baseUrl}movie/{tmdbId}?language=pt-PT";
-
-        // Cria o pedido HTTP com autenticação Bearer.
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        // Envia o pedido para a API externa.
-        var response = await _httpClient.SendAsync(request);
-
-        // Caso a API devolva erro, considera que o filme não foi encontrado.
-        if (!response.IsSuccessStatusCode)
-            return null;
-
-        // Lê o conteúdo JSON devolvido pela API.
-        var jsonString = await response.Content.ReadAsStringAsync();
-
-        // Configura a desserialização para ignorar diferenças de capitalização nas propriedades.
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-        // Converte o JSON recebido para o modelo de detalhes do filme.
-        var filmeTmdb = JsonSerializer.Deserialize<TmdbMovieDetails>(jsonString, options);
+        var filmeTmdb = await GetAsync<TmdbMovieDetails>($"movie/{tmdbId}?language=pt-PT");
 
         if (filmeTmdb == null)
             return null;
 
-        // Converte os dados externos do TMDb para o DTO usado pela aplicação.
+        var atores = (await GetAtoresAsync(tmdbId)).ToList();
+        var realizador = await GetRealizadorAsync(tmdbId);
+        var reviews = (await GetReviewsAsync(tmdbId)).ToList();
+        var trailerUrl = await GetTrailerUrlAsync(tmdbId);
+
         return new TmdbFilmeDto
         {
             TmdbId = filmeTmdb.TmdbId,
             Titulo = filmeTmdb.Titulo,
+            TituloOriginal = filmeTmdb.TituloOriginal,
             Sinopse = filmeTmdb.Sinopse,
-
-            // Converte a data de lançamento para DateTime.
-            // Caso a conversão falhe, usa DateTime.MinValue como valor padrão.
             DataLancamento = DateTime.TryParse(filmeTmdb.DataLancamento, out var date)
                 ? date
                 : DateTime.MinValue,
-
-            // Constrói o URL completo da capa do filme, caso exista imagem disponível.
+            DuracaoMinutos = filmeTmdb.DuracaoMinutos,
             CapaUrl = !string.IsNullOrWhiteSpace(filmeTmdb.CapaUrl)
                 ? $"https://image.tmdb.org/t/p/w500{filmeTmdb.CapaUrl}"
-                : "",
-
-            // Formata a classificação com uma casa decimal.
+                : string.Empty,
             Classificacao = filmeTmdb.Classificacao?.ToString("0.0"),
-
-            // Transforma a lista de géneros numa string separada por vírgulas.
-            Genero =
-                filmeTmdb.Genres != null && filmeTmdb.Genres.Any()
-                    ? string.Join(", ", filmeTmdb.Genres.Select(g => g.Name))
-                    : "Geral",
+            AvaliacaoTmdb = filmeTmdb.Classificacao,
+            Generos = filmeTmdb.Genres.Select(g => g.Name).Where(n => !string.IsNullOrWhiteSpace(n)).ToList(),
+            Genero = filmeTmdb.Genres.Any()
+                ? string.Join(", ", filmeTmdb.Genres.Select(g => g.Name))
+                : "Geral",
+            TrailerUrl = trailerUrl,
+            Realizador = realizador,
+            Atores = atores,
+            Reviews = reviews,
         };
+    }
+
+    public async Task<IEnumerable<string>> GetAtoresAsync(int tmdbId)
+    {
+        var credits = await GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
+
+        return credits
+                ?.Cast.OrderBy(c => c.Order)
+                .Take(10)
+                .Select(c => c.Name)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+            ?? Enumerable.Empty<string>();
+    }
+
+    public async Task<string?> GetRealizadorAsync(int tmdbId)
+    {
+        var credits = await GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
+
+        return credits
+            ?.Crew.FirstOrDefault(c => c.Job.Equals("Director", StringComparison.OrdinalIgnoreCase))
+            ?.Name;
+    }
+
+    public async Task<IEnumerable<TmdbReviewDto>> GetReviewsAsync(int tmdbId)
+    {
+        var reviews = await GetAsync<TmdbReviewsResponse>($"movie/{tmdbId}/reviews?language=en-US&page=1");
+
+        return reviews
+                ?.Results.Take(10)
+                .Select(r => new TmdbReviewDto
+                {
+                    Autor = r.Author,
+                    Texto = r.Content,
+                    Url = r.Url,
+                    CriadaEm = r.CreatedAt,
+                    Nota = r.AuthorDetails?.Rating,
+                })
+            ?? Enumerable.Empty<TmdbReviewDto>();
+    }
+
+    public async Task<IEnumerable<TmdbGeneroDto>> GetGenerosAsync()
+    {
+        var result = await GetAsync<TmdbGenreResponse>("genre/movie/list?language=pt-PT");
+
+        return result
+                ?.Genres.Select(g => new TmdbGeneroDto { Id = g.Id, Nome = g.Name })
+            ?? Enumerable.Empty<TmdbGeneroDto>();
     }
 
     public async Task<string?> GetTrailerUrlAsync(int tmdbId)
     {
-        var token = _configuration["Tmdb:Token"];
-        var baseUrl = _configuration["Tmdb:BaseUrl"];
-
-        var url = $"{baseUrl}movie/{tmdbId}/videos?language=pt-PT";
-
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await _httpClient.SendAsync(request);
-
-        if (!response.IsSuccessStatusCode)
-            return null;
-
-        var jsonString = await response.Content.ReadAsStringAsync();
-
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-        var videos = JsonSerializer.Deserialize<TmdbVideosResponseDto>(jsonString, options);
+        var videos = await GetAsync<TmdbVideosResponseDto>($"movie/{tmdbId}/videos?language=pt-PT");
 
         var trailer = videos
             ?.Results.Where(v =>
@@ -168,5 +144,25 @@ public class TmdbService : ITmdbService
             return null;
 
         return $"https://www.youtube.com/embed/{trailer.Key}";
+    }
+
+    private async Task<T?> GetAsync<T>(string path)
+    {
+        var token = _configuration["Tmdb:Token"];
+        var baseUrl = _configuration["Tmdb:BaseUrl"];
+
+        if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(baseUrl))
+            throw new InvalidOperationException("Configuracao TMDB em falta.");
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{path}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+            return default;
+
+        var jsonString = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<T>(jsonString, JsonOptions);
     }
 }
