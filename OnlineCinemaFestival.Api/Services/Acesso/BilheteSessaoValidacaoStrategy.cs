@@ -13,7 +13,7 @@ public class BilheteSessaoValidacaoStrategy : IEstrategiaValidacaoAcesso
         _sessaoRepository = sessaoRepository;
     }
 
-    public TipoAcesso Tipo => TipoAcesso.BilheteSessao;
+    public TipoAcesso Tipo => TipoAcesso.BilheteUnico;
 
     public string Nome => "Bilhete de sessão";
 

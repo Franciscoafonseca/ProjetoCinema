@@ -4,7 +4,7 @@ using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.Repositories;
 
-public class RewardsRepository
+public class RewardsRepository : IRewardsRepository
 {
     private readonly AppDbContext _context;
 

@@ -113,6 +113,23 @@ builder.Services.AddScoped<CatalogoOrdenacaoStrategyFactory>();
 builder.Services.AddScoped<IAcessoRepository, AcessoRepository>();
 builder.Services.AddScoped<IAcessoService, AcessoService>();
 
+builder.Services.AddScoped<IPrecoStrategy, BilheteIndividualPrecoStrategy>();
+builder.Services.AddScoped<IPrecoStrategy, PasseFestivalPrecoStrategy>();
+builder.Services.AddScoped<IRewardsRepository, RewardsRepository>();
+builder.Services.AddScoped<IRewardTransacaoRepository, RewardTransacaoRepository>();
+builder.Services.AddScoped<ICompraRepository, CompraRepository>();
+builder.Services.AddScoped<ICompraObserver, AcessoObserver>();
+builder.Services.AddScoped<ICompraObserver, RewardsObserver>();
+builder.Services.AddScoped<IRewardsQueryService, RewardsQueryService>();
+builder.Services.AddScoped<ICompraItemValidator, BilheteUnicoCompraItemValidator>();
+builder.Services.AddScoped<ICompraItemValidator, AluguerDigitalCompraItemValidator>();
+builder.Services.AddScoped<ICompraValidator, CompraValidator>();
+builder.Services.AddScoped<ICompraService, CompraService>();
+builder.Services.AddScoped<IAcessoFactory, AcessoFactory>();
+builder.Services.AddScoped<ICompraHistoricoService, CompraHistoricoService>();
+builder.Services.AddScoped<ICinemaFacade, CinemaFacade>();
+builder.Services.AddSingleton<ICarrinhoService, CarrinhoService>();
+
 builder.Services.AddScoped<IEstrategiaValidacaoAcesso, BilheteSessaoValidacaoStrategy>();
 builder.Services.AddScoped<IEstrategiaValidacaoAcesso, EstrategiaValidacaoPasseDiario>();
 builder.Services.AddScoped<IEstrategiaValidacaoAcesso, ValidacaoPasseCompletoStrategy>();

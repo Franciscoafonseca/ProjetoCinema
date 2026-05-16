@@ -1,0 +1,66 @@
+@page "/rewards"
+
+<PageTitle>Rewards — Online Cinema Festival</PageTitle>
+
+<div class="rewards-shell">
+    <header class="rewards-header">
+        <div class="header-left">
+            <div class="gift-icon">🎁</div>
+            <div>
+                <h1>My Rewards</h1>
+                <div class="tier-name">@RewardTier</div>
+            </div>
+        </div>
+        <div class="level-tag">Lvl @Level</div>
+    </header>
+
+    <section class="progress-panel">
+        <div class="progress-title">Your Progress</div>
+        <div class="progress-value">@CurrentExp/@TargetExp exp</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width:@ProgressPercent%"></div>
+        </div>
+    </section>
+
+    <section class="missions-panel">
+        <div class="section-header">
+            <h2>Missões Diárias</h2>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="missions-grid">
+            @foreach (var mission in DailyMissions)
+            {
+                <div class="mission-pill">
+                    <span>@mission.Name</span>
+                    <span class="mission-reward">@mission.Reward</span>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="actions-panel">
+        <button class="cta-button">Ver loja de pontos</button>
+        <button class="cta-button secondary">Conquistas</button>
+    </section>
+</div>
+
+@code {
+    private readonly int Level = 12;
+    private readonly string RewardTier = "Silver Critic";
+    private readonly int CurrentExp = 1450;
+    private readonly int TargetExp = 2000;
+
+    private int ProgressPercent => (int)(CurrentExp * 100m / TargetExp);
+
+    private readonly List<MissionItem> DailyMissions = new()
+    {
+        new("Assistir a 1 filme indie", "+50 exp"),
+        new("Avaliar 3 filmes", "+30 exp"),
+        new("Participar numa comunidade", "+40 exp"),
+        new("Completar um festival", "+80 exp"),
+        new("Partilhar uma lista", "+20 exp"),
+        new("Comentar um filme", "+25 exp")
+    };
+
+    private sealed record MissionItem(string Name, string Reward);
+}

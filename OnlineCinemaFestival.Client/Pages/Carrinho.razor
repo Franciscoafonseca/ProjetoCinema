@@ -1,0 +1,94 @@
+@page "/carrinho"
+@using OnlineCinemaFestival.Client.Models
+@inject CartService CartService
+
+<PageTitle>Carrinho — Online Cinema Festival</PageTitle>
+
+<div class="cart-shell">
+    <header class="cart-header">
+        <h1>Carrinho</h1>
+        <div class="cart-total">
+            <span>Total</span>
+            <strong>@TotalFormatado</strong>
+        </div>
+    </header>
+
+    <section class="cart-items">
+        @if (Items.Count == 0)
+        {
+            <div class="empty-state">
+                <p>O carrinho esta vazio.</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Items)
+            {
+                <article class="cart-card">
+                    <img src="@item.CapaUrl" alt="@item.FilmeTitulo" />
+                    <div class="cart-info">
+                        <h3>@item.FilmeTitulo</h3>
+                        <span class="tag">@ObterNomeTipo(item.Tipo)</span>
+                    </div>
+                    <div class="cart-price">@PrecoItem(item).ToString("0.00")€</div>
+                </article>
+            }
+        }
+    </section>
+
+    <section class="cart-footer">
+        <button class="cta-finalizar" disabled="@IsCheckoutDisabled">Finalizar Compra</button>
+        <div class="cart-hint">Selecione o tipo de acesso correto antes de finalizar.</div>
+    </section>
+</div>
+
+@code {
+    private readonly List<CompraItemDto> Items = new()
+    {
+        new()
+        {
+            FilmeId = 1,
+            FilmeTitulo = "Crimson Orbit",
+            CapaUrl = "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=500&auto=format&fit=crop",
+            Tipo = 1,
+            SessaoId = 10
+        },
+        new()
+        {
+            FilmeId = 2,
+            FilmeTitulo = "Neon Dusk",
+            CapaUrl = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=500&auto=format&fit=crop",
+            Tipo = 3
+        }
+    };
+
+    private bool IsCheckoutDisabled => Items.Count == 0;
+
+    private decimal Total => Items.Sum(PrecoItem);
+
+    private string TotalFormatado => $"{Total:0.00}€";
+
+    private decimal PrecoItem(CompraItemDto item)
+    {
+        return item.Tipo switch
+        {
+            1 => 5.00m,
+            2 => 12.50m,
+            3 => 45.00m,
+            4 => 3.99m,
+            _ => 0m
+        };
+    }
+
+    private string ObterNomeTipo(int tipo)
+    {
+        return tipo switch
+        {
+            1 => "Bilhete Individual",
+            2 => "Passe Diario",
+            3 => "Passe Completo",
+            4 => "Aluguer Digital",
+            _ => "Acesso"
+        };
+    }
+}

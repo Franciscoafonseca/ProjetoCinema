@@ -53,11 +53,21 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<decimal>("Preco")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("PrecoPago")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("SessaoId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Tipo")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("UtilizadorId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("Validade")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -130,6 +140,61 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Comentarios");
+                });
+
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Compra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PontosGanhos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UtilizadorId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Compras");
+                });
+
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.CompraItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CompraId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("FilmeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("PrecoPago")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("SessaoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TipoAcesso")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("Validade")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompraId");
+
+                    b.ToTable("ComprasItens");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comunidade", b =>
@@ -398,6 +463,50 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("PerfisUtilizador");
                 });
 
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Reward", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Pontos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UtilizadorId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Rewards");
+                });
+
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.RewardTransacao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Pontos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UtilizadorId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RewardsTransacoes");
+                });
+
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Sessao", b =>
                 {
                     b.Property<int>("Id")
@@ -560,6 +669,17 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.CompraItem", b =>
+                {
+                    b.HasOne("OnlineCinemaFestival.Api.Models.Compra", "Compra")
+                        .WithMany("Itens")
+                        .HasForeignKey("CompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Compra");
+                });
+
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comunidade", b =>
                 {
                     b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "CreatedByUser")
@@ -685,6 +805,11 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Genero");
 
                     b.Navigation("Utilizador");
+                });
+
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Compra", b =>
+                {
+                    b.Navigation("Itens");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comunidade", b =>

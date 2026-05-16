@@ -1,51 +1,80 @@
 using OnlineCinemaFestival.Api.DTOs;
-using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
+using ModelAcesso = OnlineCinemaFestival.Api.Models.Acesso;
 
 namespace OnlineCinemaFestival.Api.Services;
 
-public class CompraService
+public class CompraService : ICompraService
 {
     private readonly List<ICompraObserver> _observadores;
-    private readonly AcessoRepository _acessoRepository;
+    private readonly List<IPrecoStrategy> _precoStrategies;
+    private readonly IAcessoRepository _acessoRepository;
+    private readonly IAcessoFactory _acessoFactory;
 
-    public CompraService(AcessoRepository acessoRepository, IEnumerable<ICompraObserver> observadores)
+    public CompraService(
+        IAcessoRepository acessoRepository,
+        IEnumerable<ICompraObserver> observadores,
+        IEnumerable<IPrecoStrategy> precoStrategies,
+        IAcessoFactory acessoFactory)
     {
         _acessoRepository = acessoRepository;
         _observadores = observadores.ToList();
+        _precoStrategies = precoStrategies.ToList();
+        _acessoFactory = acessoFactory;
     }
 
-    public async Task FinalizarProcessoCompra(string utilizadorId, List<CompraItemDto> itensCarrinho)
+    public async Task<CompraResultado> FinalizarProcessoCompra(string utilizadorId, List<CompraItemDto> itensCarrinho)
     {
         decimal valorTotal = 0;
-        var acessosParaGerar = new List<Acesso>();
+        var acessosParaGerar = new List<ModelAcesso>();
+        var itensHistorico = new List<CompraHistoricoItemDto>();
 
         // 1. Lógica de Preços
         foreach (var item in itensCarrinho)
         {
-            // A Factory devolve a estratégia (Bilhete, Passe, Aluguer)
-            var estrategia = AcessoStrategyFactory.GetStrategy(item.Tipo);
+            var estrategia = _precoStrategies.FirstOrDefault(s => s.CanHandle(item.Tipo));
 
-            var novoAcesso = new Acesso
+            if (estrategia == null)
             {
-                UtilizadorId = utilizadorId,
+                throw new InvalidOperationException("Nao existe estrategia de preco para este tipo de acesso.");
+            }
+
+            var preco = estrategia.CalcularPreco(item);
+
+            var validade = estrategia.CalcularValidade(item);
+            var novoAcesso = _acessoFactory.Criar(
+                utilizadorId,
+                item,
+                preco,
+                validade);
+
+            valorTotal += preco;
+            acessosParaGerar.Add(novoAcesso);
+            itensHistorico.Add(new CompraHistoricoItemDto
+            {
                 Tipo = item.Tipo,
                 FilmeId = item.FilmeId,
-                PrecoPago = estrategia.CalcularPreco(),
-                DataExpiracao = estrategia.CalcularExpiracao()
-            };
-
-            valorTotal += novoAcesso.PrecoPago;
-            acessosParaGerar.Add(novoAcesso);
+                SessaoId = item.SessaoId,
+                PrecoPago = preco,
+                Validade = validade
+            });
         }
 
         // 2. Notificar interessados 
-        foreach (var obs in _observadores)
-        {
-            obs.Notificar(utilizadorId, valorTotal, acessosParaGerar);
-        }
+        var notificacoes = _observadores
+            .Select(obs => obs.NotificarAsync(utilizadorId, valorTotal, acessosParaGerar));
+        await Task.WhenAll(notificacoes);
 
         // 3. Salvar na Base de Dados
         await _acessoRepository.AddManyAsync(acessosParaGerar);
+        await _acessoRepository.SaveChangesAsync();
+
+        return new CompraResultado
+        {
+            Total = valorTotal,
+            PontosGanhos = (int)(valorTotal / 10),
+            Itens = itensHistorico
+        };
     }
+
 }

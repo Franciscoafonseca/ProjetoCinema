@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.DTOs;
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Controllers;
@@ -9,67 +9,49 @@ namespace OnlineCinemaFestival.Api.Controllers;
 [Route("api/[controller]")]
 public class ComprasController : ControllerBase
 {
-    private readonly CinemaFacade _cinemaFacade;
+    private readonly ICinemaFacade _cinemaFacade;
+    private readonly ICompraRepository _compraRepository;
 
     // Injetamos a Facade para respeitar os padrões de desenho
-    public ComprasController(CinemaFacade cinemaFacade)
+    public ComprasController(ICinemaFacade cinemaFacade, ICompraRepository compraRepository)
     {
         _cinemaFacade = cinemaFacade;
+        _compraRepository = compraRepository;
     }
 
     // Endpoint para o Carrinho do Blazor enviar a compra[cite: 1, 2]
     [HttpPost("finalizar")]
     public async Task<IActionResult> FinalizarCompra([FromBody] CompraRequest request)
     {
-        if (request == null)
-        {
-            return BadRequest("Pedido invalido.");
-        }
+        // A Facade trata de tudo: Strategy, Observer e Repositories
+        await _cinemaFacade.ComprarItens(request.UtilizadorId, request.Itens);
 
-        if (string.IsNullOrWhiteSpace(request.UtilizadorId))
-        {
-            return BadRequest("UtilizadorId e obrigatorio.");
-        }
-
-        if (request.Itens.Count == 0)
-        {
-            return BadRequest("O carrinho está vazio.");
-        }
-
-        foreach (var item in request.Itens)
-        {
-            if (item.Tipo == TipoAcesso.BilheteUnico || item.Tipo == TipoAcesso.AluguerDigital)
-            {
-                if (!item.FilmeId.HasValue)
-                {
-                    return BadRequest("FilmeId e obrigatorio para BilheteUnico e AluguerDigital.");
-                }
-            }
-
-            if (item.Tipo == TipoAcesso.BilheteUnico && !item.SessaoId.HasValue)
-            {
-                return BadRequest("SessaoId e obrigatorio para BilheteUnico.");
-            }
-        }
-
-        try
-        {
-            // A Facade trata de tudo: Strategy, Observer e Repositories
-            await _cinemaFacade.ComprarItens(request.UtilizadorId, request.Itens);
-
-            return Ok(new { mensagem = "Compra concluída com sucesso!" });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Erro ao processar compra: {ex.Message}");
-        }
+        return Ok(new { mensagem = "Compra concluida com sucesso!" });
     }
 
     // Endpoint para o utilizador ver o seu histórico no Perfil.razor
     [HttpGet("historico/{utilizadorId}")]
     public async Task<IActionResult> ObterHistorico(string utilizadorId)
     {
-        // Aqui chamarias a Facade ou um Repository para ir à DB[cite: 1, 2]
-        return Ok("Lista de compras do utilizador");
+        var compras = await _compraRepository.GetByUtilizadorAsync(utilizadorId);
+        var dto = compras.Select(c => new CompraHistoricoReadDto
+        {
+            Id = c.Id,
+            UtilizadorId = c.UtilizadorId,
+            Data = c.Data,
+            Total = c.Total,
+            PontosGanhos = c.PontosGanhos,
+            Itens = c.Itens.Select(i => new CompraHistoricoItemReadDto
+            {
+                Id = i.Id,
+                FilmeId = i.FilmeId,
+                SessaoId = i.SessaoId,
+                TipoAcesso = (int)i.TipoAcesso,
+                PrecoPago = i.PrecoPago,
+                Validade = i.Validade
+            }).ToList()
+        });
+
+        return Ok(dto);
     }
 }

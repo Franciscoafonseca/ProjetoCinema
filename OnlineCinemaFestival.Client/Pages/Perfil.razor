@@ -1,243 +1,119 @@
 @page "/perfil"
-@inject PerfilService PerfilService
-@inject NavigationManager Nav
 
 <PageTitle>Perfil — Online Cinema Festival</PageTitle>
 
-<AuthorizeView>
-    <NotAuthorized>
-        @{ Nav.NavigateTo("/login?returnUrl=/perfil", forceLoad: false); }
-    </NotAuthorized>
-    <Authorized Context="auth">
-        <div class="perfil-container">
-            @if (_loading)
+<div class="premium-shell">
+    <section class="profile-hero">
+        <div class="hero-left">
+            <div class="avatar-ring">
+                <img src="@PerfilData.AvatarUrl" alt="@PerfilData.Username" />
+            </div>
+            <div class="hero-meta">
+                <h1>@PerfilData.Username</h1>
+                <div class="flag-chip">
+                    <span class="flag">@PerfilData.CountryFlag</span>
+                    <span>@PerfilData.CountryName</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-stats">
+            @foreach (var stat in PerfilData.Stats)
             {
-                <div class="loading-state">
-                    <div class="spinner"></div>
-                    <p>A carregar perfil...</p>
+                <div class="stat-card">
+                    <span class="stat-label">@stat.Label</span>
+                    <span class="stat-value">@stat.Value</span>
                 </div>
             }
-            else if (_erro != null)
+        </div>
+    </section>
+
+    <section class="reviews-section">
+        <div class="section-header">
+            <h2>Reviews From Users</h2>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="reviews-grid">
+            @foreach (var review in Reviews)
             {
-                <p class="erro-state">@_erro</p>
-            }
-            else if (_perfil != null)
-            {
-                @if (!_emEdicao)
-                {
-                    <div class="perfil-card">
-                        <div class="perfil-cabecalho">
-                            <div class="perfil-avatar">
-                                @if (!string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl))
-                                {
-                                    <img src="@_perfil.ProfileImageUrl" alt="@_perfil.Name" />
-                                }
-                                else
-                                {
-                                    <span class="perfil-avatar-inicial">@ObterInicial(_perfil.Name)</span>
-                                }
-                            </div>
-                            <div class="perfil-titulo">
-                                <h1>@_perfil.Name</h1>
-                                <p class="perfil-email">@_perfil.Email</p>
-                                @if (_perfil.IsPublic)
-                                {
-                                    <span class="perfil-badge publico">Perfil público</span>
-                                }
-                                else
-                                {
-                                    <span class="perfil-badge privado">Perfil privado</span>
-                                }
-                            </div>
-                            <button class="btn-editar" @onclick="EntrarEdicao">Editar</button>
-                        </div>
-
-                        <div class="perfil-info">
-                            @if (!string.IsNullOrWhiteSpace(_perfil.Bio))
+                <article class="review-card">
+                    <div class="review-top">
+                        <span class="review-name">@review.Name</span>
+                        <div class="review-stars">
+                            @for (var i = 0; i < review.Stars; i++)
                             {
-                                <p class="perfil-bio">@_perfil.Bio</p>
+                                <span class="star red">★</span>
                             }
-
-                            <div class="perfil-detalhes">
-                                @if (!string.IsNullOrWhiteSpace(_perfil.Nationality))
-                                {
-                                    <div class="detalhe">
-                                        <span class="detalhe-label">Nacionalidade</span>
-                                        <span>@_perfil.Nationality</span>
-                                    </div>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(_perfil.Location))
-                                {
-                                    <div class="detalhe">
-                                        <span class="detalhe-label">Localização</span>
-                                        <span>@_perfil.Location</span>
-                                    </div>
-                                }
-                            </div>
-
-                            @if (_perfil.FavoriteGenres.Any())
+                            @for (var i = review.Stars; i < 5; i++)
                             {
-                                <div class="perfil-generos">
-                                    <span class="detalhe-label">Géneros favoritos</span>
-                                    <div class="generos-lista">
-                                        @foreach (var g in _perfil.FavoriteGenres)
-                                        {
-                                            <span class="genero-chip">@g</span>
-                                        }
-                                    </div>
-                                </div>
+                                <span class="star">★</span>
                             }
-                        </div>
-
-                        <div class="perfil-stats">
-                            <div class="stat">
-                                <div class="stat-valor">@_perfil.ReviewsCount</div>
-                                <div class="stat-label">Avaliações</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-valor">@_perfil.CommunitiesCount</div>
-                                <div class="stat-label">Comunidades</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-valor">@_perfil.PublicListsCount</div>
-                                <div class="stat-label">Listas públicas</div>
-                            </div>
                         </div>
                     </div>
-                }
-                else
-                {
-                    <div class="perfil-card">
-                        <h2 class="form-titulo">Editar perfil</h2>
-
-                        <EditForm Model="_pedido" OnValidSubmit="Guardar">
-                            <DataAnnotationsValidator />
-
-                            <div class="form-campo">
-                                <label>Nome</label>
-                                <InputText class="form-input" @bind-Value="_pedido.Name" />
-                                <ValidationMessage For="@(() => _pedido.Name)" class="auth-erro-campo" />
-                            </div>
-
-                            <div class="form-campo">
-                                <label>Nacionalidade</label>
-                                <InputText class="form-input" @bind-Value="_pedido.Nationality" />
-                            </div>
-
-                            <div class="form-campo">
-                                <label>Localização</label>
-                                <InputText class="form-input" @bind-Value="_pedido.Location" />
-                            </div>
-
-                            <div class="form-campo">
-                                <label>URL da foto de perfil</label>
-                                <InputText class="form-input" @bind-Value="_pedido.ProfileImageUrl" />
-                            </div>
-
-                            <div class="form-campo">
-                                <label>Biografia</label>
-                                <InputTextArea class="form-input form-textarea" @bind-Value="_pedido.Bio" rows="4" />
-                            </div>
-
-                            <div class="form-campo-check">
-                                <InputCheckbox @bind-Value="_pedido.IsPublic" id="ispublic" />
-                                <label for="ispublic">Perfil público</label>
-                            </div>
-
-                            @if (!string.IsNullOrWhiteSpace(_erroEdicao))
-                            {
-                                <p class="auth-erro-geral">@_erroEdicao</p>
-                            }
-
-                            <div class="form-acoes">
-                                <button type="button" class="btn-secundario" @onclick="CancelarEdicao">Cancelar</button>
-                                <button type="submit" class="btn-primario" disabled="@_aGuardar">
-                                    @(_aGuardar ? "A guardar..." : "Guardar alterações")
-                                </button>
-                            </div>
-                        </EditForm>
-                    </div>
-                }
+                    <p>@review.Text</p>
+                </article>
             }
         </div>
-    </Authorized>
-</AuthorizeView>
+    </section>
+
+    <section class="chosen-section">
+        <div class="section-header">
+            <h2>Chosen List</h2>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="chosen-grid">
+            @foreach (var poster in ChosenList)
+            {
+                <div class="poster-card">
+                    <img src="@poster" alt="Poster" />
+                </div>
+            }
+        </div>
+    </section>
+</div>
 
 @code {
-    private UserProfileResponse? _perfil;
-    private UpdateProfileRequest _pedido = new();
-    private bool _loading = true;
-    private bool _emEdicao;
-    private bool _aGuardar;
-    private string? _erro;
-    private string? _erroEdicao;
-
-    protected override async Task OnInitializedAsync()
+    private readonly PerfilMock PerfilData = new()
     {
-        try
+        Username = "Jony Macarrony",
+        AvatarUrl = "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=300&auto=format&fit=crop",
+        CountryFlag = "🇵🇹",
+        CountryName = "Portugal",
+        Stats = new List<StatItem>
         {
-            _perfil = await PerfilService.GetMeuPerfilAsync();
-            if (_perfil == null)
-                _erro = "Não foi possível carregar o perfil. Verifica se tens sessão iniciada.";
+            new("Followers", "12.4K"),
+            new("Following", "821"),
+            new("Community", "07"),
+            new("Languages", "PT/EN")
         }
-        catch
-        {
-            _erro = "Erro ao carregar o perfil. Tenta novamente.";
-        }
-        finally
-        {
-            _loading = false;
-        }
+    };
+
+    private readonly List<ReviewItem> Reviews = new()
+    {
+        new("Marta L.", "Atmosfera impecavel e escolhas arrojadas.", 5),
+        new("Alex R.", "Excelente curadoria e eventos memoraveis.", 4),
+        new("Nuno V.", "Uma experiencia premium do inicio ao fim.", 5),
+        new("Sofia K.", "Cinematografia moderna e vibrante.", 4)
+    };
+
+    private readonly List<string> ChosenList = new()
+    {
+        "https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=400&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=400&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=400&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400&auto=format&fit=crop"
+    };
+
+    private sealed class PerfilMock
+    {
+        public string Username { get; set; } = string.Empty;
+        public string AvatarUrl { get; set; } = string.Empty;
+        public string CountryFlag { get; set; } = string.Empty;
+        public string CountryName { get; set; } = string.Empty;
+        public List<StatItem> Stats { get; set; } = new();
     }
 
-    private void EntrarEdicao()
-    {
-        if (_perfil == null) return;
+    private sealed record StatItem(string Label, string Value);
 
-        _pedido = new UpdateProfileRequest
-        {
-            Name = _perfil.Name,
-            Nationality = _perfil.Nationality,
-            Bio = _perfil.Bio,
-            ProfileImageUrl = _perfil.ProfileImageUrl,
-            Location = _perfil.Location,
-            IsPublic = _perfil.IsPublic,
-            FavoriteGenreIds = new(),
-        };
-        _erroEdicao = null;
-        _emEdicao = true;
-    }
-
-    private void CancelarEdicao()
-    {
-        _emEdicao = false;
-        _erroEdicao = null;
-    }
-
-    private async Task Guardar()
-    {
-        _aGuardar = true;
-        _erroEdicao = null;
-
-        try
-        {
-            var atualizado = await PerfilService.AtualizarMeuPerfilAsync(_pedido);
-            if (atualizado != null)
-                _perfil = atualizado;
-            _emEdicao = false;
-        }
-        catch (Exception ex)
-        {
-            _erroEdicao = ex.Message;
-        }
-        finally
-        {
-            _aGuardar = false;
-        }
-    }
-
-    private static string ObterInicial(string nome)
-    {
-        return string.IsNullOrWhiteSpace(nome) ? "?" : nome.Trim()[..1].ToUpperInvariant();
-    }
+    private sealed record ReviewItem(string Name, string Text, int Stars);
 }

@@ -6,6 +6,8 @@ public class Acesso
 {
     public int Id { get; set; }
 
+    public string UtilizadorId { get; set; } = string.Empty;
+
     [Required]
     [MaxLength(150)]
     public string Nome { get; set; } = string.Empty;
@@ -17,9 +19,13 @@ public class Acesso
 
     public decimal Preco { get; set; }
 
+    public decimal PrecoPago { get; set; }
+
     public bool IsAtivo { get; set; } = true;
 
     public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
+
+    public DateTime? Validade { get; set; }
 
     // Bilhete de sessão
     public int? SessaoId { get; set; }
