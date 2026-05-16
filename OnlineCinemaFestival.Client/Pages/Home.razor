@@ -6,129 +6,344 @@
 
 <PageTitle>Online Cinema Festival</PageTitle>
 
-<section class="hero" style="@HeroStyle">
-    <div class="hero-content">
-        <p class="hero-eyebrow">Festival online</p>
-        <h1 class="hero-titulo">Online Cinema Festival</h1>
-        <p class="hero-subtitulo">
-            Catalogo, sessoes digitais, passes, alugueres e player integrado num unico percurso.
-        </p>
-        <div class="hero-actions">
-            <a href="/catalogo" class="btn-hero">Ver catalogo</a>
-            <a href="/sessoes" class="btn-hero secundario">Programacao</a>
-        </div>
-    </div>
-</section>
+<main class="cinema-home">
+    <section class="hero" style="@HeroStyle">
+        <div class="hero-overlay"></div>
+        <div class="hero-ambient hero-ambient-left"></div>
+        <div class="hero-ambient hero-ambient-right"></div>
 
-<div class="home-shell">
-    @if (_loading)
-    {
-        <div class="loading-state">
-            <div class="spinner"></div>
-            <p>A carregar festival...</p>
-        </div>
-    }
-    else if (_erro != null)
-    {
-        <p class="erro-state">@_erro</p>
-    }
-    else
-    {
-        <section class="home-metrics">
-            <article>
-                <span>@_filmes.Count</span>
-                <small>Filmes em destaque</small>
-            </article>
-            <article>
-                <span>@_sessoes.Count</span>
-                <small>Sessoes disponiveis</small>
-            </article>
-            <article>
-                <span>@_festivais.Count</span>
-                <small>Festivais</small>
-            </article>
-        </section>
+        <div class="section-inner hero-inner">
+            <div class="hero-copy">
+                <div class="hero-kicker">
+                    <span class="kicker-dot"></span>
+                    <span>Festival online premium</span>
+                </div>
 
-        <section class="secao-destaques">
-            <div class="secao-header">
-                <h2 class="secao-titulo">Filmes em destaque</h2>
-                <a href="/catalogo" class="ver-todos">Ver todos</a>
+                <h1 class="hero-title">
+                    Cinema sem filas.
+                    <span>Festival sem fronteiras.</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Explora festivais digitais, sessões ao vivo, passes, alugueres e recomendações
+                    numa experiência cinematográfica moderna, elegante e totalmente imersiva.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="/catalogo" class="hero-btn hero-btn-primary">
+                        <span>Ver catálogo</span>
+                        <strong>→</strong>
+                    </a>
+
+                    <a href="/sessoes" class="hero-btn hero-btn-secondary">
+                        <span>Explorar programação</span>
+                    </a>
+                </div>
+
+                <div class="hero-mini-metrics">
+                    <article>
+                        <strong>@_filmes.Count</strong>
+                        <span>Filmes</span>
+                    </article>
+
+                    <article>
+                        <strong>@_sessoes.Count</strong>
+                        <span>Sessões</span>
+                    </article>
+
+                    <article>
+                        <strong>@FestivaisADecorrer</strong>
+                        <span>A decorrer</span>
+                    </article>
+                </div>
             </div>
 
-            @if (_filmes.Count == 0)
+            <aside class="hero-spotlight">
+                @if (FilmeDestaque is not null)
+                {
+                    <div class="hero-spotlight-poster">
+                        @if (!string.IsNullOrWhiteSpace(FilmeDestaque.CapaUrl))
+                        {
+                            <img src="@FilmeDestaque.CapaUrl" alt="@FilmeDestaque.Titulo" />
+                        }
+                        else
+                        {
+                            <div class="hero-spotlight-fallback">
+                                <span>OCF</span>
+                            </div>
+                        }
+
+                        <div class="hero-spotlight-overlay"></div>
+                    </div>
+
+                    <div class="hero-spotlight-body">
+                        <span class="hero-spotlight-badge">Em destaque</span>
+
+                        <h2>@FilmeDestaque.Titulo</h2>
+
+                        <div class="hero-spotlight-meta">
+                            <span>@GeneroFilme(FilmeDestaque)</span>
+                            <span>★ @ClassificacaoFilme(FilmeDestaque)</span>
+                        </div>
+
+                        <a href="@($"/filmes/{FilmeDestaque.Id}")" class="hero-spotlight-link">
+                            Ver detalhes do filme
+                            <span>↗</span>
+                        </a>
+                    </div>
+                }
+            </aside>
+        </div>
+    </section>
+
+    <section class="metrics-strip">
+        <div class="section-inner">
+            @if (_loading)
             {
-                <p class="empty-state">Nenhum filme disponivel de momento.</p>
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>A preparar a tua sessão de cinema...</p>
+                </div>
+            }
+            else if (_erro != null)
+            {
+                <div class="erro-state">
+                    <strong>Não foi possível carregar o festival.</strong>
+                    <p>@_erro</p>
+                </div>
             }
             else
             {
-                <div class="filmes-grid">
-                    @foreach (var filme in _filmes)
-                    {
-                        <FilmeCard Filme="filme" />
-                    }
+                <div class="metrics-grid">
+                    <article class="metric-card featured">
+                        <div class="metric-icon">🎬</div>
+                        <div class="metric-copy">
+                            <strong>@_filmes.Count</strong>
+                            <span>Filmes em destaque</span>
+                        </div>
+                    </article>
+
+                    <article class="metric-card">
+                        <div class="metric-icon">📡</div>
+                        <div class="metric-copy">
+                            <strong>@_sessoes.Count</strong>
+                            <span>Sessões disponíveis</span>
+                        </div>
+                    </article>
+
+                    <article class="metric-card">
+                        <div class="metric-icon">🏆</div>
+                        <div class="metric-copy">
+                            <strong>@_festivais.Count</strong>
+                            <span>Festivais</span>
+                        </div>
+                    </article>
+
+                    <article class="metric-card accent">
+                        <div class="metric-icon">🔥</div>
+                        <div class="metric-copy">
+                            <strong>@FestivaisADecorrer</strong>
+                            <span>A decorrer agora</span>
+                        </div>
+                    </article>
                 </div>
             }
-        </section>
+        </div>
+    </section>
 
-        <section class="home-columns">
-            <div class="home-panel">
-                <div class="secao-header compacta">
-                    <h2 class="secao-titulo">Proximas sessoes</h2>
-                    <a href="/sessoes" class="ver-todos">Abrir</a>
+    @if (!_loading && _erro == null)
+    {
+        <section class="festival-band">
+            <div class="section-inner festival-band-inner">
+                <div class="festival-band-copy">
+                    <span class="section-kicker">Agora em cartaz</span>
+                    <h2>Festivais para entrar já</h2>
+                    <p>
+                        Vê rapidamente o que está a acontecer agora, o que vem a seguir
+                        e o que vale a pena explorar primeiro.
+                    </p>
                 </div>
 
-                @if (_sessoes.Count == 0)
+                <div class="festival-band-grid">
+                    @if (_festivais.Count == 0)
+                    {
+                        <div class="festival-highlight-card empty">
+                            <strong>Sem festivais disponíveis</strong>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var festival in _festivais.Take(4))
+                        {
+                            <a href="@($"/festivais/{festival.Id}")" class="@($"festival-highlight-card {ClasseEstadoFestival(festival)}")">
+                                <span class="festival-state">@EstadoFestival(festival)</span>
+                                <strong>@festival.Name</strong>
+                                <small>@FormatarPeriodo(festival)</small>
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section class="featured-section">
+            <div class="section-inner">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Seleção editorial</span>
+                        <h2>Filmes em destaque</h2>
+                    </div>
+
+                    <a href="/catalogo" class="section-link">
+                        Ver todos
+                        <span>→</span>
+                    </a>
+                </div>
+
+                @if (_filmes.Count == 0)
                 {
-                    <p class="empty-state compacto">Sem sessoes futuras ou ativas.</p>
+                    <p class="empty-state">Nenhum filme disponível de momento.</p>
                 }
                 else
                 {
-                    <div class="quick-list">
-                        @foreach (var sessao in _sessoes.Take(4))
+                    <div class="featured-grid">
+                        @foreach (var filme in _filmes)
                         {
-                            <a href="@($"/player/sessao/{sessao.Id}")">
-                                <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM HH:mm")</span>
-                                <strong>@TituloSessao(sessao)</strong>
-                                <small>@sessao.Festival</small>
-                            </a>
+                            <FilmeCard Filme="filme" />
                         }
                     </div>
                 }
             </div>
+        </section>
 
-            <div class="home-panel">
-                <div class="secao-header compacta">
-                    <h2 class="secao-titulo">Festivais</h2>
-                    <a href="/festivais" class="ver-todos">Abrir</a>
+        <section class="experience-band">
+            <div class="section-inner experience-grid">
+                <article class="experience-card">
+                    <span class="experience-number">01</span>
+                    <h3>Bilhetes, passes e alugueres</h3>
+                    <p>
+                        Compra exatamente a modalidade que queres, desde sessão individual até acesso total.
+                    </p>
+                </article>
+
+                <article class="experience-card">
+                    <span class="experience-number">02</span>
+                    <h3>Player integrado</h3>
+                    <p>
+                        Assiste aos filmes e sessões na própria plataforma com uma experiência mais fluida.
+                    </p>
+                </article>
+
+                <article class="experience-card">
+                    <span class="experience-number">03</span>
+                    <h3>Comunidade cinéfila</h3>
+                    <p>
+                        Avalia, comenta, cria listas e acompanha o que outros utilizadores estão a ver.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section class="columns-section">
+            <div class="section-inner columns-grid">
+                <div class="panel-box">
+                    <div class="section-head compact">
+                        <div>
+                            <span class="section-kicker">Programação</span>
+                            <h2>Próximas sessões</h2>
+                        </div>
+
+                        <a href="/sessoes" class="section-link">
+                            Abrir
+                            <span>→</span>
+                        </a>
+                    </div>
+
+                    @if (_sessoes.Count == 0)
+                    {
+                        <p class="empty-state compact">Sem sessões futuras ou ativas.</p>
+                    }
+                    else
+                    {
+                        <div class="quick-list">
+                            @foreach (var sessao in _sessoes.Take(6))
+                            {
+                                <a href="@($"/player/sessao/{sessao.Id}")" class="quick-item">
+                                    <div class="quick-date">
+                                        <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM")</span>
+                                        <strong>@sessao.Inicio.ToLocalTime().ToString("HH:mm")</strong>
+                                    </div>
+
+                                    <div class="quick-main">
+                                        <strong>@TituloSessao(sessao)</strong>
+                                        <small>@sessao.Festival</small>
+                                    </div>
+
+                                    <span class="@ClasseEstadoSessao(sessao)">
+                                        @EstadoSessao(sessao)
+                                    </span>
+                                </a>
+                            }
+                        </div>
+                    }
                 </div>
 
-                @if (_festivais.Count == 0)
-                {
-                    <p class="empty-state compacto">Sem festivais disponiveis.</p>
-                }
-                else
-                {
-                    <div class="quick-list">
-                        @foreach (var festival in _festivais.Take(4))
-                        {
-                            <a href="@($"/festivais/{festival.Id}")">
-                                <span>@FormatarPeriodo(festival)</span>
-                                <strong>@festival.Name</strong>
-                                <small>@EstadoFestival(festival)</small>
-                            </a>
-                        }
+                <div class="panel-box">
+                    <div class="section-head compact">
+                        <div>
+                            <span class="section-kicker">Eventos</span>
+                            <h2>Festivais</h2>
+                        </div>
+
+                        <a href="/festivais" class="section-link">
+                            Abrir
+                            <span>→</span>
+                        </a>
                     </div>
-                }
+
+                    @if (_festivais.Count == 0)
+                    {
+                        <p class="empty-state compact">Sem festivais disponíveis.</p>
+                    }
+                    else
+                    {
+                        <div class="quick-list">
+                            @foreach (var festival in _festivais.Take(6))
+                            {
+                                <a href="@($"/festivais/{festival.Id}")" class="quick-item">
+                                    <div class="quick-date">
+                                        <span>@festival.StartDate.ToString("dd/MM")</span>
+                                        <strong>@festival.EndDate.ToString("dd/MM")</strong>
+                                    </div>
+
+                                    <div class="quick-main">
+                                        <strong>@festival.Name</strong>
+                                        <small>@FormatarPeriodo(festival)</small>
+                                    </div>
+
+                                    <span class="@($"status-pill {ClasseEstadoFestival(festival)}")">
+                                        @EstadoFestival(festival)
+                                    </span>
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
             </div>
         </section>
     }
-</div>
+</main>
 
 @code {
-    private const int MaxDestaques = 6;
+    private const int MaxDestaques = 10;
+
     private List<FilmeDto> _filmes = new();
     private List<SessaoDto> _sessoes = new();
     private List<FestivalDto> _festivais = new();
+
+    private FilmeDto? FilmeDestaque => _filmes.FirstOrDefault();
+
+    private int FestivaisADecorrer => _festivais.Count(EstaFestivalADecorrer);
 
     private string HeroStyle
     {
@@ -137,30 +352,36 @@
             var imagem = _filmes.FirstOrDefault(f => !string.IsNullOrWhiteSpace(f.CapaUrl))?.CapaUrl;
 
             return string.IsNullOrWhiteSpace(imagem)
-                ? string.Empty
-                : $"background-image: linear-gradient(90deg, rgba(8,8,8,.92), rgba(8,8,8,.52)), url('{imagem}')";
+                ? "background: radial-gradient(circle at top right, rgba(255,130,92,.22), transparent 30%), radial-gradient(circle at left, rgba(38,208,206,.14), transparent 24%), linear-gradient(135deg, #07111f 0%, #0a0f1c 45%, #160d14 100%);"
+                : $"background-image: linear-gradient(115deg, rgba(5, 10, 22, .96) 0%, rgba(5, 10, 22, .84) 34%, rgba(15, 10, 18, .58) 68%, rgba(10, 9, 18, .92) 100%), url('{imagem}')";
         }
     }
 
     protected override async Task CarregarDadosAsync()
     {
         var todos = await FilmeService.GetFilmesAsync(ordenarPor: 2, descendente: true);
-        _filmes = todos.Take(MaxDestaques).ToList();
+
+        _filmes = todos
+            .Take(MaxDestaques)
+            .ToList();
 
         _sessoes = (await SessaoService.GetSessoesDisponiveisAsync())
-            .OrderBy(s => s.Inicio)
-            .Take(6)
+            .OrderBy(s => Math.Abs((s.Inicio.ToLocalTime() - DateTime.Now).TotalMinutes))
+            .Take(8)
             .ToList();
 
         _festivais = (await FestivalService.GetFestivaisAsync())
-            .OrderByDescending(f => f.StartDate)
-            .Take(6)
+            .OrderBy(OrdemFestival)
+            .ThenBy(f => f.StartDate)
+            .Take(8)
             .ToList();
     }
 
     private static string TituloSessao(SessaoDto sessao)
     {
-        return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
+        return string.IsNullOrWhiteSpace(sessao.Filme)
+            ? $"Sessão #{sessao.Id}"
+            : sessao.Filme;
     }
 
     private static string FormatarPeriodo(FestivalDto festival)
@@ -170,14 +391,81 @@
 
     private static string EstadoFestival(FestivalDto festival)
     {
-        var agora = DateTime.Now;
+        var hoje = DateTime.Now.Date;
 
-        if (agora < festival.StartDate)
+        if (hoje < festival.StartDate.Date)
             return "Em breve";
 
-        if (agora <= festival.EndDate)
+        if (hoje <= festival.EndDate.Date)
             return "A decorrer";
 
         return "Terminado";
+    }
+
+    private static string ClasseEstadoFestival(FestivalDto festival)
+    {
+        return EstadoFestival(festival) switch
+        {
+            "A decorrer" => "ativo",
+            "Em breve" => "breve",
+            _ => "terminado"
+        };
+    }
+
+    private static bool EstaFestivalADecorrer(FestivalDto festival)
+    {
+        var hoje = DateTime.Now.Date;
+        return festival.StartDate.Date <= hoje && hoje <= festival.EndDate.Date;
+    }
+
+    private static int OrdemFestival(FestivalDto festival)
+    {
+        var hoje = DateTime.Now.Date;
+
+        if (festival.StartDate.Date <= hoje && hoje <= festival.EndDate.Date)
+            return 0;
+
+        if (hoje < festival.StartDate.Date)
+            return 1;
+
+        return 2;
+    }
+
+    private static string EstadoSessao(SessaoDto sessao)
+    {
+        var inicio = sessao.Inicio.ToLocalTime();
+        var agora = DateTime.Now;
+
+        if (inicio.Date == agora.Date)
+            return "Hoje";
+
+        if (inicio < agora)
+            return "Recente";
+
+        return "Em breve";
+    }
+
+    private static string ClasseEstadoSessao(SessaoDto sessao)
+    {
+        return EstadoSessao(sessao) switch
+        {
+            "Hoje" => "status-pill ativo",
+            "Recente" => "status-pill terminado",
+            _ => "status-pill breve"
+        };
+    }
+
+    private static string GeneroFilme(FilmeDto filme)
+    {
+        return string.IsNullOrWhiteSpace(filme.Genero)
+            ? "Cinema"
+            : filme.Genero;
+    }
+
+    private static string ClassificacaoFilme(FilmeDto filme)
+    {
+        return string.IsNullOrWhiteSpace(filme.Classificacao)
+            ? "Novo"
+            : filme.Classificacao;
     }
 }
