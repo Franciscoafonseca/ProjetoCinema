@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.Autorizacao;
@@ -25,11 +24,19 @@ public class ComprasController : ControllerBase
     }
 
     [HttpGet("minhas")]
-    public async Task<ActionResult<IEnumerable<CompraDTO>>> ObterMinhasCompras()
+    public async Task<ActionResult<IEnumerable<CompraReadDTO>>> ObterMinhasCompras()
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
-
         var compras = await _compraService.ObterComprasDoUtilizadorAsync(utilizadorId);
+
+        return Ok(compras);
+    }
+
+    [HttpGet("historico")]
+    public async Task<ActionResult<IEnumerable<CompraHistoricoReadDto>>> ObterHistorico()
+    {
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var compras = await _compraService.ObterHistoricoDoUtilizadorAsync(utilizadorId);
 
         return Ok(compras);
     }

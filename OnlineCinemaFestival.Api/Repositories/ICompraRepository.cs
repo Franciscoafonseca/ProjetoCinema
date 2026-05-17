@@ -10,5 +10,7 @@ public interface ICompraRepository
 
     Task<IEnumerable<Compra>> ObterPorUtilizadorIdAsync(int utilizadorId);
 
+    Task<List<Compra>> ObterHistoricoPorUtilizadorAsync(int utilizadorId);
+
     Task SaveChangesAsync();
 }

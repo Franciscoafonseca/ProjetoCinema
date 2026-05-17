@@ -45,6 +45,10 @@ builder.Services.AddScoped<VisualizacaoService>();
 builder.Services.AddScoped<AvaliacaoService>();
 builder.Services.AddScoped<PerfilService>();
 builder.Services.AddScoped<ListaService>();
+builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<CarrinhoApiService>();
+builder.Services.AddScoped<RewardsService>();
+builder.Services.AddScoped<ComprasHistoricoService>();
 
 builder.Services.AddMudServices();
 

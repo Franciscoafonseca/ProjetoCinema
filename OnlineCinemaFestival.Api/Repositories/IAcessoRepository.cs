@@ -18,6 +18,8 @@ public interface IAcessoRepository
 
     Task AddAsync(Acesso acesso);
 
+    Task AddManyAsync(IEnumerable<Acesso> acessos);
+
     void Remove(Acesso acesso);
 
     Task SaveChangesAsync();

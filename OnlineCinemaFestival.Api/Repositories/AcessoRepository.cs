@@ -87,6 +87,11 @@ public class AcessoRepository : IAcessoRepository
         await _context.Acessos.AddAsync(acesso);
     }
 
+    public async Task AddManyAsync(IEnumerable<Acesso> acessos)
+    {
+        await _context.Acessos.AddRangeAsync(acessos);
+    }
+
     public void Remove(Acesso acesso)
     {
         _context.Acessos.Remove(acesso);

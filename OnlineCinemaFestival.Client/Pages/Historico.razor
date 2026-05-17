@@ -1,0 +1,83 @@
+@page "/historico"
+
+<PageTitle>Historico — Online Cinema Festival</PageTitle>
+
+<div class="history-shell">
+    <section class="history-panel">
+        <header class="panel-header">
+            <div>
+                <h2>Movies Purchased</h2>
+                <span class="panel-sub">Ultimas aquisicoes</span>
+            </div>
+            <div class="panel-nav">
+                <button class="nav-btn">&#8592;</button>
+                <button class="nav-btn">&#8594;</button>
+            </div>
+        </header>
+        <div class="panel-grid">
+            @foreach (var item in MoviesPurchased)
+            {
+                <article class="poster-card">
+                    <img src="@item.PosterUrl" alt="@item.Title" />
+                    <div class="poster-meta">
+                        <span>@item.Title</span>
+                        <span class="tag">@item.Format</span>
+                    </div>
+                </article>
+            }
+        </div>
+    </section>
+
+    <section class="history-panel">
+        <header class="panel-header">
+            <div>
+                <h2>Tickets</h2>
+                <span class="panel-sub">Passes e bilhetes ativos</span>
+            </div>
+            <div class="panel-nav">
+                <button class="nav-btn">&#8592;</button>
+                <button class="nav-btn">&#8594;</button>
+            </div>
+        </header>
+        <div class="panel-grid">
+            @foreach (var item in Tickets)
+            {
+                <article class="poster-card">
+                    <img src="@item.PosterUrl" alt="@item.Title" />
+                    <div class="poster-meta">
+                        <span>@item.Title</span>
+                        <span class="tag">@item.Format</span>
+                    </div>
+                </article>
+            }
+        </div>
+    </section>
+</div>
+
+@code {
+    private readonly List<HistoryItem> MoviesPurchased = new()
+    {
+        new("Midnight Drift", "Bilhete Individual",
+"https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=400&auto=format&fit=crop"),
+        new("Cinema Pulse", "Passe VIP",
+"https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400&auto=format&fit=crop"),
+        new("Velvet Screen", "Aluguer Digital",
+"https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=400&auto=format&fit=crop"),
+        new("Noir Waves", "Bilhete Individual",
+"https://images.unsplash.com/photo-1502139214982-d0ad755818d8?q=80&w=400&auto=format&fit=crop")
+    };
+
+    private readonly List<HistoryItem> Tickets = new()
+    {
+        new("Festival Night", "Passe Diario",
+"https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=400&auto=format&fit=crop"),
+        new("Silver Hall", "Bilhete Unico",
+"https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=400&auto=format&fit=crop"),
+        new("Prime Seat", "Passe Completo",
+"https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=400&auto=format&fit=crop"),
+        new("Late Show", "Bilhete Unico",
+"https://images.unsplash.com/photo-1502139214982-d0ad755818d8?q=80&w=400&auto=format&fit=crop")
+    };
+
+    private sealed record HistoryItem(string Title, string Format, string PosterUrl);
+}

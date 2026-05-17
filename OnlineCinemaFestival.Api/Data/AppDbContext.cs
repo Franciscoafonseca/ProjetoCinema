@@ -42,6 +42,9 @@ public class AppDbContext : DbContext
     public DbSet<Comunidade> Comunidades => Set<Comunidade>();
     public DbSet<ComunidadeMembro> ComunidadeMembros => Set<ComunidadeMembro>();
 
+    public DbSet<Reward> Rewards => Set<Reward>();
+    public DbSet<RewardTransacao> RewardsTransacoes => Set<RewardTransacao>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -226,6 +229,13 @@ public class AppDbContext : DbContext
             .WithMany(f => f.SessoesDoFilme)
             .HasForeignKey(sf => sf.FilmeId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<ItemCompra>()
+            .HasOne(ci => ci.Compra)
+            .WithMany(c => c.Itens)
+            .HasForeignKey(ci => ci.CompraId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder
             .Entity<Acesso>()

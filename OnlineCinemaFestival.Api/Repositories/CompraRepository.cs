@@ -38,6 +38,16 @@ public class CompraRepository : ICompraRepository
             .ToListAsync();
     }
 
+    public async Task<List<Compra>> ObterHistoricoPorUtilizadorAsync(int utilizadorId)
+    {
+        return await _context
+            .Compras.Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+            .Where(c => c.UtilizadorId == utilizadorId)
+            .OrderByDescending(c => c.CriadaEm)
+            .ToListAsync();
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
