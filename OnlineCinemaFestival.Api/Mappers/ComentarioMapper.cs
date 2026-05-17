@@ -19,6 +19,19 @@ public static class ComentarioMapper
         };
     }
 
+    public static Comentario ToFilmeEntity(int filmeId, int utilizadorId, ComentarioCreateDTO dto)
+    {
+        return new Comentario
+        {
+            FilmeId = filmeId,
+            UsuarioId = utilizadorId,
+            Texto = dto.Texto.Trim(),
+            CriadoEm = DateTime.UtcNow,
+            Reportado = false,
+            Visivel = true,
+        };
+    }
+
     // Entity (BD) para DTO (ComentarioReadDTO)
     public static ComentarioReadDTO ToReadDTO(Comentario comentario)
     {

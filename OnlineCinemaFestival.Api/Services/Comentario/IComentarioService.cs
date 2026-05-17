@@ -14,4 +14,12 @@ public interface IComentarioService
         Guid comunidadeId,
         int utilizadorId
     );
+
+    Task<ComentarioReadDTO> CriarComentarioFilmeAsync(
+        int filmeId,
+        ComentarioCreateDTO dto,
+        int utilizadorId
+    );
+
+    Task<IEnumerable<ComentarioReadDTO>> ObterComentariosPorFilmeIdAsync(int filmeId);
 }

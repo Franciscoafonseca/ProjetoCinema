@@ -33,7 +33,8 @@ public class FilmeRepository : IFilmeRepository
     public async Task<Filme?> ObterDetalhePorIdAsync(int id)
     {
         return await _context
-            .Filmes.Include(f => f.FilmeGeneros)
+            .Filmes.AsSplitQuery()
+            .Include(f => f.FilmeGeneros)
                 .ThenInclude(fg => fg.Genero)
             .Include(f => f.PessoasDoFilme)
                 .ThenInclude(fp => fp.Pessoa)
@@ -48,8 +49,6 @@ public class FilmeRepository : IFilmeRepository
             .Include(f => f.ResultadosPremiosFestival)
                 .ThenInclude(r => r.PremioFestival)
                     .ThenInclude(p => p.Festival)
-            .Include(f => f.ResultadosPremiosFestival)
-                .ThenInclude(r => r.FilmeVencedor)
             .FirstOrDefaultAsync(f => f.Id == id);
     }
 
@@ -92,7 +91,11 @@ public class FilmeRepository : IFilmeRepository
         return genero;
     }
 
-    public async Task<Pessoa> ObterOuCriarPessoaAsync(int? tmdbPessoaId, string nome, string? imagemUrl)
+    public async Task<Pessoa> ObterOuCriarPessoaAsync(
+        int? tmdbPessoaId,
+        string nome,
+        string? imagemUrl
+    )
     {
         var nomeNormalizado = nome.Trim();
 
@@ -104,7 +107,9 @@ public class FilmeRepository : IFilmeRepository
 
         if (pessoa != null)
         {
-            if (string.IsNullOrWhiteSpace(pessoa.ImagemUrl) && !string.IsNullOrWhiteSpace(imagemUrl))
+            if (
+                string.IsNullOrWhiteSpace(pessoa.ImagemUrl) && !string.IsNullOrWhiteSpace(imagemUrl)
+            )
                 pessoa.ImagemUrl = imagemUrl;
 
             if (!pessoa.TmdbPessoaId.HasValue && tmdbPessoaId.HasValue)
@@ -148,7 +153,13 @@ public class FilmeRepository : IFilmeRepository
         await _context.Filmes.AddAsync(filme);
     }
 
-    public void AtualizarVideo(Filme filme, string? provider, string? key, string? url, int? duracaoSegundos)
+    public void AtualizarVideo(
+        Filme filme,
+        string? provider,
+        string? key,
+        string? url,
+        int? duracaoSegundos
+    )
     {
         filme.VideoProvider = provider;
         filme.VideoKey = key;

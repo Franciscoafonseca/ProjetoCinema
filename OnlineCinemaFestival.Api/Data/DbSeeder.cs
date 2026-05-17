@@ -14,6 +14,7 @@ public static class DbSeeder
     private const int NumeroComentarios = 180;
     private const int NumeroCompras = 60;
     private const int NumeroVisualizacoes = 220;
+    private const string MarcadorSessaoChatTeste = "CHAT_ATIVO_TESTE";
 
     private static readonly Random SeedRandom = new(2120622);
 
@@ -142,6 +143,10 @@ public static class DbSeeder
         await AssociarFilmesAFestivaisAsync(db, festivais, filmes);
 
         var sessoes = await CriarSessoesAsync(db, festivais, filmes);
+        var sessaoChatTeste = await CriarSessaoChatAoVivoTesteAsync(db, festivais, filmes);
+
+        sessoes = await db.Sessoes.Include(s => s.FilmesDaSessao).ToListAsync();
+
         var acessos = await CriarAcessosAsync(db, festivais, filmes, sessoes);
 
         await CriarPerfisAsync(db, todosUtilizadores);
@@ -156,6 +161,7 @@ public static class DbSeeder
 
         await CriarCarrinhosAsync(db, utilizadores, acessos);
         await CriarComprasEAcessosUtilizadorAsync(db, utilizadores, acessos);
+        await GarantirAcessoSessaoChatTesteAsync(db, utilizadores, sessaoChatTeste);
         await CriarVisualizacoesAsync(db, utilizadores, filmes);
 
         await db.SaveChangesAsync();
@@ -571,6 +577,86 @@ public static class DbSeeder
         }
 
         return await db.Sessoes.Include(s => s.FilmesDaSessao).ToListAsync();
+    }
+
+    private static async Task<Sessao> CriarSessaoChatAoVivoTesteAsync(
+        AppDbContext db,
+        List<Festival> festivais,
+        List<Filme> filmes
+    )
+    {
+        var agora = DateTime.UtcNow;
+        var inicio = agora.AddMinutes(-30);
+        var fim = agora.AddHours(2);
+
+        var festival =
+            festivais.FirstOrDefault(f => f.StartDate <= agora && f.EndDate >= agora)
+            ?? festivais.OrderBy(f => f.StartDate).First();
+
+        if (festival.StartDate > inicio.Date)
+            festival.StartDate = inicio.Date;
+
+        if (festival.EndDate < fim.Date)
+            festival.EndDate = fim.Date;
+
+        var filmeId = await db
+            .FestivalFilmes.Where(ff => ff.FestivalId == festival.Id)
+            .Select(ff => (int?)ff.FilmeId)
+            .FirstOrDefaultAsync();
+
+        if (!filmeId.HasValue)
+        {
+            var filme = filmes.OrderBy(f => f.Id).First();
+
+            await db.FestivalFilmes.AddAsync(
+                new FestivalFilme
+                {
+                    FestivalId = festival.Id,
+                    FilmeId = filme.Id,
+                    ElegivelPremiosPublico = true,
+                }
+            );
+
+            await db.SaveChangesAsync();
+            filmeId = filme.Id;
+        }
+
+        var sessao = await db
+            .Sessoes.Include(s => s.FilmesDaSessao)
+            .FirstOrDefaultAsync(s => s.Observacoes != null && s.Observacoes.Contains(MarcadorSessaoChatTeste));
+
+        if (sessao == null)
+        {
+            sessao = new Sessao { FestivalId = festival.Id };
+            await db.Sessoes.AddAsync(sessao);
+        }
+
+        sessao.FestivalId = festival.Id;
+        sessao.Tipo = TipoSessao.HorarioFixo;
+        sessao.Inicio = inicio;
+        sessao.Fim = fim;
+        sessao.TemChatAoVivo = true;
+        sessao.Observacoes =
+            $"{MarcadorSessaoChatTeste} - Sessao sempre ativa para testar o chat ao vivo.";
+
+        if (sessao.FilmesDaSessao.Count > 0)
+            db.SessaoFilmes.RemoveRange(sessao.FilmesDaSessao);
+
+        sessao.FilmesDaSessao = new List<SessaoFilme>
+        {
+            new()
+            {
+                Sessao = sessao,
+                FilmeId = filmeId.Value,
+                Ordem = 1,
+                InicioOffsetSegundos = 0,
+                IntervaloAposSegundos = 0,
+            },
+        };
+
+        await db.SaveChangesAsync();
+
+        return sessao;
     }
 
     private static List<(
@@ -1437,6 +1523,133 @@ public static class DbSeeder
             await db.AcessosUtilizador.AddRangeAsync(acessosUtilizador);
             await db.SaveChangesAsync();
         }
+    }
+
+    private static async Task GarantirAcessoSessaoChatTesteAsync(
+        AppDbContext db,
+        List<Utilizador> utilizadores,
+        Sessao sessaoChatTeste
+    )
+    {
+        var utilizadorTeste =
+            utilizadores.FirstOrDefault(u => u.Email == "utilizador1@teste.pt")
+            ?? utilizadores.OrderBy(u => u.Id).FirstOrDefault();
+
+        if (utilizadorTeste == null)
+            return;
+
+        var sessao = await db
+            .Sessoes.AsNoTracking()
+            .FirstAsync(s => s.Id == sessaoChatTeste.Id);
+
+        var acesso = await db.Acessos.FirstOrDefaultAsync(a => a.Nome == "Bilhete - Chat Ao Vivo Teste");
+
+        if (acesso == null)
+        {
+            acesso = new Acesso { Nome = "Bilhete - Chat Ao Vivo Teste", CriadoEm = DateTime.UtcNow };
+            await db.Acessos.AddAsync(acesso);
+        }
+
+        acesso.Descricao = "Bilhete seed para testar o chat ao vivo da sessao ativa.";
+        acesso.Tipo = TipoAcesso.BilheteSessao;
+        acesso.Preco = 0m;
+        acesso.PrecoPago = 0m;
+        acesso.IsAtivo = true;
+        acesso.SessaoId = sessao.Id;
+        acesso.FestivalId = null;
+        acesso.FilmeId = null;
+        acesso.DataAcesso = null;
+        acesso.DuracaoHoras = null;
+        acesso.Validade = sessao.Fim;
+
+        await db.SaveChangesAsync();
+
+        var referenciaCompra = $"CMP-CHAT-ATIVO-TESTE-{utilizadorTeste.Id}";
+        var referenciaPagamento = $"PG-{referenciaCompra}";
+        var compra = await db
+            .Compras.Include(c => c.Itens)
+            .Include(c => c.Pagamento)
+            .FirstOrDefaultAsync(c => c.Referencia == referenciaCompra);
+
+        if (compra == null)
+        {
+            compra = new Compra
+            {
+                Referencia = referenciaCompra,
+                UtilizadorId = utilizadorTeste.Id,
+            };
+
+            await db.Compras.AddAsync(compra);
+        }
+
+        compra.Estado = EstadoCompra.Pago;
+        compra.CriadaEm = DateTime.UtcNow.AddMinutes(-35);
+        compra.PagaEm = DateTime.UtcNow.AddMinutes(-34);
+        compra.ValorTotal = 0m;
+
+        var item = compra.Itens.FirstOrDefault(i => i.AcessoId == acesso.Id);
+
+        if (item == null)
+        {
+            compra.Itens.Add(
+                new ItemCompra
+                {
+                    AcessoId = acesso.Id,
+                    NomeAcesso = acesso.Nome,
+                    TipoAcesso = acesso.Tipo,
+                    PrecoUnitario = 0m,
+                    Quantidade = 1,
+                    Subtotal = 0m,
+                }
+            );
+        }
+        else
+        {
+            item.NomeAcesso = acesso.Nome;
+            item.TipoAcesso = acesso.Tipo;
+            item.PrecoUnitario = 0m;
+            item.Quantidade = 1;
+            item.Subtotal = 0m;
+        }
+
+        compra.Pagamento ??= new Pagamento { Referencia = referenciaPagamento };
+        compra.Pagamento.Referencia = referenciaPagamento;
+        compra.Pagamento.Valor = 0m;
+        compra.Pagamento.Metodo = "Seed";
+        compra.Pagamento.Estado = EstadoPagamento.Aprovado;
+        compra.Pagamento.CriadoEm = compra.CriadaEm;
+        compra.Pagamento.ProcessadoEm = compra.PagaEm;
+        compra.Pagamento.Mensagem = "Acesso seed para teste do chat ao vivo.";
+
+        await db.SaveChangesAsync();
+
+        var acessoUtilizador = await db.AcessosUtilizador.FirstOrDefaultAsync(a =>
+            a.UtilizadorId == utilizadorTeste.Id && a.AcessoId == acesso.Id
+        );
+
+        if (acessoUtilizador == null)
+        {
+            acessoUtilizador = new AcessoUtilizador
+            {
+                UtilizadorId = utilizadorTeste.Id,
+                AcessoId = acesso.Id,
+                CompraId = compra.Id,
+                CriadoEm = DateTime.UtcNow,
+            };
+
+            await db.AcessosUtilizador.AddAsync(acessoUtilizador);
+        }
+
+        acessoUtilizador.CompraId = compra.Id;
+        acessoUtilizador.TipoAcesso = TipoAcesso.BilheteSessao;
+        acessoUtilizador.SessaoId = sessao.Id;
+        acessoUtilizador.FestivalId = sessao.FestivalId;
+        acessoUtilizador.FilmeId = null;
+        acessoUtilizador.InicioValidade = sessao.Inicio.AddMinutes(-15);
+        acessoUtilizador.FimValidade = sessao.Fim;
+        acessoUtilizador.Ativo = true;
+
+        await db.SaveChangesAsync();
     }
 
     private static (DateTime inicio, DateTime fim) CalcularValidadeAcessoSeed(

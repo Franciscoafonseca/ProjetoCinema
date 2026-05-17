@@ -12,10 +12,12 @@ namespace OnlineCinemaFestival.Api.Controllers;
 public class FilmesController : ControllerBase
 {
     private readonly IFilmeService _service;
+    private readonly IComentarioService _comentarioService;
 
-    public FilmesController(IFilmeService service)
+    public FilmesController(IFilmeService service, IComentarioService comentarioService)
     {
         _service = service;
+        _comentarioService = comentarioService;
     }
 
     // GET: api/filmes
@@ -110,6 +112,48 @@ public class FilmesController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return Conflict(ex.Message);
+        }
+    }
+
+    [HttpGet("{filmeId:int}/comentarios")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IEnumerable<ComentarioReadDTO>>> ObterComentarios(int filmeId)
+    {
+        try
+        {
+            var comentarios = await _comentarioService.ObterComentariosPorFilmeIdAsync(filmeId);
+            return Ok(comentarios);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    [HttpPost("{filmeId:int}/comentarios")]
+    [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
+    public async Task<ActionResult<ComentarioReadDTO>> CriarComentario(
+        int filmeId,
+        [FromBody] ComentarioCreateDTO dto
+    )
+    {
+        try
+        {
+            var comentario = await _comentarioService.CriarComentarioFilmeAsync(
+                filmeId,
+                dto,
+                User.GetUserId()
+            );
+
+            return Ok(comentario);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
         }
     }
 }

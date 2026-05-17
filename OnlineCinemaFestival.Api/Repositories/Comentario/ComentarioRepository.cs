@@ -31,4 +31,15 @@ public class ComentarioRepository : IComentarioRepository
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Comentario>> ObterPorFilmeIdAsync(int filmeId)
+    {
+        return await _context
+            .Comentarios.Include(c => c.Usuario)
+            .Include(c => c.Comunidade)
+            .Include(c => c.Filme)
+            .Where(c => c.FilmeId == filmeId && c.Visivel)
+            .OrderByDescending(c => c.CriadoEm)
+            .ToListAsync();
+    }
 }

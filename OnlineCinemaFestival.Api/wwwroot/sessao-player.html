@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Player da sessao</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #111318;
+            color: #f5f7fb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #111318;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 360px;
+            min-height: 100vh;
+        }
+
+        .player {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 24px;
+            background: #151820;
+        }
+
+        .screen {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #050608;
+            border: 1px solid #2a303c;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        iframe,
+        video {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background: #050608;
+        }
+
+        .meta,
+        .panel {
+            border: 1px solid #2a303c;
+            border-radius: 8px;
+            background: #1c212b;
+        }
+
+        .meta {
+            padding: 16px;
+        }
+
+        h1,
+        h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            letter-spacing: 0;
+        }
+
+        p {
+            margin: 0;
+            color: #b9c0ce;
+            line-height: 1.5;
+        }
+
+        .side {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 24px 16px;
+            border-left: 1px solid #2a303c;
+            background: #181c24;
+        }
+
+        .panel {
+            padding: 14px;
+        }
+
+        .messages {
+            height: 42vh;
+            min-height: 260px;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            background: #252b36;
+            color: #eef2f8;
+            overflow-wrap: anywhere;
+        }
+
+        .message small {
+            display: block;
+            margin-bottom: 4px;
+            color: #9aa5b5;
+        }
+
+        .message button {
+            width: auto;
+            min-height: 28px;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #6d3030;
+            border-color: #8f4545;
+            font-size: 13px;
+        }
+
+        form {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        input,
+        textarea,
+        button {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #354052;
+            font: inherit;
+        }
+
+        input,
+        textarea {
+            min-height: 42px;
+            padding: 10px;
+            background: #10141c;
+            color: #f5f7fb;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 72px;
+        }
+
+        button {
+            min-height: 42px;
+            cursor: pointer;
+            background: #3f7fdb;
+            color: white;
+            border-color: #3f7fdb;
+            font-weight: 700;
+        }
+
+        button.secondary {
+            background: #2b3240;
+            border-color: #3a4354;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .status {
+            min-height: 20px;
+            color: #9dc3ff;
+            font-size: 14px;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+
+            .side {
+                border-left: 0;
+                border-top: 1px solid #2a303c;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section class="player">
+            <div class="screen" id="screen"></div>
+            <div class="meta">
+                <h1 id="title">Sessao</h1>
+                <p id="description">A carregar conteudo...</p>
+            </div>
+            <section class="panel">
+                <h2>Comentario e avaliacao</h2>
+                <p id="reviewStatus" class="status"></p>
+                <form id="reviewForm">
+                    <input id="score" type="number" min="1" max="10" value="8" aria-label="Pontuacao" />
+                    <textarea id="reviewText" maxlength="2000" placeholder="Avaliacao"></textarea>
+                    <textarea id="commentText" maxlength="600" placeholder="Comentario"></textarea>
+                    <div class="actions">
+                        <button type="button" id="sendReview">Avaliar</button>
+                        <button type="button" id="sendComment" class="secondary">Comentar</button>
+                    </div>
+                </form>
+            </section>
+        </section>
+
+        <aside class="side">
+            <section class="panel">
+                <h2>Chat ao vivo</h2>
+                <p id="chatStatus" class="status"></p>
+                <div id="messages" class="messages"></div>
+                <form id="chatForm">
+                    <textarea id="chatText" maxlength="600" placeholder="Mensagem"></textarea>
+                    <button type="submit">Enviar</button>
+                </form>
+            </section>
+        </aside>
+    </main>
+
+    <script>
+        const recordSeparator = String.fromCharCode(0x1e);
+        const params = new URLSearchParams(window.location.search);
+        let sessaoId = Number(params.get("sessaoId"));
+        let token = params.get("token") || window.localStorage.getItem("jwt") || "";
+        const adminMode = params.get("admin") === "1";
+
+        const screen = document.getElementById("screen");
+        const title = document.getElementById("title");
+        const description = document.getElementById("description");
+        const messages = document.getElementById("messages");
+        const chatStatus = document.getElementById("chatStatus");
+        const reviewStatus = document.getElementById("reviewStatus");
+
+        let filmeAtualId = null;
+        let socket = null;
+        let nextInvocationId = 1;
+
+        iniciarPagina();
+
+        async function iniciarPagina() {
+            try {
+                chatStatus.textContent = "A preparar sessao de teste...";
+
+                if (!token) {
+                    token = await obterTokenTeste();
+                    window.localStorage.setItem("jwt", token);
+                }
+
+                if (!sessaoId) {
+                    sessaoId = await obterSessaoChatAtivoTeste();
+                    window.history.replaceState(
+                        null,
+                        "",
+                        `${window.location.pathname}?sessaoId=${sessaoId}`
+                    );
+                }
+
+                await carregarSessao();
+                await iniciarChat();
+            } catch (error) {
+                chatStatus.textContent = error?.message || "Nao foi possivel iniciar o teste.";
+                description.textContent =
+                    "Confirma que a API arrancou em Development para executar o DbSeeder.";
+            }
+        }
+
+        async function obterTokenTeste() {
+            const resposta = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: "utilizador1@teste.pt",
+                    password: "User123!",
+                }),
+            });
+
+            if (!resposta.ok) throw new Error(await resposta.text());
+
+            const autenticacao = await resposta.json();
+            return autenticacao.token;
+        }
+
+        async function obterSessaoChatAtivoTeste() {
+            const resposta = await fetch("/api/sessoes/disponiveis");
+
+            if (!resposta.ok) throw new Error(await resposta.text());
+
+            const sessoes = await resposta.json();
+            const sessaoTeste = sessoes.find(s =>
+                (s.observacoes || "").includes("CHAT_ATIVO_TESTE")
+            );
+
+            if (!sessaoTeste) throw new Error("Sessao seed CHAT_ATIVO_TESTE nao encontrada.");
+
+            title.textContent = "Sessao de teste do chat ao vivo";
+            return sessaoTeste.id;
+        }
+
+        async function carregarSessao() {
+            const resposta = await fetch(`/api/visualizacao/sessoes/${sessaoId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!resposta.ok) {
+                description.textContent = await resposta.text();
+                return;
+            }
+
+            const sessao = await resposta.json();
+            const conteudo = sessao.conteudos?.[0];
+
+            if (!conteudo) {
+                description.textContent = "Sessao sem filmes.";
+                return;
+            }
+
+            filmeAtualId = conteudo.filmeId;
+            title.textContent = conteudo.titulo || "Filme";
+            description.textContent = sessao.mensagem || "Visualizacao registada.";
+            renderizarPlayer(conteudo.urlVisualizacao);
+        }
+
+        function renderizarPlayer(url) {
+            screen.replaceChildren();
+
+            if (!url) {
+                screen.textContent = "Sem URL de video.";
+                return;
+            }
+
+            const isEmbed = url.includes("youtube.com") || url.includes("vimeo.com");
+            const el = document.createElement(isEmbed ? "iframe" : "video");
+
+            if (isEmbed) {
+                el.allowFullscreen = true;
+                el.src = url;
+            } else {
+                el.src = url;
+                el.controls = true;
+            }
+
+            screen.appendChild(el);
+        }
+
+        async function iniciarChat() {
+            try {
+                const resposta = await fetch("/hubs/sessoes-chat/negotiate?negotiateVersion=1", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (!resposta.ok) throw new Error(await resposta.text());
+
+                const negociacao = await resposta.json();
+                const connectionToken = negociacao.connectionToken || negociacao.connectionId;
+                const protocolo = window.location.protocol === "https:" ? "wss" : "ws";
+                const url =
+                    `${protocolo}://${window.location.host}/hubs/sessoes-chat` +
+                    `?id=${encodeURIComponent(connectionToken)}` +
+                    `&access_token=${encodeURIComponent(token)}`;
+
+                socket = new WebSocket(url);
+                socket.addEventListener("message", processarMensagemHub);
+                socket.addEventListener("close", () => {
+                    chatStatus.textContent = "Chat desligado.";
+                });
+
+                await aguardarSocketAberto(socket);
+                socket.send(JSON.stringify({ protocol: "json", version: 1 }) + recordSeparator);
+                enviarInvocacao("EntrarSessao", [sessaoId]);
+            } catch (error) {
+                chatStatus.textContent = error?.message || "Nao foi possivel ligar ao chat.";
+            }
+        }
+
+        function aguardarSocketAberto(ws) {
+            return new Promise((resolve, reject) => {
+                ws.addEventListener("open", resolve, { once: true });
+                ws.addEventListener("error", () => reject(new Error("Falha ao abrir WebSocket.")), {
+                    once: true,
+                });
+            });
+        }
+
+        function enviarInvocacao(target, args) {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                throw new Error("O chat ainda nao esta ligado.");
+            }
+
+            socket.send(
+                JSON.stringify({
+                    type: 1,
+                    invocationId: String(nextInvocationId++),
+                    target,
+                    arguments: args,
+                }) + recordSeparator
+            );
+        }
+
+        function processarMensagemHub(event) {
+            String(event.data)
+                .split(recordSeparator)
+                .filter(Boolean)
+                .forEach(frame => {
+                    const mensagem = JSON.parse(frame);
+
+                    if (!mensagem.type) return;
+
+                    if (mensagem.type === 1 && mensagem.target === "EntrouSessao") {
+                        chatStatus.textContent = "Chat ligado.";
+                    }
+
+                    if (mensagem.type === 1 && mensagem.target === "MensagemRecebida") {
+                        adicionarMensagem(mensagem.arguments[0]);
+                    }
+
+                    if (mensagem.type === 1 && mensagem.target === "MensagemRemovida") {
+                        marcarMensagemRemovida(mensagem.arguments[0]);
+                    }
+
+                    if (mensagem.type === 3 && mensagem.error) {
+                        chatStatus.textContent = mensagem.error;
+                    }
+                });
+        }
+
+        function adicionarMensagem(mensagem) {
+            const item = document.createElement("div");
+            item.className = "message";
+            item.dataset.messageId = mensagem.id;
+            item.innerHTML = `<small>Utilizador ${mensagem.utilizadorId}</small>${escapeHtml(mensagem.texto)}`;
+
+            if (adminMode) {
+                const removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.textContent = "Remover";
+                removeButton.addEventListener("click", () => {
+                    enviarInvocacao("RemoverMensagem", [sessaoId, mensagem.id]);
+                });
+                item.appendChild(removeButton);
+            }
+
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function marcarMensagemRemovida(evento) {
+            const item = messages.querySelector(`[data-message-id="${evento.mensagemId}"]`);
+            if (item) item.textContent = "Mensagem removida por moderacao.";
+        }
+
+        document.getElementById("chatForm").addEventListener("submit", async event => {
+            event.preventDefault();
+            const input = document.getElementById("chatText");
+            const texto = input.value.trim();
+
+            if (!texto || !socket) return;
+
+            try {
+                enviarInvocacao("EnviarMensagem", [sessaoId, texto]);
+                input.value = "";
+            } catch (error) {
+                chatStatus.textContent = error?.message || "Mensagem recusada.";
+            }
+        });
+
+        document.getElementById("sendReview").addEventListener("click", async () => {
+            if (!filmeAtualId) return;
+
+            const resposta = await fetch(`/api/filmes/${filmeAtualId}/reviews`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    pontuacao: Number(document.getElementById("score").value),
+                    texto: document.getElementById("reviewText").value,
+                }),
+            });
+
+            reviewStatus.textContent = resposta.ok ? "Avaliacao guardada." : await resposta.text();
+        });
+
+        document.getElementById("sendComment").addEventListener("click", async () => {
+            if (!filmeAtualId) return;
+
+            const resposta = await fetch(`/api/filmes/${filmeAtualId}/comentarios`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    texto: document.getElementById("commentText").value,
+                }),
+            });
+
+            reviewStatus.textContent = resposta.ok ? "Comentario guardado." : await resposta.text();
+        });
+
+        function escapeHtml(value) {
+            return value.replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;",
+            }[char]));
+        }
+    </script>
+</body>
+</html>

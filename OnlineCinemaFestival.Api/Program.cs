@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.Data;
+using OnlineCinemaFestival.Api.Hubs;
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Api.Services.AcessosFolder;
@@ -22,6 +23,7 @@ builder.Logging.AddDebug();
 
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
+builder.Services.AddSignalR();
 
 if (builder.Environment.IsDevelopment())
 {
@@ -62,7 +64,8 @@ builder.Services.AddCors(options =>
                     "https://localhost:7049"
                 )
                 .AllowAnyMethod()
-                .AllowAnyHeader();
+                .AllowAnyHeader()
+                .AllowCredentials();
         }
     );
 });
@@ -97,6 +100,20 @@ builder
 
             RoleClaimType = ClaimTypes.Role,
             NameClaimType = ClaimTypes.NameIdentifier,
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                    context.Token = accessToken;
+
+                return Task.CompletedTask;
+            },
         };
     });
 
@@ -262,6 +279,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<SessaoChatHub>("/hubs/sessoes-chat");
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
