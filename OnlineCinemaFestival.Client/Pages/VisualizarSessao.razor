@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject VisualizacaoService VisualizacaoService
 @inject NavigationManager Nav
+@inject ArmazenamentoToken ArmazenamentoToken
 
 <PageTitle>Visualizar sessao - Online Cinema Festival</PageTitle>
 
@@ -61,9 +62,12 @@
                 </div>
                 @if (_visualizacao?.TemChatAoVivo == true)
                 {
-                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Chat">
-                        Chat ao vivo
-                    </MudChip>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Info"
+                               StartIcon="@Icons.Material.Filled.Chat"
+                               OnClick="AbrirChatAoVivo">
+                        Abrir chat ao vivo
+                    </MudButton>
                 }
             </MudStack>
 
@@ -135,6 +139,17 @@
     }
 
     private void Voltar() => Nav.NavigateTo("/sessoes");
+
+    private async Task AbrirChatAoVivo()
+    {
+        var token = await ArmazenamentoToken.ObterAsync();
+        var url = $"http://localhost:5152/sessao-player.html?sessaoId={SessaoId}";
+
+        if (!string.IsNullOrWhiteSpace(token))
+            url += $"&token={Uri.EscapeDataString(token)}";
+
+        Nav.NavigateTo(url, forceLoad: true);
+    }
 
     private static string UrlPlayer(string url)
     {

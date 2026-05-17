@@ -28,4 +28,7 @@ public class Sessao
         new List<AcessoUtilizador>();
 
     public ICollection<Visualizacao> Visualizacoes { get; set; } = new List<Visualizacao>();
+
+    public ICollection<MensagemChatSessao> MensagensChat { get; set; } =
+        new List<MensagemChatSessao>();
 }

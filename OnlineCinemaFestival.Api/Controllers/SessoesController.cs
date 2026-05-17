@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Extensions;
 using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Controllers;
@@ -11,10 +12,12 @@ namespace OnlineCinemaFestival.Api.Controllers;
 public class SessoesController : ControllerBase
 {
     private readonly ISessaoService _service;
+    private readonly IChatSessaoService _chatSessaoService;
 
-    public SessoesController(ISessaoService service)
+    public SessoesController(ISessaoService service, IChatSessaoService chatSessaoService)
     {
         _service = service;
+        _chatSessaoService = chatSessaoService;
     }
 
     [HttpGet]
@@ -60,6 +63,42 @@ public class SessoesController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(ex.Message);
+        }
+    }
+
+    [HttpGet("{id:int}/chat/mensagens")]
+    [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
+    public async Task<ActionResult<IEnumerable<MensagemChatSessaoReadDTO>>> ObterMensagensChat(
+        int id,
+        [FromQuery] int quantidade = 50
+    )
+    {
+        try
+        {
+            var mensagens = await _chatSessaoService.ObterHistoricoRecenteAsync(
+                id,
+                User.GetUserId(),
+                User.IsInRole(NomesPapeis.Administrador),
+                quantidade
+            );
+
+            return Ok(mensagens);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 

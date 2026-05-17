@@ -182,6 +182,8 @@ builder.Services.AddScoped<IAcessoUtilizadorService, AcessoUtilizadorService>();
 
 builder.Services.AddScoped<ISessaoRepository, SessaoRepository>();
 builder.Services.AddScoped<ISessaoService, SessaoService>();
+builder.Services.AddScoped<IMensagemChatSessaoRepository, MensagemChatSessaoRepository>();
+builder.Services.AddScoped<IChatSessaoService, ChatSessaoService>();
 
 builder.Services.AddScoped<ICatalogoService, CatalogoService>();
 builder.Services.AddScoped<ICarrinhoRepository, CarrinhoRepository>();

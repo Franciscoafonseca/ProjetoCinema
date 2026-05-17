@@ -53,6 +53,9 @@ public class Utilizador
 
     public ICollection<Visualizacao> Visualizacoes { get; set; } = new List<Visualizacao>();
 
+    public ICollection<MensagemChatSessao> MensagensChatSessao { get; set; } =
+        new List<MensagemChatSessao>();
+
     public ICollection<VotoPremioFestival> VotosPremiosFestival { get; set; } =
         new List<VotoPremioFestival>();
 

@@ -40,6 +40,7 @@ public class AppDbContext : DbContext
     public DbSet<Pagamento> Pagamentos => Set<Pagamento>();
 
     public DbSet<AcessoUtilizador> AcessosUtilizador => Set<AcessoUtilizador>();
+    public DbSet<MensagemChatSessao> MensagensChatSessao => Set<MensagemChatSessao>();
     public DbSet<Visualizacao> Visualizacoes => Set<Visualizacao>();
     public DbSet<Comunidade> Comunidades => Set<Comunidade>();
     public DbSet<ComunidadeMembro> ComunidadeMembros => Set<ComunidadeMembro>();
@@ -518,6 +519,30 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<AcessoUtilizador>().HasIndex(a => new { a.UtilizadorId, a.AcessoId });
+
+        modelBuilder.Entity<MensagemChatSessao>().HasKey(m => m.Id);
+
+        modelBuilder.Entity<MensagemChatSessao>().Property(m => m.Texto).HasMaxLength(600).IsRequired();
+
+        modelBuilder.Entity<MensagemChatSessao>().Property(m => m.EnviadaEm).IsRequired();
+
+        modelBuilder
+            .Entity<MensagemChatSessao>()
+            .HasIndex(m => new { m.SessaoId, m.EnviadaEm });
+
+        modelBuilder
+            .Entity<MensagemChatSessao>()
+            .HasOne(m => m.Sessao)
+            .WithMany(s => s.MensagensChat)
+            .HasForeignKey(m => m.SessaoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<MensagemChatSessao>()
+            .HasOne(m => m.Utilizador)
+            .WithMany(u => u.MensagensChatSessao)
+            .HasForeignKey(m => m.UtilizadorId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<Visualizacao>()
