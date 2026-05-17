@@ -936,6 +936,7 @@ public static class DbSeeder
                         $"Espaço para discutir filmes, sessões, críticas e recomendações relacionadas com {nome}.",
                     ImageUrl = $"https://picsum.photos/seed/comunidade-{i + 1}/600/300",
                     IsPublic = SeedRandom.Next(1, 100) <= 90,
+                    CodigoConvite = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant(),
                     CreatedByUserId = EscolherAleatorio(utilizadores, 1).Single().Id,
                     CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 80)),
                 }

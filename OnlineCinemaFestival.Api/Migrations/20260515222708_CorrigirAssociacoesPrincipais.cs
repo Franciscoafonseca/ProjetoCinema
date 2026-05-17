@@ -12,43 +12,53 @@ namespace OnlineCinemaFestival.Api.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_AcessosUtilizador_Utilizadores_UtilizadorId",
-                table: "AcessosUtilizador");
+                table: "AcessosUtilizador"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Avaliacoes_Filmes_FilmeId",
-                table: "Avaliacoes");
+                table: "Avaliacoes"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Avaliacoes_Utilizadores_UsuarioId",
-                table: "Avaliacoes");
+                table: "Avaliacoes"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Comentarios_Utilizadores_UsuarioId",
-                table: "Comentarios");
+                table: "Comentarios"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Compras_Utilizadores_UtilizadorId",
-                table: "Compras");
+                table: "Compras"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_ComunidadeMembros_Utilizadores_UtilizadorId",
-                table: "ComunidadeMembros");
+                table: "ComunidadeMembros"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_ListaPessoalItems_Filmes_FilmeId",
-                table: "ListaPessoalItems");
+                table: "ListaPessoalItems"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_SessaoFilmes_Filmes_FilmeId",
-                table: "SessaoFilmes");
+                table: "SessaoFilmes"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Sessoes_Festivals_FestivalId",
-                table: "Sessoes");
+                table: "Sessoes"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Visualizacoes_Utilizadores_UtilizadorId",
-                table: "Visualizacoes");
+                table: "Visualizacoes"
+            );
 
             migrationBuilder.AlterColumn<double>(
                 name: "Valor",
@@ -58,7 +68,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 oldClrType: typeof(decimal),
                 oldType: "TEXT",
                 oldPrecision: 10,
-                oldScale: 2);
+                oldScale: 2
+            );
 
             migrationBuilder.AlterColumn<double>(
                 name: "Subtotal",
@@ -68,7 +79,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 oldClrType: typeof(decimal),
                 oldType: "TEXT",
                 oldPrecision: 10,
-                oldScale: 2);
+                oldScale: 2
+            );
 
             migrationBuilder.AlterColumn<double>(
                 name: "PrecoUnitario",
@@ -78,7 +90,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 oldClrType: typeof(decimal),
                 oldType: "TEXT",
                 oldPrecision: 10,
-                oldScale: 2);
+                oldScale: 2
+            );
 
             migrationBuilder.AlterColumn<double>(
                 name: "PrecoUnitario",
@@ -88,7 +101,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 oldClrType: typeof(decimal),
                 oldType: "TEXT",
                 oldPrecision: 10,
-                oldScale: 2);
+                oldScale: 2
+            );
 
             migrationBuilder.AlterColumn<double>(
                 name: "ValorTotal",
@@ -98,7 +112,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 oldClrType: typeof(decimal),
                 oldType: "TEXT",
                 oldPrecision: 10,
-                oldScale: 2);
+                oldScale: 2
+            );
 
             migrationBuilder.AlterColumn<int>(
                 name: "ComunidadeId",
@@ -106,13 +121,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                 type: "INTEGER",
                 nullable: true,
                 oldClrType: typeof(int),
-                oldType: "INTEGER");
+                oldType: "INTEGER"
+            );
 
             migrationBuilder.AddColumn<int>(
                 name: "FilmeId",
                 table: "Comentarios",
                 type: "INTEGER",
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.AlterColumn<double>(
                 name: "Preco",
@@ -120,25 +137,28 @@ namespace OnlineCinemaFestival.Api.Migrations
                 type: "REAL",
                 nullable: false,
                 oldClrType: typeof(decimal),
-                oldType: "TEXT");
+                oldType: "TEXT"
+            );
 
             migrationBuilder.Sql(
                 """
-                Atualizar ListasPessoais SET Tipo = 1 WHERE Name = 'Quero ver' AND Tipo = 0;
-                Atualizar ListasPessoais SET Tipo = 2 WHERE Name = 'Vistos' AND Tipo = 0;
-                Atualizar ListasPessoais SET Tipo = 3 WHERE Name = 'Favoritos' AND Tipo = 0;
+                UPDATE ListasPessoais SET Tipo = 1 WHERE Name = 'Quero ver' AND Tipo = 0;
+                UPDATE ListasPessoais SET Tipo = 2 WHERE Name = 'Vistos' AND Tipo = 0;
+                UPDATE ListasPessoais SET Tipo = 3 WHERE Name = 'Favoritos' AND Tipo = 0;
                 """
             );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Comentarios_FilmeId",
                 table: "Comentarios",
-                column: "FilmeId");
+                column: "FilmeId"
+            );
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_Comentarios_Alvo",
                 table: "Comentarios",
-                sql: "ComunidadeId IS NOT NULL OR FilmeId IS NOT NULL");
+                sql: "ComunidadeId IS NOT NULL OR FilmeId IS NOT NULL"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_AcessosUtilizador_Utilizadores_UtilizadorId",
@@ -146,7 +166,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UtilizadorId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Avaliacoes_Filmes_FilmeId",
@@ -154,7 +175,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "FilmeId",
                 principalTable: "Filmes",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Avaliacoes_Utilizadores_UsuarioId",
@@ -162,7 +184,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UsuarioId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Comentarios_Filmes_FilmeId",
@@ -170,7 +193,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "FilmeId",
                 principalTable: "Filmes",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Comentarios_Utilizadores_UsuarioId",
@@ -178,7 +202,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UsuarioId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Compras_Utilizadores_UtilizadorId",
@@ -186,7 +211,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UtilizadorId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ComunidadeMembros_Utilizadores_UtilizadorId",
@@ -194,7 +220,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UtilizadorId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ListaPessoalItems_Filmes_FilmeId",
@@ -202,7 +229,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "FilmeId",
                 principalTable: "Filmes",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_SessaoFilmes_Filmes_FilmeId",
@@ -210,7 +238,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "FilmeId",
                 principalTable: "Filmes",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Sessoes_Festivals_FestivalId",
@@ -218,7 +247,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "FestivalId",
                 principalTable: "Festivals",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Visualizacoes_Utilizadores_UtilizadorId",
@@ -226,7 +256,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UtilizadorId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict
+            );
         }
 
         /// <inheritdoc />
@@ -234,59 +265,64 @@ namespace OnlineCinemaFestival.Api.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_AcessosUtilizador_Utilizadores_UtilizadorId",
-                table: "AcessosUtilizador");
+                table: "AcessosUtilizador"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Avaliacoes_Filmes_FilmeId",
-                table: "Avaliacoes");
+                table: "Avaliacoes"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Avaliacoes_Utilizadores_UsuarioId",
-                table: "Avaliacoes");
+                table: "Avaliacoes"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Comentarios_Filmes_FilmeId",
-                table: "Comentarios");
+                table: "Comentarios"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Comentarios_Utilizadores_UsuarioId",
-                table: "Comentarios");
+                table: "Comentarios"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Compras_Utilizadores_UtilizadorId",
-                table: "Compras");
+                table: "Compras"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_ComunidadeMembros_Utilizadores_UtilizadorId",
-                table: "ComunidadeMembros");
+                table: "ComunidadeMembros"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_ListaPessoalItems_Filmes_FilmeId",
-                table: "ListaPessoalItems");
+                table: "ListaPessoalItems"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_SessaoFilmes_Filmes_FilmeId",
-                table: "SessaoFilmes");
+                table: "SessaoFilmes"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Sessoes_Festivals_FestivalId",
-                table: "Sessoes");
+                table: "Sessoes"
+            );
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Visualizacoes_Utilizadores_UtilizadorId",
-                table: "Visualizacoes");
+                table: "Visualizacoes"
+            );
 
-            migrationBuilder.DropIndex(
-                name: "IX_Comentarios_FilmeId",
-                table: "Comentarios");
+            migrationBuilder.DropIndex(name: "IX_Comentarios_FilmeId", table: "Comentarios");
 
-            migrationBuilder.DropCheckConstraint(
-                name: "CK_Comentarios_Alvo",
-                table: "Comentarios");
+            migrationBuilder.DropCheckConstraint(name: "CK_Comentarios_Alvo", table: "Comentarios");
 
-            migrationBuilder.DropColumn(
-                name: "FilmeId",
-                table: "Comentarios");
+            migrationBuilder.DropColumn(name: "FilmeId", table: "Comentarios");
 
             migrationBuilder.AlterColumn<decimal>(
                 name: "Valor",
@@ -296,7 +332,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 scale: 2,
                 nullable: false,
                 oldClrType: typeof(double),
-                oldType: "REAL");
+                oldType: "REAL"
+            );
 
             migrationBuilder.AlterColumn<decimal>(
                 name: "Subtotal",
@@ -306,7 +343,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 scale: 2,
                 nullable: false,
                 oldClrType: typeof(double),
-                oldType: "REAL");
+                oldType: "REAL"
+            );
 
             migrationBuilder.AlterColumn<decimal>(
                 name: "PrecoUnitario",
@@ -316,7 +354,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 scale: 2,
                 nullable: false,
                 oldClrType: typeof(double),
-                oldType: "REAL");
+                oldType: "REAL"
+            );
 
             migrationBuilder.AlterColumn<decimal>(
                 name: "PrecoUnitario",
@@ -326,7 +365,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 scale: 2,
                 nullable: false,
                 oldClrType: typeof(double),
-                oldType: "REAL");
+                oldType: "REAL"
+            );
 
             migrationBuilder.AlterColumn<decimal>(
                 name: "ValorTotal",
@@ -336,7 +376,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 scale: 2,
                 nullable: false,
                 oldClrType: typeof(double),
-                oldType: "REAL");
+                oldType: "REAL"
+            );
 
             migrationBuilder.AlterColumn<int>(
                 name: "ComunidadeId",
@@ -346,7 +387,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 defaultValue: 0,
                 oldClrType: typeof(int),
                 oldType: "INTEGER",
-                oldNullable: true);
+                oldNullable: true
+            );
 
             migrationBuilder.AlterColumn<decimal>(
                 name: "Preco",
@@ -354,7 +396,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 type: "TEXT",
                 nullable: false,
                 oldClrType: typeof(double),
-                oldType: "REAL");
+                oldType: "REAL"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_AcessosUtilizador_Utilizadores_UtilizadorId",
@@ -362,7 +405,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UtilizadorId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Avaliacoes_Filmes_FilmeId",
@@ -370,7 +414,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "FilmeId",
                 principalTable: "Filmes",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Avaliacoes_Utilizadores_UsuarioId",
@@ -378,7 +423,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UsuarioId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Comentarios_Utilizadores_UsuarioId",
@@ -386,7 +432,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UsuarioId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Compras_Utilizadores_UtilizadorId",
@@ -394,7 +441,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UtilizadorId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ComunidadeMembros_Utilizadores_UtilizadorId",
@@ -402,7 +450,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UtilizadorId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ListaPessoalItems_Filmes_FilmeId",
@@ -410,7 +459,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "FilmeId",
                 principalTable: "Filmes",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_SessaoFilmes_Filmes_FilmeId",
@@ -418,7 +468,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "FilmeId",
                 principalTable: "Filmes",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Sessoes_Festivals_FestivalId",
@@ -426,7 +477,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "FestivalId",
                 principalTable: "Festivals",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Visualizacoes_Utilizadores_UtilizadorId",
@@ -434,7 +486,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                 column: "UtilizadorId",
                 principalTable: "Utilizadores",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
         }
     }
 }

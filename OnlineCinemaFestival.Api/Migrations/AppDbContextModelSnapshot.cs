@@ -299,61 +299,6 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Compras");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Compra", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Data")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("PontosGanhos")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UtilizadorId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Compras");
-                });
-
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.CompraItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CompraId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("FilmeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("PrecoPago")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("SessaoId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TipoAcesso")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("Validade")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompraId");
-
-                    b.ToTable("ComprasItens");
-                });
-
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comunidade", b =>
                 {
                     b.Property<int>("Id")
@@ -758,9 +703,8 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<int>("Pontos")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UtilizadorId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<int>("UtilizadorId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -778,15 +722,13 @@ namespace OnlineCinemaFestival.Api.Migrations
 
                     b.Property<string>("Motivo")
                         .IsRequired()
-                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Pontos")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UtilizadorId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<int>("UtilizadorId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
