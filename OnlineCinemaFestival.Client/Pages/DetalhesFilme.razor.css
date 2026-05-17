@@ -96,6 +96,7 @@
 }
 
 .trailer-section,
+.pessoas-section,
 .sessoes-section,
 .listas-section,
 .access-section,
@@ -117,6 +118,59 @@
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+.pessoas-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.pessoa-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pessoa-avatar {
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pessoa-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pessoa-avatar span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--ocf-teal-soft);
+  font-weight: 950;
+}
+
+.pessoa-card strong,
+.pessoa-card span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.pessoa-card strong {
+  color: var(--ocf-text);
+  line-height: 1.25;
+}
+
+.pessoa-card span {
+  margin-top: 3px;
+  color: var(--ocf-muted);
+  font-size: 0.82rem;
+  line-height: 1.3;
 }
 
 .access-choice-grid {
@@ -299,6 +353,10 @@
   .access-choice-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .pessoas-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 680px) {
@@ -311,5 +369,9 @@
 
   .detalhes-info h1 {
     font-size: clamp(2.4rem, 13vw, 4rem);
+  }
+
+  .pessoas-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -60,10 +60,39 @@ public class FilmeService : IFilmeService
             novoFilme.FilmeGeneros.Add(new FilmeGenero { Filme = novoFilme, Genero = genero });
         }
 
+        await AdicionarPessoaAsync(novoFilme, filmeTmdb.RealizadorDetalhe, FuncaoPessoaFilme.Realizador, 0);
+        await AdicionarPessoaAsync(novoFilme, filmeTmdb.ProdutorDetalhe, FuncaoPessoaFilme.Produtor, 0);
+
+        foreach (var ator in filmeTmdb.AtoresDetalhes)
+            await AdicionarPessoaAsync(novoFilme, ator, FuncaoPessoaFilme.Ator, ator.Ordem);
+
         await _filmeRepository.AddAsync(novoFilme);
         await _filmeRepository.SaveChangesAsync();
 
         return FilmeMapper.MapToReadDTO(novoFilme);
+    }
+
+    public async Task<FilmeReadDTO> AtualizarVideoAsync(int filmeId, AtualizarVideoFilmeDTO dto)
+    {
+        var filme = await _filmeRepository.ObterDetalhePorIdAsync(filmeId);
+
+        if (filme == null)
+            throw new KeyNotFoundException("Filme nao encontrado.");
+
+        var videoUrl = string.IsNullOrWhiteSpace(dto.VideoUrl)
+            ? CriarVideoUrl(dto.VideoProvider, dto.VideoKey)
+            : dto.VideoUrl.Trim();
+
+        _filmeRepository.AtualizarVideo(
+            filme,
+            NormalizarValor(dto.VideoProvider),
+            NormalizarValor(dto.VideoKey),
+            NormalizarValor(videoUrl),
+            dto.DuracaoVideoSegundos
+        );
+
+        await _filmeRepository.SaveChangesAsync();
+        return FilmeMapper.MapToReadDTO(filme);
     }
 
     public async Task<FilmeDetalheDTO?> ObterDetalheAsync(int filmeId, int? utilizadorId)
@@ -131,5 +160,55 @@ public class FilmeService : IFilmeService
             Texto = avaliacao.Texto,
             Data = avaliacao.Data,
         };
+    }
+
+    private async Task AdicionarPessoaAsync(
+        Filme filme,
+        TmdbPessoaDTO? pessoaTmdb,
+        FuncaoPessoaFilme funcao,
+        int ordem
+    )
+    {
+        if (pessoaTmdb == null || string.IsNullOrWhiteSpace(pessoaTmdb.Nome))
+            return;
+
+        var pessoa = await _filmeRepository.ObterOuCriarPessoaAsync(
+            pessoaTmdb.TmdbPessoaId,
+            pessoaTmdb.Nome,
+            pessoaTmdb.ImagemUrl
+        );
+
+        if (
+            filme.PessoasDoFilme.Any(fp =>
+                fp.Pessoa == pessoa && fp.Funcao == funcao
+            )
+        )
+            return;
+
+        filme.PessoasDoFilme.Add(
+            new FilmePessoa
+            {
+                Filme = filme,
+                Pessoa = pessoa,
+                Funcao = funcao,
+                Personagem = pessoaTmdb.Personagem,
+                Ordem = ordem,
+            }
+        );
+    }
+
+    private static string? CriarVideoUrl(string? provider, string? key)
+    {
+        if (string.IsNullOrWhiteSpace(provider) || string.IsNullOrWhiteSpace(key))
+            return null;
+
+        return provider.Equals("YouTube", StringComparison.OrdinalIgnoreCase)
+            ? $"https://www.youtube.com/embed/{key.Trim()}"
+            : null;
+    }
+
+    private static string? NormalizarValor(string? valor)
+    {
+        return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
     }
 }

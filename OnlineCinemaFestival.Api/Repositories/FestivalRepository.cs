@@ -34,6 +34,9 @@ public class FestivalRepository : IFestivalRepository
                 .ThenInclude(s => s.FilmesDaSessao)
                     .ThenInclude(sf => sf.Filme)
             .Include(f => f.Acessos)
+            .Include(f => f.PremiosFestival)
+                .ThenInclude(p => p.Resultado)
+                    .ThenInclude(r => r!.FilmeVencedor)
             .FirstOrDefaultAsync(f => f.Id == id);
     }
 

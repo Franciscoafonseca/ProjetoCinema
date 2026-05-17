@@ -26,15 +26,33 @@ public static class SessaoMapper
             Observacoes = sessao.Observacoes,
             Filmes = sessao
                 .FilmesDaSessao.OrderBy(sf => sf.Ordem)
-                .Select(sf => new FilmeSessaoReadDTO
-                {
-                    Id = sf.FilmeId,
-                    Titulo = sf.Filme?.Titulo ?? string.Empty,
-                    HoraInicio = sf.HoraInicio ?? sessao.Inicio,
-                    HoraFim = sf.HoraFim ?? sessao.Fim,
-                    Ordem = sf.Ordem,
-                })
+                .Select(sf => MapSessaoFilmeToReadDTO(sf, sessao))
                 .ToList(),
+        };
+    }
+
+    public static FilmeSessaoReadDTO MapSessaoFilmeToReadDTO(SessaoFilme sessaoFilme, Sessao sessao)
+    {
+        var horaInicio =
+            sessaoFilme.HoraInicio ?? sessao.Inicio.AddSeconds(sessaoFilme.InicioOffsetSegundos);
+        var horaFim =
+            sessaoFilme.HoraFim
+            ?? (
+                sessaoFilme.DuracaoSegundos.HasValue
+                    ? horaInicio.AddSeconds(sessaoFilme.DuracaoSegundos.Value)
+                    : sessao.Fim
+            );
+
+        return new FilmeSessaoReadDTO
+        {
+            Id = sessaoFilme.FilmeId,
+            Titulo = sessaoFilme.Filme?.Titulo ?? string.Empty,
+            HoraInicio = horaInicio,
+            HoraFim = horaFim,
+            Ordem = sessaoFilme.Ordem,
+            InicioOffsetSegundos = sessaoFilme.InicioOffsetSegundos,
+            DuracaoSegundos = sessaoFilme.DuracaoSegundos,
+            IntervaloAposSegundos = sessaoFilme.IntervaloAposSegundos,
         };
     }
 
@@ -91,20 +109,47 @@ public static class SessaoMapper
     {
         if (filmes.Any())
         {
-            return filmes
+            var filmesDistintos = filmes
                 .GroupBy(f => f.FilmeId)
                 .Select(g => g.First())
-                .Select(
-                    (filme, index) => new SessaoFilme
+                .ToList();
+
+            var ordensUsadas = filmesDistintos
+                .Where(f => f.Ordem.HasValue)
+                .Select(f => f.Ordem!.Value)
+                .ToHashSet();
+
+            var proximaOrdem = 1;
+            var resultado = new List<SessaoFilme>();
+
+            foreach (var filme in filmesDistintos)
+            {
+                var ordem = filme.Ordem;
+
+                if (!ordem.HasValue)
+                {
+                    while (ordensUsadas.Contains(proximaOrdem))
+                        proximaOrdem++;
+
+                    ordem = proximaOrdem;
+                    ordensUsadas.Add(proximaOrdem);
+                }
+
+                resultado.Add(
+                    new SessaoFilme
                     {
                         FilmeId = filme.FilmeId,
                         HoraInicio = filme.HoraInicio,
                         HoraFim = filme.HoraFim,
-                        Ordem = filme.Ordem ?? index + 1,
+                        Ordem = ordem.Value,
+                        InicioOffsetSegundos = filme.InicioOffsetSegundos,
+                        DuracaoSegundos = filme.DuracaoSegundos,
+                        IntervaloAposSegundos = filme.IntervaloAposSegundos,
                     }
-                )
-                .OrderBy(sf => sf.Ordem)
-                .ToList();
+                );
+            }
+
+            return resultado.OrderBy(sf => sf.Ordem).ToList();
         }
 
         return filmeIds

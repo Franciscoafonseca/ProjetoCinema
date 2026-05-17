@@ -14,6 +14,8 @@ public class AppDbContext : DbContext
     public DbSet<Festival> Festivals => Set<Festival>();
     public DbSet<Filme> Filmes => Set<Filme>();
     public DbSet<FilmeGenero> FilmeGeneros => Set<FilmeGenero>();
+    public DbSet<Pessoa> Pessoas => Set<Pessoa>();
+    public DbSet<FilmePessoa> FilmePessoas => Set<FilmePessoa>();
 
     public DbSet<Sessao> Sessoes => Set<Sessao>();
 
@@ -44,12 +46,92 @@ public class AppDbContext : DbContext
 
     public DbSet<Reward> Rewards => Set<Reward>();
     public DbSet<RewardTransacao> RewardsTransacoes => Set<RewardTransacao>();
+    public DbSet<PremioFestival> PremiosFestival => Set<PremioFestival>();
+    public DbSet<VotoPremioFestival> VotosPremiosFestival => Set<VotoPremioFestival>();
+    public DbSet<ResultadoPremioFestival> ResultadosPremiosFestival =>
+        Set<ResultadoPremioFestival>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<FestivalFilme>().HasKey(ff => new { ff.FestivalId, ff.FilmeId });
+
+        modelBuilder.Entity<FestivalFilme>().Property(ff => ff.DataAdicao).IsRequired();
+
+        modelBuilder.Entity<FestivalFilme>().Property(ff => ff.Secao).HasMaxLength(150);
+
+        modelBuilder.Entity<FestivalFilme>().Property(ff => ff.Categoria).HasMaxLength(150);
+
+        modelBuilder.Entity<PremioFestival>().Property(p => p.Nome).HasMaxLength(150).IsRequired();
+
+        modelBuilder.Entity<PremioFestival>().Property(p => p.Descricao).HasMaxLength(1000);
+
+        modelBuilder
+            .Entity<PremioFestival>()
+            .HasOne(p => p.Festival)
+            .WithMany(f => f.PremiosFestival)
+            .HasForeignKey(p => p.FestivalId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<VotoPremioFestival>()
+            .HasIndex(v => new { v.PremioFestivalId, v.UtilizadorId })
+            .IsUnique();
+
+        modelBuilder
+            .Entity<VotoPremioFestival>()
+            .HasOne(v => v.PremioFestival)
+            .WithMany(p => p.Votos)
+            .HasForeignKey(v => v.PremioFestivalId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<VotoPremioFestival>()
+            .HasOne(v => v.Festival)
+            .WithMany(f => f.VotosPremiosFestival)
+            .HasForeignKey(v => v.FestivalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<VotoPremioFestival>()
+            .HasOne(v => v.Filme)
+            .WithMany(f => f.VotosPremiosFestival)
+            .HasForeignKey(v => v.FilmeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<VotoPremioFestival>()
+            .HasOne(v => v.Utilizador)
+            .WithMany(u => u.VotosPremiosFestival)
+            .HasForeignKey(v => v.UtilizadorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<ResultadoPremioFestival>()
+            .HasIndex(r => r.PremioFestivalId)
+            .IsUnique();
+
+        modelBuilder
+            .Entity<ResultadoPremioFestival>()
+            .HasOne(r => r.PremioFestival)
+            .WithOne(p => p.Resultado)
+            .HasForeignKey<ResultadoPremioFestival>(r => r.PremioFestivalId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<ResultadoPremioFestival>()
+            .HasOne(r => r.FilmeVencedor)
+            .WithMany(f => f.ResultadosPremiosFestival)
+            .HasForeignKey(r => r.FilmeIdVencedor)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder
+            .Entity<ResultadoPremioFestival>()
+            .HasOne(r => r.PublicadoPorUtilizador)
+            .WithMany(u => u.ResultadosPremiosPublicados)
+            .HasForeignKey(r => r.PublicadoPorUtilizadorId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
             .Entity<FestivalFilme>()
@@ -108,6 +190,33 @@ public class AppDbContext : DbContext
             .HasOne(fg => fg.Genero)
             .WithMany(g => g.Filmes)
             .HasForeignKey(fg => fg.GeneroId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Filme>().HasIndex(f => f.TmdbId);
+
+        modelBuilder.Entity<Pessoa>().HasIndex(p => p.TmdbPessoaId);
+
+        modelBuilder.Entity<Pessoa>().HasIndex(p => p.Nome);
+
+        modelBuilder.Entity<FilmePessoa>().HasKey(fp => new
+        {
+            fp.FilmeId,
+            fp.PessoaId,
+            fp.Funcao,
+        });
+
+        modelBuilder
+            .Entity<FilmePessoa>()
+            .HasOne(fp => fp.Filme)
+            .WithMany(f => f.PessoasDoFilme)
+            .HasForeignKey(fp => fp.FilmeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<FilmePessoa>()
+            .HasOne(fp => fp.Pessoa)
+            .WithMany(p => p.Filmes)
+            .HasForeignKey(fp => fp.PessoaId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder
@@ -215,6 +324,14 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<SessaoFilme>().HasKey(sf => new { sf.SessaoId, sf.FilmeId });
+
+        modelBuilder.Entity<SessaoFilme>().Property(sf => sf.Ordem).IsRequired();
+
+        modelBuilder.Entity<SessaoFilme>().Property(sf => sf.InicioOffsetSegundos).IsRequired();
+
+        modelBuilder.Entity<SessaoFilme>().Property(sf => sf.IntervaloAposSegundos).IsRequired();
+
+        modelBuilder.Entity<SessaoFilme>().HasIndex(sf => new { sf.SessaoId, sf.Ordem }).IsUnique();
 
         modelBuilder
             .Entity<SessaoFilme>()

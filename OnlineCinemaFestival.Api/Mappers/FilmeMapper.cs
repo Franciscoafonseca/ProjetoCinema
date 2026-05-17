@@ -24,39 +24,87 @@ public static class FilmeMapper
             AvaliacaoTmdb = f.AvaliacaoTmdb,
             CapaUrl = f.CapaUrl,
             TrailerUrl = f.TrailerUrl,
+            VideoProvider = f.VideoProvider,
+            VideoKey = f.VideoKey,
             VideoUrl = f.VideoUrl,
+            DuracaoVideoSegundos = f.DuracaoVideoSegundos,
             Popularidade = f.Popularidade,
             Realizador = f.Realizador,
             Atores = SepararLista(f.AtoresPrincipais),
+            RealizadorDetalhe = MapPessoa(
+                f.PessoasDoFilme.FirstOrDefault(p =>
+                    p.Funcao == FuncaoPessoaFilme.Realizador
+                )
+            ),
+            ProdutorDetalhe = MapPessoa(
+                f.PessoasDoFilme.FirstOrDefault(p => p.Funcao == FuncaoPessoaFilme.Produtor)
+            ),
+            AtoresDetalhes = f
+                .PessoasDoFilme.Where(p => p.Funcao == FuncaoPessoaFilme.Ator)
+                .OrderBy(p => p.Ordem)
+                .Select(MapPessoa)
+                .OfType<PessoaFilmeDTO>()
+                .ToList(),
             ReviewsTmdb = DesserializarReviews(f.TmdbReviewsJson),
             Premios = f.Premios,
-            ReviewsAplicacao = f.Avaliacoes.Select(a => new AvaliacaoDTO
-            {
-                Id = a.Id,
-                FilmeId = a.FilmeId,
-                TituloFilme = f.Titulo,
-                UsuarioId = a.UsuarioId,
-                NomeUsuario = a.Usuario?.Name ?? string.Empty,
-                Pontuacao = a.Pontuacao,
-                Texto = a.Texto,
-                Data = a.Data,
-            }).OrderByDescending(a => a.Data).ToList(),
-            Festivais = f.FestivalFilmes.Select(ff => new FestivalResumoDTO
-            {
-                Id = ff.FestivalId,
-                Name = ff.Festival?.Name ?? string.Empty,
-                StartDate = ff.Festival?.StartDate ?? default,
-                EndDate = ff.Festival?.EndDate ?? default,
-            }).ToList(),
-            Sessoes = f.SessoesDoFilme.Select(sf => new FilmeSessaoReadDTO
-            {
-                Id = sf.SessaoId,
-                Titulo = sf.Sessao?.Festival?.Name ?? f.Titulo,
-                Ordem = sf.Ordem,
-                HoraInicio = sf.HoraInicio ?? sf.Sessao?.Inicio,
-                HoraFim = sf.HoraFim ?? sf.Sessao?.Fim,
-            }).OrderBy(s => s.HoraInicio).ToList(),
-            AcessosDisponiveis = f.Acessos.Where(a => a.IsAtivo).Select(AcessoMapper.MapToReadDTO).ToList(),
+            ReviewsAplicacao = f
+                .Avaliacoes.Select(a => new AvaliacaoDTO
+                {
+                    Id = a.Id,
+                    FilmeId = a.FilmeId,
+                    TituloFilme = f.Titulo,
+                    UsuarioId = a.UsuarioId,
+                    NomeUsuario = a.Usuario?.Name ?? string.Empty,
+                    Pontuacao = a.Pontuacao,
+                    Texto = a.Texto,
+                    Data = a.Data,
+                })
+                .OrderByDescending(a => a.Data)
+                .ToList(),
+            Festivais = f
+                .FestivalFilmes.Select(ff => new FestivalResumoDTO
+                {
+                    Id = ff.FestivalId,
+                    Name = ff.Festival?.Name ?? string.Empty,
+                    StartDate = ff.Festival?.StartDate ?? default,
+                    EndDate = ff.Festival?.EndDate ?? default,
+                })
+                .ToList(),
+            Sessoes = f
+                .SessoesDoFilme.Select(sf => new FilmeSessaoReadDTO
+                {
+                    Id = sf.SessaoId,
+                    Titulo = sf.Sessao?.Festival?.Name ?? f.Titulo,
+                    Ordem = sf.Ordem,
+                    HoraInicio =
+                        sf.HoraInicio ?? sf.Sessao?.Inicio.AddSeconds(sf.InicioOffsetSegundos),
+                    HoraFim =
+                        sf.HoraFim
+                        ?? (
+                            sf.Sessao == null ? null
+                            : sf.DuracaoSegundos.HasValue
+                                ? sf
+                                    .Sessao.Inicio.AddSeconds(sf.InicioOffsetSegundos)
+                                    .AddSeconds(sf.DuracaoSegundos.Value)
+                            : sf.Sessao.Fim
+                        ),
+                    InicioOffsetSegundos = sf.InicioOffsetSegundos,
+                    DuracaoSegundos = sf.DuracaoSegundos,
+                    IntervaloAposSegundos = sf.IntervaloAposSegundos,
+                })
+                .OrderBy(s => s.HoraInicio)
+                .ToList(),
+            AcessosDisponiveis = f
+                .Acessos.Where(a => a.IsAtivo)
+                .Select(AcessoMapper.MapToReadDTO)
+                .ToList(),
+            ResultadosPremiosPublicados = f
+                .ResultadosPremiosFestival.Where(r =>
+                    r.PremioFestival.EstadoPremio == EstadoPremio.Publicado
+                )
+                .OrderByDescending(r => r.PublicadoEm)
+                .Select(PremioFestivalMapper.MapResultadoToDTO)
+                .ToList(),
         };
 
     // TMDB -> BD
@@ -74,6 +122,10 @@ public static class FilmeMapper
             Classificacao = f.Classificacao,
             CapaUrl = f.CapaUrl,
             TrailerUrl = f.TrailerUrl,
+            VideoProvider = f.VideoProvider,
+            VideoKey = f.VideoKey,
+            VideoUrl = f.VideoUrl,
+            DuracaoVideoSegundos = f.DuracaoVideoSegundos,
             Realizador = f.Realizador,
             AtoresPrincipais = string.Join(", ", f.Atores),
             TmdbReviewsJson = System.Text.Json.JsonSerializer.Serialize(f.Reviews),
@@ -94,6 +146,10 @@ public static class FilmeMapper
             AvaliacaoTmdb = f.AvaliacaoTmdb,
             CapaUrl = f.CapaUrl,
             TrailerUrl = f.TrailerUrl,
+            VideoProvider = f.VideoProvider,
+            VideoKey = f.VideoKey,
+            VideoUrl = f.VideoUrl,
+            DuracaoVideoSegundos = f.DuracaoVideoSegundos,
             DuracaoMinutos = f.DuracaoMinutos,
         };
 
@@ -115,11 +171,30 @@ public static class FilmeMapper
             Genero = "", // genero_ids precisa de tabela/lookup
         };
 
+    private static PessoaFilmeDTO? MapPessoa(FilmePessoa? filmePessoa)
+    {
+        if (filmePessoa?.Pessoa == null)
+            return null;
+
+        return new PessoaFilmeDTO
+        {
+            Id = filmePessoa.Pessoa.Id,
+            TmdbPessoaId = filmePessoa.Pessoa.TmdbPessoaId,
+            Nome = filmePessoa.Pessoa.Nome,
+            ImagemUrl = filmePessoa.Pessoa.ImagemUrl,
+            Funcao = filmePessoa.Funcao.ToString(),
+            Personagem = filmePessoa.Personagem,
+            Ordem = filmePessoa.Ordem,
+        };
+    }
+
     private static List<string> SepararLista(string? valor)
     {
         return string.IsNullOrWhiteSpace(valor)
             ? new List<string>()
-            : valor.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            : valor
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
     }
 
     private static List<TmdbReviewDTO> DesserializarReviews(string? json)

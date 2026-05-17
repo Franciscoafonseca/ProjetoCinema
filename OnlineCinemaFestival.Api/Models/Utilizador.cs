@@ -52,4 +52,10 @@ public class Utilizador
         new List<AcessoUtilizador>();
 
     public ICollection<Visualizacao> Visualizacoes { get; set; } = new List<Visualizacao>();
+
+    public ICollection<VotoPremioFestival> VotosPremiosFestival { get; set; } =
+        new List<VotoPremioFestival>();
+
+    public ICollection<ResultadoPremioFestival> ResultadosPremiosPublicados { get; set; } =
+        new List<ResultadoPremioFestival>();
 }

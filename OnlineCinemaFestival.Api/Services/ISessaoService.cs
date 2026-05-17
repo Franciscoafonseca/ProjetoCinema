@@ -20,5 +20,7 @@ public interface ISessaoService
 
     Task AtualizarAsync(int id, SessaoUpdateDTO dto);
 
+    Task<SessaoReadDTO> AssociarFilmeAsync(int sessaoId, AssociarFilmeSessaoDTO dto);
+
     Task EliminarAsync(int id);
 }

@@ -5,28 +5,12 @@ using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
 
-/// <summary>
-/// Serviço responsável pela associação entre festivais e filmes.
-/// Permite associar filmes a festivais, remover associações e consultar os filmes de um festival.
-/// </summary>
 public class FestivalFilmeService : IFestivalFilmeService
 {
     private readonly IFestivalFilmeRepository _festivalFilmeRepository;
     private readonly IFestivalRepository _festivalRepository;
     private readonly IFilmeRepository _filmeRepository;
 
-    /// <summary>
-    /// Inicializa uma nova instância do serviço de associação entre festivais e filmes.
-    /// </summary>
-    /// <param name="festivalFilmeRepository">
-    /// Repositório responsável pela gestão das associações entre festivais e filmes.
-    /// </param>
-    /// <param name="festivalRepository">
-    /// Repositório responsável pelo acesso aos dados dos festivais.
-    /// </param>
-    /// <param name="filmeRepository">
-    /// Repositório responsável pelo acesso aos dados dos filmes.
-    /// </param>
     public FestivalFilmeService(
         IFestivalFilmeRepository festivalFilmeRepository,
         IFestivalRepository festivalRepository,
@@ -38,88 +22,86 @@ public class FestivalFilmeService : IFestivalFilmeService
         _filmeRepository = filmeRepository;
     }
 
-    /// <summary>
-    /// Associa um filme existente a um festival existente.
-    /// </summary>
-    /// <param name="festivalId">Identificador do festival.</param>
-    /// <param name="filmeId">Identificador do filme.</param>
-    /// <exception cref="KeyNotFoundException">
-    /// Lançada quando o festival ou o filme não são encontrados.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    /// Lançada quando o filme já se encontra associado ao festival.
-    /// </exception>
-    public async Task AssociarFilmeAsync(int festivalId, int filmeId)
+    public async Task<FestivalFilmeReadDTO> AssociarFilmeAsync(
+        int festivalId,
+        AssociarFilmeFestivalDTO dto
+    )
     {
-        // Verifica se o festival existe antes de criar a associação.
         var festival = await _festivalRepository.ObterPorIdAsync(festivalId);
 
         if (festival == null)
-            throw new KeyNotFoundException("Festival não encontrado.");
+            throw new KeyNotFoundException("Festival nao encontrado.");
 
-        // Verifica se o filme existe antes de criar a associação.
-        var filme = await _filmeRepository.ObterPorIdAsync(filmeId);
+        var filme = await _filmeRepository.ObterPorIdAsync(dto.FilmeId);
 
         if (filme == null)
-            throw new KeyNotFoundException("Filme não encontrado.");
+            throw new KeyNotFoundException("Filme nao encontrado.");
 
-        // Impede associações duplicadas entre o mesmo festival e o mesmo filme.
-        var alreadyExists = await _festivalFilmeRepository.ExistsAsync(festivalId, filmeId);
+        var existeAssociacao = await _festivalFilmeRepository.ExisteAsync(
+            festivalId,
+            dto.FilmeId
+        );
 
-        if (alreadyExists)
-            throw new InvalidOperationException("Este filme já está associado a este festival.");
+        if (existeAssociacao)
+            throw new InvalidOperationException("Este filme ja esta associado a este festival.");
 
-        // Cria a entidade intermédia que representa a relação entre festival e filme.
-        var festivalFilme = new FestivalFilme { FestivalId = festivalId, FilmeId = filmeId };
+        var festivalFilme = new FestivalFilme
+        {
+            FestivalId = festivalId,
+            FilmeId = dto.FilmeId,
+            ElegivelPremiosPublico = dto.ElegivelPremiosPublico,
+            Secao = NormalizarTextoOpcional(dto.Secao),
+            Categoria = NormalizarTextoOpcional(dto.Categoria),
+            DataAdicao = DateTime.UtcNow,
+        };
 
-        // Guarda a nova associação na base de dados.
-        await _festivalFilmeRepository.AddAsync(festivalFilme);
+        await _festivalFilmeRepository.AdicionarAsync(festivalFilme);
         await _festivalFilmeRepository.SaveChangesAsync();
+
+        var associacao = await _festivalFilmeRepository.ObterAsync(festivalId, dto.FilmeId);
+        return FestivalMapper.MapFestivalFilmeToReadDTO(associacao!);
     }
 
-    /// <summary>
-    /// Remove a associação entre um festival e um filme.
-    /// </summary>
-    /// <param name="festivalId">Identificador do festival.</param>
-    /// <param name="filmeId">Identificador do filme.</param>
-    /// <exception cref="KeyNotFoundException">
-    /// Lançada quando a associação entre o festival e o filme não é encontrada.
-    /// </exception>
     public async Task RemoverFilmeAsync(int festivalId, int filmeId)
     {
-        // Procura a associação existente entre o festival e o filme.
-        var festivalFilme = await _festivalFilmeRepository.GetAsync(festivalId, filmeId);
+        var festivalFilme = await _festivalFilmeRepository.ObterAsync(festivalId, filmeId);
 
         if (festivalFilme == null)
-            throw new KeyNotFoundException("Associação entre festival e filme não encontrada.");
+            throw new KeyNotFoundException("Associacao entre festival e filme nao encontrada.");
 
-        // Remove a associação encontrada.
         _festivalFilmeRepository.Remove(festivalFilme);
-
-        // Confirma a remoção na base de dados.
         await _festivalFilmeRepository.SaveChangesAsync();
     }
 
-    /// <summary>
-    /// Obtém todos os filmes associados a um determinado festival.
-    /// </summary>
-    /// <param name="festivalId">Identificador do festival.</param>
-    /// <returns>Lista de filmes associados ao festival indicado.</returns>
-    /// <exception cref="KeyNotFoundException">
-    /// Lançada quando o festival não é encontrado.
-    /// </exception>
     public async Task<IEnumerable<FilmeReadDTO>> ObterFilmesPorFestivalAsync(int festivalId)
     {
-        // Verifica se o festival existe antes de procurar os seus filmes.
         var festival = await _festivalRepository.ObterPorIdAsync(festivalId);
 
         if (festival == null)
-            throw new KeyNotFoundException("Festival não encontrado.");
+            throw new KeyNotFoundException("Festival nao encontrado.");
 
-        // Obtém os filmes associados ao festival.
         var filmes = await _festivalFilmeRepository.ObterFilmesPorFestivalIdAsync(festivalId);
-
-        // Converte as entidades Filme para DTOs de leitura antes de devolver a resposta.
         return filmes.Select(FilmeMapper.MapToReadDTO);
+    }
+
+    public async Task<IEnumerable<FestivalFilmeReadDTO>> ObterAssociacoesPorFestivalAsync(
+        int festivalId
+    )
+    {
+        var festival = await _festivalRepository.ObterPorIdAsync(festivalId);
+
+        if (festival == null)
+            throw new KeyNotFoundException("Festival nao encontrado.");
+
+        var associacoes = await _festivalFilmeRepository.ObterAssociacoesPorFestivalIdAsync(
+            festivalId
+        );
+
+        return associacoes.Select(FestivalMapper.MapFestivalFilmeToReadDTO);
+    }
+
+    private static string? NormalizarTextoOpcional(string? valor)
+    {
+        return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
     }
 }

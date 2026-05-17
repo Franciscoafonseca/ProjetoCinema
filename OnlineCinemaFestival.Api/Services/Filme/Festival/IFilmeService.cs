@@ -12,6 +12,8 @@ public interface IFilmeService
 
     Task<FilmeReadDTO> ImportFilmeFromTmdbAsync(int tmdbId);
 
+    Task<FilmeReadDTO> AtualizarVideoAsync(int filmeId, AtualizarVideoFilmeDTO dto);
+
     Task<FilmeDetalheDTO?> ObterDetalheAsync(int filmeId, int? utilizadorId);
 
     Task<AvaliacaoDTO> CriarReviewAsync(int utilizadorId, int filmeId, CriarAvaliacaoDTO dto);

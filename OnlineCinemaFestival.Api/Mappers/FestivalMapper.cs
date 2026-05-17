@@ -15,17 +15,25 @@ public static class FestivalMapper
             StartDate = festival.StartDate,
             EndDate = festival.EndDate,
             Premios = festival.Premios,
-            Filmes = festival.FestivalFilmes.Select(ff => (FilmeResumoDTO)FilmeMapper.MapToReadDTO(ff.Filme)).ToList(),
-            Sessoes = festival.Sessoes.Select(s => (SessaoResumoDTO)SessaoMapper.MapToReadDTO(s)).ToList(),
+            Filmes = festival
+                .FestivalFilmes.Select(ff => (FilmeResumoDTO)FilmeMapper.MapToReadDTO(ff.Filme))
+                .ToList(),
+            FilmesDoFestival = festival.FestivalFilmes.Select(MapFestivalFilmeToReadDTO).ToList(),
+            Sessoes = festival
+                .Sessoes.Select(s => (SessaoResumoDTO)SessaoMapper.MapToReadDTO(s))
+                .ToList(),
             PassesDisponiveis = festival
                 .Acessos.Where(a =>
                     a.IsAtivo
-                    && (
-                        a.Tipo == TipoAcesso.PasseDiario
-                        || a.Tipo == TipoAcesso.PasseCompleto
-                    )
+                    && (a.Tipo == TipoAcesso.PasseDiario || a.Tipo == TipoAcesso.PasseCompleto)
                 )
                 .Select(AcessoMapper.MapToReadDTO)
+                .ToList(),
+            ResultadosPremiosPublicados = festival
+                .PremiosFestival.Where(p =>
+                    p.EstadoPremio == EstadoPremio.Publicado && p.Resultado != null
+                )
+                .Select(p => PremioFestivalMapper.MapResultadoToDTO(p.Resultado!))
                 .ToList(),
         };
     }
@@ -47,5 +55,23 @@ public static class FestivalMapper
         festival.Description = dto.Description.Trim();
         festival.StartDate = dto.StartDate;
         festival.EndDate = dto.EndDate;
+    }
+
+    public static FestivalFilmeReadDTO MapFestivalFilmeToReadDTO(FestivalFilme festivalFilme)
+    {
+        return new FestivalFilmeReadDTO
+        {
+            FestivalId = festivalFilme.FestivalId,
+            FilmeId = festivalFilme.FilmeId,
+            TituloFilme = festivalFilme.Filme?.Titulo ?? string.Empty,
+            ElegivelPremiosPublico = festivalFilme.ElegivelPremiosPublico,
+            Secao = festivalFilme.Secao,
+            Categoria = festivalFilme.Categoria,
+            DataAdicao = festivalFilme.DataAdicao,
+            Filme =
+                festivalFilme.Filme == null
+                    ? null
+                    : (FilmeResumoDTO)FilmeMapper.MapToReadDTO(festivalFilme.Filme),
+        };
     }
 }

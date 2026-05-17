@@ -19,9 +19,13 @@ public class FestivalDetalheDTO : FestivalResumoDTO
 
     public List<FilmeResumoDTO> Filmes { get; set; } = new();
 
+    public List<FestivalFilmeReadDTO> FilmesDoFestival { get; set; } = new();
+
     public List<SessaoResumoDTO> Sessoes { get; set; } = new();
 
     public List<AcessoReadDTO> PassesDisponiveis { get; set; } = new();
+
+    public List<ResultadoPremioFestivalDTO> ResultadosPremiosPublicados { get; set; } = new();
 }
 
 public class FestivalReadDTO : FestivalDetalheDTO { }

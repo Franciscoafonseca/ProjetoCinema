@@ -4,6 +4,7 @@
 @inject SessaoService SessaoService
 @inject AcessoService AcessoService
 @inject CarrinhoService CarrinhoService
+@inject PremioFestivalService PremioFestivalService
 @inject NavigationManager Nav
 
 <PageTitle>@(_festival?.Name ?? "Festival") - Online Cinema Festival</PageTitle>
@@ -46,6 +47,91 @@ else
                 <span>@_sessoes.Count sessoes</span>
                 <span>@EstadoFestival(_festival)</span>
             </div>
+        </section>
+
+        <section class="festival-seccao">
+            <h2 class="seccao-titulo">Premios publicados</h2>
+            @if (_resultadosPremios.Count == 0)
+            {
+                <p class="empty-state">Ainda nao ha premios publicados neste festival.</p>
+            }
+            else
+            {
+                <div class="sessoes-lista">
+                    @foreach (var resultado in _resultadosPremios)
+                    {
+                        <article class="sessao-item">
+                            <div class="sessao-info">
+                                <div class="sessao-linha">
+                                    <h3 class="sessao-filme">@resultado.NomePremio</h3>
+                                    <span class="sessao-estado ended">@resultado.TotalVotos votos</span>
+                                </div>
+                                <div class="sessao-hora">@resultado.TituloFilmeVencedor</div>
+                            </div>
+                            <div class="sessao-acoes">
+                                <button class="sessao-btn" @onclick="() => AbrirFilme(resultado.FilmeIdVencedor)">
+                                    Filme vencedor
+                                </button>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="festival-seccao">
+            <h2 class="seccao-titulo">Votacao do publico</h2>
+            @if (_premiosAbertos.Count == 0)
+            {
+                <p class="empty-state">Nao ha votacoes abertas neste momento.</p>
+            }
+            else if (FilmesElegiveisPremios.Count == 0)
+            {
+                <p class="empty-state">Nao ha filmes elegiveis para premios neste festival.</p>
+            }
+            else
+            {
+                <div class="passes-lista">
+                    @foreach (var premio in _premiosAbertos)
+                    {
+                        <article class="passe-item">
+                            <div>
+                                <h3>@premio.Nome</h3>
+                                <p>@premio.Descricao</p>
+                                <small>Votacao ate @premio.DataFechoVotacao.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+                            </div>
+                            <AuthorizeView>
+                                <Authorized>
+                                    <div class="passe-acoes">
+                                        <select value="@FilmeSelecionadoPremio(premio.Id)"
+                                                @onchange="e => DefinirFilmeVoto(premio.Id, e.Value?.ToString())">
+                                            <option value="">Escolher filme</option>
+                                            @foreach (var filme in FilmesElegiveisPremios)
+                                            {
+                                                <option value="@filme.FilmeId">@filme.TituloFilme</option>
+                                            }
+                                        </select>
+                                        <button disabled="@(!PodeEnviarVoto(premio.Id) || _aEnviarVoto)"
+                                                @onclick="() => Votar(premio.Id)">
+                                            Votar
+                                        </button>
+                                    </div>
+                                </Authorized>
+                                <NotAuthorized>
+                                    <div class="passe-acoes">
+                                        <button @onclick="IrParaLogin">Iniciar sessao para votar</button>
+                                    </div>
+                                </NotAuthorized>
+                            </AuthorizeView>
+                        </article>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_mensagemVoto))
+            {
+                <p class="carrinho-feedback">@_mensagemVoto</p>
+            }
         </section>
 
         <section class="festival-seccao">
@@ -168,8 +254,13 @@ else
     private List<FilmeDTO> _filmes = new();
     private List<SessaoDTO> _sessoes = new();
     private List<AcessoDTO> _acessos = new();
+    private List<PremioFestivalDTO> _premios = new();
+    private List<ResultadoPremioFestivalDTO> _resultadosPremios = new();
+    private readonly Dictionary<int, int> _filmesSelecionadosPorPremio = new();
     private bool _aAtualizarCarrinho;
+    private bool _aEnviarVoto;
     private string? _mensagemCarrinho;
+    private string? _mensagemVoto;
 
     private List<AcessoDTO> AcessosDoFestival =>
         _acessos
@@ -184,6 +275,12 @@ else
             .ThenBy(a => a.Preco)
             .ToList();
 
+    private List<PremioFestivalDTO> _premiosAbertos =>
+        _premios.Where(VotacaoDisponivel).ToList();
+
+    private List<FestivalFilmeDTO> FilmesElegiveisPremios =>
+        _festival?.FilmesDoFestival.Where(f => f.ElegivelPremiosPublico).ToList() ?? new();
+
     protected override async Task CarregarDadosAsync()
     {
         _festival = await FestivalService.ObterFestivalPorIdAsync(Id);
@@ -196,6 +293,10 @@ else
             .OrderBy(s => s.Inicio)
             .ToList();
         _acessos = await AcessoService.ObterAcessosAsync();
+        _premios = await PremioFestivalService.ObterPremiosPorFestivalAsync(Id);
+        _resultadosPremios = _festival.ResultadosPremiosPublicados.Count > 0
+            ? _festival.ResultadosPremiosPublicados
+            : await PremioFestivalService.ObterResultadosPorFestivalAsync(Id);
     }
 
     private async Task AdicionarPasse(AcessoDTO acesso)
@@ -253,6 +354,49 @@ else
 
     private void AbrirPlayer(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
 
+    private void IrParaLogin() => Nav.NavigateTo("/entrada");
+
+    private int FilmeSelecionadoPremio(int premioId)
+    {
+        return _filmesSelecionadosPorPremio.TryGetValue(premioId, out var filmeId) ? filmeId : 0;
+    }
+
+    private void DefinirFilmeVoto(int premioId, string? valor)
+    {
+        if (int.TryParse(valor, out var filmeId) && filmeId > 0)
+            _filmesSelecionadosPorPremio[premioId] = filmeId;
+        else
+            _filmesSelecionadosPorPremio.Remove(premioId);
+    }
+
+    private bool PodeEnviarVoto(int premioId)
+    {
+        return _filmesSelecionadosPorPremio.TryGetValue(premioId, out var filmeId) && filmeId > 0;
+    }
+
+    private async Task Votar(int premioId)
+    {
+        if (!PodeEnviarVoto(premioId))
+            return;
+
+        _aEnviarVoto = true;
+        _mensagemVoto = null;
+
+        try
+        {
+            await PremioFestivalService.VotarAsync(premioId, _filmesSelecionadosPorPremio[premioId]);
+            _mensagemVoto = "Voto registado.";
+        }
+        catch (Exception ex)
+        {
+            _mensagemVoto = ex.Message;
+        }
+        finally
+        {
+            _aEnviarVoto = false;
+        }
+    }
+
     private static string TituloSessao(SessaoDTO sessao)
     {
         return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
@@ -293,6 +437,15 @@ else
             return "ended";
 
         return "scheduled";
+    }
+
+    private static bool VotacaoDisponivel(PremioFestivalDTO premio)
+    {
+        var agora = DateTime.UtcNow;
+
+        return string.Equals(premio.EstadoPremio, "Aberto", StringComparison.OrdinalIgnoreCase)
+            && premio.DataAberturaVotacao.ToUniversalTime() <= agora
+            && premio.DataFechoVotacao.ToUniversalTime() >= agora;
     }
 
     private static string EstadoFestival(FestivalDTO festival)

@@ -30,4 +30,10 @@ public class Festival
         new List<AcessoUtilizador>();
 
     public ICollection<Visualizacao> Visualizacoes { get; set; } = new List<Visualizacao>();
+
+    public ICollection<PremioFestival> PremiosFestival { get; set; } =
+        new List<PremioFestival>();
+
+    public ICollection<VotoPremioFestival> VotosPremiosFestival { get; set; } =
+        new List<VotoPremioFestival>();
 }

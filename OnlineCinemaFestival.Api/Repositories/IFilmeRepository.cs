@@ -16,6 +16,8 @@ public interface IFilmeRepository
 
     Task<Genero> ObterOuCriarGeneroAsync(string nome);
 
+    Task<Pessoa> ObterOuCriarPessoaAsync(int? tmdbPessoaId, string nome, string? imagemUrl);
+
     Task<bool> UtilizadorViuFilmeAsync(int utilizadorId, int filmeId);
 
     Task<Avaliacao?> ObterAvaliacaoAsync(int utilizadorId, int filmeId);
@@ -23,6 +25,8 @@ public interface IFilmeRepository
     Task AddAvaliacaoAsync(Avaliacao avaliacao);
 
     Task AddAsync(Filme filme);
+
+    void AtualizarVideo(Filme filme, string? provider, string? key, string? url, int? duracaoSegundos);
 
     Task SaveChangesAsync();
 }

@@ -28,7 +28,13 @@ public class FilmeDTO
 
     public string? TrailerUrl { get; set; }
 
+    public string? VideoProvider { get; set; }
+
+    public string? VideoKey { get; set; }
+
     public string? VideoUrl { get; set; }
+
+    public int? DuracaoVideoSegundos { get; set; }
 
     public string? ConteudoLocalPath { get; set; }
 
@@ -37,6 +43,12 @@ public class FilmeDTO
     public string? Realizador { get; set; }
 
     public List<string> Atores { get; set; } = new();
+
+    public PessoaFilmeDTO? RealizadorDetalhe { get; set; }
+
+    public PessoaFilmeDTO? ProdutorDetalhe { get; set; }
+
+    public List<PessoaFilmeDTO> AtoresDetalhes { get; set; } = new();
 
     public List<TmdbReviewDTO> ReviewsTmdb { get; set; } = new();
 
@@ -49,6 +61,8 @@ public class FilmeDTO
     public List<SessaoDTO> Sessoes { get; set; } = new();
 
     public List<AcessoDTO> AcessosDisponiveis { get; set; } = new();
+
+    public List<ResultadoPremioFestivalDTO> ResultadosPremiosPublicados { get; set; } = new();
 
     public bool PodeVer { get; set; }
 
@@ -69,6 +83,34 @@ public class TmdbReviewDTO
     public DateTime? CriadaEm { get; set; }
 
     public double? Nota { get; set; }
+}
+
+public class PessoaFilmeDTO
+{
+    public int Id { get; set; }
+
+    public int? TmdbPessoaId { get; set; }
+
+    public string Nome { get; set; } = string.Empty;
+
+    public string? ImagemUrl { get; set; }
+
+    public string Funcao { get; set; } = string.Empty;
+
+    public string? Personagem { get; set; }
+
+    public int Ordem { get; set; }
+}
+
+public class AtualizarVideoFilmeDTO
+{
+    public string? VideoProvider { get; set; }
+
+    public string? VideoKey { get; set; }
+
+    public string? VideoUrl { get; set; }
+
+    public int? DuracaoVideoSegundos { get; set; }
 }
 
 public class AvaliacaoDTO

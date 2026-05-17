@@ -4,6 +4,7 @@
 @inject FestivalService FestivalService
 @inject SessaoService SessaoService
 @inject AcessoService AcessoService
+@inject PremioFestivalService PremioFestivalService
 
 <PageTitle>Admin - Online Cinema Festival</PageTitle>
 
@@ -89,6 +90,68 @@
                     </MudCardContent>
                 </MudCard>
             </section>
+
+            <section class="admin-acoes">
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <span class="cinema-kicker">Premios</span>
+                        <h2>Criar premio de festival</h2>
+                        <div class="admin-lista">
+                            <select value="@_festivalPremioSelecionadoId" @onchange="SelecionarFestivalPremio">
+                                <option value="0">Selecionar festival</option>
+                                @foreach (var festival in _festivais)
+                                {
+                                    <option value="@festival.Id">@festival.Name</option>
+                                }
+                            </select>
+                            <input placeholder="Nome do premio" @bind="_novoPremio.Nome" />
+                            <textarea placeholder="Descricao" @bind="_novoPremio.Descricao"></textarea>
+                            <input type="datetime-local"
+                                   @bind-value="_novoPremio.DataAberturaVotacao"
+                                   @bind-value:format="yyyy-MM-ddTHH:mm" />
+                            <input type="datetime-local"
+                                   @bind-value="_novoPremio.DataFechoVotacao"
+                                   @bind-value:format="yyyy-MM-ddTHH:mm" />
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@(_festivalPremioSelecionadoId == 0 || _aAtualizarPremios)"
+                                       OnClick="CriarPremio">
+                                Criar
+                            </MudButton>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(_mensagemPremios))
+                        {
+                            <p class="admin-muted">@_mensagemPremios</p>
+                        }
+                    </MudCardContent>
+                </MudCard>
+
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <span class="cinema-kicker">Votacao</span>
+                        <h2>Premios do festival</h2>
+                        @if (_premiosFestival.Count == 0)
+                        {
+                            <p class="admin-muted">Seleciona um festival com premios criados.</p>
+                        }
+                        else
+                        {
+                            <div class="admin-lista">
+                                @foreach (var premio in _premiosFestival)
+                                {
+                                    <div>
+                                        <strong>@premio.Nome</strong>
+                                        <span>@premio.EstadoPremio</span>
+                                        <MudButton Size="Size.Small" Disabled="@_aAtualizarPremios" OnClick="() => AbrirPremio(premio.Id)">Abrir</MudButton>
+                                        <MudButton Size="Size.Small" Disabled="@_aAtualizarPremios" OnClick="() => FecharPremio(premio.Id)">Fechar</MudButton>
+                                        <MudButton Size="Size.Small" Disabled="@_aAtualizarPremios" OnClick="() => PublicarPremio(premio.Id)">Publicar</MudButton>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </section>
         }
     </section>
 </main>
@@ -96,15 +159,25 @@
 @code {
     private readonly List<MetricaAdmin> _metricas = new();
     private List<SessaoDTO> _sessoes = new();
+    private List<FestivalDTO> _festivais = new();
+    private List<PremioFestivalDTO> _premiosFestival = new();
+    private CriarPremioFestivalDTO _novoPremio = new()
+    {
+        DataAberturaVotacao = DateTime.Today,
+        DataFechoVotacao = DateTime.Today.AddDays(7),
+    };
+    private int _festivalPremioSelecionadoId;
     private bool _aCarregar = true;
+    private bool _aAtualizarPremios;
     private string? _erro;
+    private string? _mensagemPremios;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             var filmes = await FilmeService.ObterFilmesAsync();
-            var festivais = await FestivalService.ObterFestivaisAsync();
+            _festivais = await FestivalService.ObterFestivaisAsync();
             _sessoes = await SessaoService.ObterSessoesDisponiveisAsync();
             var acessos = await AcessoService.ObterAcessosAsync();
 
@@ -112,11 +185,17 @@
                 new[]
                 {
                     new MetricaAdmin("Filmes", filmes.Count, Icons.Material.Filled.Movie, Color.Primary),
-                    new MetricaAdmin("Festivais", festivais.Count, Icons.Material.Filled.Festival, Color.Secondary),
+                    new MetricaAdmin("Festivais", _festivais.Count, Icons.Material.Filled.Festival, Color.Secondary),
                     new MetricaAdmin("Sessoes", _sessoes.Count, Icons.Material.Filled.Event, Color.Warning),
                     new MetricaAdmin("Acessos", acessos.Count, Icons.Material.Filled.ConfirmationNumber, Color.Success),
                 }
             );
+
+            if (_festivais.Count > 0)
+            {
+                _festivalPremioSelecionadoId = _festivais[0].Id;
+                await CarregarPremiosSelecionados();
+            }
         }
         catch
         {
@@ -133,6 +212,92 @@
         return string.IsNullOrWhiteSpace(sessao.Filme)
             ? $"Sessao #{sessao.Id}"
             : sessao.Filme;
+    }
+
+    private async Task CriarPremio()
+    {
+        await ExecutarPremioAsync(async () =>
+        {
+            await PremioFestivalService.CriarPremioAsync(_festivalPremioSelecionadoId, _novoPremio);
+            _novoPremio = new CriarPremioFestivalDTO
+            {
+                DataAberturaVotacao = DateTime.Today,
+                DataFechoVotacao = DateTime.Today.AddDays(7),
+            };
+            await CarregarPremiosSelecionados();
+            _mensagemPremios = "Premio criado em rascunho.";
+        });
+    }
+
+    private async Task AbrirPremio(int premioId)
+    {
+        await ExecutarPremioAsync(async () =>
+        {
+            await PremioFestivalService.AbrirVotacaoAsync(premioId);
+            await CarregarPremiosSelecionados();
+            _mensagemPremios = "Votacao aberta.";
+        });
+    }
+
+    private async Task FecharPremio(int premioId)
+    {
+        await ExecutarPremioAsync(async () =>
+        {
+            await PremioFestivalService.FecharVotacaoAsync(premioId);
+            await CarregarPremiosSelecionados();
+            _mensagemPremios = "Votacao fechada.";
+        });
+    }
+
+    private async Task PublicarPremio(int premioId)
+    {
+        await ExecutarPremioAsync(async () =>
+        {
+            await PremioFestivalService.PublicarResultadosAsync(premioId);
+            await CarregarPremiosSelecionados();
+            _mensagemPremios = "Resultado publicado.";
+        });
+    }
+
+    private async Task CarregarPremiosSelecionados()
+    {
+        if (_festivalPremioSelecionadoId == 0)
+        {
+            _premiosFestival.Clear();
+            return;
+        }
+
+        _premiosFestival = await PremioFestivalService.ObterPremiosPorFestivalAsync(
+            _festivalPremioSelecionadoId
+        );
+    }
+
+    private async Task SelecionarFestivalPremio(ChangeEventArgs args)
+    {
+        _festivalPremioSelecionadoId = int.TryParse(args.Value?.ToString(), out var festivalId)
+            ? festivalId
+            : 0;
+
+        await CarregarPremiosSelecionados();
+    }
+
+    private async Task ExecutarPremioAsync(Func<Task> acao)
+    {
+        _aAtualizarPremios = true;
+        _mensagemPremios = null;
+
+        try
+        {
+            await acao();
+        }
+        catch (Exception ex)
+        {
+            _mensagemPremios = ex.Message;
+        }
+        finally
+        {
+            _aAtualizarPremios = false;
+        }
     }
 
     private sealed record MetricaAdmin(string Rotulo, int Valor, string Icone, Color Cor);

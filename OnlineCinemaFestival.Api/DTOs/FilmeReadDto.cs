@@ -15,7 +15,10 @@ namespace OnlineCinemaFestival.Api.DTOs
         public double? AvaliacaoTmdb { get; set; }
         public string CapaUrl { get; set; } = "";
         public string? TrailerUrl { get; set; }
+        public string? VideoProvider { get; set; }
+        public string? VideoKey { get; set; }
         public string? VideoUrl { get; set; }
+        public int? DuracaoVideoSegundos { get; set; }
         public int Popularidade { get; set; }
     }
 
@@ -23,15 +26,31 @@ namespace OnlineCinemaFestival.Api.DTOs
     {
         public string? Realizador { get; set; }
         public List<string> Atores { get; set; } = new();
+        public PessoaFilmeDTO? RealizadorDetalhe { get; set; }
+        public PessoaFilmeDTO? ProdutorDetalhe { get; set; }
+        public List<PessoaFilmeDTO> AtoresDetalhes { get; set; } = new();
         public List<TmdbReviewDTO> ReviewsTmdb { get; set; } = new();
         public List<AvaliacaoDTO> ReviewsAplicacao { get; set; } = new();
         public List<FestivalResumoDTO> Festivais { get; set; } = new();
         public string? Premios { get; set; }
         public List<FilmeSessaoReadDTO> Sessoes { get; set; } = new();
         public List<AcessoReadDTO> AcessosDisponiveis { get; set; } = new();
+        public List<ResultadoPremioFestivalDTO> ResultadosPremiosPublicados { get; set; } =
+            new();
         public bool PodeVer { get; set; }
         public bool PodeAvaliar { get; set; }
     }
 
     public class FilmeReadDTO : FilmeDetalheDTO { }
+
+    public class PessoaFilmeDTO
+    {
+        public int Id { get; set; }
+        public int? TmdbPessoaId { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public string? ImagemUrl { get; set; }
+        public string Funcao { get; set; } = string.Empty;
+        public string? Personagem { get; set; }
+        public int Ordem { get; set; }
+    }
 }

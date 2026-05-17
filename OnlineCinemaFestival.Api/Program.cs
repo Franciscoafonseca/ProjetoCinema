@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -20,6 +21,26 @@ builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
+
+if (builder.Environment.IsDevelopment())
+{
+    var dataProtectionKeysPath = Path.Combine(
+        Path.GetTempPath(),
+        "OnlineCinemaFestival.Api",
+        "DataProtectionKeys"
+    );
+
+    Directory.CreateDirectory(dataProtectionKeysPath);
+
+    var dataProtectionBuilder = builder
+        .Services.AddDataProtection()
+        .SetApplicationName("OnlineCinemaFestival.Api")
+        .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
+
+    if (OperatingSystem.IsWindows())
+        dataProtectionBuilder.ProtectKeysWithDpapi();
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=festival.db")
@@ -171,6 +192,7 @@ builder.Services.AddScoped<ICompraValidator, CompraValidator>();
 builder.Services.AddScoped<IAcessoFactory, AcessoFactory>();
 builder.Services.AddScoped<ICompraHistoricoService, CompraHistoricoService>();
 builder.Services.AddScoped<ICinemaFacade, CinemaFacade>();
+builder.Services.AddScoped<IPremioFestivalService, PremioFestivalService>();
 
 builder.Services.AddScoped<IEstrategiaValidacaoAcesso, BilheteSessaoValidacaoStrategy>();
 builder.Services.AddScoped<IEstrategiaValidacaoAcesso, EstrategiaValidacaoPasseDiario>();
@@ -233,7 +255,8 @@ app.UseSwaggerUI();
 
 app.UseCors("BlazorClient");
 
-app.UseStaticFiles();
+if (Directory.Exists(app.Environment.WebRootPath))
+    app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

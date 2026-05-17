@@ -1,5 +1,6 @@
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
+using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
@@ -129,6 +130,77 @@ public class SessaoService : ISessaoService
         await _sessaoRepository.SaveChangesAsync();
     }
 
+    public async Task<SessaoReadDTO> AssociarFilmeAsync(int sessaoId, AssociarFilmeSessaoDTO dto)
+    {
+        if (dto.FilmeId <= 0)
+            throw new ArgumentException("O identificador do filme e invalido.");
+
+        ValidarDadosTemporaisFilme(dto, TimeSpan.Zero);
+
+        var sessao = await _sessaoRepository.ObterPorIdAsync(sessaoId);
+
+        if (sessao == null)
+            throw new KeyNotFoundException("Sessao nao encontrada.");
+
+        ValidarDadosTemporaisFilme(dto, sessao.Fim - sessao.Inicio);
+
+        var filme = await _filmeRepository.ObterPorIdAsync(dto.FilmeId);
+
+        if (filme == null)
+            throw new KeyNotFoundException("Filme nao encontrado.");
+
+        var existeFilmeNaSessao = await _sessaoRepository.ExisteFilmeNaSessaoAsync(
+            sessaoId,
+            dto.FilmeId
+        );
+
+        if (existeFilmeNaSessao)
+            throw new InvalidOperationException("Este filme ja esta associado a esta sessao.");
+
+        await ValidateFilmesPertencemAoFestivalAsync(sessao.FestivalId, new[] { dto.FilmeId });
+
+        var ordem = dto.Ordem ?? await _sessaoRepository.ObterProximaOrdemAsync(sessaoId);
+
+        if (ordem <= 0)
+            throw new ArgumentException("A ordem do filme na sessao deve ser positiva.");
+
+        var existeOrdem = await _sessaoRepository.ExisteOrdemNaSessaoAsync(sessaoId, ordem);
+
+        if (existeOrdem)
+            throw new InvalidOperationException("Ja existe um filme com esta ordem na sessao.");
+
+        var temSobreposicao = await _sessaoRepository.HasOverlapAsync(
+            sessao.FestivalId,
+            new[] { dto.FilmeId },
+            sessao.Inicio,
+            sessao.Fim,
+            sessaoId
+        );
+
+        if (temSobreposicao)
+            throw new InvalidOperationException(
+                "Ja existe uma sessao sobreposta com este filme neste festival."
+            );
+
+        var sessaoFilme = new SessaoFilme
+        {
+            SessaoId = sessaoId,
+            FilmeId = dto.FilmeId,
+            HoraInicio = dto.HoraInicio,
+            HoraFim = dto.HoraFim,
+            Ordem = ordem,
+            InicioOffsetSegundos = dto.InicioOffsetSegundos,
+            DuracaoSegundos = dto.DuracaoSegundos,
+            IntervaloAposSegundos = dto.IntervaloAposSegundos,
+        };
+
+        await _sessaoRepository.AdicionarFilmeAsync(sessaoFilme);
+        await _sessaoRepository.SaveChangesAsync();
+
+        var atualizada = await _sessaoRepository.ObterPorIdAsync(sessaoId);
+        return SessaoMapper.MapToReadDTO(atualizada!);
+    }
+
     public async Task EliminarAsync(int id)
     {
         var sessao = await _sessaoRepository.ObterPorIdAsync(id);
@@ -212,16 +284,62 @@ public class SessaoService : ISessaoService
         DateTime fimSessao
     )
     {
+        var duracaoSessao = fimSessao - inicioSessao;
+        var ordens = new HashSet<int>();
+
         foreach (var filme in filmes)
         {
-            if (filme.HoraInicio.HasValue && filme.HoraFim.HasValue && filme.HoraFim <= filme.HoraInicio)
-                throw new ArgumentException("A hora de fim do filme deve ser posterior a hora de inicio.");
+            ValidarDadosTemporaisFilme(filme, duracaoSessao);
+
+            if (filme.Ordem.HasValue && !ordens.Add(filme.Ordem.Value))
+                throw new ArgumentException("A ordem dos filmes da sessao nao pode repetir.");
+
+            if (
+                filme.HoraInicio.HasValue
+                && filme.HoraFim.HasValue
+                && filme.HoraFim <= filme.HoraInicio
+            )
+                throw new ArgumentException(
+                    "A hora de fim do filme deve ser posterior a hora de inicio."
+                );
 
             if (filme.HoraInicio.HasValue && filme.HoraInicio < inicioSessao)
-                throw new ArgumentException("A hora de inicio do filme nao pode ser anterior ao inicio da sessao.");
+                throw new ArgumentException(
+                    "A hora de inicio do filme nao pode ser anterior ao inicio da sessao."
+                );
 
             if (filme.HoraFim.HasValue && filme.HoraFim > fimSessao)
-                throw new ArgumentException("A hora de fim do filme nao pode ultrapassar o fim da sessao.");
+                throw new ArgumentException(
+                    "A hora de fim do filme nao pode ultrapassar o fim da sessao."
+                );
+        }
+    }
+
+    private static void ValidarDadosTemporaisFilme(
+        SessaoFilmeCreateDTO filme,
+        TimeSpan duracaoSessao
+    )
+    {
+        if (filme.Ordem.HasValue && filme.Ordem.Value <= 0)
+            throw new ArgumentException("A ordem do filme na sessao deve ser positiva.");
+
+        if (filme.InicioOffsetSegundos < 0)
+            throw new ArgumentException("O offset de inicio do filme nao pode ser negativo.");
+
+        if (filme.DuracaoSegundos.HasValue && filme.DuracaoSegundos.Value <= 0)
+            throw new ArgumentException("A duracao do filme na sessao deve ser positiva.");
+
+        if (filme.IntervaloAposSegundos < 0)
+            throw new ArgumentException("O intervalo apos o filme nao pode ser negativo.");
+
+        if (duracaoSessao > TimeSpan.Zero && filme.DuracaoSegundos.HasValue)
+        {
+            var fimFilmeSegundos = filme.InicioOffsetSegundos + filme.DuracaoSegundos.Value;
+
+            if (fimFilmeSegundos > duracaoSessao.TotalSeconds)
+                throw new ArgumentException(
+                    "A duracao e o offset do filme nao podem ultrapassar a duracao da sessao."
+                );
         }
     }
 
@@ -243,7 +361,7 @@ public class SessaoService : ISessaoService
     {
         foreach (var filmeId in filmeIds.Distinct())
         {
-            var pertenceAoFestival = await _festivalFilmeRepository.ExistsAsync(
+            var pertenceAoFestival = await _festivalFilmeRepository.ExisteAsync(
                 festivalId,
                 filmeId
             );

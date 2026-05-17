@@ -43,6 +43,15 @@ public class TmdbMovieDetails : TmdbFilmeResult
 
     [JsonPropertyName("runtime")]
     public int? DuracaoMinutos { get; set; }
+
+    [JsonPropertyName("videos")]
+    public TmdbVideosResponseDTO Videos { get; set; } = new();
+
+    [JsonPropertyName("credits")]
+    public TmdbCreditsResponse Credits { get; set; } = new();
+
+    [JsonPropertyName("reviews")]
+    public TmdbReviewsResponse Reviews { get; set; } = new();
 }
 
 public class TmdbGenre
@@ -71,20 +80,35 @@ public class TmdbCreditsResponse
 
 public class TmdbCastMember
 {
+    [JsonPropertyName("id")]
+    public int TmdbPessoaId { get; set; }
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
+    [JsonPropertyName("character")]
+    public string? Character { get; set; }
+
     [JsonPropertyName("order")]
     public int Order { get; set; }
+
+    [JsonPropertyName("profile_path")]
+    public string? ProfilePath { get; set; }
 }
 
 public class TmdbCrewMember
 {
+    [JsonPropertyName("id")]
+    public int TmdbPessoaId { get; set; }
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
     [JsonPropertyName("job")]
     public string Job { get; set; } = string.Empty;
+
+    [JsonPropertyName("profile_path")]
+    public string? ProfilePath { get; set; }
 }
 
 public class TmdbReviewsResponse
@@ -115,4 +139,22 @@ public class TmdbAuthorDetails
 {
     [JsonPropertyName("rating")]
     public double? Rating { get; set; }
+}
+
+public class YouTubeVideosResponse
+{
+    [JsonPropertyName("items")]
+    public List<YouTubeVideoItem> Items { get; set; } = new();
+}
+
+public class YouTubeVideoItem
+{
+    [JsonPropertyName("contentDetails")]
+    public YouTubeContentDetails ContentDetails { get; set; } = new();
+}
+
+public class YouTubeContentDetails
+{
+    [JsonPropertyName("duration")]
+    public string? Duration { get; set; }
 }

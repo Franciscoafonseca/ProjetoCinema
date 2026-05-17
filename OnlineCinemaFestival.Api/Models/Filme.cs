@@ -14,7 +14,10 @@ public class Filme
     public double? AvaliacaoTmdb { get; set; }
     public string CapaUrl { get; set; } = "";
     public string? TrailerUrl { get; set; }
+    public string? VideoProvider { get; set; }
+    public string? VideoKey { get; set; }
     public string? VideoUrl { get; set; }
+    public int? DuracaoVideoSegundos { get; set; }
     public string? ConteudoLocalPath { get; set; }
     public string? Realizador { get; set; }
     public string? AtoresPrincipais { get; set; }
@@ -22,6 +25,8 @@ public class Filme
     public string? Premios { get; set; }
 
     public ICollection<FilmeGenero> FilmeGeneros { get; set; } = new List<FilmeGenero>();
+
+    public ICollection<FilmePessoa> PessoasDoFilme { get; set; } = new List<FilmePessoa>();
 
     public ICollection<FestivalFilme> FestivalFilmes { get; set; } = new List<FestivalFilme>();
 
@@ -40,6 +45,12 @@ public class Filme
         new List<AcessoUtilizador>();
 
     public ICollection<Visualizacao> Visualizacoes { get; set; } = new List<Visualizacao>();
+
+    public ICollection<VotoPremioFestival> VotosPremiosFestival { get; set; } =
+        new List<VotoPremioFestival>();
+
+    public ICollection<ResultadoPremioFestival> ResultadosPremiosFestival { get; set; } =
+        new List<ResultadoPremioFestival>();
 
     public int Popularidade => Avaliacoes.Count;
 }

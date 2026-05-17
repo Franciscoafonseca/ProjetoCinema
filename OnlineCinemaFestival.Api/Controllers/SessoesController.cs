@@ -143,6 +143,33 @@ public class SessoesController : ControllerBase
         }
     }
 
+    [HttpPost("{id:int}/filmes")]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
+    public async Task<ActionResult<SessaoDetalheDTO>> AssociarFilme(
+        int id,
+        AssociarFilmeSessaoDTO dto
+    )
+    {
+        try
+        {
+            var sessao = await _service.AssociarFilmeAsync(id, dto);
+
+            return Ok(sessao);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpDelete("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> Eliminar(int id)

@@ -13,4 +13,10 @@ public class SessaoFilme
     public DateTime? HoraFim { get; set; }
 
     public int Ordem { get; set; }
+
+    public int InicioOffsetSegundos { get; set; }
+
+    public int? DuracaoSegundos { get; set; }
+
+    public int IntervaloAposSegundos { get; set; }
 }

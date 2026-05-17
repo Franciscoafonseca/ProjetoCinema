@@ -18,6 +18,8 @@ public class FilmeRepository : IFilmeRepository
         return await _context
             .Filmes.Include(f => f.FilmeGeneros)
                 .ThenInclude(fg => fg.Genero)
+            .Include(f => f.PessoasDoFilme)
+                .ThenInclude(fp => fp.Pessoa)
             .Include(f => f.Avaliacoes)
             .AsNoTracking()
             .ToListAsync();
@@ -33,6 +35,8 @@ public class FilmeRepository : IFilmeRepository
         return await _context
             .Filmes.Include(f => f.FilmeGeneros)
                 .ThenInclude(fg => fg.Genero)
+            .Include(f => f.PessoasDoFilme)
+                .ThenInclude(fp => fp.Pessoa)
             .Include(f => f.Avaliacoes)
                 .ThenInclude(a => a.Usuario)
             .Include(f => f.FestivalFilmes)
@@ -41,6 +45,11 @@ public class FilmeRepository : IFilmeRepository
                 .ThenInclude(sf => sf.Sessao)
                     .ThenInclude(s => s.Festival)
             .Include(f => f.Acessos)
+            .Include(f => f.ResultadosPremiosFestival)
+                .ThenInclude(r => r.PremioFestival)
+                    .ThenInclude(p => p.Festival)
+            .Include(f => f.ResultadosPremiosFestival)
+                .ThenInclude(r => r.FilmeVencedor)
             .FirstOrDefaultAsync(f => f.Id == id);
     }
 
@@ -49,6 +58,8 @@ public class FilmeRepository : IFilmeRepository
         return await _context
             .Filmes.Include(f => f.FilmeGeneros)
                 .ThenInclude(fg => fg.Genero)
+            .Include(f => f.PessoasDoFilme)
+                .ThenInclude(fp => fp.Pessoa)
             .Include(f => f.Avaliacoes)
             .FirstOrDefaultAsync(f => f.TmdbId == tmdbId);
     }
@@ -58,6 +69,8 @@ public class FilmeRepository : IFilmeRepository
         return await _context
             .Filmes.Include(f => f.FilmeGeneros)
                 .ThenInclude(fg => fg.Genero)
+            .Include(f => f.PessoasDoFilme)
+                .ThenInclude(fp => fp.Pessoa)
             .Include(f => f.Avaliacoes)
             .OrderByDescending(f => f.AvaliacaoTmdb ?? 0)
             .ThenBy(f => f.Titulo)
@@ -77,6 +90,38 @@ public class FilmeRepository : IFilmeRepository
         genero = new Genero { Name = nomeNormalizado, CreatedAt = DateTime.UtcNow };
         await _context.Generos.AddAsync(genero);
         return genero;
+    }
+
+    public async Task<Pessoa> ObterOuCriarPessoaAsync(int? tmdbPessoaId, string nome, string? imagemUrl)
+    {
+        var nomeNormalizado = nome.Trim();
+
+        var pessoa = tmdbPessoaId.HasValue
+            ? await _context.Pessoas.FirstOrDefaultAsync(p => p.TmdbPessoaId == tmdbPessoaId.Value)
+            : null;
+
+        pessoa ??= await _context.Pessoas.FirstOrDefaultAsync(p => p.Nome == nomeNormalizado);
+
+        if (pessoa != null)
+        {
+            if (string.IsNullOrWhiteSpace(pessoa.ImagemUrl) && !string.IsNullOrWhiteSpace(imagemUrl))
+                pessoa.ImagemUrl = imagemUrl;
+
+            if (!pessoa.TmdbPessoaId.HasValue && tmdbPessoaId.HasValue)
+                pessoa.TmdbPessoaId = tmdbPessoaId.Value;
+
+            return pessoa;
+        }
+
+        pessoa = new Pessoa
+        {
+            TmdbPessoaId = tmdbPessoaId,
+            Nome = nomeNormalizado,
+            ImagemUrl = imagemUrl,
+        };
+
+        await _context.Pessoas.AddAsync(pessoa);
+        return pessoa;
     }
 
     public async Task<bool> UtilizadorViuFilmeAsync(int utilizadorId, int filmeId)
@@ -101,6 +146,15 @@ public class FilmeRepository : IFilmeRepository
     public async Task AddAsync(Filme filme)
     {
         await _context.Filmes.AddAsync(filme);
+    }
+
+    public void AtualizarVideo(Filme filme, string? provider, string? key, string? url, int? duracaoSegundos)
+    {
+        filme.VideoProvider = provider;
+        filme.VideoKey = key;
+        filme.VideoUrl = url;
+        filme.TrailerUrl = url;
+        filme.DuracaoVideoSegundos = duracaoSegundos;
     }
 
     public async Task SaveChangesAsync()

@@ -8,6 +8,36 @@
   margin-top: 34px;
 }
 
+.video-confirm-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--ocf-line);
+  border-radius: 8px;
+  background: rgba(10, 16, 29, 0.72);
+}
+
+.video-confirm-panel h2,
+.video-confirm-panel p {
+  margin: 0;
+}
+
+.video-confirm-panel p {
+  color: var(--ocf-muted);
+}
+
+.video-confirm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.video-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .genre-filter {
   display: flex;
   justify-content: flex-end;
@@ -113,6 +143,10 @@
   .tmdb-grid,
   .catalogo-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .video-confirm-grid {
+    grid-template-columns: 1fr;
   }
 
   .genre-filter {

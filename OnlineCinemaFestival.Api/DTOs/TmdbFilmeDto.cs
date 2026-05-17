@@ -14,9 +14,25 @@ public class TmdbFilmeDTO
     public DateTime DataLancamento { get; set; }
     public int? DuracaoMinutos { get; set; }
     public string? TrailerUrl { get; set; }
+    public string? VideoProvider { get; set; }
+    public string? VideoKey { get; set; }
+    public string? VideoUrl { get; set; }
+    public int? DuracaoVideoSegundos { get; set; }
     public string? Realizador { get; set; }
     public List<string> Atores { get; set; } = new();
+    public List<TmdbPessoaDTO> AtoresDetalhes { get; set; } = new();
+    public TmdbPessoaDTO? RealizadorDetalhe { get; set; }
+    public TmdbPessoaDTO? ProdutorDetalhe { get; set; }
     public List<TmdbReviewDTO> Reviews { get; set; } = new();
+}
+
+public class TmdbPessoaDTO
+{
+    public int? TmdbPessoaId { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string? ImagemUrl { get; set; }
+    public string? Personagem { get; set; }
+    public int Ordem { get; set; }
 }
 
 public class TmdbGeneroDTO

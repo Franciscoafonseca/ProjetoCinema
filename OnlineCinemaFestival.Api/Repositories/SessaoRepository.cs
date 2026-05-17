@@ -103,6 +103,35 @@ public class SessaoRepository : ISessaoRepository
         await _context.Sessoes.AddAsync(sessao);
     }
 
+    public async Task AdicionarFilmeAsync(SessaoFilme sessaoFilme)
+    {
+        await _context.SessaoFilmes.AddAsync(sessaoFilme);
+    }
+
+    public async Task<bool> ExisteFilmeNaSessaoAsync(int sessaoId, int filmeId)
+    {
+        return await _context.SessaoFilmes.AnyAsync(sf =>
+            sf.SessaoId == sessaoId && sf.FilmeId == filmeId
+        );
+    }
+
+    public async Task<bool> ExisteOrdemNaSessaoAsync(int sessaoId, int ordem)
+    {
+        return await _context.SessaoFilmes.AnyAsync(sf =>
+            sf.SessaoId == sessaoId && sf.Ordem == ordem
+        );
+    }
+
+    public async Task<int> ObterProximaOrdemAsync(int sessaoId)
+    {
+        var maiorOrdem = await _context
+            .SessaoFilmes.Where(sf => sf.SessaoId == sessaoId)
+            .Select(sf => (int?)sf.Ordem)
+            .MaxAsync();
+
+        return (maiorOrdem ?? 0) + 1;
+    }
+
     public void Remove(Sessao sessao)
     {
         _context.Sessoes.Remove(sessao);

@@ -37,6 +37,53 @@
                     @_mensagemImportacao
                 </MudAlert>
             }
+
+            @if (_filmeImportado != null)
+            {
+                <div class="video-confirm-panel">
+                    <div>
+                        <span class="cinema-kicker">Trailer importado</span>
+                        <h2>@_filmeImportado.Titulo</h2>
+                        <p>
+                            Confirma o fornecedor, chave, URL e duracao antes de abrir o detalhe.
+                        </p>
+                    </div>
+
+                    <div class="video-confirm-grid">
+                        <MudTextField T="string"
+                                      @bind-Value="_videoProvider"
+                                      Label="VideoProvider"
+                                      Variant="Variant.Outlined" />
+                        <MudTextField T="string"
+                                      @bind-Value="_videoKey"
+                                      Label="VideoKey"
+                                      Variant="Variant.Outlined" />
+                        <MudTextField T="string"
+                                      @bind-Value="_videoUrl"
+                                      Label="VideoUrl"
+                                      Variant="Variant.Outlined" />
+                        <MudNumericField T="int?"
+                                         @bind-Value="_duracaoVideoSegundos"
+                                         Label="DuracaoVideoSegundos"
+                                         Variant="Variant.Outlined"
+                                         Min="0" />
+                    </div>
+
+                    <div class="video-confirm-actions">
+                        <button type="button"
+                                class="cinema-btn primary"
+                                disabled="@_aAtualizarVideo"
+                                @onclick="GuardarVideoImportado">
+                            @(_aAtualizarVideo ? "A guardar..." : "Guardar confirmacao")
+                        </button>
+                        <button type="button"
+                                class="cinema-btn secondary"
+                                @onclick="AbrirDetalheImportado">
+                            Abrir detalhe
+                        </button>
+                    </div>
+                </div>
+            }
         </section>
 
         @if (_loading)
@@ -171,6 +218,12 @@
     private Severity _mensagemSeveridade = Severity.Info;
     private bool _aPesquisar;
     private bool _aImportar;
+    private bool _aAtualizarVideo;
+    private FilmeDTO? _filmeImportado;
+    private string? _videoProvider;
+    private string? _videoKey;
+    private string? _videoUrl;
+    private int? _duracaoVideoSegundos;
 
     private List<FilmeDTO> ResultadosAtuais => _aPesquisar ? _resultadosPesquisa : _tmdbIniciais;
 
@@ -210,7 +263,13 @@
             var importado = await FilmeService.ImportarTmdbAsync(filme.TmdbId);
             _filmesInternos = await FilmeService.ObterFilmesAsync();
             _filmesFiltrados = _filmesInternos.Take(20).ToList();
-            Nav.NavigateTo($"/filmes/{importado.Id}");
+            _generos = ExtrairGeneros(_filmesInternos).ToList();
+            PrepararConfirmacaoVideo(importado);
+            _mensagemSeveridade = Severity.Success;
+            _mensagemImportacao =
+                importado.DuracaoVideoSegundos.HasValue
+                    ? "Filme importado com trailer e duracao."
+                    : "Filme importado. Confirma o trailer e preenche a duracao manualmente se necessario.";
         }
         catch (Exception ex)
         {
@@ -220,6 +279,59 @@
         finally
         {
             _aImportar = false;
+        }
+    }
+
+    private void PrepararConfirmacaoVideo(FilmeDTO filme)
+    {
+        _filmeImportado = filme;
+        _videoProvider = filme.VideoProvider;
+        _videoKey = filme.VideoKey;
+        _videoUrl = filme.VideoUrl ?? filme.TrailerUrl;
+        _duracaoVideoSegundos = filme.DuracaoVideoSegundos;
+    }
+
+    private void AbrirDetalheImportado()
+    {
+        if (_filmeImportado != null)
+            Nav.NavigateTo($"/filmes/{_filmeImportado.Id}");
+    }
+
+    private async Task GuardarVideoImportado()
+    {
+        if (_filmeImportado == null)
+            return;
+
+        _aAtualizarVideo = true;
+        _mensagemImportacao = null;
+
+        try
+        {
+            var atualizado = await FilmeService.AtualizarVideoAsync(
+                _filmeImportado.Id,
+                new AtualizarVideoFilmeDTO
+                {
+                    VideoProvider = _videoProvider,
+                    VideoKey = _videoKey,
+                    VideoUrl = _videoUrl,
+                    DuracaoVideoSegundos = _duracaoVideoSegundos,
+                }
+            );
+
+            PrepararConfirmacaoVideo(atualizado);
+            _filmesInternos = await FilmeService.ObterFilmesAsync();
+            await AplicarFiltrosInternos();
+            _mensagemSeveridade = Severity.Success;
+            _mensagemImportacao = "Trailer e duracao guardados.";
+        }
+        catch (Exception ex)
+        {
+            _mensagemSeveridade = Severity.Error;
+            _mensagemImportacao = ex.Message;
+        }
+        finally
+        {
+            _aAtualizarVideo = false;
         }
     }
 

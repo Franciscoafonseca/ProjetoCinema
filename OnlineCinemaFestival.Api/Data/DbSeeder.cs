@@ -468,7 +468,12 @@ public static class DbSeeder
             foreach (var filme in filmesParaAssociar)
             {
                 novasAssociacoes.Add(
-                    new FestivalFilme { FestivalId = festival.Id, FilmeId = filme.Id }
+                    new FestivalFilme
+                    {
+                        FestivalId = festival.Id,
+                        FilmeId = filme.Id,
+                        ElegivelPremiosPublico = SeedRandom.Next(1, 100) <= 70,
+                    }
                 );
             }
         }
@@ -478,6 +483,22 @@ public static class DbSeeder
             await db.FestivalFilmes.AddRangeAsync(novasAssociacoes);
             await db.SaveChangesAsync();
         }
+
+        foreach (var festival in festivais)
+        {
+            var associacoesFestival = await db
+                .FestivalFilmes.Where(ff => ff.FestivalId == festival.Id)
+                .OrderBy(ff => ff.FilmeId)
+                .ToListAsync();
+
+            if (associacoesFestival.Count > 0 && !associacoesFestival.Any(ff => ff.ElegivelPremiosPublico))
+            {
+                foreach (var associacao in associacoesFestival.Take(8))
+                    associacao.ElegivelPremiosPublico = true;
+            }
+        }
+
+        await db.SaveChangesAsync();
     }
 
     private static async Task<List<Sessao>> CriarSessoesAsync(

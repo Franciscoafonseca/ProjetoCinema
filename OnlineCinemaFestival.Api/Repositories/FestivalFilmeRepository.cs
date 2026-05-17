@@ -13,21 +13,21 @@ public class FestivalFilmeRepository : IFestivalFilmeRepository
         _context = context;
     }
 
-    public async Task<bool> ExistsAsync(int festivalId, int filmeId)
+    public async Task<bool> ExisteAsync(int festivalId, int filmeId)
     {
         return await _context.FestivalFilmes.AnyAsync(ff =>
             ff.FestivalId == festivalId && ff.FilmeId == filmeId
         );
     }
 
-    public async Task<FestivalFilme?> GetAsync(int festivalId, int filmeId)
+    public async Task<FestivalFilme?> ObterAsync(int festivalId, int filmeId)
     {
-        return await _context.FestivalFilmes.FirstOrDefaultAsync(ff =>
-            ff.FestivalId == festivalId && ff.FilmeId == filmeId
-        );
+        return await _context
+            .FestivalFilmes.Include(ff => ff.Filme)
+            .FirstOrDefaultAsync(ff => ff.FestivalId == festivalId && ff.FilmeId == filmeId);
     }
 
-    public async Task AddAsync(FestivalFilme festivalFilme)
+    public async Task AdicionarAsync(FestivalFilme festivalFilme)
     {
         await _context.FestivalFilmes.AddAsync(festivalFilme);
     }
@@ -44,6 +44,18 @@ public class FestivalFilmeRepository : IFestivalFilmeRepository
             .Include(ff => ff.Filme)
             .Select(ff => ff.Filme)
             .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<FestivalFilme>> ObterAssociacoesPorFestivalIdAsync(int festivalId)
+    {
+        return await _context
+            .FestivalFilmes.Where(ff => ff.FestivalId == festivalId)
+            .Include(ff => ff.Filme)
+            .AsNoTracking()
+            .OrderBy(ff => ff.Secao)
+            .ThenBy(ff => ff.Categoria)
+            .ThenBy(ff => ff.Filme.Titulo)
             .ToListAsync();
     }
 

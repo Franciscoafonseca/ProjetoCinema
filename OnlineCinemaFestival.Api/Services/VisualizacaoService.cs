@@ -8,17 +8,14 @@ public class VisualizacaoService : IVisualizacaoService
 {
     private readonly IVisualizacaoRepository _visualizacaoRepository;
     private readonly IValidacaoAcessoService _validacaoAcessoService;
-    private readonly ITmdbService _tmdbService;
 
     public VisualizacaoService(
         IVisualizacaoRepository visualizacaoRepository,
-        IValidacaoAcessoService validacaoAcessoService,
-        ITmdbService tmdbService
+        IValidacaoAcessoService validacaoAcessoService
     )
     {
         _visualizacaoRepository = visualizacaoRepository;
         _validacaoAcessoService = validacaoAcessoService;
-        _tmdbService = tmdbService;
     }
 
     public async Task<VisualizacaoReadDTO> ObterVisualizacaoFilmeAsync(
@@ -240,11 +237,6 @@ public class VisualizacaoService : IVisualizacaoService
 
         if (!string.IsNullOrWhiteSpace(filme.ConteudoLocalPath))
             return filme.ConteudoLocalPath;
-
-        var trailerUrl = await _tmdbService.ObterTrailerUrlAsync(filme.TmdbId);
-
-        if (!string.IsNullOrWhiteSpace(trailerUrl))
-            return trailerUrl;
 
         return "https://www.youtube.com/embed/dQw4w9WgXcQ";
     }

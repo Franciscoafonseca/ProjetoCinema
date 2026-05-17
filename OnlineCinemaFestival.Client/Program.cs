@@ -49,6 +49,7 @@ builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<CarrinhoApiService>();
 builder.Services.AddScoped<RewardsService>();
 builder.Services.AddScoped<ComprasHistoricoService>();
+builder.Services.AddScoped<PremioFestivalService>();
 
 builder.Services.AddMudServices();
 

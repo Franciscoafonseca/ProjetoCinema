@@ -53,6 +53,10 @@
                         {
                             <span>TMDB @_filme.Classificacao</span>
                         }
+                        @if (_filme.DuracaoVideoSegundos.HasValue)
+                        {
+                            <span>Trailer @FormatarDuracaoVideo(_filme.DuracaoVideoSegundos.Value)</span>
+                        }
                     </div>
 
                     @if (!string.IsNullOrWhiteSpace(_filme.Sinopse))
@@ -63,11 +67,15 @@
                     <dl class="facts-grid">
                         <div>
                             <dt>Realizador</dt>
-                            <dd>@ValorOuIndisponivel(_filme.Realizador)</dd>
+                            <dd>@ValorOuIndisponivel(_filme.RealizadorDetalhe?.Nome ?? _filme.Realizador)</dd>
+                        </div>
+                        <div>
+                            <dt>Produtor</dt>
+                            <dd>@ValorOuIndisponivel(_filme.ProdutorDetalhe?.Nome)</dd>
                         </div>
                         <div>
                             <dt>Atores</dt>
-                            <dd>@(_filme.Atores.Count == 0 ? "N/D" : string.Join(", ", _filme.Atores.Take(5)))</dd>
+                            <dd>@AtoresResumo(_filme)</dd>
                         </div>
                         <div>
                             <dt>Festivais</dt>
@@ -107,6 +115,10 @@
                         <div>
                             <span class="cinema-kicker">Trailer</span>
                             <h2>Antevisao</h2>
+                            @if (_filme.DuracaoVideoSegundos.HasValue)
+                            {
+                                <p>@FormatarDuracaoVideo(_filme.DuracaoVideoSegundos.Value)</p>
+                            }
                         </div>
                     </div>
                     <div class="trailer-wrapper">
@@ -115,6 +127,60 @@
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 allowfullscreen>
                         </iframe>
+                    </div>
+                </section>
+            }
+
+            @if (_filme.ResultadosPremiosPublicados.Count > 0)
+            {
+                <section class="cinema-panel">
+                    <div class="cinema-section-head compact">
+                        <div>
+                            <span class="cinema-kicker">Premios</span>
+                            <h2>Distincoes em festivais</h2>
+                        </div>
+                    </div>
+                    <div class="quick-list">
+                        @foreach (var resultado in _filme.ResultadosPremiosPublicados)
+                        {
+                            <article class="quick-item">
+                                <div class="quick-main">
+                                    <strong>@resultado.NomePremio</strong>
+                                    <small>@resultado.FestivalNome</small>
+                                </div>
+                                <div class="quick-date">
+                                    <span>@resultado.TotalVotos votos</span>
+                                    <strong>@resultado.PublicadoEm.ToLocalTime().ToString("dd/MM")</strong>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                </section>
+            }
+
+            @if (TemCreditosComImagem(_filme))
+            {
+                <section class="cinema-panel pessoas-section">
+                    <div class="cinema-section-head compact">
+                        <div>
+                            <span class="cinema-kicker">Creditos</span>
+                            <h2>Elenco e equipa</h2>
+                        </div>
+                    </div>
+
+                    <div class="pessoas-grid">
+                        @if (_filme.RealizadorDetalhe != null)
+                        {
+                            @PessoaCard(_filme.RealizadorDetalhe, "Realizador")
+                        }
+                        @if (_filme.ProdutorDetalhe != null)
+                        {
+                            @PessoaCard(_filme.ProdutorDetalhe, "Produtor")
+                        }
+                        @foreach (var ator in _filme.AtoresDetalhes.Take(10))
+                        {
+                            @PessoaCard(ator, AtorSubtitulo(ator))
+                        }
                     </div>
                 </section>
             }
@@ -373,7 +439,7 @@
     private Severity _mensagemListasSeveridade = Severity.Info;
     private CriarAvaliacaoDTO _novaReview = new() { Pontuacao = 8 };
 
-    private string? TrailerEmbedUrl => ConverterParaEmbed(_filme?.TrailerUrl);
+    private string? TrailerEmbedUrl => ConverterParaEmbed(_filme?.VideoUrl ?? _filme?.TrailerUrl);
 
     protected override async Task CarregarDadosAsync()
     {
@@ -544,6 +610,61 @@
     private static string Duracao(FilmeDTO filme)
     {
         return filme.DuracaoMinutos.HasValue ? $"{filme.DuracaoMinutos} min" : "Duracao N/D";
+    }
+
+    private static string FormatarDuracaoVideo(int segundos)
+    {
+        var tempo = TimeSpan.FromSeconds(segundos);
+        return tempo.TotalHours >= 1
+            ? $"{(int)tempo.TotalHours}:{tempo.Minutes:00}:{tempo.Seconds:00}"
+            : $"{tempo.Minutes}:{tempo.Seconds:00}";
+    }
+
+    private static string AtoresResumo(FilmeDTO filme)
+    {
+        if (filme.AtoresDetalhes.Count > 0)
+            return string.Join(", ", filme.AtoresDetalhes.Take(5).Select(a => a.Nome));
+
+        return filme.Atores.Count == 0 ? "N/D" : string.Join(", ", filme.Atores.Take(5));
+    }
+
+    private static bool TemCreditosComImagem(FilmeDTO filme)
+    {
+        return filme.RealizadorDetalhe != null
+            || filme.ProdutorDetalhe != null
+            || filme.AtoresDetalhes.Count > 0;
+    }
+
+    private static string AtorSubtitulo(PessoaFilmeDTO ator)
+    {
+        return string.IsNullOrWhiteSpace(ator.Personagem) ? "Ator" : ator.Personagem;
+    }
+
+    private static RenderFragment PessoaCard(PessoaFilmeDTO pessoa, string subtitulo) => @<article class="pessoa-card">
+        <div class="pessoa-avatar">
+            @if (string.IsNullOrWhiteSpace(pessoa.ImagemUrl))
+            {
+                <span>@IniciaisPessoa(pessoa.Nome)</span>
+            }
+            else
+            {
+                <img src="@pessoa.ImagemUrl" alt="@pessoa.Nome" />
+            }
+        </div>
+        <div>
+            <strong>@pessoa.Nome</strong>
+            <span>@subtitulo</span>
+        </div>
+    </article>;
+
+    private static string IniciaisPessoa(string nome)
+    {
+        var partes = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (partes.Length == 0)
+            return "?";
+
+        return string.Concat(partes.Take(2).Select(p => char.ToUpperInvariant(p[0])));
     }
 
     private static string GeneroFilme(FilmeDTO filme)

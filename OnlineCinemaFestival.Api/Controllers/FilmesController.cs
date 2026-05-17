@@ -70,6 +70,23 @@ public class FilmesController : ControllerBase
         }
     }
 
+    [HttpPatch("{filmeId:int}/video")]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
+    public async Task<ActionResult<FilmeDetalheDTO>> AtualizarVideo(
+        int filmeId,
+        [FromBody] AtualizarVideoFilmeDTO dto
+    )
+    {
+        try
+        {
+            return Ok(await _service.AtualizarVideoAsync(filmeId, dto));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
     [HttpPost("{filmeId:int}/reviews")]
     [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
     public async Task<ActionResult<AvaliacaoDTO>> CriarReview(

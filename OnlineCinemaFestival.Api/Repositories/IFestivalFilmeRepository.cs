@@ -4,15 +4,17 @@ namespace OnlineCinemaFestival.Api.Repositories;
 
 public interface IFestivalFilmeRepository
 {
-    Task<bool> ExistsAsync(int festivalId, int filmeId);
+    Task<bool> ExisteAsync(int festivalId, int filmeId);
 
-    Task<FestivalFilme?> GetAsync(int festivalId, int filmeId);
+    Task<FestivalFilme?> ObterAsync(int festivalId, int filmeId);
 
-    Task AddAsync(FestivalFilme festivalFilme);
+    Task AdicionarAsync(FestivalFilme festivalFilme);
 
     void Remove(FestivalFilme festivalFilme);
 
     Task<IEnumerable<Filme>> ObterFilmesPorFestivalIdAsync(int festivalId);
+
+    Task<IEnumerable<FestivalFilme>> ObterAssociacoesPorFestivalIdAsync(int festivalId);
 
     Task SaveChangesAsync();
 }

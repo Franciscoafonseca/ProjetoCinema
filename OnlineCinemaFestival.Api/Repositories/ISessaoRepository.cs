@@ -26,6 +26,14 @@ public interface ISessaoRepository
 
     Task AddAsync(Sessao sessao);
 
+    Task AdicionarFilmeAsync(SessaoFilme sessaoFilme);
+
+    Task<bool> ExisteFilmeNaSessaoAsync(int sessaoId, int filmeId);
+
+    Task<bool> ExisteOrdemNaSessaoAsync(int sessaoId, int ordem);
+
+    Task<int> ObterProximaOrdemAsync(int sessaoId);
+
     void Remove(Sessao sessao);
 
     Task SaveChangesAsync();

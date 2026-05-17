@@ -10,7 +10,7 @@ public class OrdenarPorClassificacaoStrategy : ICatalogoOrdenacaoStrategy
     public IEnumerable<Filme> Ordenar(IEnumerable<Filme> filmes, bool descendente)
     {
         return descendente
-            ? filmes.OrderByDescending(f => f.Classificacao)
-            : filmes.OrderBy(f => f.Classificacao);
+            ? filmes.OrderByDescending(f => f.AvaliacaoTmdb ?? 0)
+            : filmes.OrderBy(f => f.AvaliacaoTmdb ?? 0);
     }
 }

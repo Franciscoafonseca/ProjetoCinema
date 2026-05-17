@@ -38,4 +38,15 @@ public class SessaoFilmeCreateDTO
     public DateTime? HoraFim { get; set; }
 
     public int? Ordem { get; set; }
+
+    [Range(0, int.MaxValue)]
+    public int InicioOffsetSegundos { get; set; }
+
+    [Range(1, int.MaxValue)]
+    public int? DuracaoSegundos { get; set; }
+
+    [Range(0, int.MaxValue)]
+    public int IntervaloAposSegundos { get; set; }
 }
+
+public class AssociarFilmeSessaoDTO : SessaoFilmeCreateDTO { }
