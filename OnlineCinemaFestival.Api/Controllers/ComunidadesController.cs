@@ -27,18 +27,21 @@ public class ComunidadesController : ControllerBase
     }
 
     [HttpGet("minhas")]
-    public async Task<ActionResult<IEnumerable<ComunidadeReadDTO>>> GetMinhasComunidades()
+    public async Task<ActionResult<IEnumerable<ComunidadeReadDTO>>> ObterMinhasComunidades()
     {
         var comunidades = await _comunidadeService.ObterMinhasComunidadesAsync(User.GetUserId());
         return Ok(comunidades);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<ComunidadeReadDTO>> GetComunidadeById(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ComunidadeReadDTO>> ObterComunidadePorId(Guid id)
     {
         try
         {
-            var comunidade = await _comunidadeService.ObterComunidadePorIdAsync(id, User.GetUserId());
+            var comunidade = await _comunidadeService.ObterComunidadePorPublicIdAsync(
+                id,
+                User.GetUserId()
+            );
             if (comunidade == null)
                 return NotFound("Comunidade não encontrada.");
             return Ok(comunidade);
@@ -50,19 +53,68 @@ public class ComunidadesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ComunidadeReadDTO>> CreateComunidade(ComunidadeCreateDTO dto)
+    public async Task<ActionResult<ComunidadeReadDTO>> CriarComunidade(ComunidadeCreateDTO dto)
     {
         try
         {
-            var comunidadeCriada = await _comunidadeService.CreateComunidadeAsync(
+            var comunidadeCriada = await _comunidadeService.CriarComunidadeAsync(
                 dto,
                 User.GetUserId()
             );
             return CreatedAtAction(
-                nameof(GetComunidadeById),
-                new { id = comunidadeCriada.Id },
+                nameof(ObterComunidadePorId),
+                new { id = comunidadeCriada.PublicId },
                 comunidadeCriada
             );
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
+    [HttpGet("convite/{codigoConvite}")]
+    public async Task<ActionResult<ComunidadeReadDTO>> ObterComunidadePorConvite(string codigoConvite)
+    {
+        var comunidade = await _comunidadeService.ObterComunidadePorConviteAsync(codigoConvite);
+        if (comunidade == null)
+            return NotFound("Comunidade não encontrada.");
+        return Ok(comunidade);
+    }
+
+    [HttpPost("{id:guid}/aderir")]
+    public async Task<ActionResult> AderirComunidade(Guid id)
+    {
+        try
+        {
+            await _comunidadeService.AderirComunidadeAsync(id, User.GetUserId());
+            return Ok(new { mensagem = "Entraste na comunidade com sucesso!" });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
+    // 🎟️ Rota VIP para entrar com o Código de Convite
+    [HttpPost("convite/{codigoConvite}/aderir")]
+    public async Task<ActionResult> AderirPorConvite(string codigoConvite)
+    {
+        try
+        {
+            await _comunidadeService.AderirComunidadePorConviteAsync(
+                codigoConvite,
+                User.GetUserId()
+            );
+            return Ok(new { mensagem = "Convite aceite! Bem-vindo à comunidade." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
         }
         catch (Exception ex)
         {

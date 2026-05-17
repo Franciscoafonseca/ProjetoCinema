@@ -6,12 +6,12 @@ namespace OnlineCinemaFestival.Api.Mappers;
 public static class ComentarioMapper
 {
     // DTO (ComentarioCreateDTO) para Entity (BD)
-    public static Comentario ToEntity(int comunidadeId, int usuarioId, ComentarioCreateDTO dto)
+    public static Comentario ToEntity(int comunidadeId, int utilizadorId, ComentarioCreateDTO dto)
     {
         return new Comentario
         {
             ComunidadeId = comunidadeId,
-            UsuarioId = usuarioId,
+            UsuarioId = utilizadorId,
             Texto = dto.Texto,
             CriadoEm = DateTime.UtcNow,
             Reportado = false,

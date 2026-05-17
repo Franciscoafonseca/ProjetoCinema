@@ -248,7 +248,11 @@ public class AppDbContext : DbContext
             .HasForeignKey(a => a.FilmeId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Acesso>().Property(a => a.Preco).HasConversion<double>().HasColumnType("REAL");
+        modelBuilder
+            .Entity<Acesso>()
+            .Property(a => a.Preco)
+            .HasConversion<double>()
+            .HasColumnType("REAL");
 
         modelBuilder
             .Entity<Carrinho>()
@@ -417,5 +421,7 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Visualizacao>().HasIndex(v => new { v.UtilizadorId, v.VisualizadoEm });
+        modelBuilder.Entity<Comunidade>().HasIndex(c => c.PublicId).IsUnique();
+        modelBuilder.Entity<Comunidade>().HasIndex(c => c.CodigoConvite).IsUnique();
     }
 }

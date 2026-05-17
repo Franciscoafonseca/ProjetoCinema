@@ -7,7 +7,8 @@ using OnlineCinemaFestival.Api.Services;
 namespace OnlineCinemaFestival.Api.Controllers;
 
 [ApiController]
-[Route("api/comunidades/{comunidadeId}/[controller]")]
+[Route("api/comunidades/{comunidadeId:guid}/comentarios")]
+[Authorize]
 public class ComentariosController : ControllerBase
 {
     private readonly IComentarioService _comentarioService;
@@ -18,10 +19,9 @@ public class ComentariosController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
-    public async Task<ActionResult<ComentarioDTO>> CriarComentario(
-        int comunidadeId,
-        [FromBody] CriarComentarioDTO dto
+    public async Task<ActionResult<ComentarioReadDTO>> CriarComentario(
+        Guid comunidadeId,
+        [FromBody] ComentarioCreateDTO dto
     )
     {
         try
@@ -34,6 +34,10 @@ public class ComentariosController : ControllerBase
 
             return Ok(resultado);
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
         catch (Exception ex)
         {
             return BadRequest(new { mensagem = ex.Message });
@@ -41,13 +45,25 @@ public class ComentariosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ComentarioDTO>>> ObterComentarios(
-        int comunidadeId
+    public async Task<ActionResult<IEnumerable<ComentarioReadDTO>>> ObterComentarios(
+        Guid comunidadeId
     )
     {
-        var comentarios = await _comentarioService.ObterComentariosPorComunidadeIdAsync(
-            comunidadeId
-        );
-        return Ok(comentarios);
+        try
+        {
+            var comentarios = await _comentarioService.ObterComentariosPorComunidadeIdAsync(
+                comunidadeId,
+                User.GetUserId()
+            );
+            return Ok(comentarios);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
     }
 }
