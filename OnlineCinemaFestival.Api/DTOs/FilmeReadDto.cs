@@ -12,7 +12,10 @@ namespace OnlineCinemaFestival.Api.DTOs
         public string? Genero { get; set; }
         public List<string> Generos { get; set; } = new();
         public string? Classificacao { get; set; }
+        public string? ClassificacaoTmdb { get; set; }
         public double? AvaliacaoTmdb { get; set; }
+        public double? AvaliacaoInternaMedia { get; set; }
+        public int AvaliacoesInternasTotal { get; set; }
         public string CapaUrl { get; set; } = "";
         public string? TrailerUrl { get; set; }
         public string? VideoProvider { get; set; }

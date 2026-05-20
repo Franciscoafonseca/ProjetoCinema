@@ -10,6 +10,8 @@
 
 .video-confirm-panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 16px;
   padding: 18px;
   border: 1px solid var(--ocf-line);
@@ -125,6 +127,19 @@
   width: 100%;
 }
 
+.admin-only-note {
+  width: 100%;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--ocf-line);
+  color: var(--ocf-muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
 @media (max-width: 1280px) {
   .tmdb-grid,
   .catalogo-grid {
@@ -146,6 +161,10 @@
   }
 
   .video-confirm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .video-confirm-panel {
     grid-template-columns: 1fr;
   }
 

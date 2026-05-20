@@ -7,6 +7,13 @@ public class PedidoAtualizarPerfilDTO
     [MaxLength(120)]
     public string Name { get; set; } = string.Empty;
 
+    [Phone]
+    [MaxLength(30)]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [MaxLength(2)]
+    public string CountryCode { get; set; } = string.Empty;
+
     [MaxLength(80)]
     public string Nationality { get; set; } = string.Empty;
 

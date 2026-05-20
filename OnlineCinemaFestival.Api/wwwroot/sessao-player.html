@@ -268,6 +268,7 @@
 
                 await carregarSessao();
                 await iniciarChat();
+                await carregarHistoricoChat();
             } catch (error) {
                 chatStatus.textContent = error?.message || "Nao foi possivel iniciar o teste.";
                 description.textContent =
@@ -384,6 +385,24 @@
             }
         }
 
+        async function carregarHistoricoChat() {
+            const resposta = await fetch(`/api/sessoes/${sessaoId}/chat/mensagens?quantidade=80`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!resposta.ok) {
+                chatStatus.textContent = limparErro(await resposta.text()) || "Nao foi possivel carregar o historico.";
+                return;
+            }
+
+            const historico = await resposta.json();
+            messages.replaceChildren();
+            historico.forEach(adicionarMensagem);
+            if (historico.length > 0) {
+                chatStatus.textContent = "Chat ligado. Historico carregado.";
+            }
+        }
+
         function aguardarSocketAberto(ws) {
             return new Promise((resolve, reject) => {
                 ws.addEventListener("open", resolve, { once: true });
@@ -439,7 +458,15 @@
             const item = document.createElement("div");
             item.className = "message";
             item.dataset.messageId = mensagem.id;
-            item.innerHTML = `<small>Utilizador ${mensagem.utilizadorId}</small>${escapeHtml(mensagem.texto)}`;
+            if (mensagem.removida || mensagem.estadoModeracao === "RemovidaPorModeracao") {
+                item.textContent = "Mensagem removida por moderacao.";
+                messages.appendChild(item);
+                messages.scrollTop = messages.scrollHeight;
+                return;
+            }
+
+            const nome = mensagem.nomeUtilizador?.trim() || "Utilizador";
+            item.innerHTML = `<small>${escapeHtml(nome)}</small>${escapeHtml(mensagem.texto || "")}`;
 
             if (adminMode) {
                 const removeButton = document.createElement("button");
@@ -465,7 +492,17 @@
             const input = document.getElementById("chatText");
             const texto = input.value.trim();
 
-            if (!texto || !socket) return;
+            if (!texto) {
+                chatStatus.textContent = "Escreve uma mensagem antes de enviar.";
+                return;
+            }
+
+            if (texto.length > 600) {
+                chatStatus.textContent = "A mensagem nao pode exceder 600 caracteres.";
+                return;
+            }
+
+            if (!socket) return;
 
             try {
                 enviarInvocacao("EnviarMensagem", [sessaoId, texto]);
@@ -474,6 +511,10 @@
                 chatStatus.textContent = error?.message || "Mensagem recusada.";
             }
         });
+
+        function limparErro(value) {
+            return (value || "").trim().replace(/^"|"$/g, "");
+        }
 
         document.getElementById("sendReview").addEventListener("click", async () => {
             if (!filmeAtualId) return;

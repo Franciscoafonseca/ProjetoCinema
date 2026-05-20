@@ -27,6 +27,15 @@ public class UtilizadorRepository : IUtilizadorRepository
             .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
     }
 
+    public async Task<Utilizador?> ObterPorTelefoneAsync(string telefone)
+    {
+        var normalizado = telefone.Trim();
+
+        return await _context
+            .Utilizadores.Include(u => u.Perfil)
+            .FirstOrDefaultAsync(u => u.PhoneNumber == normalizado);
+    }
+
     public async Task<Utilizador?> ObterComPerfilAsync(int id)
     {
         return await _context

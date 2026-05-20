@@ -81,6 +81,8 @@ public class ComentarioService : IComentarioService
         int utilizadorId
     )
     {
+        ValidarComentario(dto);
+
         var filme = await _filmeRepository.ObterPorIdAsync(filmeId);
         if (filme == null)
             throw new KeyNotFoundException("Filme nao encontrado.");
@@ -99,6 +101,17 @@ public class ComentarioService : IComentarioService
         result.Filme = filme;
 
         return ComentarioMapper.ToReadDTO(result);
+    }
+
+    private static void ValidarComentario(ComentarioCreateDTO dto)
+    {
+        var texto = dto.Texto?.Trim() ?? string.Empty;
+
+        if (texto.Length < 3)
+            throw new ArgumentException("O comentario deve ter pelo menos 3 caracteres.");
+
+        if (texto.Length > 600)
+            throw new ArgumentException("O comentario nao pode exceder 600 caracteres.");
     }
 
     public async Task<IEnumerable<ComentarioReadDTO>> ObterComentariosPorFilmeIdAsync(int filmeId)

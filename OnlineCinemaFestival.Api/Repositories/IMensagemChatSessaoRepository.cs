@@ -13,6 +13,12 @@ public interface IMensagemChatSessaoRepository
         int quantidade
     );
 
+    Task<IReadOnlyList<MensagemChatSessao>> ListarMensagensRecentesDoUtilizadorAsync(
+        int sessaoId,
+        int utilizadorId,
+        DateTime desde
+    );
+
     Task<MensagemChatSessao?> ObterMensagemPorIdAsync(string mensagemId);
 
     void MarcarMensagemRemovida(MensagemChatSessao mensagem);

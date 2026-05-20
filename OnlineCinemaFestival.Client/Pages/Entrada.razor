@@ -2,44 +2,69 @@
 @inject AutenticacaoService AutenticacaoService
 @inject NavigationManager Nav
 
-<PageTitle>Entrar — Online Cinema Festival</PageTitle>
+<PageTitle>Entrar - Online Cinema Festival</PageTitle>
 
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-icon">🎬</div>
-        <h1 class="auth-titulo">Entrar</h1>
-        <p class="auth-subtitulo">Acede à tua conta para ver festivais e gerir o teu perfil.</p>
+<main class="auth-page">
+    <section class="auth-shell">
+        <div class="auth-copy">
+            <span class="auth-kicker">Online Cinema Festival</span>
+            <h1>Entra no festival.</h1>
+            <p>Retoma listas, bilhetes, sessoes e comunidades com a mesma experiencia visual da plataforma.</p>
+        </div>
 
-        <EditForm Model="_modelo" OnValidSubmit="Entrar">
-            <DataAnnotationsValidator />
-
-            <div class="auth-campo">
-                <label for="email">Email</label>
-                <InputText id="email" class="auth-input" @bind-Value="_modelo.Email" type="email" autocomplete="email" />
-                <ValidationMessage For="@(() => _modelo.Email)" class="auth-erro-campo" />
+        <div class="auth-card">
+            <div class="auth-card-head">
+                <span class="auth-logo">OCF</span>
+                <div>
+                    <h2>Entrar</h2>
+                    <p>Acede a tua conta.</p>
+                </div>
             </div>
 
-            <div class="auth-campo">
-                <label for="password">Palavra-passe</label>
-                <InputText id="password" class="auth-input" @bind-Value="_modelo.Password" type="password" autocomplete="current-password" />
-                <ValidationMessage For="@(() => _modelo.Password)" class="auth-erro-campo" />
+            <div class="auth-social-grid">
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Google")'>
+                    <span>G</span>
+                    Continuar com Google
+                </button>
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Apple")'>
+                    <span>A</span>
+                    Continuar com Apple
+                </button>
             </div>
 
-            @if (!string.IsNullOrWhiteSpace(_erro))
-            {
-                <p class="auth-erro-geral">@_erro</p>
-            }
+            <div class="auth-separator"><span>ou</span></div>
 
-            <button type="submit" class="btn-auth" disabled="@_aSubmeter">
-                @(_aSubmeter ? "A entrar..." : "Entrar")
-            </button>
-        </EditForm>
+            <EditForm Model="_modelo" OnValidSubmit="Entrar">
+                <DataAnnotationsValidator />
 
-        <p class="auth-rodape">
-            Ainda não tens conta? <a href="/registo">Regista-te</a>
-        </p>
-    </div>
-</div>
+                <div class="auth-campo">
+                    <label for="email">Email</label>
+                    <InputText id="email" class="auth-input" @bind-Value="_modelo.Email" type="email" autocomplete="email" />
+                    <ValidationMessage For="@(() => _modelo.Email)" class="auth-erro-campo" />
+                </div>
+
+                <div class="auth-campo">
+                    <label for="password">Palavra-passe</label>
+                    <InputText id="password" class="auth-input" @bind-Value="_modelo.Password" type="password" autocomplete="current-password" />
+                    <ValidationMessage For="@(() => _modelo.Password)" class="auth-erro-campo" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_erro))
+                {
+                    <p class="auth-erro-geral">@_erro</p>
+                }
+
+                <button type="submit" class="btn-auth" disabled="@_aSubmeter">
+                    @(_aSubmeter ? "A entrar..." : "Entrar")
+                </button>
+            </EditForm>
+
+            <p class="auth-rodape">
+                Ainda nao tens conta? <a href="/registo">Regista-te</a>
+            </p>
+        </div>
+    </section>
+</main>
 
 @code {
     [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
@@ -56,6 +81,27 @@
         try
         {
             await AutenticacaoService.EntrarAsync(_modelo);
+            var destino = string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl;
+            Nav.NavigateTo(destino);
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aSubmeter = false;
+        }
+    }
+
+    private async Task EntrarExterno(string provider)
+    {
+        _erro = null;
+        _aSubmeter = true;
+
+        try
+        {
+            await AutenticacaoService.EntrarComExternoAsync(provider);
             var destino = string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl;
             Nav.NavigateTo(destino);
         }

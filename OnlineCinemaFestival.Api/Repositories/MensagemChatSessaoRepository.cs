@@ -18,7 +18,7 @@ public class MensagemChatSessaoRepository : IMensagemChatSessaoRepository
         return await _context
             .Sessoes.AsNoTracking()
             .Include(s => s.Festival)
-            .Include(s => s.FilmesDaSessao)
+            .Include(s => s.Filme)
             .FirstOrDefaultAsync(s => s.Id == sessaoId);
     }
 
@@ -39,6 +39,24 @@ public class MensagemChatSessaoRepository : IMensagemChatSessaoRepository
             .OrderByDescending(m => m.EnviadaEm)
             .Take(quantidade)
             .OrderBy(m => m.EnviadaEm)
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<MensagemChatSessao>> ListarMensagensRecentesDoUtilizadorAsync(
+        int sessaoId,
+        int utilizadorId,
+        DateTime desde
+    )
+    {
+        return await _context
+            .MensagensChatSessao.AsNoTracking()
+            .Where(m =>
+                m.SessaoId == sessaoId
+                && m.UtilizadorId == utilizadorId
+                && !m.Removida
+                && m.EnviadaEm >= desde
+            )
+            .OrderByDescending(m => m.EnviadaEm)
             .ToListAsync();
     }
 

@@ -28,7 +28,7 @@ public class AutenticacaoService
         {
             var mensagem = await resposta.Content.ReadAsStringAsync();
             throw new InvalidOperationException(
-                string.IsNullOrWhiteSpace(mensagem) ? "Credenciais inválidas." : mensagem
+                MensagemErroApi.Limpar(mensagem, "Email ou palavra-passe invalidos.")
             );
         }
 
@@ -49,13 +49,40 @@ public class AutenticacaoService
         {
             var mensagem = await resposta.Content.ReadAsStringAsync();
             throw new InvalidOperationException(
-                string.IsNullOrWhiteSpace(mensagem) ? "Não foi possível criar a conta." : mensagem
+                MensagemErroApi.Limpar(
+                    mensagem,
+                    "Nao foi possivel criar a conta. Reve os dados e tenta novamente."
+                )
             );
         }
 
         var resultado =
             await resposta.Content.ReadFromJsonAsync<AutenticacaoRespostaDTO>()
             ?? throw new InvalidOperationException("Resposta inválida do servidor.");
+
+        await _armazenamento.GuardarAsync(resultado.Token);
+        _estado.NotificarAutenticado();
+        return resultado;
+    }
+
+    public async Task<AutenticacaoRespostaDTO> EntrarComExternoAsync(string provider)
+    {
+        var resposta = await _http.PostAsJsonAsync(
+            "api/auth/external/login",
+            new PedidoAutenticacaoExternaDTO { Provider = provider }
+        );
+
+        if (!resposta.IsSuccessStatusCode)
+        {
+            var mensagem = await resposta.Content.ReadAsStringAsync();
+            throw new InvalidOperationException(
+                MensagemErroApi.Limpar(mensagem, "Autenticacao externa indisponivel.")
+            );
+        }
+
+        var resultado =
+            await resposta.Content.ReadFromJsonAsync<AutenticacaoRespostaDTO>()
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
 
         await _armazenamento.GuardarAsync(resultado.Token);
         _estado.NotificarAutenticado();

@@ -56,6 +56,117 @@
             <section class="admin-acoes">
                 <MudCard Elevation="0" Class="cinema-panel">
                     <MudCardContent>
+                        <span class="cinema-kicker">Festival</span>
+                        <h2>Criar festival</h2>
+                        <div class="admin-lista">
+                            <input placeholder="Nome" @bind="_novoFestival.Name" />
+                            <textarea placeholder="Descricao curta" @bind="_novoFestival.Description"></textarea>
+                            <input type="date"
+                                   @bind-value="_novoFestival.StartDate"
+                                   @bind-value:format="yyyy-MM-dd" />
+                            <input type="date"
+                                   @bind-value="_novoFestival.EndDate"
+                                   @bind-value:format="yyyy-MM-dd" />
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@_aAtualizarOperacao"
+                                       OnClick="CriarFestival">
+                                Criar festival
+                            </MudButton>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <span class="cinema-kicker">Catalogo</span>
+                        <h2>Adicionar filme ao festival</h2>
+                        <div class="admin-lista">
+                            <select @bind="_festivalOperacaoId">
+                                <option value="0">Selecionar festival</option>
+                                @foreach (var festival in _festivais)
+                                {
+                                    <option value="@festival.Id">@festival.Name</option>
+                                }
+                            </select>
+                            <select @bind="_associacao.FilmeId">
+                                <option value="0">Selecionar filme</option>
+                                @foreach (var filme in _filmes)
+                                {
+                                    <option value="@filme.Id">@filme.Titulo</option>
+                                }
+                            </select>
+                            <input placeholder="Secao" @bind="_associacao.Secao" />
+                            <input placeholder="Categoria" @bind="_associacao.Categoria" />
+                            <label>
+                                <input type="checkbox" @bind="_associacao.ElegivelPremiosPublico" />
+                                Elegivel para premios do publico
+                            </label>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@(_festivalOperacaoId == 0 || _associacao.FilmeId == 0 || _aAtualizarOperacao)"
+                                       OnClick="AdicionarFilmeAoFestival">
+                                Adicionar filme
+                            </MudButton>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </section>
+
+            <section class="admin-acoes">
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <span class="cinema-kicker">Sessao</span>
+                        <h2>Criar sessao</h2>
+                        <div class="admin-lista">
+                            <select @bind="_novaSessao.FestivalId">
+                                <option value="0">Selecionar festival</option>
+                                @foreach (var festival in _festivais)
+                                {
+                                    <option value="@festival.Id">@festival.Name</option>
+                                }
+                            </select>
+                            <select @bind="_novaSessao.FilmeId">
+                                <option value="0">Selecionar filme</option>
+                                @foreach (var filme in _filmes)
+                                {
+                                    <option value="@filme.Id">@filme.Titulo</option>
+                                }
+                            </select>
+                            <select @bind="_novaSessao.Tipo">
+                                <option value="2">HorarioFixo</option>
+                                <option value="1">Estreia</option>
+                                <option value="3">JanelaAcesso</option>
+                            </select>
+                            <input type="datetime-local"
+                                   @bind-value="_novaSessao.Inicio"
+                                   @bind-value:format="yyyy-MM-ddTHH:mm" />
+                            <input type="datetime-local"
+                                   @bind-value="_novaSessao.Fim"
+                                   @bind-value:format="yyyy-MM-ddTHH:mm" />
+                            <label>
+                                <input type="checkbox" @bind="_novaSessao.TemChatAoVivo" />
+                                Chat ao vivo
+                            </label>
+                            <textarea placeholder="Observacoes" @bind="_novaSessao.Observacoes"></textarea>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@(_novaSessao.FestivalId == 0 || _novaSessao.FilmeId == 0 || _aAtualizarOperacao)"
+                                       OnClick="CriarSessao">
+                                Criar sessao
+                            </MudButton>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(_mensagemOperacao))
+                        {
+                            <p class="admin-muted">@_mensagemOperacao</p>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </section>
+
+            <section class="admin-acoes">
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
                         <span class="cinema-kicker">Gestao</span>
                         <h2>Atalhos</h2>
                         <div class="admin-links">
@@ -158,6 +269,7 @@
 
 @code {
     private readonly List<MetricaAdmin> _metricas = new();
+    private List<FilmeDTO> _filmes = new();
     private List<SessaoDTO> _sessoes = new();
     private List<FestivalDTO> _festivais = new();
     private List<PremioFestivalDTO> _premiosFestival = new();
@@ -166,17 +278,29 @@
         DataAberturaVotacao = DateTime.Today,
         DataFechoVotacao = DateTime.Today.AddDays(7),
     };
+    private CriarFestivalDTO _novoFestival = new();
+    private AssociarFilmeFestivalDTO _associacao = new();
+    private CriarSessaoDTO _novaSessao = new()
+    {
+        Inicio = DateTime.Today.AddDays(1).AddHours(20),
+        Fim = DateTime.Today.AddDays(1).AddHours(22),
+        Tipo = 2,
+        TemChatAoVivo = true,
+    };
+    private int _festivalOperacaoId;
     private int _festivalPremioSelecionadoId;
     private bool _aCarregar = true;
+    private bool _aAtualizarOperacao;
     private bool _aAtualizarPremios;
     private string? _erro;
+    private string? _mensagemOperacao;
     private string? _mensagemPremios;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var filmes = await FilmeService.ObterFilmesAsync();
+            _filmes = await FilmeService.ObterFilmesAsync();
             _festivais = await FestivalService.ObterFestivaisAsync();
             _sessoes = await SessaoService.ObterSessoesDisponiveisAsync();
             var acessos = await AcessoService.ObterAcessosAsync();
@@ -184,7 +308,7 @@
             _metricas.AddRange(
                 new[]
                 {
-                    new MetricaAdmin("Filmes", filmes.Count, Icons.Material.Filled.Movie, Color.Primary),
+                    new MetricaAdmin("Filmes", _filmes.Count, Icons.Material.Filled.Movie, Color.Primary),
                     new MetricaAdmin("Festivais", _festivais.Count, Icons.Material.Filled.Festival, Color.Secondary),
                     new MetricaAdmin("Sessoes", _sessoes.Count, Icons.Material.Filled.Event, Color.Warning),
                     new MetricaAdmin("Acessos", acessos.Count, Icons.Material.Filled.ConfirmationNumber, Color.Success),
@@ -212,6 +336,63 @@
         return string.IsNullOrWhiteSpace(sessao.Filme)
             ? $"Sessao #{sessao.Id}"
             : sessao.Filme;
+    }
+
+    private async Task CriarFestival()
+    {
+        await ExecutarOperacaoAsync(async () =>
+        {
+            var festival = await FestivalService.CriarAsync(_novoFestival);
+            _festivais.Add(festival);
+            _novoFestival = new CriarFestivalDTO();
+            _mensagemOperacao = "Festival criado.";
+        });
+    }
+
+    private async Task AdicionarFilmeAoFestival()
+    {
+        await ExecutarOperacaoAsync(async () =>
+        {
+            await FestivalService.AssociarFilmeAsync(_festivalOperacaoId, _associacao);
+            _associacao = new AssociarFilmeFestivalDTO();
+            _mensagemOperacao = "Filme adicionado ao festival.";
+        });
+    }
+
+    private async Task CriarSessao()
+    {
+        await ExecutarOperacaoAsync(async () =>
+        {
+            var sessao = await SessaoService.CriarAsync(_novaSessao);
+            _sessoes.Add(sessao);
+            _novaSessao = new CriarSessaoDTO
+            {
+                Inicio = DateTime.Today.AddDays(1).AddHours(20),
+                Fim = DateTime.Today.AddDays(1).AddHours(22),
+                Tipo = 2,
+                TemChatAoVivo = true,
+            };
+            _mensagemOperacao = "Sessao criada e bilhete de sessao gerado.";
+        });
+    }
+
+    private async Task ExecutarOperacaoAsync(Func<Task> acao)
+    {
+        _aAtualizarOperacao = true;
+        _mensagemOperacao = null;
+
+        try
+        {
+            await acao();
+        }
+        catch (Exception ex)
+        {
+            _mensagemOperacao = ex.Message;
+        }
+        finally
+        {
+            _aAtualizarOperacao = false;
+        }
     }
 
     private async Task CriarPremio()

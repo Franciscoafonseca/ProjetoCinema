@@ -46,8 +46,7 @@ public class FinalizacaoCompraService
         string padrao
     )
     {
-        var conteudo = await resposta.Content.ReadAsStringAsync();
-        return string.IsNullOrWhiteSpace(conteudo) ? padrao : conteudo.Trim('"');
+        return await MensagemErroApi.ObterAsync(resposta, padrao);
     }
 }
 

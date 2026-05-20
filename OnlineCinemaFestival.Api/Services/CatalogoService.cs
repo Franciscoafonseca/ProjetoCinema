@@ -42,7 +42,7 @@ public class CatalogoService : ICatalogoService
         filmes = AplicarFiltros(filmes, query);
         filmes = AplicarOrdenacao(filmes, query);
 
-        return filmes.Select(FilmeMapper.MapToReadDTO);
+        return filmes.Take(20).Select(FilmeMapper.MapToReadDTO);
     }
 
     public async Task<IEnumerable<FilmeReadDTO>> ObterFilmesPorFestivalAsync(

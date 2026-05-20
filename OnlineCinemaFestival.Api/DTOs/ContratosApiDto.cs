@@ -46,10 +46,15 @@ public class AcessoAtivoDTO : AcessoUtilizadorReadDTO { }
 
 public class CriarAvaliacaoDTO
 {
-    [Range(1, 10)]
+    [Range(1, 10, ErrorMessage = "A pontuacao deve estar entre 1 e 10 estrelas.")]
     public int Pontuacao { get; set; }
 
-    [MaxLength(2000)]
+    [Required(ErrorMessage = "O texto da review e obrigatorio.")]
+    [StringLength(
+        1000,
+        MinimumLength = 20,
+        ErrorMessage = "A review deve ter entre 20 e 1000 caracteres."
+    )]
     public string Texto { get; set; } = string.Empty;
 }
 

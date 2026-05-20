@@ -28,6 +28,8 @@ public class SessaoDTO
 
     public bool TemChatAoVivo { get; set; }
 
+    public decimal? PrecoBilhete { get; set; }
+
     public string? Observacoes { get; set; }
 
     public List<FilmeSessaoDTO> Filmes { get; set; } = new();
@@ -61,4 +63,21 @@ public class SessaoEstadoDTO
     public DateTime Inicio { get; set; }
 
     public DateTime Fim { get; set; }
+}
+
+public class CriarSessaoDTO
+{
+    public int FestivalId { get; set; }
+
+    public int FilmeId { get; set; }
+
+    public int Tipo { get; set; }
+
+    public DateTime Inicio { get; set; }
+
+    public DateTime Fim { get; set; }
+
+    public bool TemChatAoVivo { get; set; } = true;
+
+    public string? Observacoes { get; set; }
 }

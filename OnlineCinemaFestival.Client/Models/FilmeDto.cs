@@ -22,7 +22,13 @@ public class FilmeDTO
 
     public string? Classificacao { get; set; }
 
+    public string? ClassificacaoTmdb { get; set; }
+
     public double? AvaliacaoTmdb { get; set; }
+
+    public double? AvaliacaoInternaMedia { get; set; }
+
+    public int AvaliacoesInternasTotal { get; set; }
 
     public string CapaUrl { get; set; } = string.Empty;
 
@@ -134,7 +140,18 @@ public class AvaliacaoDTO
 
 public class CriarAvaliacaoDTO
 {
+    [System.ComponentModel.DataAnnotations.Range(
+        1,
+        10,
+        ErrorMessage = "Escolhe uma pontuacao entre 1 e 10 estrelas."
+    )]
     public int Pontuacao { get; set; }
 
+    [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Escreve a tua review.")]
+    [System.ComponentModel.DataAnnotations.StringLength(
+        1000,
+        MinimumLength = 20,
+        ErrorMessage = "A review deve ter entre 20 e 1000 caracteres."
+    )]
     public string Texto { get; set; } = string.Empty;
 }

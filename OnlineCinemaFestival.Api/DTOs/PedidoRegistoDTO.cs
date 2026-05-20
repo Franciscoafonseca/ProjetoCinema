@@ -14,9 +14,25 @@ public class PedidoRegistoDTO
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    [MinLength(6)]
+    [Phone]
+    [MaxLength(30)]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(8)]
     public string Password { get; set; } = string.Empty;
+
+    [Required]
+    public string ConfirmPassword { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(2)]
+    public string CountryCode { get; set; } = string.Empty;
 
     [MaxLength(80)]
     public string Nationality { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(120)]
+    public string Location { get; set; } = string.Empty;
 }

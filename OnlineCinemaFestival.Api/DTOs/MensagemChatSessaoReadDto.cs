@@ -17,6 +17,8 @@ public class MensagemChatSessaoReadDTO
     public bool Removida { get; set; }
 
     public bool RemovidaPorModeracao { get; set; }
+
+    public string EstadoModeracao { get; set; } = "Aprovada";
 }
 
 public class SessaoChatEntradaDTO
@@ -37,4 +39,6 @@ public class MensagemChatRemovidaDTO
     public bool Removida { get; set; }
 
     public bool RemovidaPorModeracao { get; set; }
+
+    public string EstadoModeracao { get; set; } = "RemovidaPorModeracao";
 }

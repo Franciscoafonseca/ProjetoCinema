@@ -50,8 +50,9 @@
 
             <div class="player-meta">
                 <div>
-                    <span>@_visualizacao?.TipoConteudo</span>
+                    <span>Player: @_visualizacao?.TipoConteudo</span>
                     <h1>@_conteudoSelecionado.Titulo</h1>
+                    <p>Video: trailer oficial/disponivel do filme.</p>
                     @if (!string.IsNullOrWhiteSpace(_visualizacao?.Mensagem))
                     {
                         <p>@_visualizacao.Mensagem</p>

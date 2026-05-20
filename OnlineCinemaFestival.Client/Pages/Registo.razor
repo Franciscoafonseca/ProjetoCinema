@@ -2,61 +2,152 @@
 @inject AutenticacaoService AutenticacaoService
 @inject NavigationManager Nav
 
-<PageTitle>Criar Conta — Online Cinema Festival</PageTitle>
+<PageTitle>Criar Conta - Online Cinema Festival</PageTitle>
 
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-icon">🎬</div>
-        <h1 class="auth-titulo">Criar conta</h1>
-        <p class="auth-subtitulo">Junta-te ao festival online em poucos segundos.</p>
+<main class="auth-page">
+    <section class="auth-shell auth-shell-wide">
+        <div class="auth-copy">
+            <span class="auth-kicker">Novo perfil</span>
+            <h1>Cria a tua entrada.</h1>
+            <p>Guarda pais, localidade e dados privados com validacao forte antes de entrares na comunidade.</p>
+        </div>
 
-        <EditForm Model="_modelo" OnValidSubmit="Registar">
-            <DataAnnotationsValidator />
-
-            <div class="auth-campo">
-                <label for="name">Nome</label>
-                <InputText id="name" class="auth-input" @bind-Value="_modelo.Name" autocomplete="name" />
-                <ValidationMessage For="@(() => _modelo.Name)" class="auth-erro-campo" />
+        <div class="auth-card auth-card-wide">
+            <div class="auth-card-head">
+                <span class="auth-logo">OCF</span>
+                <div>
+                    <h2>Criar conta</h2>
+                    <p>Todos os campos principais sao validados.</p>
+                </div>
             </div>
 
-            <div class="auth-campo">
-                <label for="email">Email</label>
-                <InputText id="email" class="auth-input" @bind-Value="_modelo.Email" type="email" autocomplete="email" />
-                <ValidationMessage For="@(() => _modelo.Email)" class="auth-erro-campo" />
+            <div class="auth-social-grid">
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Google")'>
+                    <span>G</span>
+                    Continuar com Google
+                </button>
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Apple")'>
+                    <span>A</span>
+                    Continuar com Apple
+                </button>
             </div>
 
-            <div class="auth-campo">
-                <label for="password">Palavra-passe</label>
-                <InputText id="password" class="auth-input" @bind-Value="_modelo.Password" type="password" autocomplete="new-password" />
-                <ValidationMessage For="@(() => _modelo.Password)" class="auth-erro-campo" />
-            </div>
+            <div class="auth-separator"><span>ou</span></div>
 
-            <div class="auth-campo">
-                <label for="nationality">Nacionalidade</label>
-                <InputText id="nationality" class="auth-input" @bind-Value="_modelo.Nationality" autocomplete="country-name" />
-                <ValidationMessage For="@(() => _modelo.Nationality)" class="auth-erro-campo" />
-            </div>
+            <EditForm Model="_modelo" OnValidSubmit="Registar">
+                <DataAnnotationsValidator />
 
-            @if (!string.IsNullOrWhiteSpace(_erro))
-            {
-                <p class="auth-erro-geral">@_erro</p>
-            }
+                <div class="auth-grid">
+                    <div class="auth-campo">
+                        <label for="name">Nome</label>
+                        <InputText id="name" class="auth-input" @bind-Value="_modelo.Name" autocomplete="name" />
+                        <ValidationMessage For="@(() => _modelo.Name)" class="auth-erro-campo" />
+                    </div>
 
-            <button type="submit" class="btn-auth" disabled="@_aSubmeter">
-                @(_aSubmeter ? "A criar conta..." : "Criar conta")
-            </button>
-        </EditForm>
+                    <div class="auth-campo">
+                        <label for="email">Email</label>
+                        <InputText id="email" class="auth-input" @bind-Value="_modelo.Email" type="email" autocomplete="email" />
+                        <ValidationMessage For="@(() => _modelo.Email)" class="auth-erro-campo" />
+                    </div>
 
-        <p class="auth-rodape">
-            Ja tens conta? <a href="/login">Entrar</a>
-        </p>
-    </div>
-</div>
+                    <div class="auth-campo">
+                        <label for="phone">Telefone</label>
+                        <InputText id="phone" class="auth-input" @bind-Value="_modelo.PhoneNumber" type="tel" autocomplete="tel" />
+                        <ValidationMessage For="@(() => _modelo.PhoneNumber)" class="auth-erro-campo" />
+                    </div>
+
+                    <div class="auth-campo">
+                        <label for="country">Pais/Nacionalidade</label>
+                        <InputSelect id="country" class="auth-input" @bind-Value="_modelo.CountryCode">
+                            <option value="">Seleciona</option>
+                            @foreach (var pais in Paises)
+                            {
+                                <option value="@pais.Codigo">@pais.Nome</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => _modelo.CountryCode)" class="auth-erro-campo" />
+                    </div>
+
+                    <div class="auth-campo">
+                        <label for="location">Localidade</label>
+                        <InputSelect id="location" class="auth-input" @bind-Value="_modelo.Location">
+                            <option value="">Seleciona</option>
+                            @foreach (var localidade in Localidades)
+                            {
+                                <option value="@localidade">@localidade</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => _modelo.Location)" class="auth-erro-campo" />
+                    </div>
+
+                    <div class="auth-campo">
+                        <label for="password">Palavra-passe</label>
+                        <InputText id="password" class="auth-input" @bind-Value="_modelo.Password" type="password" autocomplete="new-password" />
+                        <ValidationMessage For="@(() => _modelo.Password)" class="auth-erro-campo" />
+                    </div>
+
+                    <div class="auth-campo auth-campo-full">
+                        <label for="confirm-password">Confirmar palavra-passe</label>
+                        <InputText id="confirm-password" class="auth-input" @bind-Value="_modelo.ConfirmPassword" type="password" autocomplete="new-password" />
+                        <ValidationMessage For="@(() => _modelo.ConfirmPassword)" class="auth-erro-campo" />
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_erro))
+                {
+                    <p class="auth-erro-geral">@_erro</p>
+                }
+
+                <button type="submit" class="btn-auth" disabled="@_aSubmeter">
+                    @(_aSubmeter ? "A criar conta..." : "Criar conta")
+                </button>
+            </EditForm>
+
+            <p class="auth-rodape">
+                Ja tens conta? <a href="/login">Entrar</a>
+            </p>
+        </div>
+    </section>
+</main>
 
 @code {
     private readonly PedidoRegistoDTO _modelo = new();
     private string? _erro;
     private bool _aSubmeter;
+
+    private static readonly List<PaisOpcao> Paises =
+    [
+        new("PT", "Portugal"),
+        new("BR", "Brasil"),
+        new("AO", "Angola"),
+        new("CV", "Cabo Verde"),
+        new("MZ", "Mocambique"),
+        new("ES", "Espanha"),
+        new("FR", "Franca"),
+        new("IT", "Italia"),
+        new("DE", "Alemanha"),
+        new("GB", "Reino Unido"),
+        new("US", "Estados Unidos"),
+    ];
+
+    private static readonly string[] Localidades =
+    [
+        "Funchal",
+        "Camara de Lobos",
+        "Machico",
+        "Santa Cruz",
+        "Ribeira Brava",
+        "Lisboa",
+        "Porto",
+        "Coimbra",
+        "Braga",
+        "Setubal",
+        "Madrid",
+        "Paris",
+        "Roma",
+        "Berlim",
+        "Londres",
+    ];
 
     private async Task Registar()
     {
@@ -65,6 +156,7 @@
 
         try
         {
+            _modelo.Nationality = Paises.FirstOrDefault(p => p.Codigo == _modelo.CountryCode)?.Nome ?? string.Empty;
             await AutenticacaoService.RegistarAsync(_modelo);
             Nav.NavigateTo("/perfil");
         }
@@ -77,4 +169,26 @@
             _aSubmeter = false;
         }
     }
+
+    private async Task EntrarExterno(string provider)
+    {
+        _erro = null;
+        _aSubmeter = true;
+
+        try
+        {
+            await AutenticacaoService.EntrarComExternoAsync(provider);
+            Nav.NavigateTo("/perfil");
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aSubmeter = false;
+        }
+    }
+
+    private sealed record PaisOpcao(string Codigo, string Nome);
 }

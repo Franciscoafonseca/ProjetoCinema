@@ -20,10 +20,6 @@ public static class CarrinhoMapper
 
     private static ItemCarrinhoReadDTO MapItemToReadDTO(CarrinhoItem item)
     {
-        var primeiroFilmeSessao = item
-            .Acesso.Sessao?.FilmesDaSessao.OrderBy(sf => sf.Ordem)
-            .FirstOrDefault();
-
         return new ItemCarrinhoReadDTO
         {
             Id = item.Id,
@@ -35,9 +31,9 @@ public static class CarrinhoMapper
             FestivalId = item.Acesso.FestivalId ?? item.Acesso.Sessao?.FestivalId,
             NomeFestival =
                 item.Acesso.Festival?.Name ?? item.Acesso.Sessao?.Festival?.Name ?? string.Empty,
-            FilmeId = item.Acesso.FilmeId ?? primeiroFilmeSessao?.FilmeId,
+            FilmeId = item.Acesso.FilmeId ?? item.Acesso.Sessao?.FilmeId,
             TituloFilme =
-                item.Acesso.Filme?.Titulo ?? primeiroFilmeSessao?.Filme?.Titulo ?? string.Empty,
+                item.Acesso.Filme?.Titulo ?? item.Acesso.Sessao?.Filme?.Titulo ?? string.Empty,
             InicioSessao = item.Acesso.Sessao?.Inicio,
             FimSessao = item.Acesso.Sessao?.Fim,
             DataAcesso = item.Acesso.DataAcesso,

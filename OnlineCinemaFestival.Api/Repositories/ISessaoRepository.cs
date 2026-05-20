@@ -16,7 +16,7 @@ public interface ISessaoRepository
 
     Task<bool> HasOverlapAsync(
         int festivalId,
-        IEnumerable<int> filmeIds,
+        int filmeId,
         DateTime inicio,
         DateTime fim,
         int? ignoreSessaoId = null
@@ -25,14 +25,6 @@ public interface ISessaoRepository
     Task<bool> HasAcessosAssociadosAsync(int sessaoId);
 
     Task AddAsync(Sessao sessao);
-
-    Task AdicionarFilmeAsync(SessaoFilme sessaoFilme);
-
-    Task<bool> ExisteFilmeNaSessaoAsync(int sessaoId, int filmeId);
-
-    Task<bool> ExisteOrdemNaSessaoAsync(int sessaoId, int ordem);
-
-    Task<int> ObterProximaOrdemAsync(int sessaoId);
 
     void Remove(Sessao sessao);
 

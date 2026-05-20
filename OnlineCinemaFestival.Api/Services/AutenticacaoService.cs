@@ -1,31 +1,16 @@
+using System.Text.RegularExpressions;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
 
-/// <summary>
-/// Serviço responsável pela autenticação de utilizadores,
-/// incluindo o registo, Entrar, criação de tokens e validação de credenciais.
-/// </summary>
 public class AutenticacaoService : IAutenticacaoService
 {
     private readonly IUtilizadorRepository _utilizadorRepository;
     private readonly IPasswordHashingStrategy _passwordHashingStrategy;
     private readonly ITokenService _tokenService;
 
-    /// <summary>
-    /// Inicializa uma nova instância do serviço de autenticação.
-    /// </summary>
-    /// <param name="utilizadorRepository">
-    /// Repositório responsável pelo acesso aos dados dos utilizadores.
-    /// </param>
-    /// <param name="passwordHashingStrategy">
-    /// Estratégia utilizada para gerar e validar hashes de palavras-passe.
-    /// </param>
-    /// <param name="tokenService">
-    /// Serviço responsável pela criação de tokens de autenticação.
-    /// </param>
     public AutenticacaoService(
         IUtilizadorRepository utilizadorRepository,
         IPasswordHashingStrategy passwordHashingStrategy,
@@ -37,43 +22,44 @@ public class AutenticacaoService : IAutenticacaoService
         _tokenService = tokenService;
     }
 
-    /// <summary>
-    /// Regista um novo utilizador no sistema.
-    /// </summary>
-    /// <param name="request">
-    /// Dados necessários para o registo, incluindo nome, email, nacionalidade e palavra-passe.
-    /// </param>
-    /// <returns>
-    /// Resposta de autenticação contendo o token e os dados principais do utilizador registado.
-    /// </returns>
-    /// <exception cref="ArgumentException">
-    /// Lançada quando já existe um utilizador registado com o mesmo email.
-    /// </exception>
     public async Task<AutenticacaoRespostaDTO> RegistarAsync(PedidoRegistoDTO request)
     {
-        // Normaliza o email para evitar duplicações causadas por maiúsculas, minúsculas ou espaços.
-        var email = request.Email.Trim().ToLower();
+        ValidarRegisto(request);
 
-        // Verifica se já existe um utilizador com o email indicado.
-        var existingUser = await _utilizadorRepository.ObterPorEmailAsync(email);
+        var email = request.Email.Trim().ToLowerInvariant();
+        var telefone = NormalizarTelefone(request.PhoneNumber);
+        var pais = PerfilOpcoes.ObterPaisValido(
+            string.IsNullOrWhiteSpace(request.CountryCode) ? request.Nationality : request.CountryCode
+        );
+        var localidade = PerfilOpcoes.ObterLocalidadeValida(request.Location);
 
-        if (existingUser != null)
-            throw new ArgumentException("Já existe um utilizador com este email.");
+        var utilizadorExistente = await _utilizadorRepository.ObterPorEmailAsync(email);
 
-        // Cria o novo utilizador com os dados fornecidos e valores padrão da aplicação.
+        if (utilizadorExistente != null)
+            throw new ArgumentException("Ja existe um utilizador com este email.");
+
+        var telefoneExistente = await _utilizadorRepository.ObterPorTelefoneAsync(telefone);
+
+        if (telefoneExistente != null)
+            throw new ArgumentException("Ja existe um utilizador com este telefone.");
+
         var utilizador = new Utilizador
         {
             Name = request.Name.Trim(),
             Email = email,
+            PhoneNumber = telefone,
             Role = PapelUtilizador.Utilizador,
             IsActive = true,
-            Nationality = request.Nationality.Trim(),
+            Nationality = pais.Codigo,
             CreatedAt = DateTime.UtcNow,
-
-            // Cria automaticamente um perfil público associado ao novo utilizador.
-            Perfil = new PerfilUtilizador { IsPublic = true, CreatedAt = DateTime.UtcNow },
-
-            // Cria automaticamente as listas pessoais padrão do utilizador.
+            Perfil = new PerfilUtilizador
+            {
+                Nationality = pais.Nome,
+                CountryCode = pais.Codigo,
+                Location = localidade,
+                IsPublic = true,
+                CreatedAt = DateTime.UtcNow,
+            },
             ListasPessoais = new List<ListaPessoal>
             {
                 new()
@@ -100,19 +86,43 @@ public class AutenticacaoService : IAutenticacaoService
             },
         };
 
-        // Gera o hash da palavra-passe antes de guardar o utilizador na base de dados.
         utilizador.PasswordHash = _passwordHashingStrategy.HashPassword(
             utilizador,
             request.Password
         );
 
-        // Guarda o novo utilizador no repositório.
         await _utilizadorRepository.AddAsync(utilizador);
 
-        // Cria um token de autenticação para o utilizador registado.
+        return CriarResposta(utilizador);
+    }
+
+    public async Task<AutenticacaoRespostaDTO> EntrarAsync(PedidoLoginDTO request)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var utilizador = await _utilizadorRepository.ObterPorEmailAsync(email);
+
+        if (utilizador == null)
+            throw new ArgumentException("Credenciais invalidas.");
+
+        if (!utilizador.IsActive)
+            throw new ArgumentException("Esta conta esta inativa.");
+
+        var validPassword = _passwordHashingStrategy.VerifyPassword(utilizador, request.Password);
+
+        if (!validPassword)
+            throw new ArgumentException("Credenciais invalidas.");
+
+        utilizador.LastLoginAt = DateTime.UtcNow;
+
+        await _utilizadorRepository.SaveChangesAsync();
+
+        return CriarResposta(utilizador);
+    }
+
+    private AutenticacaoRespostaDTO CriarResposta(Utilizador utilizador)
+    {
         var token = _tokenService.CreateToken(utilizador);
 
-        // Devolve os dados necessários para autenticar o utilizador no frontend.
         return new AutenticacaoRespostaDTO
         {
             Token = token,
@@ -123,56 +133,48 @@ public class AutenticacaoService : IAutenticacaoService
         };
     }
 
-    /// <summary>
-    /// Autentica um utilizador existente no sistema.
-    /// </summary>
-    /// <param name="request">
-    /// Dados de Entrar, incluindo email e palavra-passe.
-    /// </param>
-    /// <returns>
-    /// Resposta de autenticação contendo o token e os dados principais do utilizador autenticado.
-    /// </returns>
-    /// <exception cref="ArgumentException">
-    /// Lançada quando as credenciais são inválidas ou a conta se encontra inativa.
-    /// </exception>
-    public async Task<AutenticacaoRespostaDTO> EntrarAsync(PedidoLoginDTO request)
+    private static void ValidarRegisto(PedidoRegistoDTO request)
     {
-        // Normaliza o email para garantir uma pesquisa consistente.
-        var email = request.Email.Trim().ToLower();
+        if (string.IsNullOrWhiteSpace(request.Name))
+            throw new ArgumentException("O nome e obrigatorio.");
 
-        // Procura o utilizador associado ao email indicado.
-        var utilizador = await _utilizadorRepository.ObterPorEmailAsync(email);
+        if (request.Name.Trim().Length > 120)
+            throw new ArgumentException("O nome nao pode exceder 120 caracteres.");
 
-        if (utilizador == null)
-            throw new ArgumentException("Credenciais inválidas.");
+        _ = NormalizarTelefone(request.PhoneNumber);
 
-        // Impede o Entrar de contas desativadas.
-        if (!utilizador.IsActive)
-            throw new ArgumentException("Esta conta está inativa.");
+        if (!string.Equals(request.Password, request.ConfirmPassword, StringComparison.Ordinal))
+            throw new ArgumentException("A confirmacao da palavra-passe nao coincide.");
 
-        // Verifica se a palavra-passe introduzida corresponde ao hash guardado.
-        var validPassword = _passwordHashingStrategy.VerifyPassword(utilizador, request.Password);
+        ValidarPasswordForte(request.Password);
+    }
 
-        if (!validPassword)
-            throw new ArgumentException("Credenciais inválidas.");
+    private static void ValidarPasswordForte(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+            throw new ArgumentException("A palavra-passe deve ter pelo menos 8 caracteres.");
 
-        // Atualiza a data do último Entrar do utilizador.
-        utilizador.LastLoginAt = DateTime.UtcNow;
-
-        // Guarda a alteração da data de último Entrar.
-        await _utilizadorRepository.SaveChangesAsync();
-
-        // Cria um novo token de autenticação.
-        var token = _tokenService.CreateToken(utilizador);
-
-        // Devolve os dados necessários para manter a sessão autenticada.
-        return new AutenticacaoRespostaDTO
+        if (!password.Any(char.IsUpper)
+            || !password.Any(char.IsLower)
+            || !password.Any(char.IsDigit)
+            || !password.Any(c => !char.IsLetterOrDigit(c)))
         {
-            Token = token,
-            UserId = utilizador.Id,
-            Name = utilizador.Name,
-            Email = utilizador.Email,
-            Role = utilizador.Role.ToString(),
-        };
+            throw new ArgumentException(
+                "A palavra-passe deve incluir maiusculas, minusculas, numeros e simbolos."
+            );
+        }
+    }
+
+    private static string NormalizarTelefone(string telefone)
+    {
+        if (string.IsNullOrWhiteSpace(telefone))
+            throw new ArgumentException("O telefone e obrigatorio.");
+
+        var normalizado = Regex.Replace(telefone.Trim(), @"[\s().-]", "");
+
+        if (!Regex.IsMatch(normalizado, @"^\+?[0-9]{7,15}$"))
+            throw new ArgumentException("Introduz um telefone valido.");
+
+        return normalizado;
     }
 }

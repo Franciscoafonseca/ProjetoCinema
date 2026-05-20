@@ -14,6 +14,10 @@ public interface IFilmeRepository
 
     Task<List<Filme>> ObterPrincipaisAsync(int quantidade);
 
+    Task<List<Festival>> ObterFestivaisDoFilmeAsync(int filmeId);
+
+    Task<List<Sessao>> ObterSessoesDoFilmeAsync(int filmeId);
+
     Task<Genero> ObterOuCriarGeneroAsync(string nome);
 
     Task<Pessoa> ObterOuCriarPessoaAsync(int? tmdbPessoaId, string nome, string? imagemUrl);

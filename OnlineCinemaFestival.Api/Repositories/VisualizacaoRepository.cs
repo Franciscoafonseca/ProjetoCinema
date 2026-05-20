@@ -22,8 +22,7 @@ public class VisualizacaoRepository : IVisualizacaoRepository
     {
         return await _context
             .Sessoes.Include(s => s.Festival)
-            .Include(s => s.FilmesDaSessao)
-                .ThenInclude(sf => sf.Filme)
+            .Include(s => s.Filme)
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == sessaoId);
     }

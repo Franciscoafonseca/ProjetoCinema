@@ -61,4 +61,22 @@ public class SessaoService
 
         return await resposta.Content.ReadFromJsonAsync<List<SessaoDTO>>() ?? new();
     }
+
+    public async Task<SessaoDTO> CriarAsync(CriarSessaoDTO dto)
+    {
+        var resposta = await _http.PostAsJsonAsync("api/sessoes", dto);
+
+        if (!resposta.IsSuccessStatusCode)
+        {
+            var conteudo = await resposta.Content.ReadAsStringAsync();
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(conteudo)
+                    ? "Nao foi possivel criar a sessao."
+                    : conteudo.Trim('"')
+            );
+        }
+
+        return await resposta.Content.ReadFromJsonAsync<SessaoDTO>()
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
+    }
 }

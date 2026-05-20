@@ -12,10 +12,15 @@ namespace OnlineCinemaFestival.Api.Controllers;
 public class AutenticacaoController : ControllerBase
 {
     private readonly IAutenticacaoService _authService;
+    private readonly IAutenticacaoExternaService _autenticacaoExternaService;
 
-    public AutenticacaoController(IAutenticacaoService AutenticacaoService)
+    public AutenticacaoController(
+        IAutenticacaoService AutenticacaoService,
+        IAutenticacaoExternaService autenticacaoExternaService
+    )
     {
         _authService = AutenticacaoService;
+        _autenticacaoExternaService = autenticacaoExternaService;
     }
 
     [HttpPost("register")]
@@ -41,6 +46,35 @@ public class AutenticacaoController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("external/providers")]
+    public async Task<ActionResult<List<ProvedorAutenticacaoExternaDTO>>> ObterProvedoresExternos()
+    {
+        return Ok(await _autenticacaoExternaService.ObterProvedoresAsync());
+    }
+
+    [HttpPost("external/login")]
+    public async Task<ActionResult<AutenticacaoRespostaDTO>> EntrarExterno(
+        PedidoAutenticacaoExternaDTO request
+    )
+    {
+        try
+        {
+            return Ok(await _autenticacaoExternaService.AutenticarAsync(request));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (NotSupportedException ex)
+        {
+            return StatusCode(StatusCodes.Status501NotImplemented, ex.Message);
         }
     }
 }

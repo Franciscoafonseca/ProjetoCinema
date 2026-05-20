@@ -229,7 +229,9 @@ builder.Services.AddScoped<IGeneroRepository, GeneroRepository>();
 builder.Services.AddScoped<IPasswordHashingStrategy, PasswordHashingStrategy>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IAutenticacaoService, AutenticacaoService>();
+builder.Services.AddScoped<IAutenticacaoExternaService, AutenticacaoExternaService>();
 builder.Services.AddScoped<IPerfilUtilizadorService, PerfilUtilizadorService>();
+builder.Services.AddScoped<CatalogoTmdbSeedService>();
 
 // Listas pessoais
 builder.Services.AddScoped<IListaPessoalRepository, ListaPessoalRepository>();
@@ -292,5 +294,21 @@ if (app.Environment.IsDevelopment())
         scope.ServiceProvider.GetRequiredService<IPasswordHashingStrategy>();
 
     await DbSeeder.SeedAsync(db, passwordHashingStrategy);
+
+    try
+    {
+        await scope.ServiceProvider.GetRequiredService<CatalogoTmdbSeedService>()
+            .GarantirCatalogoPopularAsync();
+    }
+    catch (Exception ex) when (
+        ex is HttpRequestException
+        || ex is TaskCanceledException
+        || ex is InvalidOperationException
+    )
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
+            .CreateLogger("CatalogoTmdbSeed");
+        logger.LogWarning(ex, "Seed TMDB ignorado: TMDB indisponivel ou nao configurado.");
+    }
 }
 app.Run();

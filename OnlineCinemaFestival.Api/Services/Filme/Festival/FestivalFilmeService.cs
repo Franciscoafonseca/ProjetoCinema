@@ -10,16 +10,19 @@ public class FestivalFilmeService : IFestivalFilmeService
     private readonly IFestivalFilmeRepository _festivalFilmeRepository;
     private readonly IFestivalRepository _festivalRepository;
     private readonly IFilmeRepository _filmeRepository;
+    private readonly IAcessoRepository _acessoRepository;
 
     public FestivalFilmeService(
         IFestivalFilmeRepository festivalFilmeRepository,
         IFestivalRepository festivalRepository,
-        IFilmeRepository filmeRepository
+        IFilmeRepository filmeRepository,
+        IAcessoRepository acessoRepository
     )
     {
         _festivalFilmeRepository = festivalFilmeRepository;
         _festivalRepository = festivalRepository;
         _filmeRepository = filmeRepository;
+        _acessoRepository = acessoRepository;
     }
 
     public async Task<FestivalFilmeReadDTO> AssociarFilmeAsync(
@@ -57,6 +60,7 @@ public class FestivalFilmeService : IFestivalFilmeService
 
         await _festivalFilmeRepository.AdicionarAsync(festivalFilme);
         await _festivalFilmeRepository.SaveChangesAsync();
+        await GarantirAcessosBaseAsync(festival, filme);
 
         var associacao = await _festivalFilmeRepository.ObterAsync(festivalId, dto.FilmeId);
         return FestivalMapper.MapFestivalFilmeToReadDTO(associacao!);
@@ -103,5 +107,97 @@ public class FestivalFilmeService : IFestivalFilmeService
     private static string? NormalizarTextoOpcional(string? valor)
     {
         return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
+    }
+
+    private async Task GarantirAcessosBaseAsync(Festival festival, Filme filme)
+    {
+        var acessos = new List<Acesso>();
+
+        if (
+            await _acessoRepository.GetAtivoParaCarrinhoAsync(
+                TipoAcesso.AluguerDigital,
+                null,
+                filme.Id,
+                null,
+                null
+            ) == null
+        )
+        {
+            acessos.Add(
+                new Acesso
+                {
+                    Nome = $"Aluguer Digital - {filme.Titulo}",
+                    Descricao = "Aluguer individual do filme durante 48 horas.",
+                    Tipo = TipoAcesso.AluguerDigital,
+                    Preco = 3.99m,
+                    FilmeId = filme.Id,
+                    DuracaoHoras = 48,
+                    IsAtivo = true,
+                    CriadoEm = DateTime.UtcNow,
+                }
+            );
+        }
+
+        if (
+            await _acessoRepository.GetAtivoParaCarrinhoAsync(
+                TipoAcesso.PasseCompleto,
+                festival.Id,
+                null,
+                null,
+                null
+            ) == null
+        )
+        {
+            acessos.Add(
+                new Acesso
+                {
+                    Nome = $"Passe Completo - {festival.Name}",
+                    Descricao = "Passe valido para todo o festival.",
+                    Tipo = TipoAcesso.PasseCompleto,
+                    Preco = 24.99m,
+                    FestivalId = festival.Id,
+                    IsAtivo = true,
+                    CriadoEm = DateTime.UtcNow,
+                }
+            );
+        }
+
+        var totalDias = Math.Max(1, (festival.EndDate.Date - festival.StartDate.Date).Days + 1);
+
+        for (var i = 0; i < totalDias; i++)
+        {
+            var dia = festival.StartDate.Date.AddDays(i);
+
+            if (
+                await _acessoRepository.GetAtivoParaCarrinhoAsync(
+                    TipoAcesso.PasseDiario,
+                    festival.Id,
+                    null,
+                    null,
+                    dia
+                ) != null
+            )
+                continue;
+
+            acessos.Add(
+                new Acesso
+                {
+                    Nome = $"Passe Diario - {festival.Name} - {dia:dd/MM/yyyy}",
+                    Descricao = "Passe valido para todas as sessoes de um dia do festival.",
+                    Tipo = TipoAcesso.PasseDiario,
+                    Preco = 9.99m,
+                    FestivalId = festival.Id,
+                    DataAcesso = dia,
+                    IsAtivo = true,
+                    CriadoEm = DateTime.UtcNow,
+                }
+            );
+        }
+
+        if (acessos.Count > 0)
+        {
+            await _acessoRepository.AddManyAsync(acessos);
+            await _acessoRepository.SaveChangesAsync();
+        }
     }
 }

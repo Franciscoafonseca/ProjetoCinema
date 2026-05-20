@@ -13,9 +13,12 @@ public abstract class FilmePageBase : ComponentBase
         {
             await CarregarDadosAsync();
         }
-        catch
+        catch (Exception ex)
         {
-            _erro = "Erro ao carregar dados. Tente novamente.";
+            _erro = OnlineCinemaFestival.Client.Services.MensagemErroApi.Limpar(
+                ex.Message,
+                "Nao foi possivel carregar os dados. Tenta novamente."
+            );
         }
         finally
         {

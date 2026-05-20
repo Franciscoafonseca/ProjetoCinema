@@ -10,8 +10,9 @@ public class SessaoResumoDTO
     public string FestivalName { get; set; } = string.Empty;
     public string NomeFestival { get; set; } = string.Empty;
 
-    public int? FilmeId { get; set; }
+    public int FilmeId { get; set; }
     public string TituloFilme { get; set; } = string.Empty;
+    public string FilmeTitulo { get; set; } = string.Empty;
 
     public TipoSessao Tipo { get; set; }
     public string TipoNome { get; set; } = string.Empty;
@@ -23,6 +24,8 @@ public class SessaoResumoDTO
     public string Estado { get; set; } = string.Empty;
 
     public bool TemChatAoVivo { get; set; }
+
+    public decimal? PrecoBilhete { get; set; }
 
     public string? Observacoes { get; set; }
 

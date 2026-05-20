@@ -1,16 +1,15 @@
-using Microsoft.EntityFrameworkCore;
-using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services.VisualizacaoAcesso;
 
 public class ValidacaoPasseDiarioStrategy : IEstrategiaValidacaoAcesso
 {
-    private readonly AppDbContext _context;
+    private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
 
-    public ValidacaoPasseDiarioStrategy(AppDbContext context)
+    public ValidacaoPasseDiarioStrategy(IAcessoUtilizadorRepository acessoUtilizadorRepository)
     {
-        _context = context;
+        _acessoUtilizadorRepository = acessoUtilizadorRepository;
     }
 
     public TipoAcesso Tipo => TipoAcesso.PasseDiario;
@@ -31,19 +30,17 @@ public class ValidacaoPasseDiarioStrategy : IEstrategiaValidacaoAcesso
         DateTime agora
     )
     {
-        return await _context
-            .AcessosUtilizador.AsNoTracking()
-            .Where(a =>
-                a.UtilizadorId == utilizadorId
-                && a.Ativo
-                && a.TipoAcesso == TipoAcesso.PasseDiario
-                && a.FestivalId == sessao.FestivalId
-                && a.InicioValidade <= agora
-                && a.FimValidade >= agora
-                && sessao.Inicio >= a.InicioValidade
-                && sessao.Inicio < a.FimValidade
-            )
-            .OrderByDescending(a => a.FimValidade)
-            .FirstOrDefaultAsync();
+        var acesso = await _acessoUtilizadorRepository.ObterAcessoValidoAsync(
+            utilizadorId,
+            TipoAcesso.PasseDiario,
+            agora,
+            festivalId: sessao.FestivalId
+        );
+
+        return acesso != null
+            && sessao.Inicio >= acesso.InicioValidade
+            && sessao.Inicio < acesso.FimValidade
+            ? acesso
+            : null;
     }
 }

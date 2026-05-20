@@ -64,9 +64,12 @@
                             <span class="status @EstadoCss(EstadoTexto(sessao))">@EstadoTexto(sessao)</span>
                         </div>
                         <div class="meta">
-                            <span>@sessao.Festival</span>
-                            <span>@sessao.TipoNome</span>
-                            <span>@sessao.Inicio.ToLocalTime().ToString("HH:mm") - @sessao.Fim.ToLocalTime().ToString("HH:mm")</span>
+                            <span>Festival: @sessao.Festival</span>
+                            <span>Filme: @TituloSessao(sessao)</span>
+                            <span>Hora: @sessao.Inicio.ToLocalTime().ToString("dd/MM HH:mm") - @sessao.Fim.ToLocalTime().ToString("HH:mm")</span>
+                            <span>TipoSessao: @sessao.TipoNome</span>
+                            <span>TipoAcesso: BilheteSessao</span>
+                            <span>Preco: @Preco(sessao)</span>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(sessao.Observacoes))
                         {
@@ -78,7 +81,7 @@
                         <button class="primary"
                                 disabled="@(_aAtualizar || SessaoTerminada(sessao))"
                                 @onclick="() => AdicionarBilhete(sessao.Id)">
-                            Bilhete
+                            Comprar bilhete
                         </button>
                         <button class="secondary" @onclick="() => AbrirPlayer(sessao.Id)">Player</button>
                         @if (sessao.FilmePrincipalId.HasValue)
@@ -179,6 +182,13 @@
     private static string TituloSessao(SessaoDTO sessao)
     {
         return string.IsNullOrWhiteSpace(sessao.Filme) ? $"Sessao #{sessao.Id}" : sessao.Filme;
+    }
+
+    private static string Preco(SessaoDTO sessao)
+    {
+        return sessao.PrecoBilhete.HasValue
+            ? sessao.PrecoBilhete.Value.ToString("C", new System.Globalization.CultureInfo("pt-PT"))
+            : "Bilhete disponivel no carrinho";
     }
 
     private void AbrirPlayer(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");

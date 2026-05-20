@@ -9,6 +9,9 @@ public class ChatSessaoService : IChatSessaoService
     private const int MinutosAntesAberturaChat = 15;
     private const int TamanhoMaximoMensagem = 600;
     private const int QuantidadeMaximaHistorico = 100;
+    private const int MaximoMensagensJanelaSpam = 5;
+    private static readonly TimeSpan JanelaSpam = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan JanelaMensagemRepetida = TimeSpan.FromSeconds(30);
 
     private readonly IMensagemChatSessaoRepository _mensagemChatSessaoRepository;
     private readonly IValidacaoAcessoService _validacaoAcessoService;
@@ -58,6 +61,8 @@ public class ChatSessaoService : IChatSessaoService
             throw new UnauthorizedAccessException("Utilizador nao encontrado.");
 
         var textoNormalizado = ValidarTexto(texto);
+        await ValidarSpamSimplesAsync(sessao.Id, utilizadorId, textoNormalizado);
+
         var mensagem = new MensagemChatSessao
         {
             SessaoId = sessao.Id,
@@ -122,6 +127,7 @@ public class ChatSessaoService : IChatSessaoService
             MensagemId = mensagem.Id,
             Removida = mensagem.Removida,
             RemovidaPorModeracao = mensagem.RemovidaPorModeracao,
+            EstadoModeracao = mensagem.RemovidaPorModeracao ? "RemovidaPorModeracao" : "Aprovada",
         };
     }
 
@@ -168,6 +174,30 @@ public class ChatSessaoService : IChatSessaoService
         return textoNormalizado;
     }
 
+    private async Task ValidarSpamSimplesAsync(int sessaoId, int utilizadorId, string texto)
+    {
+        var agora = DateTime.UtcNow;
+        var mensagensRecentes =
+            await _mensagemChatSessaoRepository.ListarMensagensRecentesDoUtilizadorAsync(
+                sessaoId,
+                utilizadorId,
+                agora.Subtract(JanelaMensagemRepetida)
+            );
+
+        if (
+            mensagensRecentes.Any(m =>
+                agora - m.EnviadaEm <= JanelaMensagemRepetida
+                && string.Equals(m.Texto, texto, StringComparison.OrdinalIgnoreCase)
+            )
+        )
+        {
+            throw new ArgumentException("Mensagem repetida em pouco tempo. Aguarde antes de reenviar.");
+        }
+
+        if (mensagensRecentes.Count(m => agora - m.EnviadaEm <= JanelaSpam) >= MaximoMensagensJanelaSpam)
+            throw new ArgumentException("Demasiadas mensagens em pouco tempo. Aguarde alguns segundos.");
+    }
+
     private static void ValidarHorarioChat(Sessao sessao)
     {
         var agora = DateTime.UtcNow;
@@ -192,6 +222,7 @@ public class ChatSessaoService : IChatSessaoService
             EnviadaEm = mensagem.EnviadaEm,
             Removida = mensagem.Removida,
             RemovidaPorModeracao = mensagem.RemovidaPorModeracao,
+            EstadoModeracao = mensagem.RemovidaPorModeracao ? "RemovidaPorModeracao" : "Aprovada",
         };
     }
 

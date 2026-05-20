@@ -77,17 +77,34 @@
                                     </MudItem>
                                     <MudItem xs="12" md="6">
                                         <MudTextField T="string"
-                                                      Label="Nacionalidade"
+                                                      Label="Telefone"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense"
-                                                      @bind-Value="_pedido.Nationality" />
+                                                      @bind-Value="_pedido.PhoneNumber" />
                                     </MudItem>
                                     <MudItem xs="12" md="6">
-                                        <MudTextField T="string"
-                                                      Label="Localizacao"
-                                                      Variant="Variant.Outlined"
-                                                      Margin="Margin.Dense"
-                                                      @bind-Value="_pedido.Location" />
+                                        <MudSelect T="string"
+                                                   Label="Pais/Nacionalidade"
+                                                   Variant="Variant.Outlined"
+                                                   Margin="Margin.Dense"
+                                                   @bind-Value="_pedido.CountryCode">
+                                            @foreach (var pais in Paises)
+                                            {
+                                                <MudSelectItem T="string" Value="@pais.Codigo">@pais.Nome</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="12" md="6">
+                                        <MudSelect T="string"
+                                                   Label="Localizacao"
+                                                   Variant="Variant.Outlined"
+                                                   Margin="Margin.Dense"
+                                                   @bind-Value="_pedido.Location">
+                                            @foreach (var localidade in Localidades)
+                                            {
+                                                <MudSelectItem T="string" Value="@localidade">@localidade</MudSelectItem>
+                                            }
+                                        </MudSelect>
                                     </MudItem>
                                     <MudItem xs="12" md="6">
                                         <MudTextField T="string"
@@ -194,6 +211,15 @@
                                                     <MudText Color="Color.Secondary">@_perfil.Email</MudText>
                                                 </MudStack>
                                             }
+                                            @if (!string.IsNullOrWhiteSpace(_perfil.PhoneNumber))
+                                            {
+                                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Phone"
+                                                             Size="Size.Small"
+                                                             Color="Color.Secondary" />
+                                                    <MudText Color="Color.Secondary">@_perfil.PhoneNumber</MudText>
+                                                </MudStack>
+                                            }
                                         </div>
 
                                         <MudStack Row="true"
@@ -237,7 +263,7 @@
                                                      Variant="Variant.Filled"
                                                      Color="Color.Default"
                                                      Icon="@Icons.Material.Filled.Flag">
-                                                @_perfil.Nationality
+                                                @_perfil.CountryFlag @_perfil.Nationality
                                             </MudChip>
                                         }
                                         @if (!string.IsNullOrWhiteSpace(_perfil.Location))
@@ -452,6 +478,40 @@
     private string? _erroListas;
     private string? _erroHistorico;
 
+    private static readonly List<PaisOpcao> Paises =
+    [
+        new("PT", "Portugal"),
+        new("BR", "Brasil"),
+        new("AO", "Angola"),
+        new("CV", "Cabo Verde"),
+        new("MZ", "Mocambique"),
+        new("ES", "Espanha"),
+        new("FR", "Franca"),
+        new("IT", "Italia"),
+        new("DE", "Alemanha"),
+        new("GB", "Reino Unido"),
+        new("US", "Estados Unidos"),
+    ];
+
+    private static readonly string[] Localidades =
+    [
+        "Funchal",
+        "Camara de Lobos",
+        "Machico",
+        "Santa Cruz",
+        "Ribeira Brava",
+        "Lisboa",
+        "Porto",
+        "Coimbra",
+        "Braga",
+        "Setubal",
+        "Madrid",
+        "Paris",
+        "Roma",
+        "Berlim",
+        "Londres",
+    ];
+
     protected override async Task OnInitializedAsync()
     {
         await CarregarPerfilAsync();
@@ -517,6 +577,8 @@
         _pedido = new PedidoAtualizarPerfilDTO
         {
             Name = _perfil.Name,
+            PhoneNumber = _perfil.PhoneNumber,
+            CountryCode = _perfil.CountryCode,
             Nationality = _perfil.Nationality,
             Bio = _perfil.Bio,
             ProfileImageUrl = _perfil.ProfileImageUrl,
@@ -541,6 +603,7 @@
 
         try
         {
+            _pedido.Nationality = Paises.FirstOrDefault(p => p.Codigo == _pedido.CountryCode)?.Nome ?? string.Empty;
             var atualizado = await PerfilService.AtualizarMeuPerfilAsync(_pedido);
             if (atualizado != null)
                 _perfil = atualizado;
@@ -626,4 +689,6 @@
     }
 
     private sealed record PerfilStat(string Label, string Value, string Icon);
+
+    private sealed record PaisOpcao(string Codigo, string Nome);
 }

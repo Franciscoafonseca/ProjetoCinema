@@ -142,9 +142,6 @@ public class CarrinhoService
         if (resposta.StatusCode == HttpStatusCode.Forbidden)
             return "Nao tens permissao para esta operacao.";
 
-        var conteudo = await resposta.Content.ReadAsStringAsync();
-        return string.IsNullOrWhiteSpace(conteudo)
-            ? "Nao foi possivel atualizar o carrinho."
-            : conteudo.Trim('"');
+        return await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel atualizar o carrinho.");
     }
 }

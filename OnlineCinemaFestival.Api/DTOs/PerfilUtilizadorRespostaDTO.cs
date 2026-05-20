@@ -32,6 +32,8 @@ public class PerfilPublicoDTO
 public class PerfilPrivadoDTO : PerfilPublicoDTO
 {
     public string Email { get; set; } = string.Empty;
+
+    public string PhoneNumber { get; set; } = string.Empty;
 }
 
 public class PerfilUtilizadorRespostaDTO : PerfilPrivadoDTO { }

@@ -53,4 +53,10 @@ public class PerfilService
 
         return await resposta.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>();
     }
+
+    public async Task<PerfilOpcoesDTO> ObterOpcoesAsync()
+    {
+        return await _http.GetFromJsonAsync<PerfilOpcoesDTO>("api/profiles/opcoes")
+            ?? new PerfilOpcoesDTO();
+    }
 }

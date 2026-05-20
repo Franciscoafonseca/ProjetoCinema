@@ -113,6 +113,10 @@ public class FilmesController : ControllerBase
         {
             return Conflict(ex.Message);
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("{filmeId:int}/comentarios")]
@@ -154,6 +158,10 @@ public class FilmesController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 }

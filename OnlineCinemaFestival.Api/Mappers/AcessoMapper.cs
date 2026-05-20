@@ -43,8 +43,8 @@ public static class AcessoMapper
 
             // FilmeId e FilmeTitulo só representam aluguer digital individual.
             // Para bilhete de sessão, os filmes vêm da própria sessão.
-            FilmeId = acesso.FilmeId,
-            FilmeTitulo = acesso.Filme?.Titulo ?? string.Empty,
+            FilmeId = acesso.FilmeId ?? acesso.Sessao?.FilmeId,
+            FilmeTitulo = acesso.Filme?.Titulo ?? acesso.Sessao?.Filme?.Titulo ?? string.Empty,
 
             DataAcesso = acesso.DataAcesso,
             DuracaoHoras = acesso.DuracaoHoras,

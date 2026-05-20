@@ -57,4 +57,66 @@ public class AcessoUtilizadorRepository : IAcessoUtilizadorRepository
             && a.FimValidade > dataAtual
         );
     }
+
+    public async Task<AcessoUtilizador?> ObterAcessoValidoAsync(
+        int utilizadorId,
+        TipoAcesso tipoAcesso,
+        DateTime dataAtual,
+        int? filmeId = null,
+        int? sessaoId = null,
+        int? festivalId = null
+    )
+    {
+        var query = _context
+            .AcessosUtilizador.AsNoTracking()
+            .Where(a =>
+                a.UtilizadorId == utilizadorId
+                && a.Ativo
+                && a.TipoAcesso == tipoAcesso
+                && a.InicioValidade <= dataAtual
+                && a.FimValidade >= dataAtual
+            );
+
+        if (filmeId.HasValue)
+            query = query.Where(a => a.FilmeId == filmeId.Value);
+
+        if (sessaoId.HasValue)
+            query = query.Where(a => a.SessaoId == sessaoId.Value);
+
+        if (festivalId.HasValue)
+            query = query.Where(a => a.FestivalId == festivalId.Value);
+
+        return await query.OrderByDescending(a => a.FimValidade).FirstOrDefaultAsync();
+    }
+
+    public async Task<AcessoUtilizador?> ObterPasseCompletoValidoParaFilmeAsync(
+        int utilizadorId,
+        int filmeId,
+        int? festivalId,
+        DateTime dataAtual
+    )
+    {
+        var query = _context
+            .AcessosUtilizador.AsNoTracking()
+            .Where(a =>
+                a.UtilizadorId == utilizadorId
+                && a.Ativo
+                && a.TipoAcesso == TipoAcesso.PasseCompleto
+                && a.FestivalId != null
+                && a.InicioValidade <= dataAtual
+                && a.FimValidade >= dataAtual
+            );
+
+        if (festivalId.HasValue)
+            query = query.Where(a => a.FestivalId == festivalId.Value);
+
+        return await query
+            .Where(a =>
+                _context.FestivalFilmes.Any(ff =>
+                    ff.FestivalId == a.FestivalId && ff.FilmeId == filmeId
+                )
+            )
+            .OrderByDescending(a => a.FimValidade)
+            .FirstOrDefaultAsync();
+    }
 }

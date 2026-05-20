@@ -34,4 +34,10 @@ public class RewardsRepository : IRewardsRepository
 
         await _context.SaveChangesAsync();
     }
+
+    public int ObterSaldo(int utilizadorId)
+    {
+        var reward = _context.Rewards.FirstOrDefault(r => r.UtilizadorId == utilizadorId);
+        return reward?.Pontos ?? 0;
+    }
 }

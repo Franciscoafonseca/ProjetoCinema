@@ -51,7 +51,11 @@
                         <span>@Duracao(_filme)</span>
                         @if (!string.IsNullOrWhiteSpace(_filme.Classificacao))
                         {
-                            <span>TMDB @_filme.Classificacao</span>
+                            <span>TMDB @_filme.ClassificacaoTmdb</span>
+                        }
+                        @if (_filme.AvaliacaoInternaMedia.HasValue)
+                        {
+                            <span>OCF @_filme.AvaliacaoInternaMedia.Value.ToString("0.0")/10</span>
                         }
                         @if (_filme.DuracaoVideoSegundos.HasValue)
                         {
@@ -74,8 +78,16 @@
                             <dd>@ValorOuIndisponivel(_filme.ProdutorDetalhe?.Nome)</dd>
                         </div>
                         <div>
-                            <dt>Atores</dt>
+                            <dt>Atores principais</dt>
                             <dd>@AtoresResumo(_filme)</dd>
+                        </div>
+                        <div>
+                            <dt>Avaliacao TMDB</dt>
+                            <dd>@(_filme.AvaliacaoTmdb.HasValue ? $"{_filme.AvaliacaoTmdb:0.0}/10" : "N/D")</dd>
+                        </div>
+                        <div>
+                            <dt>Avaliacoes internas</dt>
+                            <dd>@(_filme.AvaliacaoInternaMedia.HasValue ? $"{_filme.AvaliacaoInternaMedia:0.0}/10 ({_filme.AvaliacoesInternasTotal})" : "Sem avaliacoes")</dd>
                         </div>
                         <div>
                             <dt>Festivais</dt>
@@ -331,9 +343,23 @@
                             @if (_filme.PodeAvaliar)
                             {
                                 <EditForm Model="_novaReview" OnValidSubmit="EnviarReview">
+                                    <DataAnnotationsValidator />
                                     <div class="review-form">
-                                        <InputNumber class="text-input" @bind-Value="_novaReview.Pontuacao" />
+                                        <div class="star-rating" role="radiogroup" aria-label="Pontuacao de 1 a 10 estrelas">
+                                            @for (var estrela = 1; estrela <= 10; estrela++)
+                                            {
+                                                var valor = estrela;
+                                                <button type="button"
+                                                        class="@ClasseEstrela(valor)"
+                                                        aria-label="@($"{valor} estrelas")"
+                                                        @onclick="() => DefinirPontuacao(valor)">
+                                                    ★
+                                                </button>
+                                            }
+                                        </div>
+                                        <ValidationMessage For="@(() => _novaReview.Pontuacao)" />
                                         <InputTextArea class="text-area" @bind-Value="_novaReview.Texto" placeholder="Escreve a tua review" />
+                                        <ValidationMessage For="@(() => _novaReview.Texto)" />
                                         <button class="cinema-btn primary" disabled="@_aEnviarReview" type="submit">
                                             @(_aEnviarReview ? "A publicar..." : "Publicar review")
                                         </button>
@@ -506,13 +532,6 @@
 
     private async Task EnviarReview()
     {
-        if (_novaReview.Pontuacao < 1 || _novaReview.Pontuacao > 10)
-        {
-            _mensagemReviewSeveridade = Severity.Error;
-            _mensagemReview = "A pontuacao deve estar entre 1 e 10.";
-            return;
-        }
-
         _aEnviarReview = true;
         _mensagemReview = null;
 
@@ -520,6 +539,11 @@
         {
             var review = await AvaliacaoService.CriarAsync(Id, _novaReview);
             _filme?.ReviewsAplicacao.Insert(0, review);
+            if (_filme != null)
+            {
+                _filme.AvaliacoesInternasTotal = _filme.ReviewsAplicacao.Count;
+                _filme.AvaliacaoInternaMedia = _filme.ReviewsAplicacao.Average(r => r.Pontuacao);
+            }
             _novaReview = new CriarAvaliacaoDTO { Pontuacao = 8 };
             _mensagemReviewSeveridade = Severity.Success;
             _mensagemReview = "Review publicada.";
@@ -594,6 +618,16 @@
     private void AbrirPlayerSessao(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
 
     private void Voltar() => Nav.NavigateTo("/catalogo");
+
+    private void DefinirPontuacao(int valor)
+    {
+        _novaReview.Pontuacao = valor;
+    }
+
+    private string ClasseEstrela(int valor)
+    {
+        return valor <= _novaReview.Pontuacao ? "star-button active" : "star-button";
+    }
 
     private static string ImagemFilme(FilmeDTO filme)
     {

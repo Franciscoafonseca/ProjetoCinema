@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
 
@@ -15,6 +16,15 @@ public class RewardTransacaoRepository : IRewardTransacaoRepository
     public async Task AddAsync(RewardTransacao transacao)
     {
         await _context.RewardsTransacoes.AddAsync(transacao);
+    }
+
+    public List<RewardTransacao> ObterHistorico(int utilizadorId)
+    {
+        return _context
+            .RewardsTransacoes.AsNoTracking()
+            .Where(t => t.UtilizadorId == utilizadorId)
+            .OrderByDescending(t => t.Data)
+            .ToList();
     }
 
     public async Task SaveChangesAsync()

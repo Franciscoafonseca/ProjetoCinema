@@ -1,16 +1,15 @@
-using Microsoft.EntityFrameworkCore;
-using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services.VisualizacaoAcesso;
 
 public class ValidacaoAluguerDigitalStrategy : IEstrategiaValidacaoAcesso
 {
-    private readonly AppDbContext _context;
+    private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
 
-    public ValidacaoAluguerDigitalStrategy(AppDbContext context)
+    public ValidacaoAluguerDigitalStrategy(IAcessoUtilizadorRepository acessoUtilizadorRepository)
     {
-        _context = context;
+        _acessoUtilizadorRepository = acessoUtilizadorRepository;
     }
 
     public TipoAcesso Tipo => TipoAcesso.AluguerDigital;
@@ -22,18 +21,12 @@ public class ValidacaoAluguerDigitalStrategy : IEstrategiaValidacaoAcesso
         DateTime agora
     )
     {
-        return await _context
-            .AcessosUtilizador.AsNoTracking()
-            .Where(a =>
-                a.UtilizadorId == utilizadorId
-                && a.Ativo
-                && a.TipoAcesso == TipoAcesso.AluguerDigital
-                && a.FilmeId == filme.Id
-                && a.InicioValidade <= agora
-                && a.FimValidade >= agora
-            )
-            .OrderByDescending(a => a.FimValidade)
-            .FirstOrDefaultAsync();
+        return await _acessoUtilizadorRepository.ObterAcessoValidoAsync(
+            utilizadorId,
+            TipoAcesso.AluguerDigital,
+            agora,
+            filmeId: filme.Id
+        );
     }
 
     public Task<AcessoUtilizador?> ValidarSessaoAsync(

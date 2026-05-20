@@ -62,6 +62,7 @@ public static class CompraMapper
                     {
                         Id = compra.Pagamento.Id,
                         Referencia = compra.Pagamento.Referencia,
+                        Entidade = compra.Pagamento.Entidade,
                         Valor = compra.Pagamento.Valor,
                         Metodo = compra.Pagamento.Metodo,
                         Estado = compra.Pagamento.Estado,

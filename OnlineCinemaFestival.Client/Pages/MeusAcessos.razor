@@ -52,6 +52,15 @@
             </article>
         </section>
 
+        <section class="cinema-panel">
+            <div class="access-meta">
+                <span><strong>BilheteSessao</strong>: acesso a uma sessao e ao respetivo filme/trailer.</span>
+                <span><strong>PasseDiario</strong>: acesso as sessoes de um dia do festival.</span>
+                <span><strong>PasseCompleto</strong>: acesso ao festival inteiro.</span>
+                <span><strong>AluguerDigital</strong>: acesso temporario a um filme individual.</span>
+            </div>
+        </section>
+
         <section class="access-grid">
             @foreach (var acesso in _acessos.OrderBy(a => a.FimValidade))
             {

@@ -11,10 +11,10 @@
         <header class="cinema-page-head">
             <div>
                 <span class="cinema-kicker">Catalogo TMDB</span>
-                <h1>Explora, pesquisa e adiciona filmes</h1>
+                <h1>Explora o catalogo e pesquisa no TMDB</h1>
                 <p>
-                    Os destaques iniciais chegam do backend/TMDB. Pesquisa por titulo, importa para o
-                    catalogo interno e abre a pagina de detalhe do filme.
+                    O catalogo interno mostra filmes ja importados. A pesquisa TMDB apresenta qualquer
+                    resultado encontrado, mas so administradores podem adicionar filmes ao catalogo.
                 </p>
             </div>
         </header>
@@ -42,46 +42,16 @@
             {
                 <div class="video-confirm-panel">
                     <div>
-                        <span class="cinema-kicker">Trailer importado</span>
+                        <span class="cinema-kicker">Filme importado</span>
                         <h2>@_filmeImportado.Titulo</h2>
-                        <p>
-                            Confirma o fornecedor, chave, URL e duracao antes de abrir o detalhe.
-                        </p>
+                        <p>O trailer TMDB foi guardado como video do filme.</p>
                     </div>
 
-                    <div class="video-confirm-grid">
-                        <MudTextField T="string"
-                                      @bind-Value="_videoProvider"
-                                      Label="VideoProvider"
-                                      Variant="Variant.Outlined" />
-                        <MudTextField T="string"
-                                      @bind-Value="_videoKey"
-                                      Label="VideoKey"
-                                      Variant="Variant.Outlined" />
-                        <MudTextField T="string"
-                                      @bind-Value="_videoUrl"
-                                      Label="VideoUrl"
-                                      Variant="Variant.Outlined" />
-                        <MudNumericField T="int?"
-                                         @bind-Value="_duracaoVideoSegundos"
-                                         Label="DuracaoVideoSegundos"
-                                         Variant="Variant.Outlined"
-                                         Min="0" />
-                    </div>
-
-                    <div class="video-confirm-actions">
-                        <button type="button"
-                                class="cinema-btn primary"
-                                disabled="@_aAtualizarVideo"
-                                @onclick="GuardarVideoImportado">
-                            @(_aAtualizarVideo ? "A guardar..." : "Guardar confirmacao")
-                        </button>
-                        <button type="button"
-                                class="cinema-btn secondary"
-                                @onclick="AbrirDetalheImportado">
-                            Abrir detalhe
-                        </button>
-                    </div>
+                    <button type="button"
+                            class="cinema-btn secondary"
+                            @onclick="AbrirDetalheImportado">
+                        Abrir detalhe
+                    </button>
                 </div>
             }
         </section>
@@ -147,12 +117,19 @@
                                         }
                                         else
                                         {
-                                            <button type="button"
-                                                    class="cinema-btn primary"
-                                                    disabled="@_aImportar"
-                                                    @onclick="() => Importar(filme)">
-                                                @(_aImportar ? "A importar..." : "Adicionar ao catalogo")
-                                            </button>
+                                            <AuthorizeView Roles="Administrador">
+                                                <Authorized>
+                                                    <button type="button"
+                                                            class="cinema-btn primary"
+                                                            disabled="@_aImportar"
+                                                            @onclick="() => Importar(filme)">
+                                                        @(_aImportar ? "A importar..." : "Adicionar ao catalogo")
+                                                    </button>
+                                                </Authorized>
+                                                <NotAuthorized>
+                                                    <span class="admin-only-note">Importacao reservada a Admin</span>
+                                                </NotAuthorized>
+                                            </AuthorizeView>
                                         }
                                     </div>
                                 </div>
@@ -218,12 +195,7 @@
     private Severity _mensagemSeveridade = Severity.Info;
     private bool _aPesquisar;
     private bool _aImportar;
-    private bool _aAtualizarVideo;
     private FilmeDTO? _filmeImportado;
-    private string? _videoProvider;
-    private string? _videoKey;
-    private string? _videoUrl;
-    private int? _duracaoVideoSegundos;
 
     private List<FilmeDTO> ResultadosAtuais => _aPesquisar ? _resultadosPesquisa : _tmdbIniciais;
 
@@ -264,12 +236,9 @@
             _filmesInternos = await FilmeService.ObterFilmesAsync();
             _filmesFiltrados = _filmesInternos.Take(20).ToList();
             _generos = ExtrairGeneros(_filmesInternos).ToList();
-            PrepararConfirmacaoVideo(importado);
+            _filmeImportado = importado;
             _mensagemSeveridade = Severity.Success;
-            _mensagemImportacao =
-                importado.DuracaoVideoSegundos.HasValue
-                    ? "Filme importado com trailer e duracao."
-                    : "Filme importado. Confirma o trailer e preenche a duracao manualmente se necessario.";
+            _mensagemImportacao = "Filme importado para o catalogo interno com trailer TMDB.";
         }
         catch (Exception ex)
         {
@@ -282,57 +251,10 @@
         }
     }
 
-    private void PrepararConfirmacaoVideo(FilmeDTO filme)
-    {
-        _filmeImportado = filme;
-        _videoProvider = filme.VideoProvider;
-        _videoKey = filme.VideoKey;
-        _videoUrl = filme.VideoUrl ?? filme.TrailerUrl;
-        _duracaoVideoSegundos = filme.DuracaoVideoSegundos;
-    }
-
     private void AbrirDetalheImportado()
     {
         if (_filmeImportado != null)
             Nav.NavigateTo($"/filmes/{_filmeImportado.Id}");
-    }
-
-    private async Task GuardarVideoImportado()
-    {
-        if (_filmeImportado == null)
-            return;
-
-        _aAtualizarVideo = true;
-        _mensagemImportacao = null;
-
-        try
-        {
-            var atualizado = await FilmeService.AtualizarVideoAsync(
-                _filmeImportado.Id,
-                new AtualizarVideoFilmeDTO
-                {
-                    VideoProvider = _videoProvider,
-                    VideoKey = _videoKey,
-                    VideoUrl = _videoUrl,
-                    DuracaoVideoSegundos = _duracaoVideoSegundos,
-                }
-            );
-
-            PrepararConfirmacaoVideo(atualizado);
-            _filmesInternos = await FilmeService.ObterFilmesAsync();
-            await AplicarFiltrosInternos();
-            _mensagemSeveridade = Severity.Success;
-            _mensagemImportacao = "Trailer e duracao guardados.";
-        }
-        catch (Exception ex)
-        {
-            _mensagemSeveridade = Severity.Error;
-            _mensagemImportacao = ex.Message;
-        }
-        finally
-        {
-            _aAtualizarVideo = false;
-        }
     }
 
     private void AbrirExistente(FilmeDTO filme)

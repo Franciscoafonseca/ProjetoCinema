@@ -1,28 +1,29 @@
-using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
 
 public class RewardsQueryService : IRewardsQueryService
 {
-    private readonly AppDbContext _context;
+    private readonly IRewardsRepository _rewardsRepository;
+    private readonly IRewardTransacaoRepository _rewardTransacaoRepository;
 
-    public RewardsQueryService(AppDbContext context)
+    public RewardsQueryService(
+        IRewardsRepository rewardsRepository,
+        IRewardTransacaoRepository rewardTransacaoRepository
+    )
     {
-        _context = context;
+        _rewardsRepository = rewardsRepository;
+        _rewardTransacaoRepository = rewardTransacaoRepository;
     }
 
-    public int GetSaldo(int utilizadorId)
+    public int ObterSaldo(int utilizadorId)
     {
-        var saldo = _context.Rewards.FirstOrDefault(r => r.UtilizadorId == utilizadorId);
-        return saldo?.Pontos ?? 0;
+        return _rewardsRepository.ObterSaldo(utilizadorId);
     }
 
-    public List<RewardTransacao> GetHistorico(int utilizadorId)
+    public List<RewardTransacao> ObterHistorico(int utilizadorId)
     {
-        return _context.RewardsTransacoes
-            .Where(t => t.UtilizadorId == utilizadorId)
-            .OrderByDescending(t => t.Data)
-            .ToList();
+        return _rewardTransacaoRepository.ObterHistorico(utilizadorId);
     }
 }

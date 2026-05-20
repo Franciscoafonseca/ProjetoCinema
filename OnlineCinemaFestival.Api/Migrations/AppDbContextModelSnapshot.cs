@@ -705,6 +705,9 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Entidade")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Estado")
                         .HasColumnType("INTEGER");
 
@@ -747,6 +750,11 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -756,6 +764,11 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nationality")
+                        .IsRequired()
+                        .HasMaxLength(80)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProfileImageUrl")
@@ -920,6 +933,9 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<int>("FestivalId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("FilmeId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("Fim")
                         .HasColumnType("TEXT");
 
@@ -940,43 +956,9 @@ namespace OnlineCinemaFestival.Api.Migrations
 
                     b.HasIndex("FestivalId");
 
-                    b.ToTable("Sessoes");
-                });
-
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.SessaoFilme", b =>
-                {
-                    b.Property<int>("SessaoId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("FilmeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("DuracaoSegundos")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("HoraFim")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("HoraInicio")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("InicioOffsetSegundos")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("IntervaloAposSegundos")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Ordem")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("SessaoId", "FilmeId");
-
                     b.HasIndex("FilmeId");
 
-                    b.HasIndex("SessaoId", "Ordem")
-                        .IsUnique();
-
-                    b.ToTable("SessaoFilmes");
+                    b.ToTable("Sessoes");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Utilizador", b =>
@@ -1013,6 +995,11 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Role")
                         .HasColumnType("INTEGER");
 
@@ -1023,6 +1010,10 @@ namespace OnlineCinemaFestival.Api.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique()
+                        .HasFilter("\"PhoneNumber\" <> ''");
 
                     b.ToTable("Utilizadores");
                 });
@@ -1503,26 +1494,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Festival");
-                });
-
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.SessaoFilme", b =>
-                {
                     b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
-                        .WithMany("SessoesDoFilme")
+                        .WithMany("Sessoes")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Sessao", "Sessao")
-                        .WithMany("FilmesDaSessao")
-                        .HasForeignKey("SessaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Festival");
 
                     b.Navigation("Filme");
-
-                    b.Navigation("Sessao");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.UtilizadorGeneroFavorito", b =>
@@ -1679,7 +1659,7 @@ namespace OnlineCinemaFestival.Api.Migrations
 
                     b.Navigation("ResultadosPremiosFestival");
 
-                    b.Navigation("SessoesDoFilme");
+                    b.Navigation("Sessoes");
 
                     b.Navigation("Visualizacoes");
 
@@ -1715,8 +1695,6 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Acessos");
 
                     b.Navigation("AcessosUtilizador");
-
-                    b.Navigation("FilmesDaSessao");
 
                     b.Navigation("MensagensChat");
 

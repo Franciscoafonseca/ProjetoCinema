@@ -10,7 +10,6 @@ public class AppDbContext : DbContext
 
     public DbSet<Acesso> Acessos => Set<Acesso>();
 
-    public DbSet<SessaoFilme> SessaoFilmes => Set<SessaoFilme>();
     public DbSet<Festival> Festivals => Set<Festival>();
     public DbSet<Filme> Filmes => Set<Filme>();
     public DbSet<FilmeGenero> FilmeGeneros => Set<FilmeGenero>();
@@ -149,6 +148,12 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Utilizador>().HasIndex(u => u.Email).IsUnique();
+
+        modelBuilder
+            .Entity<Utilizador>()
+            .HasIndex(u => u.PhoneNumber)
+            .IsUnique()
+            .HasFilter("\"PhoneNumber\" <> ''");
 
         modelBuilder
             .Entity<Utilizador>()
@@ -324,28 +329,11 @@ public class AppDbContext : DbContext
             .HasForeignKey(s => s.FestivalId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<SessaoFilme>().HasKey(sf => new { sf.SessaoId, sf.FilmeId });
-
-        modelBuilder.Entity<SessaoFilme>().Property(sf => sf.Ordem).IsRequired();
-
-        modelBuilder.Entity<SessaoFilme>().Property(sf => sf.InicioOffsetSegundos).IsRequired();
-
-        modelBuilder.Entity<SessaoFilme>().Property(sf => sf.IntervaloAposSegundos).IsRequired();
-
-        modelBuilder.Entity<SessaoFilme>().HasIndex(sf => new { sf.SessaoId, sf.Ordem }).IsUnique();
-
         modelBuilder
-            .Entity<SessaoFilme>()
-            .HasOne(sf => sf.Sessao)
-            .WithMany(s => s.FilmesDaSessao)
-            .HasForeignKey(sf => sf.SessaoId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder
-            .Entity<SessaoFilme>()
-            .HasOne(sf => sf.Filme)
-            .WithMany(f => f.SessoesDoFilme)
-            .HasForeignKey(sf => sf.FilmeId)
+            .Entity<Sessao>()
+            .HasOne(s => s.Filme)
+            .WithMany(f => f.Sessoes)
+            .HasForeignKey(s => s.FilmeId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder

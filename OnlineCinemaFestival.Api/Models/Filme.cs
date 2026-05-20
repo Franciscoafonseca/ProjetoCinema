@@ -30,7 +30,7 @@ public class Filme
 
     public ICollection<FestivalFilme> FestivalFilmes { get; set; } = new List<FestivalFilme>();
 
-    public ICollection<SessaoFilme> SessoesDoFilme { get; set; } = new List<SessaoFilme>();
+    public ICollection<Sessao> Sessoes { get; set; } = new List<Sessao>();
 
     public ICollection<Avaliacao> Avaliacoes { get; set; } = new List<Avaliacao>();
 

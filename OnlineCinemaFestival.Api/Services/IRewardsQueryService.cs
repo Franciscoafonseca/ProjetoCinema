@@ -4,6 +4,6 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IRewardsQueryService
 {
-    int GetSaldo(int utilizadorId);
-    List<RewardTransacao> GetHistorico(int utilizadorId);
+    int ObterSaldo(int utilizadorId);
+    List<RewardTransacao> ObterHistorico(int utilizadorId);
 }

@@ -26,7 +26,7 @@ public class EstrategiaCriacaoBilheteSessao : IEstrategiaCriacaoAcessoUtilizador
             TipoAcesso = acesso.Tipo,
             SessaoId = acesso.SessaoId,
             FestivalId = acesso.Sessao.FestivalId,
-            FilmeId = null,
+            FilmeId = acesso.Sessao.FilmeId,
             InicioValidade = acesso.Sessao.Inicio,
             FimValidade = acesso.Sessao.Fim,
             Ativo = true,

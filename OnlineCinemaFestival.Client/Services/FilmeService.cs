@@ -69,9 +69,7 @@ public class FilmeService
         {
             var conteudo = await resposta.Content.ReadAsStringAsync();
             throw new InvalidOperationException(
-                string.IsNullOrWhiteSpace(conteudo)
-                    ? "Nao foi possivel importar o filme."
-                    : conteudo.Trim('"')
+                MensagemErroApi.Limpar(conteudo, "Nao foi possivel importar o filme.")
             );
         }
 
@@ -87,9 +85,7 @@ public class FilmeService
         {
             var conteudo = await resposta.Content.ReadAsStringAsync();
             throw new InvalidOperationException(
-                string.IsNullOrWhiteSpace(conteudo)
-                    ? "Nao foi possivel atualizar o video."
-                    : conteudo.Trim('"')
+                MensagemErroApi.Limpar(conteudo, "Nao foi possivel atualizar o video.")
             );
         }
 

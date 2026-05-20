@@ -1,28 +1,16 @@
+using System.Text.RegularExpressions;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
 
-/// <summary>
-/// Serviço responsável pela gestão dos perfis de utilizador.
-/// Permite consultar e atualizar o próprio perfil, bem como consultar perfis públicos.
-/// </summary>
 public class PerfilUtilizadorService : IPerfilUtilizadorService
 {
     private readonly IUtilizadorRepository _utilizadorRepository;
     private readonly IGeneroRepository _generoRepository;
     private readonly IWebHostEnvironment _environment;
 
-    /// <summary>
-    /// Inicializa uma nova instância do serviço de perfis de utilizador.
-    /// </summary>
-    /// <param name="utilizadorRepository">
-    /// Repositório responsável pelo acesso aos dados dos utilizadores.
-    /// </param>
-    /// <param name="generoRepository">
-    /// Repositório responsável pelo acesso aos géneros cinematográficos.
-    /// </param>
     public PerfilUtilizadorService(
         IUtilizadorRepository utilizadorRepository,
         IGeneroRepository generoRepository,
@@ -34,67 +22,60 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         _environment = environment;
     }
 
-    /// <summary>
-    /// Obtém o perfil privado do utilizador autenticado.
-    /// </summary>
-    /// <param name="userId">Identificador do utilizador autenticado.</param>
-    /// <returns>Dados completos do perfil do utilizador, incluindo email.</returns>
-    /// <exception cref="ArgumentException">
-    /// Lançada quando o utilizador ou o perfil não são encontrados.
-    /// </exception>
     public async Task<PerfilPrivadoDTO> ObterMeuPerfilAsync(int userId)
     {
-        // Obtém o utilizador juntamente com o respetivo perfil e dados relacionados.
         var utilizador = await _utilizadorRepository.ObterComPerfilAsync(userId);
 
         if (utilizador == null || utilizador.Perfil == null)
-            throw new ArgumentException("Perfil não encontrado.");
+            throw new ArgumentException("Perfil nao encontrado.");
 
-        // Devolve o perfil completo, incluindo o email por se tratar do próprio utilizador.
         return ToPrivadoDTO(utilizador);
     }
 
-    /// <summary>
-    /// Atualiza o perfil do utilizador autenticado.
-    /// </summary>
-    /// <param name="userId">Identificador do utilizador autenticado.</param>
-    /// <param name="request">Dados atualizados do perfil.</param>
-    /// <returns>Perfil atualizado do utilizador.</returns>
-    /// <exception cref="ArgumentException">
-    /// Lançada quando o utilizador ou o perfil não são encontrados.
-    /// </exception>
     public async Task<PerfilPrivadoDTO> AtualizarMeuPerfilAsync(
         int userId,
         PedidoAtualizarPerfilDTO request
     )
     {
-        // Obtém o utilizador juntamente com o seu perfil.
         var utilizador = await _utilizadorRepository.ObterComPerfilAsync(userId);
 
         if (utilizador == null || utilizador.Perfil == null)
-            throw new ArgumentException("Perfil não encontrado.");
+            throw new ArgumentException("Perfil nao encontrado.");
 
-        // Atualiza o nome apenas se tiver sido enviado um valor válido.
         if (!string.IsNullOrWhiteSpace(request.Name))
             utilizador.Name = request.Name.Trim();
 
-        // Atualiza os dados pessoais e públicos do perfil.
-        utilizador.Nationality = ValidarCountryCode(request.Nationality);
+        if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+        {
+            var telefone = NormalizarTelefone(request.PhoneNumber);
+            var existente = await _utilizadorRepository.ObterPorTelefoneAsync(telefone);
+
+            if (existente != null && existente.Id != utilizador.Id)
+                throw new ArgumentException("Ja existe um utilizador com este telefone.");
+
+            utilizador.PhoneNumber = telefone;
+        }
+
+        var pais = PerfilOpcoes.ObterPaisValido(
+            string.IsNullOrWhiteSpace(request.CountryCode) ? request.Nationality : request.CountryCode
+        );
+        var localidade = PerfilOpcoes.ObterLocalidadeValida(request.Location);
+
+        utilizador.Nationality = pais.Codigo;
+        utilizador.Perfil.Nationality = pais.Nome;
+        utilizador.Perfil.CountryCode = pais.Codigo;
         utilizador.Perfil.Bio = request.Bio.Trim();
-        utilizador.Perfil.Location = ValidarLocalidade(request.Location);
+        utilizador.Perfil.ProfileImageUrl = request.ProfileImageUrl.Trim();
+        utilizador.Perfil.Location = localidade;
         utilizador.Perfil.IsPublic = request.IsPublic;
 
-        // Regista as datas de atualização do perfil e do utilizador.
         utilizador.Perfil.UpdatedAt = DateTime.UtcNow;
         utilizador.UpdatedAt = DateTime.UtcNow;
 
-        // Obtém os géneros favoritos selecionados pelo utilizador.
         var generos = await _generoRepository.ObterPorIdsAsync(request.FavoriteGenreIds);
 
         if (generos.Count != request.FavoriteGenreIds.Distinct().Count())
-        {
-            throw new ArgumentException("Um ou mais géneros favoritos não existem.");
-        }
+            throw new ArgumentException("Um ou mais generos favoritos nao existem.");
 
         utilizador.GenerosFavoritos.Clear();
 
@@ -105,10 +86,8 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
             );
         }
 
-        // Guarda todas as alterações efetuadas ao perfil.
         await _utilizadorRepository.SaveChangesAsync();
 
-        // Devolve o perfil atualizado, incluindo o email do próprio utilizador.
         return ToPrivadoDTO(utilizador);
     }
 
@@ -163,65 +142,41 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         return ToPrivadoDTO(utilizador);
     }
 
-    /// <summary>
-    /// Obtém todos os perfis públicos existentes no sistema.
-    /// </summary>
-    /// <returns>Lista de perfis públicos, sem exposição dos emails dos utilizadores.</returns>
     public async Task<List<PerfilPublicoDTO>> ObterPerfisPublicosAsync()
     {
-        // Obtém apenas utilizadores com perfil público.
         var utilizadores = await _utilizadorRepository.ObterPerfisPublicosAsync();
-
-        // Converte os utilizadores para resposta pública, ocultando o email.
         return utilizadores.Select(ToPublicoDTO).ToList();
     }
 
-    /// <summary>
-    /// Obtém o perfil público de um utilizador específico.
-    /// </summary>
-    /// <param name="userId">Identificador do utilizador.</param>
-    /// <returns>Dados públicos do perfil do utilizador.</returns>
-    /// <exception cref="ArgumentException">
-    /// Lançada quando o utilizador não existe, não tem perfil ou o perfil não é público.
-    /// </exception>
     public async Task<PerfilPublicoDTO> ObterPerfilPublicoAsync(int userId)
     {
-        // Obtém o utilizador com o respetivo perfil.
         var utilizador = await _utilizadorRepository.ObterComPerfilAsync(userId);
 
-        // Garante que o perfil existe e está definido como público.
         if (utilizador == null || utilizador.Perfil == null || !utilizador.Perfil.IsPublic)
-            throw new ArgumentException("Perfil público não encontrado.");
+            throw new ArgumentException("Perfil publico nao encontrado.");
 
-        // Devolve apenas informação pública, sem expor o email.
         return ToPublicoDTO(utilizador);
     }
 
-    /// <summary>
-    /// Converte uma entidade Utilizador para um DTO publico de perfil.
-    /// </summary>
     private static PerfilPublicoDTO ToPublicoDTO(Utilizador utilizador)
     {
-        // Mapeia a entidade Utilizador para um DTO adequado à resposta da API.
+        var countryCode = ObterCountryCodePerfil(utilizador);
+
         return new PerfilPublicoDTO
         {
             UserId = utilizador.Id,
             Name = utilizador.Name,
-            Nationality = utilizador.Nationality,
-            CountryCode = utilizador.Nationality,
-            CountryFlag = ObterBandeira(utilizador.Nationality),
+            Nationality = ObterNacionalidadePerfil(utilizador),
+            CountryCode = countryCode,
+            CountryFlag = PerfilOpcoes.ObterBandeira(countryCode),
             Bio = utilizador.Perfil?.Bio ?? string.Empty,
             ProfileImageUrl = utilizador.Perfil?.ProfileImageUrl ?? string.Empty,
             Location = utilizador.Perfil?.Location ?? string.Empty,
             IsPublic = utilizador.Perfil?.IsPublic ?? false,
-
-            // Lista os géneros favoritos por ordem alfabética.
             FavoriteGenres = utilizador
                 .GenerosFavoritos.Select(g => g.Genero.Name)
                 .OrderBy(name => name)
                 .ToList(),
-
-            // Calcula estatísticas simples associadas ao perfil.
             ReviewsCount = utilizador.Avaliacoes.Count,
             CommunitiesCount = utilizador.Comunidades.Count,
             PublicListsCount = utilizador.ListasPessoais.Count(l => l.IsPublic),
@@ -237,6 +192,7 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
             UserId = publico.UserId,
             Name = publico.Name,
             Email = utilizador.Email,
+            PhoneNumber = utilizador.PhoneNumber,
             Nationality = publico.Nationality,
             CountryCode = publico.CountryCode,
             CountryFlag = publico.CountryFlag,
@@ -251,45 +207,44 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         };
     }
 
-    private static string ValidarCountryCode(string countryCode)
+    private static string ObterNacionalidadePerfil(Utilizador utilizador)
     {
-        if (string.IsNullOrWhiteSpace(countryCode))
+        if (!string.IsNullOrWhiteSpace(utilizador.Perfil?.Nationality))
+            return utilizador.Perfil.Nationality;
+
+        if (string.IsNullOrWhiteSpace(utilizador.Nationality))
             return string.Empty;
 
-        var normalizado = countryCode.Trim().ToUpperInvariant();
+        return PerfilOpcoes.Paises.FirstOrDefault(p =>
+                p.Codigo.Equals(utilizador.Nationality, StringComparison.OrdinalIgnoreCase)
+                || p.Nome.Equals(utilizador.Nationality, StringComparison.OrdinalIgnoreCase)
+            )
+            ?.Nome ?? utilizador.Nationality;
+    }
 
-        if (normalizado.Length != 2 || normalizado.Any(c => c < 'A' || c > 'Z'))
-            throw new ArgumentException("A nacionalidade deve usar CountryCode ISO-2, por exemplo PT, BR ou US.");
+    private static string ObterCountryCodePerfil(Utilizador utilizador)
+    {
+        if (!string.IsNullOrWhiteSpace(utilizador.Perfil?.CountryCode))
+            return utilizador.Perfil.CountryCode.ToUpperInvariant();
+
+        if (string.IsNullOrWhiteSpace(utilizador.Nationality))
+            return string.Empty;
+
+        var pais = PerfilOpcoes.Paises.FirstOrDefault(p =>
+            p.Codigo.Equals(utilizador.Nationality, StringComparison.OrdinalIgnoreCase)
+            || p.Nome.Equals(utilizador.Nationality, StringComparison.OrdinalIgnoreCase)
+        );
+
+        return pais?.Codigo ?? string.Empty;
+    }
+
+    private static string NormalizarTelefone(string telefone)
+    {
+        var normalizado = Regex.Replace(telefone.Trim(), @"[\s().-]", "");
+
+        if (!Regex.IsMatch(normalizado, @"^\+?[0-9]{7,15}$"))
+            throw new ArgumentException("Introduz um telefone valido.");
 
         return normalizado;
-    }
-
-    private static string ValidarLocalidade(string localidade)
-    {
-        if (string.IsNullOrWhiteSpace(localidade))
-            return string.Empty;
-
-        var normalizada = localidade.Trim();
-
-        if (normalizada.Length > 120)
-            throw new ArgumentException("A localidade deve ter no maximo 120 caracteres.");
-
-        if (normalizada.Any(c => char.IsControl(c)))
-            throw new ArgumentException("A localidade contem caracteres invalidos.");
-
-        return normalizada;
-    }
-
-    private static string ObterBandeira(string countryCode)
-    {
-        if (string.IsNullOrWhiteSpace(countryCode))
-            return string.Empty;
-
-        var codigo = countryCode.Trim().ToUpperInvariant();
-
-        if (codigo.Length != 2 || codigo.Any(c => c < 'A' || c > 'Z'))
-            return string.Empty;
-
-        return string.Concat(codigo.Select(c => char.ConvertFromUtf32(0x1F1E6 + c - 'A')));
     }
 }

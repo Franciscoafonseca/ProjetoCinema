@@ -8,6 +8,8 @@ public class PagamentoReadDTO
 
     public string Referencia { get; set; } = string.Empty;
 
+    public string? Entidade { get; set; }
+
     public decimal Valor { get; set; }
 
     public string Metodo { get; set; } = string.Empty;

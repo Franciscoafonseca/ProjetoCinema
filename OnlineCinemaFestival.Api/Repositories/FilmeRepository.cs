@@ -42,9 +42,8 @@ public class FilmeRepository : IFilmeRepository
                 .ThenInclude(a => a.Usuario)
             .Include(f => f.FestivalFilmes)
                 .ThenInclude(ff => ff.Festival)
-            .Include(f => f.SessoesDoFilme)
-                .ThenInclude(sf => sf.Sessao)
-                    .ThenInclude(s => s.Festival)
+            .Include(f => f.Sessoes)
+                .ThenInclude(s => s.Festival)
             .Include(f => f.Acessos)
             .Include(f => f.ResultadosPremiosFestival)
                 .ThenInclude(r => r.PremioFestival)
@@ -75,6 +74,24 @@ public class FilmeRepository : IFilmeRepository
             .ThenBy(f => f.Titulo)
             .Take(quantidade)
             .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<List<Festival>> ObterFestivaisDoFilmeAsync(int filmeId)
+    {
+        return await _context
+            .FestivalFilmes.Where(ff => ff.FilmeId == filmeId)
+            .Include(ff => ff.Festival)
+            .Select(ff => ff.Festival)
+            .ToListAsync();
+    }
+
+    public async Task<List<Sessao>> ObterSessoesDoFilmeAsync(int filmeId)
+    {
+        return await _context
+            .Sessoes.Where(s => s.FilmeId == filmeId)
+            .Include(s => s.Festival)
+            .Include(s => s.Filme)
             .ToListAsync();
     }
 

@@ -93,28 +93,18 @@ public class VisualizacaoService : IVisualizacaoService
                 "Nao possui acesso valido para visualizar esta sessao."
             );
 
-        var conteudos = new List<ConteudoVisualizacaoDTO>();
-
-        foreach (var sessaoFilme in sessao.FilmesDaSessao.OrderBy(sf => sf.Ordem))
+        var url = await ObterUrlVisualizacaoAsync(sessao.Filme);
+        var conteudos = new List<ConteudoVisualizacaoDTO>
         {
-            var filme = sessaoFilme.Filme;
-
-            if (filme == null)
-                continue;
-
-            var url = await ObterUrlVisualizacaoAsync(filme);
-
-            conteudos.Add(
-                new ConteudoVisualizacaoDTO
-                {
-                    FilmeId = filme.Id,
-                    Titulo = filme.Titulo,
-                    PosterUrl = filme.CapaUrl,
-                    Ordem = sessaoFilme.Ordem,
-                    UrlVisualizacao = url,
-                }
-            );
-        }
+            new()
+            {
+                FilmeId = sessao.FilmeId,
+                Titulo = sessao.Filme.Titulo,
+                PosterUrl = sessao.Filme.CapaUrl,
+                Ordem = 1,
+                UrlVisualizacao = url,
+            },
+        };
 
         await RegistarVisualizacoesSessaoAsync(
             utilizadorId,
@@ -165,7 +155,7 @@ public class VisualizacaoService : IVisualizacaoService
             if (sessao == null)
                 throw new KeyNotFoundException("Sessao nao encontrada.");
 
-            if (!sessao.FilmesDaSessao.Any(sf => sf.FilmeId == dto.FilmeId))
+            if (sessao.FilmeId != dto.FilmeId)
                 throw new InvalidOperationException("O filme nao pertence a esta sessao.");
 
             var acesso = await _validacaoAcessoService.ObterAcessoValidoParaSessaoAsync(

@@ -27,4 +27,36 @@ public class FestivalService
         return await _http.GetFromJsonAsync<List<FilmeDTO>>($"api/festivals/{festivalId}/filmes")
             ?? new();
     }
+
+    public async Task<FestivalDTO> CriarAsync(CriarFestivalDTO dto)
+    {
+        var resposta = await _http.PostAsJsonAsync("api/festivals", dto);
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(await LerErroAsync(resposta, "Nao foi possivel criar o festival."));
+
+        return await resposta.Content.ReadFromJsonAsync<FestivalDTO>()
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
+    }
+
+    public async Task<FestivalFilmeDTO> AssociarFilmeAsync(
+        int festivalId,
+        AssociarFilmeFestivalDTO dto
+    )
+    {
+        var resposta = await _http.PostAsJsonAsync($"api/festivals/{festivalId}/filmes", dto);
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(await LerErroAsync(resposta, "Nao foi possivel adicionar o filme ao festival."));
+
+        return await resposta.Content.ReadFromJsonAsync<FestivalFilmeDTO>()
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
+    }
+
+    private static async Task<string> LerErroAsync(HttpResponseMessage resposta, string fallback)
+    {
+        var conteudo = await resposta.Content.ReadAsStringAsync();
+
+        return string.IsNullOrWhiteSpace(conteudo) ? fallback : conteudo.Trim('"');
+    }
 }

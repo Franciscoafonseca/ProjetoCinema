@@ -16,6 +16,12 @@ public class PerfilUtilizador
     [MaxLength(300)]
     public string ProfileImageUrl { get; set; } = string.Empty;
 
+    [MaxLength(80)]
+    public string Nationality { get; set; } = string.Empty;
+
+    [MaxLength(2)]
+    public string CountryCode { get; set; } = string.Empty;
+
     [MaxLength(120)]
     public string Location { get; set; } = string.Empty;
 

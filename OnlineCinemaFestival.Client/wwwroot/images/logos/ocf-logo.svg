@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Online Cinema Festival</title>
+  <defs>
+    <linearGradient id="mark" x1="18" y1="18" x2="110" y2="110" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff4f6d"/>
+      <stop offset="0.52" stop-color="#ff7e5f"/>
+      <stop offset="1" stop-color="#1fd3c6"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#050913"/>
+  <rect x="12" y="12" width="104" height="104" rx="24" fill="url(#mark)"/>
+  <rect x="25" y="32" width="78" height="52" rx="10" fill="#07101f"/>
+  <path d="M25 48h78" stroke="#f7f8fc" stroke-width="8" stroke-linecap="round" stroke-dasharray="12 10"/>
+  <circle cx="44" cy="96" r="8" fill="#f7f8fc"/>
+  <circle cx="64" cy="96" r="8" fill="#f7f8fc"/>
+  <circle cx="84" cy="96" r="8" fill="#f7f8fc"/>
+</svg>

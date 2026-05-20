@@ -1,16 +1,15 @@
-using Microsoft.EntityFrameworkCore;
-using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services.VisualizacaoAcesso;
 
 public class ValidacaoPasseCompletoStrategy : IEstrategiaValidacaoAcesso
 {
-    private readonly AppDbContext _context;
+    private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
 
-    public ValidacaoPasseCompletoStrategy(AppDbContext context)
+    public ValidacaoPasseCompletoStrategy(IAcessoUtilizadorRepository acessoUtilizadorRepository)
     {
-        _context = context;
+        _acessoUtilizadorRepository = acessoUtilizadorRepository;
     }
 
     public TipoAcesso Tipo => TipoAcesso.PasseCompleto;
@@ -22,28 +21,12 @@ public class ValidacaoPasseCompletoStrategy : IEstrategiaValidacaoAcesso
         DateTime agora
     )
     {
-        var query = _context
-            .AcessosUtilizador.AsNoTracking()
-            .Where(a =>
-                a.UtilizadorId == utilizadorId
-                && a.Ativo
-                && a.TipoAcesso == TipoAcesso.PasseCompleto
-                && a.FestivalId != null
-                && a.InicioValidade <= agora
-                && a.FimValidade >= agora
-            );
-
-        if (festivalId.HasValue)
-            query = query.Where(a => a.FestivalId == festivalId.Value);
-
-        return await query
-            .Where(a =>
-                _context.FestivalFilmes.Any(ff =>
-                    ff.FestivalId == a.FestivalId && ff.FilmeId == filme.Id
-                )
-            )
-            .OrderByDescending(a => a.FimValidade)
-            .FirstOrDefaultAsync();
+        return await _acessoUtilizadorRepository.ObterPasseCompletoValidoParaFilmeAsync(
+            utilizadorId,
+            filme.Id,
+            festivalId,
+            agora
+        );
     }
 
     public async Task<AcessoUtilizador?> ValidarSessaoAsync(
@@ -52,17 +35,11 @@ public class ValidacaoPasseCompletoStrategy : IEstrategiaValidacaoAcesso
         DateTime agora
     )
     {
-        return await _context
-            .AcessosUtilizador.AsNoTracking()
-            .Where(a =>
-                a.UtilizadorId == utilizadorId
-                && a.Ativo
-                && a.TipoAcesso == TipoAcesso.PasseCompleto
-                && a.FestivalId == sessao.FestivalId
-                && a.InicioValidade <= agora
-                && a.FimValidade >= agora
-            )
-            .OrderByDescending(a => a.FimValidade)
-            .FirstOrDefaultAsync();
+        return await _acessoUtilizadorRepository.ObterAcessoValidoAsync(
+            utilizadorId,
+            TipoAcesso.PasseCompleto,
+            agora,
+            festivalId: sessao.FestivalId
+        );
     }
 }

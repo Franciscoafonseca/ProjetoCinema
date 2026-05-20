@@ -35,3 +35,25 @@ public class FestivalFilmeDTO
 
     public FilmeDTO? Filme { get; set; }
 }
+
+public class CriarFestivalDTO
+{
+    public string Name { get; set; } = string.Empty;
+
+    public string Description { get; set; } = string.Empty;
+
+    public DateTime StartDate { get; set; } = DateTime.Today;
+
+    public DateTime EndDate { get; set; } = DateTime.Today.AddDays(3);
+}
+
+public class AssociarFilmeFestivalDTO
+{
+    public int FilmeId { get; set; }
+
+    public bool ElegivelPremiosPublico { get; set; } = true;
+
+    public string? Secao { get; set; }
+
+    public string? Categoria { get; set; }
+}

@@ -24,7 +24,7 @@
         {
             <div class="cinema-state error">@_erro</div>
         }
-        else if (_carrinho.Itens.Count == 0)
+        else if (_carrinho.Itens.Count == 0 && _resultado is null)
         {
             <div class="cinema-state">
                 <p>O carrinho esta vazio.</p>
@@ -58,11 +58,35 @@
                         <MudAlert Severity="@_mensagemSeveridade" Variant="Variant.Filled">@_mensagem</MudAlert>
                     }
 
+                    @if (_resultado?.Pagamento is not null)
+                    {
+                        <div class="cinema-state">
+                            <strong>Compra @_resultado.Referencia</strong>
+                            @if (EhMultibanco(_resultado.Pagamento))
+                            {
+                                <p>Entidade: @_resultado.Pagamento.Entidade</p>
+                                <p>Referencia: @FormatarReferenciaMb(_resultado.Pagamento.Referencia)</p>
+                                <p>Valor: @Moeda(_resultado.Pagamento.Valor)</p>
+                            }
+                            else
+                            {
+                                <p>@_resultado.Pagamento.Metodo - @_resultado.Pagamento.EstadoNome</p>
+                            }
+                        </div>
+                    }
+
                     <div class="checkout-actions">
                         <button class="cinema-btn secondary" @onclick="VoltarCarrinho">Voltar ao carrinho</button>
-                        <button class="cinema-btn primary" disabled="@_aFinalizar" @onclick="Finalizar">
+                        @if (_resultado is null)
+                        {
+                            <button class="cinema-btn primary" disabled="@_aFinalizar" @onclick="Finalizar">
                             @(_aFinalizar ? "A finalizar..." : "Finalizar compra")
-                        </button>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="cinema-btn primary" @onclick="VerCompras">Ver compras</button>
+                        }
                     </div>
                 </section>
 
@@ -108,6 +132,7 @@
     private string? _erro;
     private string? _mensagem;
     private Severity _mensagemSeveridade = Severity.Info;
+    private ResultadoFinalizacaoCompraDTO? _resultado;
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,12 +157,12 @@
 
         try
         {
-            var resultado = await FinalizacaoCompraService.FinalizarCompraAsync(_metodoPagamento);
+            _resultado = await FinalizacaoCompraService.FinalizarCompraAsync(_metodoPagamento);
             _mensagemSeveridade = Severity.Success;
-            _mensagem = string.IsNullOrWhiteSpace(resultado.Mensagem)
+            _mensagem = string.IsNullOrWhiteSpace(_resultado.Mensagem)
                 ? "Compra finalizada com sucesso."
-                : resultado.Mensagem;
-            Nav.NavigateTo("/compras");
+                : _resultado.Mensagem;
+            _carrinho.Itens.Clear();
         }
         catch (Exception ex)
         {
@@ -151,6 +176,8 @@
     }
 
     private void VoltarCarrinho() => Nav.NavigateTo("/carrinho");
+
+    private void VerCompras() => Nav.NavigateTo("/compras");
 
     private static string NomeItem(ItemCarrinhoDTO item)
     {
@@ -181,6 +208,21 @@
     private static string Moeda(decimal valor)
     {
         return valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+    }
+
+    private static bool EhMultibanco(PagamentoDTO pagamento)
+    {
+        return string.Equals(pagamento.Metodo, "ReferenciaMultibanco", StringComparison.OrdinalIgnoreCase)
+            || !string.IsNullOrWhiteSpace(pagamento.Entidade);
+    }
+
+    private static string FormatarReferenciaMb(string referencia)
+    {
+        var digitos = new string(referencia.Where(char.IsDigit).ToArray());
+
+        return digitos.Length == 9
+            ? $"{digitos[..3]} {digitos.Substring(3, 3)} {digitos[6..]}"
+            : referencia;
     }
 
     private sealed record MetodoPagamentoOpcao(string Codigo, string Nome, string Descricao);

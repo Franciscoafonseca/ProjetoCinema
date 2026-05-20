@@ -17,8 +17,8 @@ public class SessaoRepository : ISessaoRepository
     {
         return await _context
             .Sessoes.Include(s => s.Festival)
-            .Include(s => s.FilmesDaSessao)
-                .ThenInclude(sf => sf.Filme)
+            .Include(s => s.Filme)
+            .Include(s => s.Acessos)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -28,8 +28,8 @@ public class SessaoRepository : ISessaoRepository
     {
         return await _context
             .Sessoes.Include(s => s.Festival)
-            .Include(s => s.FilmesDaSessao)
-                .ThenInclude(sf => sf.Filme)
+            .Include(s => s.Filme)
+            .Include(s => s.Acessos)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -38,8 +38,8 @@ public class SessaoRepository : ISessaoRepository
         return await _context
             .Sessoes.Where(s => s.FestivalId == festivalId)
             .Include(s => s.Festival)
-            .Include(s => s.FilmesDaSessao)
-                .ThenInclude(sf => sf.Filme)
+            .Include(s => s.Filme)
+            .Include(s => s.Acessos)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -48,10 +48,10 @@ public class SessaoRepository : ISessaoRepository
     public async Task<IEnumerable<Sessao>> ObterPorFilmeIdAsync(int filmeId)
     {
         return await _context
-            .Sessoes.Where(s => s.FilmesDaSessao.Any(sf => sf.FilmeId == filmeId))
+            .Sessoes.Where(s => s.FilmeId == filmeId)
             .Include(s => s.Festival)
-            .Include(s => s.FilmesDaSessao)
-                .ThenInclude(sf => sf.Filme)
+            .Include(s => s.Filme)
+            .Include(s => s.Acessos)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -62,8 +62,8 @@ public class SessaoRepository : ISessaoRepository
         return await _context
             .Sessoes.Where(s => s.Fim >= dataAtual)
             .Include(s => s.Festival)
-            .Include(s => s.FilmesDaSessao)
-                .ThenInclude(sf => sf.Filme)
+            .Include(s => s.Filme)
+            .Include(s => s.Acessos)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -71,19 +71,17 @@ public class SessaoRepository : ISessaoRepository
 
     public async Task<bool> HasOverlapAsync(
         int festivalId,
-        IEnumerable<int> filmeIds,
+        int filmeId,
         DateTime inicio,
         DateTime fim,
         int? ignoreSessaoId = null
     )
     {
-        var idsFilmes = filmeIds.Distinct().ToList();
-
         var query = _context.Sessoes.Where(s =>
             s.FestivalId == festivalId
+            && s.FilmeId == filmeId
             && s.Inicio < fim
             && inicio < s.Fim
-            && s.FilmesDaSessao.Any(sf => idsFilmes.Contains(sf.FilmeId))
         );
 
         if (ignoreSessaoId.HasValue)
@@ -101,35 +99,6 @@ public class SessaoRepository : ISessaoRepository
     public async Task AddAsync(Sessao sessao)
     {
         await _context.Sessoes.AddAsync(sessao);
-    }
-
-    public async Task AdicionarFilmeAsync(SessaoFilme sessaoFilme)
-    {
-        await _context.SessaoFilmes.AddAsync(sessaoFilme);
-    }
-
-    public async Task<bool> ExisteFilmeNaSessaoAsync(int sessaoId, int filmeId)
-    {
-        return await _context.SessaoFilmes.AnyAsync(sf =>
-            sf.SessaoId == sessaoId && sf.FilmeId == filmeId
-        );
-    }
-
-    public async Task<bool> ExisteOrdemNaSessaoAsync(int sessaoId, int ordem)
-    {
-        return await _context.SessaoFilmes.AnyAsync(sf =>
-            sf.SessaoId == sessaoId && sf.Ordem == ordem
-        );
-    }
-
-    public async Task<int> ObterProximaOrdemAsync(int sessaoId)
-    {
-        var maiorOrdem = await _context
-            .SessaoFilmes.Where(sf => sf.SessaoId == sessaoId)
-            .Select(sf => (int?)sf.Ordem)
-            .MaxAsync();
-
-        return (maiorOrdem ?? 0) + 1;
     }
 
     public void Remove(Sessao sessao)

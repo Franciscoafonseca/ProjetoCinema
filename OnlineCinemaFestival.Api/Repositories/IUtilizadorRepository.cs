@@ -8,6 +8,8 @@ public interface IUtilizadorRepository
 
     Task<Utilizador?> ObterPorEmailAsync(string email);
 
+    Task<Utilizador?> ObterPorTelefoneAsync(string telefone);
+
     Task<Utilizador?> ObterComPerfilAsync(int id);
 
     Task<List<Utilizador>> ObterPerfisPublicosAsync();

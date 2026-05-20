@@ -40,7 +40,14 @@ public class PerfisController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        return Ok(await _profileService.AtualizarMeuPerfilAsync(userId.Value, request));
+        try
+        {
+            return Ok(await _profileService.AtualizarMeuPerfilAsync(userId.Value, request));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [Authorize]
@@ -67,6 +74,21 @@ public class PerfisController : ControllerBase
     public async Task<ActionResult<List<PerfilPublicoDTO>>> GetPublicProfiles()
     {
         return Ok(await _profileService.ObterPerfisPublicosAsync());
+    }
+
+    [AllowAnonymous]
+    [HttpGet("opcoes")]
+    public ActionResult<PerfilOpcoesDTO> GetOpcoesPerfil()
+    {
+        return Ok(
+            new PerfilOpcoesDTO
+            {
+                Paises = PerfilOpcoes
+                    .Paises.Select(p => new PaisOpcaoDTO { Codigo = p.Codigo, Nome = p.Nome })
+                    .ToList(),
+                Localidades = PerfilOpcoes.Localidades.ToList(),
+            }
+        );
     }
 
     [HttpGet("{userId:int}")]

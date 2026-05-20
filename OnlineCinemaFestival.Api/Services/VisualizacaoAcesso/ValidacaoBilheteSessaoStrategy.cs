@@ -1,16 +1,15 @@
-using Microsoft.EntityFrameworkCore;
-using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services.VisualizacaoAcesso;
 
 public class ValidacaoBilheteSessaoStrategy : IEstrategiaValidacaoAcesso
 {
-    private readonly AppDbContext _context;
+    private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
 
-    public ValidacaoBilheteSessaoStrategy(AppDbContext context)
+    public ValidacaoBilheteSessaoStrategy(IAcessoUtilizadorRepository acessoUtilizadorRepository)
     {
-        _context = context;
+        _acessoUtilizadorRepository = acessoUtilizadorRepository;
     }
 
     public TipoAcesso Tipo => TipoAcesso.BilheteSessao;
@@ -31,17 +30,11 @@ public class ValidacaoBilheteSessaoStrategy : IEstrategiaValidacaoAcesso
         DateTime agora
     )
     {
-        return await _context
-            .AcessosUtilizador.AsNoTracking()
-            .Where(a =>
-                a.UtilizadorId == utilizadorId
-                && a.Ativo
-                && a.TipoAcesso == TipoAcesso.BilheteSessao
-                && a.SessaoId == sessao.Id
-                && a.InicioValidade <= agora
-                && a.FimValidade >= agora
-            )
-            .OrderByDescending(a => a.FimValidade)
-            .FirstOrDefaultAsync();
+        return await _acessoUtilizadorRepository.ObterAcessoValidoAsync(
+            utilizadorId,
+            TipoAcesso.BilheteSessao,
+            agora,
+            sessaoId: sessao.Id
+        );
     }
 }

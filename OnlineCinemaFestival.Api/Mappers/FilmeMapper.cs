@@ -21,7 +21,12 @@ public static class FilmeMapper
             Genero = f.Genero,
             Generos = f.FilmeGeneros.Select(fg => fg.Genero.Name).OrderBy(g => g).ToList(),
             Classificacao = f.Classificacao,
+            ClassificacaoTmdb = f.Classificacao,
             AvaliacaoTmdb = f.AvaliacaoTmdb,
+            AvaliacaoInternaMedia = f.Avaliacoes.Count == 0
+                ? null
+                : f.Avaliacoes.Average(a => a.Pontuacao),
+            AvaliacoesInternasTotal = f.Avaliacoes.Count,
             CapaUrl = f.CapaUrl,
             TrailerUrl = f.TrailerUrl,
             VideoProvider = f.VideoProvider,
@@ -71,26 +76,16 @@ public static class FilmeMapper
                 })
                 .ToList(),
             Sessoes = f
-                .SessoesDoFilme.Select(sf => new FilmeSessaoReadDTO
+                .Sessoes.Select(s => new FilmeSessaoReadDTO
                 {
-                    Id = sf.SessaoId,
-                    Titulo = sf.Sessao?.Festival?.Name ?? f.Titulo,
-                    Ordem = sf.Ordem,
-                    HoraInicio =
-                        sf.HoraInicio ?? sf.Sessao?.Inicio.AddSeconds(sf.InicioOffsetSegundos),
-                    HoraFim =
-                        sf.HoraFim
-                        ?? (
-                            sf.Sessao == null ? null
-                            : sf.DuracaoSegundos.HasValue
-                                ? sf
-                                    .Sessao.Inicio.AddSeconds(sf.InicioOffsetSegundos)
-                                    .AddSeconds(sf.DuracaoSegundos.Value)
-                            : sf.Sessao.Fim
-                        ),
-                    InicioOffsetSegundos = sf.InicioOffsetSegundos,
-                    DuracaoSegundos = sf.DuracaoSegundos,
-                    IntervaloAposSegundos = sf.IntervaloAposSegundos,
+                    Id = s.Id,
+                    Titulo = s.Festival?.Name ?? f.Titulo,
+                    Ordem = 1,
+                    HoraInicio = s.Inicio,
+                    HoraFim = s.Fim,
+                    InicioOffsetSegundos = 0,
+                    DuracaoSegundos = null,
+                    IntervaloAposSegundos = 0,
                 })
                 .OrderBy(s => s.HoraInicio)
                 .ToList(),
@@ -143,6 +138,7 @@ public static class FilmeMapper
             Genero = f.Genero,
             Generos = f.Generos,
             Classificacao = f.Classificacao,
+            ClassificacaoTmdb = f.Classificacao,
             AvaliacaoTmdb = f.AvaliacaoTmdb,
             CapaUrl = f.CapaUrl,
             TrailerUrl = f.TrailerUrl,

@@ -27,7 +27,7 @@ public class RewardsController : ControllerBase
     public IActionResult ObterSaldo()
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
-        var saldo = _queryService.GetSaldo(utilizadorId);
+        var saldo = _queryService.ObterSaldo(utilizadorId);
 
         return Ok(new { utilizadorId, pontos = saldo });
     }
@@ -37,7 +37,7 @@ public class RewardsController : ControllerBase
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
         var historico = _queryService
-            .GetHistorico(utilizadorId)
+            .ObterHistorico(utilizadorId)
             .Select(t => new RewardTransacaoReadDto
             {
                 Id = t.Id,
