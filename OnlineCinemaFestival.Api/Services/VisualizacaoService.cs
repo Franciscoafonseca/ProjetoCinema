@@ -225,9 +225,6 @@ public class VisualizacaoService : IVisualizacaoService
         if (!string.IsNullOrWhiteSpace(filme.TrailerUrl))
             return filme.TrailerUrl;
 
-        if (!string.IsNullOrWhiteSpace(filme.ConteudoLocalPath))
-            return filme.ConteudoLocalPath;
-
         return "https://www.youtube.com/embed/dQw4w9WgXcQ";
     }
 

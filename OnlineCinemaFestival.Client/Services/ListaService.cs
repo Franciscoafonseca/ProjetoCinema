@@ -29,14 +29,15 @@ public class ListaService
 
         if (!resposta.IsSuccessStatusCode)
         {
-            var mensagem = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(
-                string.IsNullOrWhiteSpace(mensagem) ? "Não foi possível criar a lista." : mensagem
+            var mensagem = await MensagemErroApi.ObterAsync(
+                resposta,
+                "Nao foi possivel criar a lista."
             );
+            throw new InvalidOperationException(mensagem);
         }
 
         return await resposta.Content.ReadFromJsonAsync<ListaPessoalDTO>()
-            ?? throw new InvalidOperationException("Resposta inválida do servidor.");
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
     public async Task<bool> AdicionarFilmeAsync(int listaId, int filmeId)
@@ -44,9 +45,17 @@ public class ListaService
         var resposta = await _http.PostAsync($"api/listas/{listaId}/filmes/{filmeId}", null);
 
         if (resposta.StatusCode == HttpStatusCode.Conflict)
-            return false; // Já está na lista — não é erro
+            return false;
 
-        resposta.EnsureSuccessStatusCode();
+        if (!resposta.IsSuccessStatusCode)
+        {
+            var mensagem = await MensagemErroApi.ObterAsync(
+                resposta,
+                "Nao foi possivel adicionar o filme a lista."
+            );
+            throw new InvalidOperationException(mensagem);
+        }
+
         return true;
     }
 
@@ -55,9 +64,16 @@ public class ListaService
         var resposta = await _http.DeleteAsync($"api/listas/{listaId}/filmes/{filmeId}");
 
         if (resposta.StatusCode == HttpStatusCode.NotFound)
-            return; // Já não está lá — idempotente
+            return;
 
-        resposta.EnsureSuccessStatusCode();
+        if (!resposta.IsSuccessStatusCode)
+        {
+            var mensagem = await MensagemErroApi.ObterAsync(
+                resposta,
+                "Nao foi possivel remover o filme da lista."
+            );
+            throw new InvalidOperationException(mensagem);
+        }
     }
 
     public async Task RemoverListaAsync(int listaId)
@@ -66,10 +82,11 @@ public class ListaService
 
         if (!resposta.IsSuccessStatusCode)
         {
-            var mensagem = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(
-                string.IsNullOrWhiteSpace(mensagem) ? "Não foi possível apagar a lista." : mensagem
+            var mensagem = await MensagemErroApi.ObterAsync(
+                resposta,
+                "Nao foi possivel apagar a lista."
             );
+            throw new InvalidOperationException(mensagem);
         }
     }
 }

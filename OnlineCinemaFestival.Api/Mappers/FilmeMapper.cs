@@ -32,7 +32,6 @@ public static class FilmeMapper
             VideoProvider = f.VideoProvider,
             VideoKey = f.VideoKey,
             VideoUrl = f.VideoUrl,
-            DuracaoVideoSegundos = f.DuracaoVideoSegundos,
             Popularidade = f.Popularidade,
             Realizador = f.Realizador,
             Atores = SepararLista(f.AtoresPrincipais),
@@ -76,18 +75,29 @@ public static class FilmeMapper
                 })
                 .ToList(),
             Sessoes = f
-                .Sessoes.Select(s => new FilmeSessaoReadDTO
+                .Sessoes.Select(s => new SessaoResumoDTO
                 {
                     Id = s.Id,
-                    Titulo = s.Festival?.Name ?? f.Titulo,
-                    Ordem = 1,
-                    HoraInicio = s.Inicio,
-                    HoraFim = s.Fim,
-                    InicioOffsetSegundos = 0,
-                    DuracaoSegundos = null,
-                    IntervaloAposSegundos = 0,
+                    FestivalId = s.FestivalId,
+                    FestivalName = s.Festival?.Name ?? string.Empty,
+                    NomeFestival = s.Festival?.Name ?? string.Empty,
+                    FilmeId = s.FilmeId,
+                    TituloFilme = f.Titulo,
+                    FilmeTitulo = f.Titulo,
+                    Tipo = s.Tipo,
+                    TipoNome = s.Tipo.ToString(),
+                    Inicio = s.Inicio,
+                    Fim = s.Fim,
+                    Estado = SessaoMapper.ObterEstado(s.Inicio, s.Fim),
+                    TemChatAoVivo = s.TemChatAoVivo,
+                    PrecoBilhete = s
+                        .Acessos.Where(a => a.IsAtivo && a.Tipo == TipoAcesso.BilheteSessao)
+                        .OrderBy(a => a.Preco)
+                        .Select(a => (decimal?)a.Preco)
+                        .FirstOrDefault(),
+                    Observacoes = s.Observacoes,
                 })
-                .OrderBy(s => s.HoraInicio)
+                .OrderBy(s => s.Inicio)
                 .ToList(),
             AcessosDisponiveis = f
                 .Acessos.Where(a => a.IsAtivo)
@@ -120,7 +130,6 @@ public static class FilmeMapper
             VideoProvider = f.VideoProvider,
             VideoKey = f.VideoKey,
             VideoUrl = f.VideoUrl,
-            DuracaoVideoSegundos = f.DuracaoVideoSegundos,
             Realizador = f.Realizador,
             AtoresPrincipais = string.Join(", ", f.Atores),
             TmdbReviewsJson = System.Text.Json.JsonSerializer.Serialize(f.Reviews),
@@ -145,7 +154,6 @@ public static class FilmeMapper
             VideoProvider = f.VideoProvider,
             VideoKey = f.VideoKey,
             VideoUrl = f.VideoUrl,
-            DuracaoVideoSegundos = f.DuracaoVideoSegundos,
             DuracaoMinutos = f.DuracaoMinutos,
         };
 

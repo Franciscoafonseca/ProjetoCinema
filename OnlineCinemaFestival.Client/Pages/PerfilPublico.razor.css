@@ -8,6 +8,16 @@
   gap: 18px;
 }
 
+::deep .perfil-publico-avatar,
+::deep .perfil-publico-info {
+  border: 1px solid var(--ocf-line);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
+    rgba(10, 16, 29, 0.86);
+  box-shadow: var(--ocf-shadow-md);
+}
+
 ::deep .perfil-publico-avatar .mud-card-content {
   padding: 18px;
 }
@@ -38,6 +48,16 @@
 
 .perfil-publico-info {
   min-height: 100%;
+}
+
+::deep .perfil-publico-info .mud-card-content {
+  padding: 26px;
+}
+
+::deep .perfil-publico-chips .mud-chip {
+  border-color: rgba(31, 211, 198, 0.24);
+  background: rgba(31, 211, 198, 0.08);
+  color: var(--ocf-teal-soft);
 }
 
 .perfil-publico-chips {

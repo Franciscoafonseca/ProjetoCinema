@@ -17,4 +17,6 @@ public interface IFilmeService
     Task<FilmeDetalheDTO?> ObterDetalheAsync(int filmeId, int? utilizadorId);
 
     Task<AvaliacaoDTO> CriarReviewAsync(int utilizadorId, int filmeId, CriarAvaliacaoDTO dto);
+
+    Task<AvaliacaoDTO> AtualizarReviewAsync(int utilizadorId, int filmeId, CriarAvaliacaoDTO dto);
 }

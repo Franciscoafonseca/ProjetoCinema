@@ -37,15 +37,15 @@ a,
 }
 
 .valid.modified:not([type="checkbox"]) {
-  outline: 1px solid #26b050;
+  outline: none;
 }
 
 .invalid {
-  outline: 1px solid red;
+  outline: 1px solid rgba(255, 79, 109, 0.8);
 }
 
 .validation-message {
-  color: red;
+  color: #ff9aa7;
 }
 
 #blazor-error-ui {

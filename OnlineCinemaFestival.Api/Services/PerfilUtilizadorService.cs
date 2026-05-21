@@ -65,7 +65,8 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         utilizador.Perfil.Nationality = pais.Nome;
         utilizador.Perfil.CountryCode = pais.Codigo;
         utilizador.Perfil.Bio = request.Bio.Trim();
-        utilizador.Perfil.ProfileImageUrl = request.ProfileImageUrl.Trim();
+        if (!string.IsNullOrWhiteSpace(request.ProfileImageUrl))
+            utilizador.Perfil.ProfileImageUrl = request.ProfileImageUrl.Trim();
         utilizador.Perfil.Location = localidade;
         utilizador.Perfil.IsPublic = request.IsPublic;
 

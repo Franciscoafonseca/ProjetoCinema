@@ -13,11 +13,17 @@ public class FilmesController : ControllerBase
 {
     private readonly IFilmeService _service;
     private readonly IComentarioService _comentarioService;
+    private readonly IPremioFestivalService _premioFestivalService;
 
-    public FilmesController(IFilmeService service, IComentarioService comentarioService)
+    public FilmesController(
+        IFilmeService service,
+        IComentarioService comentarioService,
+        IPremioFestivalService premioFestivalService
+    )
     {
         _service = service;
         _comentarioService = comentarioService;
+        _premioFestivalService = premioFestivalService;
     }
 
     // GET: api/filmes
@@ -33,6 +39,8 @@ public class FilmesController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<FilmeDetalheDTO>> GetFilme(int id)
     {
+        await _premioFestivalService.PublicarResultadosPendentesAsync();
+
         var utilizadorId = User.Identity?.IsAuthenticated == true ? User.GetUserId() : (int?)null;
         var filme = await _service.ObterDetalheAsync(id, utilizadorId);
 
@@ -64,7 +72,7 @@ public class FilmesController : ControllerBase
         {
             var resultado = await _service.ImportFilmeFromTmdbAsync(tmdbId);
 
-            return CreatedAtAction(nameof(GetFilmes), new { id = resultado.Id }, resultado);
+            return CreatedAtAction(nameof(GetFilme), new { id = resultado.Id }, resultado);
         }
         catch (Exception ex)
         {
@@ -112,6 +120,32 @@ public class FilmesController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return Conflict(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPut("{filmeId:int}/reviews/minha")]
+    [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
+    public async Task<ActionResult<AvaliacaoDTO>> AtualizarMinhaReview(
+        int filmeId,
+        [FromBody] CriarAvaliacaoDTO dto
+    )
+    {
+        try
+        {
+            var resultado = await _service.AtualizarReviewAsync(User.GetUserId(), filmeId, dto);
+            return Ok(resultado);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (ArgumentException ex)
         {

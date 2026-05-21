@@ -12,5 +12,7 @@ public interface ICompraRepository
 
     Task<List<Compra>> ObterHistoricoPorUtilizadorAsync(int utilizadorId);
 
+    Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action);
+
     Task SaveChangesAsync();
 }

@@ -6,7 +6,10 @@
 @inject CarrinhoService CarrinhoService
 @inject AvaliacaoService AvaliacaoService
 @inject ListaService ListaService
+@inject PremioFestivalService PremioFestivalService
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
+@using System.Security.Claims
 
 <PageTitle>@(_filme?.Titulo ?? "Filme") - Online Cinema Festival</PageTitle>
 
@@ -49,17 +52,13 @@
                     <div class="chip-row">
                         <span>@AnoFilme(_filme)</span>
                         <span>@Duracao(_filme)</span>
-                        @if (!string.IsNullOrWhiteSpace(_filme.Classificacao))
+                        @if (_filme.AvaliacaoTmdb.HasValue)
                         {
-                            <span>TMDB @_filme.ClassificacaoTmdb</span>
+                            <span>TMDB @_filme.AvaliacaoTmdb.Value.ToString("0.0")/10</span>
                         }
-                        @if (_filme.AvaliacaoInternaMedia.HasValue)
+                        @if (_filme.Popularidade > 0)
                         {
-                            <span>OCF @_filme.AvaliacaoInternaMedia.Value.ToString("0.0")/10</span>
-                        }
-                        @if (_filme.DuracaoVideoSegundos.HasValue)
-                        {
-                            <span>Trailer @FormatarDuracaoVideo(_filme.DuracaoVideoSegundos.Value)</span>
+                            <span>Popularidade @_filme.Popularidade</span>
                         }
                     </div>
 
@@ -104,10 +103,8 @@
                         {
                             <button class="cinema-btn primary" @onclick="AbrirPlayerFilme">Ver agora</button>
                         }
-                        else
-                        {
-                            <a class="cinema-btn secondary" href="#acessos">Comprar acesso</a>
-                        }
+                        <button class="cinema-btn primary" disabled="@_aAtualizarCarrinho" @onclick="AdicionarAluguer">Alugar</button>
+                        <button class="cinema-btn secondary" disabled="@_aAtualizarCarrinho" @onclick="AdicionarAcessoRapido">Comprar acesso</button>
                         <a class="cinema-btn ghost" href="/carrinho">Carrinho</a>
                     </div>
 
@@ -127,10 +124,6 @@
                         <div>
                             <span class="cinema-kicker">Trailer</span>
                             <h2>Antevisao</h2>
-                            @if (_filme.DuracaoVideoSegundos.HasValue)
-                            {
-                                <p>@FormatarDuracaoVideo(_filme.DuracaoVideoSegundos.Value)</p>
-                            }
                         </div>
                     </div>
                     <div class="trailer-wrapper">
@@ -167,6 +160,36 @@
                             </article>
                         }
                     </div>
+                </section>
+            }
+
+            @if (_premiosVotacao.Count > 0)
+            {
+                <section class="cinema-panel">
+                    <div class="cinema-section-head compact">
+                        <div>
+                            <span class="cinema-kicker">Votacao</span>
+                            <h2>Premios ativos</h2>
+                        </div>
+                    </div>
+                    <div class="quick-list">
+                        @foreach (var premio in _premiosVotacao)
+                        {
+                            <article class="quick-item">
+                                <div class="quick-main">
+                                    <strong>@premio.Nome</strong>
+                                    <small>Vota neste filme para o festival #@premio.FestivalId</small>
+                                </div>
+                                <button class="cinema-btn primary" disabled="@_aVotar" @onclick="() => VotarPremio(premio.Id)">
+                                    Votar
+                                </button>
+                            </article>
+                        }
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(_mensagemVoto))
+                    {
+                        <MudAlert Severity="@_mensagemVotoSeveridade" Variant="Variant.Filled">@_mensagemVoto</MudAlert>
+                    }
                 </section>
             }
 
@@ -307,7 +330,7 @@
                 }
             </section>
 
-            <section class="reviews-grid">
+            <section class="reviews-grid reviews-grid-single">
                 <article class="cinema-panel">
                     <div class="cinema-section-head compact">
                         <div>
@@ -327,7 +350,7 @@
                     else
                     {
                         <div class="review-list featured">
-                            @foreach (var review in _filme.ReviewsAplicacao.OrderByDescending(r => r.Data).Take(6))
+                            @foreach (var review in _filme.ReviewsAplicacao.OrderByDescending(r => r.Data))
                             {
                                 <article>
                                     <strong>@review.NomeUsuario</strong>
@@ -340,11 +363,18 @@
 
                     <AuthorizeView>
                         <Authorized Context="reviewAuth">
-                            @if (_filme.PodeAvaliar)
+                            @if (PodeMostrarFormularioReview())
                             {
                                 <EditForm Model="_novaReview" OnValidSubmit="EnviarReview">
                                     <DataAnnotationsValidator />
                                     <div class="review-form">
+                                        <div class="review-form-head">
+                                            <strong>@(_minhaReview == null ? "Publicar review" : "Editar a tua review")</strong>
+                                            @if (_minhaReview != null)
+                                            {
+                                                <span>Ja avaliaste este filme. Podes atualizar a pontuacao e o texto.</span>
+                                            }
+                                        </div>
                                         <div class="star-rating" role="radiogroup" aria-label="Pontuacao de 1 a 10 estrelas">
                                             @for (var estrela = 1; estrela <= 10; estrela++)
                                             {
@@ -353,7 +383,7 @@
                                                         class="@ClasseEstrela(valor)"
                                                         aria-label="@($"{valor} estrelas")"
                                                         @onclick="() => DefinirPontuacao(valor)">
-                                                    ★
+                                                    @((MarkupString)"&#9733;")
                                                 </button>
                                             }
                                         </div>
@@ -361,7 +391,7 @@
                                         <InputTextArea class="text-area" @bind-Value="_novaReview.Texto" placeholder="Escreve a tua review" />
                                         <ValidationMessage For="@(() => _novaReview.Texto)" />
                                         <button class="cinema-btn primary" disabled="@_aEnviarReview" type="submit">
-                                            @(_aEnviarReview ? "A publicar..." : "Publicar review")
+                                            @TextoBotaoReview()
                                         </button>
                                     </div>
                                 </EditForm>
@@ -382,32 +412,6 @@
                     }
                 </article>
 
-                <article class="cinema-panel">
-                    <div class="cinema-section-head compact">
-                        <div>
-                            <span class="cinema-kicker">TMDB</span>
-                            <h2>Reviews externas</h2>
-                        </div>
-                    </div>
-
-                    @if (_filme.ReviewsTmdb.Count == 0)
-                    {
-                        <div class="cinema-state slim">Sem reviews TMDB disponiveis.</div>
-                    }
-                    else
-                    {
-                        <div class="review-list">
-                            @foreach (var review in _filme.ReviewsTmdb.Take(4))
-                            {
-                                <article>
-                                    <strong>@review.Autor</strong>
-                                    <span>TMDB@(review.Nota.HasValue ? $" - {review.Nota:0.0}/10" : "")</span>
-                                    <p>@ResumoReview(review.Texto)</p>
-                                </article>
-                            }
-                        </div>
-                    }
-                </article>
             </section>
 
             <section class="cinema-panel listas-section">
@@ -430,6 +434,12 @@
                                 </button>
                             }
                         </div>
+                        <div class="inline-list-form">
+                            <InputText class="text-input" @bind-Value="_novaListaRapida.Name" placeholder="Nova lista personalizada" />
+                            <button class="cinema-btn secondary" disabled="@_aCriarListaRapida" @onclick="CriarListaRapida">
+                                @(_aCriarListaRapida ? "A criar..." : "Criar lista")
+                            </button>
+                        </div>
                         @if (!string.IsNullOrWhiteSpace(_mensagemListas))
                         {
                             <MudAlert Severity="@_mensagemListasSeveridade" Variant="Variant.Filled">@_mensagemListas</MudAlert>
@@ -451,19 +461,28 @@
     private List<SessaoDTO> _sessoes = new();
     private List<AcessoDTO> _acessos = new();
     private List<ListaPessoalDTO> _listas = new();
+    private List<PremioFestivalDTO> _premiosVotacao = new();
     private int? _sessaoSelecionadaId;
     private int? _festivalSelecionadoId;
     private DateTime _dataPasseDiario = DateTime.Today;
     private bool _aAtualizarCarrinho;
     private bool _aEnviarReview;
     private bool _aAtualizarLista;
+    private bool _aCriarListaRapida;
+    private bool _aVotar;
+    private int? _utilizadorAtualId;
+    private string _nomeUtilizadorAtual = string.Empty;
+    private AvaliacaoDTO? _minhaReview;
     private string? _mensagemCarrinho;
     private Severity _mensagemCarrinhoSeveridade = Severity.Info;
     private string? _mensagemReview;
     private Severity _mensagemReviewSeveridade = Severity.Info;
     private string? _mensagemListas;
     private Severity _mensagemListasSeveridade = Severity.Info;
+    private string? _mensagemVoto;
+    private Severity _mensagemVotoSeveridade = Severity.Info;
     private CriarAvaliacaoDTO _novaReview = new() { Pontuacao = 8 };
+    private CriarListaRequest _novaListaRapida = new();
 
     private string? TrailerEmbedUrl => ConverterParaEmbed(_filme?.VideoUrl ?? _filme?.TrailerUrl);
 
@@ -474,6 +493,9 @@
         if (_filme == null)
             return;
 
+        await AtualizarUtilizadorAtualAsync();
+        PrepararReviewAtual();
+
         _sessoes = _filme.Sessoes.Count > 0
             ? _filme.Sessoes.OrderBy(s => s.Inicio).ToList()
             : (await SessaoService.ObterSessoesPorFilmeAsync(Id)).OrderBy(s => s.Inicio).ToList();
@@ -483,6 +505,7 @@
             : await AcessoService.ObterAcessosAsync();
 
         _listas = await ListaService.ObterMinhasListasAsync();
+        _premiosVotacao = await ObterPremiosVotacaoAsync();
     }
 
     private async Task AdicionarBilheteSelecionado()
@@ -506,6 +529,25 @@
     private async Task AdicionarAluguer()
     {
         await AdicionarAoCarrinho(() => CarrinhoService.AdicionarAluguerDigitalAsync(Id), "Aluguer digital adicionado ao carrinho. Valido por 48h apos a compra.");
+    }
+
+    private async Task AdicionarAcessoRapido()
+    {
+        var proximaSessao = _sessoes
+            .Where(s => s.Fim.ToUniversalTime() > DateTime.UtcNow)
+            .OrderBy(s => s.Inicio)
+            .FirstOrDefault();
+
+        if (proximaSessao != null)
+        {
+            await AdicionarAoCarrinho(
+                () => CarrinhoService.AdicionarBilheteSessaoAsync(proximaSessao.Id),
+                "Bilhete da proxima sessao adicionado ao carrinho."
+            );
+            return;
+        }
+
+        await AdicionarAluguer();
     }
 
     private async Task AdicionarAoCarrinho(Func<Task<CarrinhoDTO>> acao, string sucesso)
@@ -537,16 +579,15 @@
 
         try
         {
-            var review = await AvaliacaoService.CriarAsync(Id, _novaReview);
-            _filme?.ReviewsAplicacao.Insert(0, review);
-            if (_filme != null)
-            {
-                _filme.AvaliacoesInternasTotal = _filme.ReviewsAplicacao.Count;
-                _filme.AvaliacaoInternaMedia = _filme.ReviewsAplicacao.Average(r => r.Pontuacao);
-            }
-            _novaReview = new CriarAvaliacaoDTO { Pontuacao = 8 };
+            var estavaAEditar = _minhaReview != null;
+            var review = estavaAEditar
+                ? await AvaliacaoService.AtualizarMinhaAsync(Id, _novaReview)
+                : await AvaliacaoService.CriarAsync(Id, _novaReview);
+
+            AplicarReviewNaLista(review);
+            _minhaReview = review;
             _mensagemReviewSeveridade = Severity.Success;
-            _mensagemReview = "Review publicada.";
+            _mensagemReview = estavaAEditar ? "Review atualizada." : "Review publicada.";
         }
         catch (Exception ex)
         {
@@ -556,6 +597,34 @@
         finally
         {
             _aEnviarReview = false;
+        }
+    }
+
+    private async Task CriarListaRapida()
+    {
+        _aCriarListaRapida = true;
+        _mensagemListas = null;
+
+        try
+        {
+            ValidarNovaListaRapida();
+            var nova = await ListaService.CriarAsync(_novaListaRapida);
+            await ListaService.AdicionarFilmeAsync(nova.Id, Id);
+            nova.Items.Add(new ListaPessoalItemDTO { FilmeId = Id, Titulo = _filme?.Titulo ?? string.Empty });
+            nova.TotalFilmes = nova.Items.Count;
+            _listas.Add(nova);
+            _novaListaRapida = new CriarListaRequest();
+            _mensagemListasSeveridade = Severity.Success;
+            _mensagemListas = "Lista criada e filme adicionado.";
+        }
+        catch (Exception ex)
+        {
+            _mensagemListasSeveridade = Severity.Error;
+            _mensagemListas = ex.Message;
+        }
+        finally
+        {
+            _aCriarListaRapida = false;
         }
     }
 
@@ -570,12 +639,14 @@
             {
                 await ListaService.RemoverFilmeAsync(lista.Id, Id);
                 lista.Items.RemoveAll(i => i.FilmeId == Id);
+                lista.TotalFilmes = lista.Items.Count;
                 _mensagemListas = "Filme removido da lista.";
             }
             else
             {
                 await ListaService.AdicionarFilmeAsync(lista.Id, Id);
                 lista.Items.Add(new ListaPessoalItemDTO { FilmeId = Id, Titulo = _filme?.Titulo ?? "" });
+                lista.TotalFilmes = lista.Items.Count;
                 _mensagemListas = "Filme adicionado a lista.";
             }
 
@@ -624,6 +695,138 @@
         _novaReview.Pontuacao = valor;
     }
 
+    private bool PodeMostrarFormularioReview()
+    {
+        return _filme?.PodeAvaliar == true || _minhaReview != null;
+    }
+
+    private string TextoBotaoReview()
+    {
+        if (_aEnviarReview)
+            return _minhaReview == null ? "A publicar..." : "A guardar...";
+
+        return _minhaReview == null ? "Publicar review" : "Guardar alteracoes";
+    }
+
+    private async Task AtualizarUtilizadorAtualAsync()
+    {
+        var estado = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = estado.User;
+
+        _nomeUtilizadorAtual = user.Identity?.Name ?? string.Empty;
+        _utilizadorAtualId = ObterClaimInt(user, ClaimTypes.NameIdentifier)
+            ?? ObterClaimInt(user, "nameid")
+            ?? ObterClaimInt(user, "sub");
+    }
+
+    private void PrepararReviewAtual()
+    {
+        _minhaReview = _utilizadorAtualId.HasValue
+            ? _filme?.ReviewsAplicacao.FirstOrDefault(r => r.UsuarioId == _utilizadorAtualId.Value)
+            : null;
+
+        _novaReview = _minhaReview == null
+            ? new CriarAvaliacaoDTO { Pontuacao = 8 }
+            : new CriarAvaliacaoDTO
+            {
+                Pontuacao = _minhaReview.Pontuacao,
+                Texto = _minhaReview.Texto,
+            };
+    }
+
+    private void AplicarReviewNaLista(AvaliacaoDTO review)
+    {
+        if (_filme == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(review.NomeUsuario))
+            review.NomeUsuario = string.IsNullOrWhiteSpace(_nomeUtilizadorAtual)
+                ? "Utilizador"
+                : _nomeUtilizadorAtual;
+
+        var existente = _filme.ReviewsAplicacao.FindIndex(r => r.Id == review.Id);
+        if (existente >= 0)
+            _filme.ReviewsAplicacao[existente] = review;
+        else
+            _filme.ReviewsAplicacao.Insert(0, review);
+
+        _filme.AvaliacoesInternasTotal = _filme.ReviewsAplicacao.Count;
+        _filme.AvaliacaoInternaMedia = _filme.ReviewsAplicacao.Average(r => r.Pontuacao);
+    }
+
+    private void ValidarNovaListaRapida()
+    {
+        var nome = _novaListaRapida.Name?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(nome))
+            throw new InvalidOperationException("O nome da lista e obrigatorio.");
+
+        if (nome.Length < 3)
+            throw new InvalidOperationException("O nome da lista deve ter pelo menos 3 caracteres.");
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(nome, @"^[\p{L}\p{N}\s._'-]+$"))
+            throw new InvalidOperationException("O nome da lista contem caracteres invalidos.");
+
+        if (_listas.Any(l => l.Name.Equals(nome, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Ja existe uma lista com esse nome.");
+
+        _novaListaRapida.Name = nome;
+        _novaListaRapida.Tipo = TipoListaPessoal.Custom;
+    }
+
+    private static int? ObterClaimInt(ClaimsPrincipal user, string tipo)
+    {
+        var valor = user.FindFirst(tipo)?.Value;
+        return int.TryParse(valor, out var id) ? id : null;
+    }
+
+    private async Task VotarPremio(int premioId)
+    {
+        _aVotar = true;
+        _mensagemVoto = null;
+
+        try
+        {
+            await PremioFestivalService.VotarAsync(premioId, Id);
+            _mensagemVotoSeveridade = Severity.Success;
+            _mensagemVoto = "Voto registado.";
+        }
+        catch (Exception ex)
+        {
+            _mensagemVotoSeveridade = Severity.Error;
+            _mensagemVoto = ex.Message;
+        }
+        finally
+        {
+            _aVotar = false;
+        }
+    }
+
+    private async Task<List<PremioFestivalDTO>> ObterPremiosVotacaoAsync()
+    {
+        if (_filme == null)
+            return new();
+
+        var premios = new List<PremioFestivalDTO>();
+
+        foreach (var festival in _filme.Festivais)
+        {
+            try
+            {
+                var doFestival = await PremioFestivalService.ObterPremiosPorFestivalAsync(festival.Id);
+                premios.AddRange(doFestival.Where(p =>
+                    p.EstadoPremio.Equals("Aberto", StringComparison.OrdinalIgnoreCase)
+                ));
+            }
+            catch
+            {
+                // Premios indisponiveis nao devem bloquear o detalhe do filme.
+            }
+        }
+
+        return premios;
+    }
+
     private string ClasseEstrela(int valor)
     {
         return valor <= _novaReview.Pontuacao ? "star-button active" : "star-button";
@@ -644,14 +847,6 @@
     private static string Duracao(FilmeDTO filme)
     {
         return filme.DuracaoMinutos.HasValue ? $"{filme.DuracaoMinutos} min" : "Duracao N/D";
-    }
-
-    private static string FormatarDuracaoVideo(int segundos)
-    {
-        var tempo = TimeSpan.FromSeconds(segundos);
-        return tempo.TotalHours >= 1
-            ? $"{(int)tempo.TotalHours}:{tempo.Minutes:00}:{tempo.Seconds:00}"
-            : $"{tempo.Minutes}:{tempo.Seconds:00}";
     }
 
     private static string AtoresResumo(FilmeDTO filme)

@@ -21,7 +21,6 @@ namespace OnlineCinemaFestival.Api.DTOs
         public string? VideoProvider { get; set; }
         public string? VideoKey { get; set; }
         public string? VideoUrl { get; set; }
-        public int? DuracaoVideoSegundos { get; set; }
         public int Popularidade { get; set; }
     }
 
@@ -36,7 +35,7 @@ namespace OnlineCinemaFestival.Api.DTOs
         public List<AvaliacaoDTO> ReviewsAplicacao { get; set; } = new();
         public List<FestivalResumoDTO> Festivais { get; set; } = new();
         public string? Premios { get; set; }
-        public List<FilmeSessaoReadDTO> Sessoes { get; set; } = new();
+        public List<SessaoResumoDTO> Sessoes { get; set; } = new();
         public List<AcessoReadDTO> AcessosDisponiveis { get; set; } = new();
         public List<ResultadoPremioFestivalDTO> ResultadosPremiosPublicados { get; set; } =
             new();

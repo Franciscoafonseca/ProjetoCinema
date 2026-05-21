@@ -81,7 +81,7 @@ h1 {
 
 .access-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
 }
 
@@ -89,14 +89,19 @@ h1 {
   display: grid;
   gap: 12px;
   padding: 16px;
+  align-content: start;
 }
 
 .access-top,
-.access-meta,
 .access-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.access-meta {
+  display: grid;
+  gap: 7px;
 }
 
 .access-top {
@@ -137,6 +142,13 @@ h1 {
   font-size: 0.88rem;
 }
 
+.access-meta span {
+  width: fit-content;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .access-actions button {
   min-height: 38px;
   border: 0;
@@ -146,6 +158,11 @@ h1 {
   color: #fff;
   font-weight: 800;
   cursor: pointer;
+}
+
+.access-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .state-panel,

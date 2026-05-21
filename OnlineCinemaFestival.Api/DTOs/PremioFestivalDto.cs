@@ -53,5 +53,5 @@ public class ResultadoPremioFestivalDTO
 
     public DateTime PublicadoEm { get; set; }
 
-    public int PublicadoPorUtilizadorId { get; set; }
+    public int? PublicadoPorUtilizadorId { get; set; }
 }

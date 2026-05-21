@@ -2,6 +2,7 @@
 @inject ListaService ListaService
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@using System.Text.RegularExpressions
 
 <PageTitle>As minhas listas — Online Cinema Festival</PageTitle>
 
@@ -209,6 +210,7 @@
 
         try
         {
+            ValidarNovaLista();
             var nova = await ListaService.CriarAsync(_novaLista);
             _listas.Add(nova);
             FecharFormNovaLista();
@@ -269,6 +271,25 @@
     }
 
     private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
+
+    private void ValidarNovaLista()
+    {
+        var nome = _novaLista.Name?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(nome))
+            throw new InvalidOperationException("O nome da lista e obrigatorio.");
+
+        if (nome.Length < 3)
+            throw new InvalidOperationException("O nome da lista deve ter pelo menos 3 caracteres.");
+
+        if (!Regex.IsMatch(nome, @"^[\p{L}\p{N}\s._'-]+$"))
+            throw new InvalidOperationException("O nome da lista contem caracteres invalidos.");
+
+        if (_listas.Any(l => l.Name.Equals(nome, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Ja existe uma lista com esse nome.");
+
+        _novaLista.Name = nome;
+    }
 
     private static string ObterIcone(int tipo) => tipo switch
     {

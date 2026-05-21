@@ -14,7 +14,9 @@
 
         <div class="auth-card">
             <div class="auth-card-head">
-                <span class="auth-logo">OCF</span>
+                <span class="auth-logo">
+                    <img src="images/logos/ocf-logo.svg" alt="" />
+                </span>
                 <div>
                     <h2>Entrar</h2>
                     <p>Acede a tua conta.</p>
@@ -22,13 +24,15 @@
             </div>
 
             <div class="auth-social-grid">
-                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Google")'>
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => MostrarOAuthPreparado("Google")'>
                     <span>G</span>
-                    Continuar com Google
+                    <strong>Google</strong>
+                    <small>preparado</small>
                 </button>
-                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Apple")'>
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => MostrarOAuthPreparado("Apple")'>
                     <span>A</span>
-                    Continuar com Apple
+                    <strong>Apple</strong>
+                    <small>preparado</small>
                 </button>
             </div>
 
@@ -36,6 +40,7 @@
 
             <EditForm Model="_modelo" OnValidSubmit="Entrar">
                 <DataAnnotationsValidator />
+                <ValidationSummary class="auth-validation-summary" />
 
                 <div class="auth-campo">
                     <label for="email">Email</label>
@@ -51,7 +56,7 @@
 
                 @if (!string.IsNullOrWhiteSpace(_erro))
                 {
-                    <p class="auth-erro-geral">@_erro</p>
+                    <p class="auth-erro-geral" role="alert">@_erro</p>
                 }
 
                 <button type="submit" class="btn-auth" disabled="@_aSubmeter">
@@ -94,24 +99,8 @@
         }
     }
 
-    private async Task EntrarExterno(string provider)
+    private void MostrarOAuthPreparado(string provider)
     {
-        _erro = null;
-        _aSubmeter = true;
-
-        try
-        {
-            await AutenticacaoService.EntrarComExternoAsync(provider);
-            var destino = string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl;
-            Nav.NavigateTo(destino);
-        }
-        catch (Exception ex)
-        {
-            _erro = ex.Message;
-        }
-        finally
-        {
-            _aSubmeter = false;
-        }
+        _erro = $"Login com {provider} esta preparado, mas o OAuth ainda nao esta configurado. Usa email e palavra-passe.";
     }
 }

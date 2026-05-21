@@ -1,5 +1,6 @@
 @page "/registo"
 @inject AutenticacaoService AutenticacaoService
+@inject PerfilService PerfilService
 @inject NavigationManager Nav
 
 <PageTitle>Criar Conta - Online Cinema Festival</PageTitle>
@@ -14,7 +15,9 @@
 
         <div class="auth-card auth-card-wide">
             <div class="auth-card-head">
-                <span class="auth-logo">OCF</span>
+                <span class="auth-logo">
+                    <img src="images/logos/ocf-logo.svg" alt="" />
+                </span>
                 <div>
                     <h2>Criar conta</h2>
                     <p>Todos os campos principais sao validados.</p>
@@ -22,13 +25,15 @@
             </div>
 
             <div class="auth-social-grid">
-                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Google")'>
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => MostrarOAuthPreparado("Google")'>
                     <span>G</span>
-                    Continuar com Google
+                    <strong>Google</strong>
+                    <small>preparado</small>
                 </button>
-                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Apple")'>
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => MostrarOAuthPreparado("Apple")'>
                     <span>A</span>
-                    Continuar com Apple
+                    <strong>Apple</strong>
+                    <small>preparado</small>
                 </button>
             </div>
 
@@ -36,6 +41,7 @@
 
             <EditForm Model="_modelo" OnValidSubmit="Registar">
                 <DataAnnotationsValidator />
+                <ValidationSummary class="auth-validation-summary" />
 
                 <div class="auth-grid">
                     <div class="auth-campo">
@@ -60,7 +66,7 @@
                         <label for="country">Pais/Nacionalidade</label>
                         <InputSelect id="country" class="auth-input" @bind-Value="_modelo.CountryCode">
                             <option value="">Seleciona</option>
-                            @foreach (var pais in Paises)
+                            @foreach (var pais in _paises)
                             {
                                 <option value="@pais.Codigo">@pais.Nome</option>
                             }
@@ -72,7 +78,7 @@
                         <label for="location">Localidade</label>
                         <InputSelect id="location" class="auth-input" @bind-Value="_modelo.Location">
                             <option value="">Seleciona</option>
-                            @foreach (var localidade in Localidades)
+                            @foreach (var localidade in _localidades)
                             {
                                 <option value="@localidade">@localidade</option>
                             }
@@ -82,8 +88,20 @@
 
                     <div class="auth-campo">
                         <label for="password">Palavra-passe</label>
-                        <InputText id="password" class="auth-input" @bind-Value="_modelo.Password" type="password" autocomplete="new-password" />
+                        <input id="password"
+                               class="auth-input"
+                               value="@_modelo.Password"
+                               @oninput="AtualizarPassword"
+                               type="password"
+                               autocomplete="new-password" />
                         <ValidationMessage For="@(() => _modelo.Password)" class="auth-erro-campo" />
+                        <ul class="password-rules" aria-label="Regras da palavra-passe">
+                            <li class="@RegraCss(TemMinimo)">8 ou mais caracteres</li>
+                            <li class="@RegraCss(TemMaiuscula)">Uma maiuscula</li>
+                            <li class="@RegraCss(TemMinuscula)">Uma minuscula</li>
+                            <li class="@RegraCss(TemNumero)">Um numero</li>
+                            <li class="@RegraCss(TemSimbolo)">Um simbolo</li>
+                        </ul>
                     </div>
 
                     <div class="auth-campo auth-campo-full">
@@ -95,7 +113,7 @@
 
                 @if (!string.IsNullOrWhiteSpace(_erro))
                 {
-                    <p class="auth-erro-geral">@_erro</p>
+                    <p class="auth-erro-geral" role="alert">@_erro</p>
                 }
 
                 <button type="submit" class="btn-auth" disabled="@_aSubmeter">
@@ -114,8 +132,10 @@
     private readonly PedidoRegistoDTO _modelo = new();
     private string? _erro;
     private bool _aSubmeter;
+    private List<PaisOpcao> _paises = PaisesPadrao;
+    private List<string> _localidades = LocalidadesPadrao.ToList();
 
-    private static readonly List<PaisOpcao> Paises =
+    private static readonly List<PaisOpcao> PaisesPadrao =
     [
         new("PT", "Portugal"),
         new("BR", "Brasil"),
@@ -130,7 +150,7 @@
         new("US", "Estados Unidos"),
     ];
 
-    private static readonly string[] Localidades =
+    private static readonly string[] LocalidadesPadrao =
     [
         "Funchal",
         "Camara de Lobos",
@@ -149,6 +169,30 @@
         "Londres",
     ];
 
+    private bool TemMinimo => _modelo.Password.Length >= 8;
+    private bool TemMaiuscula => _modelo.Password.Any(char.IsUpper);
+    private bool TemMinuscula => _modelo.Password.Any(char.IsLower);
+    private bool TemNumero => _modelo.Password.Any(char.IsDigit);
+    private bool TemSimbolo => _modelo.Password.Any(c => !char.IsLetterOrDigit(c));
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var opcoes = await PerfilService.ObterOpcoesAsync();
+
+            if (opcoes.Paises.Count > 0)
+                _paises = opcoes.Paises.Select(p => new PaisOpcao(p.Codigo, p.Nome)).ToList();
+
+            if (opcoes.Localidades.Count > 0)
+                _localidades = opcoes.Localidades;
+        }
+        catch
+        {
+            // Mantem opcoes locais se a API ainda estiver indisponivel.
+        }
+    }
+
     private async Task Registar()
     {
         _erro = null;
@@ -156,7 +200,7 @@
 
         try
         {
-            _modelo.Nationality = Paises.FirstOrDefault(p => p.Codigo == _modelo.CountryCode)?.Nome ?? string.Empty;
+            _modelo.Nationality = _paises.FirstOrDefault(p => p.Codigo == _modelo.CountryCode)?.Nome ?? string.Empty;
             await AutenticacaoService.RegistarAsync(_modelo);
             Nav.NavigateTo("/perfil");
         }
@@ -170,24 +214,16 @@
         }
     }
 
-    private async Task EntrarExterno(string provider)
+    private void MostrarOAuthPreparado(string provider)
     {
-        _erro = null;
-        _aSubmeter = true;
+        _erro = $"Registo com {provider} esta preparado, mas o OAuth ainda nao esta configurado. Usa o formulario para criar conta.";
+    }
 
-        try
-        {
-            await AutenticacaoService.EntrarComExternoAsync(provider);
-            Nav.NavigateTo("/perfil");
-        }
-        catch (Exception ex)
-        {
-            _erro = ex.Message;
-        }
-        finally
-        {
-            _aSubmeter = false;
-        }
+    private static string RegraCss(bool valida) => valida ? "ok" : string.Empty;
+
+    private void AtualizarPassword(ChangeEventArgs e)
+    {
+        _modelo.Password = e.Value?.ToString() ?? string.Empty;
     }
 
     private sealed record PaisOpcao(string Codigo, string Nome);

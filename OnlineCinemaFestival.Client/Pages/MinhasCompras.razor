@@ -75,11 +75,31 @@
 
                             @if (compra.Pagamento != null)
                             {
-                                <div class="pagamento">
-                                    <span>@compra.Pagamento.Metodo</span>
-                                    <span>@compra.Pagamento.EstadoNome</span>
-                                    <span>@compra.Pagamento.Referencia</span>
-                                </div>
+                                @if (EhMultibanco(compra.Pagamento))
+                                {
+                                    <dl class="pagamento mb-ref">
+                                        <div>
+                                            <dt>Entidade</dt>
+                                            <dd>@compra.Pagamento.Entidade</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Referencia</dt>
+                                            <dd>@FormatarReferenciaMb(compra.Pagamento.Referencia)</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Valor</dt>
+                                            <dd>@Moeda(compra.Pagamento.Valor)</dd>
+                                        </div>
+                                    </dl>
+                                }
+                                else
+                                {
+                                    <div class="pagamento">
+                                        <span>@compra.Pagamento.Metodo</span>
+                                        <span>@compra.Pagamento.EstadoNome</span>
+                                        <span>@compra.Pagamento.Referencia</span>
+                                    </div>
+                                }
                             }
 
                             <ul>
@@ -88,7 +108,11 @@
                                     <li>
                                         <span>
                                             <strong>@item.NomeAcesso</strong>
-                                            <small>@item.TipoAcessoNome x @item.Quantidade</small>
+                                            <small>@DescricaoItemCompra(item)</small>
+                                            @foreach (var detalhe in DetalhesItemCompra(item))
+                                            {
+                                                <small>@detalhe</small>
+                                            }
                                         </span>
                                         <span>@Moeda(item.Subtotal)</span>
                                     </li>
@@ -189,5 +213,59 @@
     private static string Moeda(decimal valor)
     {
         return valor.ToString("C", new System.Globalization.CultureInfo("pt-PT"));
+    }
+
+    private static string DescricaoItemCompra(ItemCompraDTO item)
+    {
+        return item.TipoAcesso switch
+        {
+            TiposAcesso.BilheteSessao => $"Bilhete de sessao - {ValorOuPadrao(item.TituloFilme, "filme indisponivel")}",
+            TiposAcesso.PasseDiario => $"Passe diario - {ValorOuPadrao(item.NomeFestival, "festival indisponivel")}",
+            TiposAcesso.PasseCompleto => $"Passe completo - {ValorOuPadrao(item.NomeFestival, "festival indisponivel")}",
+            TiposAcesso.AluguerDigital => $"Aluguer digital - {ValorOuPadrao(item.TituloFilme, "filme indisponivel")}",
+            _ => item.TipoAcessoNome,
+        };
+    }
+
+    private static IEnumerable<string> DetalhesItemCompra(ItemCompraDTO item)
+    {
+        if (item.SessaoId.HasValue)
+            yield return $"Sessao #{item.SessaoId.Value}";
+
+        if (item.InicioSessao.HasValue)
+            yield return $"Inicio: {item.InicioSessao.Value.ToLocalTime():dd/MM/yyyy HH:mm}";
+
+        if (item.DataAcesso.HasValue)
+            yield return $"Dia: {item.DataAcesso.Value.ToLocalTime():dd/MM/yyyy}";
+
+        if (item.FimValidade.HasValue)
+            yield return $"Validade: {item.FimValidade.Value.ToLocalTime():dd/MM/yyyy HH:mm} - {EstadoValidade(item)}";
+    }
+
+    private static string EstadoValidade(ItemCompraDTO item)
+    {
+        return item.FimValidade.HasValue && item.FimValidade.Value.ToUniversalTime() < DateTime.UtcNow
+            ? "expirado"
+            : "ativo";
+    }
+
+    private static string ValorOuPadrao(string valor, string padrao)
+    {
+        return string.IsNullOrWhiteSpace(valor) ? padrao : valor;
+    }
+
+    private static bool EhMultibanco(PagamentoDTO pagamento)
+    {
+        return string.Equals(pagamento.Metodo, "ReferenciaMultibanco", StringComparison.OrdinalIgnoreCase)
+            || !string.IsNullOrWhiteSpace(pagamento.Entidade);
+    }
+
+    private static string FormatarReferenciaMb(string referencia)
+    {
+        var digitos = new string(referencia.Where(char.IsDigit).ToArray());
+
+        return digitos.Length == 9
+            ? $"{digitos[..3]} {digitos.Substring(3, 3)} {digitos[6..]}"
+            : referencia;
     }
 }

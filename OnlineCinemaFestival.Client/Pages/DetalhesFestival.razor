@@ -215,12 +215,9 @@ else
                                 <button class="sessao-btn" @onclick="() => AbrirPlayer(sessao.Id)">
                                     Player
                                 </button>
-                                @if (sessao.FilmePrincipalId.HasValue)
-                                {
-                                    <button class="sessao-btn" @onclick="() => AbrirFilme(sessao.FilmePrincipalId.Value)">
-                                        Filme
-                                    </button>
-                                }
+                                <button class="sessao-btn" @onclick="() => AbrirFilme(sessao.FilmePrincipalId)">
+                                    Filme
+                                </button>
                             </div>
                         </article>
                     }

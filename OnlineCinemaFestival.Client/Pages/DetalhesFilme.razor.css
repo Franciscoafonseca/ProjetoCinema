@@ -273,6 +273,10 @@
   gap: 18px;
 }
 
+.reviews-grid-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .review-score {
   display: grid;
   justify-items: end;
@@ -324,6 +328,21 @@
   grid-template-columns: 1fr;
   gap: 12px;
   margin-top: 16px;
+}
+
+.review-form-head {
+  display: grid;
+  gap: 4px;
+}
+
+.review-form-head strong {
+  color: var(--ocf-text);
+  font-size: 1rem;
+}
+
+.review-form-head span {
+  color: var(--ocf-muted);
+  font-size: 0.9rem;
 }
 
 .review-form .cinema-btn {
@@ -390,11 +409,23 @@
   }
 }
 
+.inline-list-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+}
+
 @media (max-width: 680px) {
   .facts-grid,
   .access-choice-grid,
   .quick-item,
   .review-form {
+    grid-template-columns: 1fr;
+  }
+
+  .inline-list-form {
     grid-template-columns: 1fr;
   }
 

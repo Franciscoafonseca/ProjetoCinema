@@ -60,16 +60,19 @@
 
                     <div class="session-main">
                         <div class="session-titleline">
-                            <h2>@TituloSessao(sessao)</h2>
+                            <h2><a href="@($"/sessoes/{sessao.Id}")">@TituloSessao(sessao)</a></h2>
                             <span class="status @EstadoCss(EstadoTexto(sessao))">@EstadoTexto(sessao)</span>
                         </div>
+                        <div class="meta-panel">
+                            <span><strong>Filme</strong> @TituloSessao(sessao)</span>
+                            <span><strong>Bilhete</strong> @Preco(sessao)</span>
+                            <span><strong>Sessao</strong> @sessao.TipoNome</span>
+                            <span><strong>Estado</strong> @EstadoRotulo(sessao)</span>
+                        </div>
                         <div class="meta">
-                            <span>Festival: @sessao.Festival</span>
-                            <span>Filme: @TituloSessao(sessao)</span>
-                            <span>Hora: @sessao.Inicio.ToLocalTime().ToString("dd/MM HH:mm") - @sessao.Fim.ToLocalTime().ToString("HH:mm")</span>
-                            <span>TipoSessao: @sessao.TipoNome</span>
-                            <span>TipoAcesso: BilheteSessao</span>
-                            <span>Preco: @Preco(sessao)</span>
+                            <span>@sessao.Festival</span>
+                            <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM HH:mm") - @sessao.Fim.ToLocalTime().ToString("HH:mm")</span>
+                            <span>@sessao.TipoNome</span>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(sessao.Observacoes))
                         {
@@ -78,16 +81,18 @@
                     </div>
 
                     <div class="session-actions">
+                        <button class="secondary" @onclick="() => AbrirDetalhe(sessao.Id)">Ver detalhes</button>
                         <button class="primary"
                                 disabled="@(_aAtualizar || SessaoTerminada(sessao))"
                                 @onclick="() => AdicionarBilhete(sessao.Id)">
                             Comprar bilhete
                         </button>
-                        <button class="secondary" @onclick="() => AbrirPlayer(sessao.Id)">Player</button>
-                        @if (sessao.FilmePrincipalId.HasValue)
-                        {
-                            <button class="secondary" @onclick="() => AbrirFilme(sessao.FilmePrincipalId.Value)">Filme</button>
-                        }
+                        <button class="secondary" @onclick="() => AbrirPlayer(sessao.Id)">Entrar no player</button>
+                        <button class="secondary"
+                                disabled="@(!sessao.TemChatAoVivo)"
+                                @onclick="() => AbrirChat(sessao.Id)">
+                            Chat ao vivo
+                        </button>
                     </div>
                 </article>
             }
@@ -96,7 +101,7 @@
 
     @if (!string.IsNullOrWhiteSpace(_feedback))
     {
-        <div class="feedback">@_feedback</div>
+        <div class="feedback @(_feedbackErro ? "error" : "success")">@_feedback</div>
     }
 </div>
 
@@ -107,6 +112,7 @@
     private bool _apenasDisponiveis = true;
     private bool _aAtualizar;
     private string? _feedback;
+    private bool _feedbackErro;
 
     private List<SessaoDTO> SessoesFiltradas =>
         _sessoes
@@ -133,16 +139,19 @@
     private async Task AdicionarBilhete(int sessaoId)
     {
         _feedback = null;
+        _feedbackErro = false;
         _aAtualizar = true;
 
         try
         {
             await CarrinhoService.AdicionarBilheteSessaoAsync(sessaoId);
             _feedback = "Bilhete adicionado ao carrinho.";
+            _feedbackErro = false;
         }
         catch (Exception ex)
         {
             _feedback = ex.Message;
+            _feedbackErro = true;
         }
         finally
         {
@@ -191,7 +200,25 @@
             : "Bilhete disponivel no carrinho";
     }
 
+    private static string TextoPlayer(SessaoDTO sessao)
+    {
+        return SessaoTerminada(sessao) ? "Sessao terminada" : "Disponivel com acesso valido";
+    }
+
+    private static string EstadoRotulo(SessaoDTO sessao)
+    {
+        return EstadoTexto(sessao) switch
+        {
+            "ADecorrer" => "A decorrer",
+            var estado => estado,
+        };
+    }
+
+    private void AbrirDetalhe(int sessaoId) => Nav.NavigateTo($"/sessoes/{sessaoId}");
+
     private void AbrirPlayer(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
+
+    private void AbrirChat(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
 
     private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
 }

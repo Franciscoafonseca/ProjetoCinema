@@ -35,6 +35,7 @@ public class MensagemChatSessaoRepository : IMensagemChatSessaoRepository
         return await _context
             .MensagensChatSessao.AsNoTracking()
             .Include(m => m.Utilizador)
+                .ThenInclude(u => u.Perfil)
             .Where(m => m.SessaoId == sessaoId)
             .OrderByDescending(m => m.EnviadaEm)
             .Take(quantidade)

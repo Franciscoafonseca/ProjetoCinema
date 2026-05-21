@@ -20,6 +20,18 @@ public class AcessoUtilizadorDTO
 
     public int? FilmeId { get; set; }
 
+    public string TituloFilme { get; set; } = string.Empty;
+
+    public string NomeFestival { get; set; } = string.Empty;
+
+    public DateTime? InicioSessao { get; set; }
+
+    public DateTime? FimSessao { get; set; }
+
+    public DateTime? DataAcesso { get; set; }
+
+    public int? DuracaoHoras { get; set; }
+
     public DateTime InicioValidade { get; set; }
 
     public DateTime FimValidade { get; set; }

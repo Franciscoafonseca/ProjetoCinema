@@ -139,22 +139,6 @@ h1 {
   font-size: 1.25rem;
 }
 
-.qty {
-  display: grid;
-  grid-template-columns: 38px 48px 38px;
-  gap: 6px;
-}
-
-.qty input {
-  width: 48px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  background: #111;
-  color: #fff;
-  text-align: center;
-  font-weight: 800;
-}
-
 .single-qty {
   color: #bbb;
   font-size: 0.9rem;
@@ -179,8 +163,7 @@ button.checkout {
 }
 
 button.secondary,
-button.remove,
-.qty button {
+button.remove {
   background: #2a2a2a;
 }
 

@@ -74,6 +74,15 @@ public class PedidoAutenticacaoExternaDTO
     public string ReturnUrl { get; set; } = string.Empty;
 }
 
+public class ProvedorAutenticacaoExternaDTO
+{
+    public string Provider { get; set; } = string.Empty;
+
+    public string Nome { get; set; } = string.Empty;
+
+    public bool Configurado { get; set; }
+}
+
 public sealed class StrongPasswordAttribute : ValidationAttribute
 {
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)

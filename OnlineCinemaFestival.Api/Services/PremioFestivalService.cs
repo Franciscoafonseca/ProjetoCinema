@@ -1,18 +1,18 @@
 using Microsoft.EntityFrameworkCore;
-using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
 
 public class PremioFestivalService : IPremioFestivalService
 {
-    private readonly AppDbContext _db;
+    private readonly IPremioFestivalRepository _repository;
 
-    public PremioFestivalService(AppDbContext db)
+    public PremioFestivalService(IPremioFestivalRepository repository)
     {
-        _db = db;
+        _repository = repository;
     }
 
     public async Task<PremioFestivalReadDTO> CriarPremioAsync(
@@ -22,9 +22,7 @@ public class PremioFestivalService : IPremioFestivalService
     {
         ValidarDadosPremio(dto);
 
-        var festivalExiste = await _db.Festivals.AnyAsync(f => f.Id == festivalId);
-
-        if (!festivalExiste)
+        if (!await _repository.FestivalExisteAsync(festivalId))
             throw new KeyNotFoundException("Festival nao encontrado.");
 
         var premio = new PremioFestival
@@ -37,8 +35,8 @@ public class PremioFestivalService : IPremioFestivalService
             EstadoPremio = EstadoPremio.Rascunho,
         };
 
-        await _db.PremiosFestival.AddAsync(premio);
-        await _db.SaveChangesAsync();
+        await _repository.AddPremioAsync(premio);
+        await _repository.SaveChangesAsync();
 
         return PremioFestivalMapper.MapToReadDTO(premio);
     }
@@ -54,7 +52,7 @@ public class PremioFestivalService : IPremioFestivalService
             throw new InvalidOperationException("Nao e possivel abrir uma votacao ja terminada.");
 
         premio.EstadoPremio = EstadoPremio.Aberto;
-        await _db.SaveChangesAsync();
+        await _repository.SaveChangesAsync();
 
         return PremioFestivalMapper.MapToReadDTO(premio);
     }
@@ -64,25 +62,15 @@ public class PremioFestivalService : IPremioFestivalService
         var premio = await ObterPremioAsync(premioFestivalId);
         ValidarVotacaoAberta(premio);
 
-        var filmeElegivel = await _db.FestivalFilmes.AnyAsync(ff =>
-            ff.FestivalId == premio.FestivalId
-            && ff.FilmeId == filmeId
-            && ff.ElegivelPremiosPublico
-        );
-
-        if (!filmeElegivel)
+        if (!await _repository.FilmeElegivelAsync(premio.FestivalId, filmeId))
             throw new InvalidOperationException(
                 "O filme nao pertence ao festival ou nao esta elegivel para premios."
             );
 
-        var jaVotou = await _db.VotosPremiosFestival.AnyAsync(v =>
-            v.PremioFestivalId == premioFestivalId && v.UtilizadorId == utilizadorId
-        );
-
-        if (jaVotou)
+        if (await _repository.UtilizadorJaVotouAsync(premioFestivalId, utilizadorId))
             throw new InvalidOperationException("Ja votaste neste premio.");
 
-        await _db.VotosPremiosFestival.AddAsync(
+        await _repository.AddVotoAsync(
             new VotoPremioFestival
             {
                 PremioFestivalId = premioFestivalId,
@@ -95,7 +83,7 @@ public class PremioFestivalService : IPremioFestivalService
 
         try
         {
-            await _db.SaveChangesAsync();
+            await _repository.SaveChangesAsync();
         }
         catch (DbUpdateException)
         {
@@ -111,7 +99,7 @@ public class PremioFestivalService : IPremioFestivalService
             throw new InvalidOperationException("Resultados ja publicados para este premio.");
 
         premio.EstadoPremio = EstadoPremio.Fechado;
-        await _db.SaveChangesAsync();
+        await _repository.SaveChangesAsync();
 
         return PremioFestivalMapper.MapToReadDTO(premio);
     }
@@ -121,44 +109,12 @@ public class PremioFestivalService : IPremioFestivalService
         int publicadoPorUtilizadorId
     )
     {
-        var premio = await ObterPremioComResultadoAsync(premioFestivalId);
+        var resultado = await PublicarResultadoInternoAsync(
+            premioFestivalId,
+            publicadoPorUtilizadorId
+        );
 
-        if (premio.EstadoPremio != EstadoPremio.Fechado)
-            throw new InvalidOperationException("Fecha a votacao antes de publicar resultados.");
-
-        var vencedor = await _db
-            .VotosPremiosFestival.Where(v => v.PremioFestivalId == premioFestivalId)
-            .GroupBy(v => v.FilmeId)
-            .Select(g => new { FilmeId = g.Key, Total = g.Count() })
-            .OrderByDescending(g => g.Total)
-            .ThenBy(g => g.FilmeId)
-            .FirstOrDefaultAsync();
-
-        if (vencedor == null)
-            throw new InvalidOperationException("Nao existem votos para publicar resultados.");
-
-        var resultado =
-            premio.Resultado
-            ?? new ResultadoPremioFestival { PremioFestivalId = premioFestivalId };
-
-        resultado.FilmeIdVencedor = vencedor.FilmeId;
-        resultado.TotalVotos = vencedor.Total;
-        resultado.PublicadoEm = DateTime.UtcNow;
-        resultado.PublicadoPorUtilizadorId = publicadoPorUtilizadorId;
-
-        if (premio.Resultado == null)
-            await _db.ResultadosPremiosFestival.AddAsync(resultado);
-
-        premio.EstadoPremio = EstadoPremio.Publicado;
-        await _db.SaveChangesAsync();
-
-        return (
-            await _db
-                .ResultadosPremiosFestival.Include(r => r.PremioFestival)
-                    .ThenInclude(p => p.Festival)
-                .Include(r => r.FilmeVencedor)
-                .FirstAsync(r => r.PremioFestivalId == premioFestivalId)
-        ).ToResultadoDto();
+        return PremioFestivalMapper.MapResultadoToDTO(resultado);
     }
 
     public async Task<IEnumerable<ResultadoPremioFestivalDTO>> ObterResultadosPublicosAsync(
@@ -166,24 +122,9 @@ public class PremioFestivalService : IPremioFestivalService
         int? filmeId = null
     )
     {
-        var query = _db
-            .ResultadosPremiosFestival.Include(r => r.PremioFestival)
-                .ThenInclude(p => p.Festival)
-            .Include(r => r.FilmeVencedor)
-            .Where(r => r.PremioFestival.EstadoPremio == EstadoPremio.Publicado);
+        await PublicarResultadosPendentesAsync();
 
-        if (festivalId.HasValue)
-            query = query.Where(r => r.PremioFestival.FestivalId == festivalId.Value);
-
-        if (filmeId.HasValue)
-            query = query.Where(r => r.FilmeIdVencedor == filmeId.Value);
-
-        var resultados = await query
-            .OrderByDescending(r => r.PublicadoEm)
-            .ThenBy(r => r.PremioFestival.Nome)
-            .AsNoTracking()
-            .ToListAsync();
-
+        var resultados = await _repository.ObterResultadosPublicosAsync(festivalId, filmeId);
         return resultados.Select(PremioFestivalMapper.MapResultadoToDTO);
     }
 
@@ -192,36 +133,92 @@ public class PremioFestivalService : IPremioFestivalService
         bool incluirRascunhos
     )
     {
-        var festivalExiste = await _db.Festivals.AnyAsync(f => f.Id == festivalId);
-
-        if (!festivalExiste)
+        if (!await _repository.FestivalExisteAsync(festivalId))
             throw new KeyNotFoundException("Festival nao encontrado.");
 
-        var query = _db.PremiosFestival.Where(p => p.FestivalId == festivalId);
+        await PublicarResultadosPendentesAsync();
 
-        if (!incluirRascunhos)
-            query = query.Where(p => p.EstadoPremio != EstadoPremio.Rascunho);
-
-        var premios = await query
-            .OrderBy(p => p.DataAberturaVotacao)
-            .ThenBy(p => p.Nome)
-            .AsNoTracking()
-            .ToListAsync();
-
+        var premios = await _repository.ObterPremiosPorFestivalAsync(festivalId, incluirRascunhos);
         return premios.Select(PremioFestivalMapper.MapToReadDTO);
+    }
+
+    public async Task<int> PublicarResultadosPendentesAsync()
+    {
+        var premios = await _repository.ObterPremiosPendentesPublicacaoAsync(DateTime.UtcNow);
+        var publicados = 0;
+
+        foreach (var premio in premios)
+        {
+            var vencedor = await _repository.ObterVencedorPorVotosAsync(premio.Id);
+
+            if (vencedor == null)
+            {
+                premio.EstadoPremio = EstadoPremio.Fechado;
+                continue;
+            }
+
+            premio.Resultado = new ResultadoPremioFestival
+            {
+                PremioFestivalId = premio.Id,
+                FilmeIdVencedor = vencedor.Value.FilmeId,
+                TotalVotos = vencedor.Value.TotalVotos,
+                PublicadoEm = DateTime.UtcNow,
+                PublicadoPorUtilizadorId = null,
+            };
+
+            premio.EstadoPremio = EstadoPremio.Publicado;
+            publicados++;
+        }
+
+        if (premios.Count > 0)
+            await _repository.SaveChangesAsync();
+
+        return publicados;
+    }
+
+    private async Task<ResultadoPremioFestival> PublicarResultadoInternoAsync(
+        int premioFestivalId,
+        int? publicadoPorUtilizadorId
+    )
+    {
+        var premio = await ObterPremioComResultadoAsync(premioFestivalId);
+
+        if (premio.EstadoPremio != EstadoPremio.Fechado)
+            throw new InvalidOperationException("Fecha a votacao antes de publicar resultados.");
+
+        var vencedor = await _repository.ObterVencedorPorVotosAsync(premioFestivalId);
+
+        if (vencedor == null)
+            throw new InvalidOperationException("Nao existem votos para publicar resultados.");
+
+        var resultado =
+            premio.Resultado
+            ?? new ResultadoPremioFestival { PremioFestivalId = premioFestivalId };
+
+        resultado.FilmeIdVencedor = vencedor.Value.FilmeId;
+        resultado.TotalVotos = vencedor.Value.TotalVotos;
+        resultado.PublicadoEm = DateTime.UtcNow;
+        resultado.PublicadoPorUtilizadorId = publicadoPorUtilizadorId;
+
+        if (premio.Resultado == null)
+            await _repository.AddResultadoAsync(resultado);
+
+        premio.EstadoPremio = EstadoPremio.Publicado;
+        await _repository.SaveChangesAsync();
+
+        return await _repository.ObterResultadoCompletoAsync(premioFestivalId)
+            ?? throw new InvalidOperationException("Resultado nao encontrado apos publicacao.");
     }
 
     private async Task<PremioFestival> ObterPremioAsync(int premioFestivalId)
     {
-        return await _db.PremiosFestival.FirstOrDefaultAsync(p => p.Id == premioFestivalId)
+        return await _repository.ObterPremioAsync(premioFestivalId)
             ?? throw new KeyNotFoundException("Premio nao encontrado.");
     }
 
     private async Task<PremioFestival> ObterPremioComResultadoAsync(int premioFestivalId)
     {
-        return await _db
-                .PremiosFestival.Include(p => p.Resultado)
-                .FirstOrDefaultAsync(p => p.Id == premioFestivalId)
+        return await _repository.ObterPremioComResultadoAsync(premioFestivalId)
             ?? throw new KeyNotFoundException("Premio nao encontrado.");
     }
 
@@ -243,13 +240,5 @@ public class PremioFestivalService : IPremioFestivalService
 
         if (agora < premio.DataAberturaVotacao || agora > premio.DataFechoVotacao)
             throw new InvalidOperationException("A votacao esta fora do periodo permitido.");
-    }
-}
-
-internal static class ResultadoPremioFestivalExtensions
-{
-    public static ResultadoPremioFestivalDTO ToResultadoDto(this ResultadoPremioFestival resultado)
-    {
-        return PremioFestivalMapper.MapResultadoToDTO(resultado);
     }
 }

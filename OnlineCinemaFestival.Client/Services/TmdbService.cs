@@ -28,4 +28,14 @@ public class TmdbService
             )
             ?? new();
     }
+
+    public async Task<FilmeDTO?> ObterFilmeAsync(int tmdbId)
+    {
+        var resposta = await _http.GetAsync($"api/tmdb/filmes/{tmdbId}");
+
+        if (!resposta.IsSuccessStatusCode)
+            return null;
+
+        return await resposta.Content.ReadFromJsonAsync<FilmeDTO>();
+    }
 }

@@ -31,29 +31,6 @@
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search" />
 
-            @if (!string.IsNullOrWhiteSpace(_mensagemImportacao))
-            {
-                <MudAlert Severity="@_mensagemSeveridade" Variant="Variant.Filled">
-                    @_mensagemImportacao
-                </MudAlert>
-            }
-
-            @if (_filmeImportado != null)
-            {
-                <div class="video-confirm-panel">
-                    <div>
-                        <span class="cinema-kicker">Filme importado</span>
-                        <h2>@_filmeImportado.Titulo</h2>
-                        <p>O trailer TMDB foi guardado como video do filme.</p>
-                    </div>
-
-                    <button type="button"
-                            class="cinema-btn secondary"
-                            @onclick="AbrirDetalheImportado">
-                        Abrir detalhe
-                    </button>
-                </div>
-            }
         </section>
 
         @if (_loading)
@@ -121,13 +98,14 @@
                                                 <Authorized>
                                                     <button type="button"
                                                             class="cinema-btn primary"
-                                                            disabled="@_aImportar"
-                                                            @onclick="() => Importar(filme)">
-                                                        @(_aImportar ? "A importar..." : "Adicionar ao catalogo")
+                                                            @onclick="() => AbrirTmdb(filme.TmdbId)">
+                                                        Ver detalhe TMDB
                                                     </button>
                                                 </Authorized>
                                                 <NotAuthorized>
-                                                    <span class="admin-only-note">Importacao reservada a Admin</span>
+                                                    <button type="button" class="cinema-btn secondary" @onclick="() => AbrirTmdb(filme.TmdbId)">
+                                                        Ver detalhe TMDB
+                                                    </button>
                                                 </NotAuthorized>
                                             </AuthorizeView>
                                         }
@@ -191,11 +169,7 @@
     private List<string> _generos = new();
     private readonly HashSet<string> _generosSelecionados = new(StringComparer.OrdinalIgnoreCase);
     private string? _pesquisa;
-    private string? _mensagemImportacao;
-    private Severity _mensagemSeveridade = Severity.Info;
     private bool _aPesquisar;
-    private bool _aImportar;
-    private FilmeDTO? _filmeImportado;
 
     private List<FilmeDTO> ResultadosAtuais => _aPesquisar ? _resultadosPesquisa : _tmdbIniciais;
 
@@ -210,7 +184,6 @@
     private async Task OnPesquisaAlterada(string? valor)
     {
         _pesquisa = valor;
-        _mensagemImportacao = null;
 
         if (string.IsNullOrWhiteSpace(_pesquisa) || _pesquisa.Trim().Length < 2)
         {
@@ -225,43 +198,17 @@
         await AplicarFiltrosInternos();
     }
 
-    private async Task Importar(FilmeDTO filme)
-    {
-        _mensagemImportacao = null;
-        _aImportar = true;
-
-        try
-        {
-            var importado = await FilmeService.ImportarTmdbAsync(filme.TmdbId);
-            _filmesInternos = await FilmeService.ObterFilmesAsync();
-            _filmesFiltrados = _filmesInternos.Take(20).ToList();
-            _generos = ExtrairGeneros(_filmesInternos).ToList();
-            _filmeImportado = importado;
-            _mensagemSeveridade = Severity.Success;
-            _mensagemImportacao = "Filme importado para o catalogo interno com trailer TMDB.";
-        }
-        catch (Exception ex)
-        {
-            _mensagemSeveridade = Severity.Error;
-            _mensagemImportacao = ex.Message;
-        }
-        finally
-        {
-            _aImportar = false;
-        }
-    }
-
-    private void AbrirDetalheImportado()
-    {
-        if (_filmeImportado != null)
-            Nav.NavigateTo($"/filmes/{_filmeImportado.Id}");
-    }
-
     private void AbrirExistente(FilmeDTO filme)
     {
         var existente = _filmesInternos.FirstOrDefault(f => f.TmdbId == filme.TmdbId);
         if (existente != null)
             Nav.NavigateTo($"/filmes/{existente.Id}");
+    }
+
+    private void AbrirTmdb(int tmdbId)
+    {
+        if (tmdbId > 0)
+            Nav.NavigateTo($"/tmdb/filmes/{tmdbId}");
     }
 
     private async Task AlternarGenero(string genero)

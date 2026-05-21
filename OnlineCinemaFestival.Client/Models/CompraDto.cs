@@ -62,6 +62,26 @@ public class ItemCompraDTO
     public int Quantidade { get; set; }
 
     public decimal Subtotal { get; set; }
+
+    public int? SessaoId { get; set; }
+
+    public DateTime? InicioSessao { get; set; }
+
+    public DateTime? FimSessao { get; set; }
+
+    public int? FestivalId { get; set; }
+
+    public string NomeFestival { get; set; } = string.Empty;
+
+    public int? FilmeId { get; set; }
+
+    public string TituloFilme { get; set; } = string.Empty;
+
+    public DateTime? DataAcesso { get; set; }
+
+    public DateTime? InicioValidade { get; set; }
+
+    public DateTime? FimValidade { get; set; }
 }
 
 public class PagamentoDTO

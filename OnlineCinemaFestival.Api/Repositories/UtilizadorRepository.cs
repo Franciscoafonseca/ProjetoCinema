@@ -15,7 +15,7 @@ public class UtilizadorRepository : IUtilizadorRepository
 
     public async Task<Utilizador?> ObterPorIdAsync(int id)
     {
-        return await _context.Utilizadores.FindAsync(id);
+        return await _context.Utilizadores.Include(u => u.Perfil).FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<Utilizador?> ObterPorEmailAsync(string email)

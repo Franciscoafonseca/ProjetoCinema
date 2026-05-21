@@ -17,7 +17,6 @@ public class TmdbFilmeDTO
     public string? VideoProvider { get; set; }
     public string? VideoKey { get; set; }
     public string? VideoUrl { get; set; }
-    public int? DuracaoVideoSegundos { get; set; }
     public string? Realizador { get; set; }
     public List<string> Atores { get; set; } = new();
     public List<TmdbPessoaDTO> AtoresDetalhes { get; set; } = new();

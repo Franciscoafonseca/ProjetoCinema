@@ -1,15 +1,23 @@
-﻿::deep .perfil-page {
-  padding: 32px 20px 72px;
+.perfil-page {
+  color: var(--ocf-text);
+}
+
+.perfil-shell {
+  padding-top: 36px;
 }
 
 ::deep .perfil-panel {
-  background: var(--mud-palette-surface);
-  border: 1px solid var(--mud-palette-lines-default);
-  border-radius: 10px;
+  border: 1px solid var(--ocf-line);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
+    rgba(10, 16, 29, 0.86);
+  box-shadow: var(--ocf-shadow-md);
+  backdrop-filter: blur(18px);
 }
 
 ::deep .perfil-panel .mud-card-content {
-  padding: 28px;
+  padding: 26px;
 }
 
 ::deep .perfil-loading,
@@ -19,8 +27,11 @@
   place-items: center;
 }
 
-::deep .perfil-alert {
-  margin: 24px 0;
+::deep .perfil-alert,
+::deep .perfil-form-alert {
+  border-color: rgba(255, 79, 109, 0.42);
+  background: rgba(255, 79, 109, 0.1);
+  color: #ffb8c0;
 }
 
 ::deep .perfil-hero-grid {
@@ -38,11 +49,17 @@
 }
 
 ::deep .perfil-avatar {
-  width: min(100%, 270px);
+  width: min(100%, 280px);
   height: auto;
   aspect-ratio: 1;
-  border-radius: 10px;
-  font-weight: 800;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 126, 95, 0.28), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(31, 211, 198, 0.24), transparent 38%),
+    linear-gradient(135deg, #10192b, #1b2947);
+  color: #fff;
+  font-weight: 950;
+  overflow: hidden;
 }
 
 .perfil-avatar-img {
@@ -63,30 +80,44 @@
   flex-wrap: wrap;
 }
 
+::deep .perfil-section-header .mud-typography-h5,
 ::deep .perfil-name {
-  font-weight: 800;
+  color: var(--ocf-text);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+::deep .perfil-name {
   line-height: 1.08;
-  margin: 2px 0 8px;
+  margin: 3px 0 10px;
 }
 
 ::deep .perfil-stat {
-  min-height: 112px;
+  min-height: 116px;
   display: grid;
   align-content: center;
-  gap: 5px;
+  gap: 6px;
   padding: 18px;
-  border: 1px solid var(--mud-palette-lines-default);
-  border-radius: 10px;
-  background: var(--mud-palette-background);
+  border: 1px solid var(--ocf-line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 ::deep .perfil-stat .mud-typography-h6 {
-  font-weight: 800;
+  color: var(--ocf-text);
+  font-weight: 950;
   line-height: 1.1;
 }
 
 ::deep .perfil-meta-chips {
   row-gap: 8px;
+}
+
+::deep .perfil-meta-chips .mud-chip,
+::deep .perfil-actions .mud-chip {
+  border-color: rgba(31, 211, 198, 0.24);
+  background: rgba(31, 211, 198, 0.08);
+  color: var(--ocf-teal-soft);
 }
 
 ::deep .perfil-description {
@@ -99,11 +130,19 @@
 }
 
 ::deep .perfil-tabs .mud-tabs-toolbar {
-  border-bottom: 1px solid var(--mud-palette-lines-default);
+  border-bottom: 1px solid var(--ocf-line);
 }
 
 ::deep .perfil-tabs .mud-tabs-panels {
   padding-top: 24px;
+}
+
+::deep .perfil-tabs .mud-tab {
+  color: var(--ocf-muted);
+}
+
+::deep .perfil-tabs .mud-tab.mud-tab-active {
+  color: var(--ocf-teal-soft);
 }
 
 ::deep .perfil-listas-grid {
@@ -112,9 +151,9 @@
 
 ::deep .perfil-list-card {
   height: 100%;
-  border: 1px solid var(--mud-palette-lines-default);
-  border-radius: 10px;
-  background: var(--mud-palette-background);
+  border: 1px solid var(--ocf-line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.045);
 }
 
 ::deep .perfil-list-card .mud-card-content {
@@ -132,10 +171,10 @@
   min-width: 0;
   aspect-ratio: 2 / 3;
   overflow: hidden;
-  border: 1px solid var(--mud-palette-lines-default);
-  border-radius: 8px;
-  background: var(--mud-palette-surface);
-  color: var(--mud-palette-text-secondary);
+  border: 1px solid var(--ocf-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ocf-muted);
   cursor: pointer;
   padding: 0;
 }
@@ -149,7 +188,7 @@
 
 .perfil-poster:hover,
 .perfil-poster:focus-visible {
-  border-color: var(--mud-palette-primary);
+  border-color: rgba(255, 126, 95, 0.62);
   outline: none;
 }
 
@@ -160,20 +199,20 @@
   gap: 8px;
   padding: 28px;
   text-align: center;
-  border: 1px solid var(--mud-palette-lines-default);
-  border-radius: 10px;
-  background: var(--mud-palette-background);
+  border: 1px solid var(--ocf-line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.045);
 }
 
 ::deep .perfil-activity-list {
-  max-width: 860px;
+  max-width: 900px;
 }
 
 ::deep .perfil-activity-item {
   padding: 14px 16px;
-  border: 1px solid var(--mud-palette-lines-default);
-  border-radius: 10px;
-  background: var(--mud-palette-background);
+  border: 1px solid var(--ocf-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
 }
 
 ::deep .perfil-activity-content {
@@ -181,12 +220,30 @@
 }
 
 ::deep .perfil-edit-card {
-  max-width: 960px;
+  max-width: 980px;
   margin: 0 auto;
+}
+
+::deep .perfil-edit-card .mud-input-control {
+  margin-top: 0;
+}
+
+::deep .perfil-edit-card .mud-input-outlined-border {
+  border-color: var(--ocf-line-strong);
+}
+
+::deep .perfil-edit-card .mud-input-root {
+  color: var(--ocf-text);
+}
+
+::deep .perfil-edit-card .mud-input-control-input-container,
+::deep .perfil-edit-card .mud-input {
+  background: rgba(5, 9, 19, 0.52);
 }
 
 ::deep .perfil-form-alert {
   margin-top: 18px;
+  white-space: pre-line;
 }
 
 ::deep .perfil-form-actions {
@@ -194,9 +251,46 @@
   flex-wrap: wrap;
 }
 
+.perfil-file-field {
+  display: grid;
+  gap: 8px;
+}
+
+.perfil-file-field label {
+  color: #dce4f3;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.perfil-file-field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px;
+  border: 1px solid var(--ocf-line-strong);
+  border-radius: 12px;
+  background: rgba(5, 9, 19, 0.7);
+  color: var(--ocf-text);
+}
+
+.perfil-file-field input::file-selector-button {
+  min-height: 34px;
+  margin-right: 12px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: linear-gradient(135deg, var(--ocf-sunset-strong), var(--ocf-sunset));
+  color: #fff;
+  font-weight: 900;
+}
+
+.perfil-file-field small,
+.perfil-file-field span {
+  color: var(--ocf-muted);
+}
+
 @media (max-width: 960px) {
-  ::deep .perfil-page {
-    padding-inline: 16px;
+  .perfil-shell {
+    width: min(100vw - 24px, var(--ocf-max-content));
   }
 
   ::deep .perfil-panel .mud-card-content {
@@ -219,8 +313,8 @@
 }
 
 @media (max-width: 620px) {
-  ::deep .perfil-page {
-    padding: 20px 12px 48px;
+  .perfil-shell {
+    padding-top: 24px;
   }
 
   ::deep .perfil-panel .mud-card-content {

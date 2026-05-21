@@ -28,17 +28,6 @@ public static class SessaoMapper
                 .Select(a => (decimal?)a.Preco)
                 .FirstOrDefault(),
             Observacoes = sessao.Observacoes,
-            Filmes = new List<FilmeSessaoReadDTO>
-            {
-                new()
-                {
-                    Id = sessao.FilmeId,
-                    Titulo = sessao.Filme?.Titulo ?? string.Empty,
-                    HoraInicio = sessao.Inicio,
-                    HoraFim = sessao.Fim,
-                    Ordem = 1,
-                },
-            },
         };
     }
 

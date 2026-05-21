@@ -32,6 +32,17 @@ public class TmdbController : ControllerBase
         return Ok(await _tmdbService.ObterFilmesIniciaisAsync());
     }
 
+    [HttpGet("filmes/{tmdbId:int}")]
+    public async Task<ActionResult<TmdbFilmeDTO>> ObterFilme(int tmdbId)
+    {
+        var filme = await _tmdbService.ObterFilmePorTmdbIdAsync(tmdbId);
+
+        if (filme == null)
+            return NotFound("Filme TMDB nao encontrado.");
+
+        return Ok(filme);
+    }
+
     [HttpGet("generos")]
     public async Task<ActionResult<IEnumerable<TmdbGeneroDTO>>> Generos()
     {

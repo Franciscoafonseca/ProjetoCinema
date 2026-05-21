@@ -17,6 +17,20 @@ public static class AcessoUtilizadorMapper
             SessaoId = acessoUtilizador.SessaoId,
             FestivalId = acessoUtilizador.FestivalId,
             FilmeId = acessoUtilizador.FilmeId,
+            TituloFilme =
+                acessoUtilizador.Filme?.Titulo
+                ?? acessoUtilizador.Sessao?.Filme?.Titulo
+                ?? acessoUtilizador.Acesso?.Filme?.Titulo
+                ?? string.Empty,
+            NomeFestival =
+                acessoUtilizador.Festival?.Name
+                ?? acessoUtilizador.Sessao?.Festival?.Name
+                ?? acessoUtilizador.Acesso?.Festival?.Name
+                ?? string.Empty,
+            InicioSessao = acessoUtilizador.Sessao?.Inicio,
+            FimSessao = acessoUtilizador.Sessao?.Fim,
+            DataAcesso = acessoUtilizador.Acesso?.DataAcesso,
+            DuracaoHoras = acessoUtilizador.Acesso?.DuracaoHoras,
             InicioValidade = acessoUtilizador.InicioValidade,
             FimValidade = acessoUtilizador.FimValidade,
             Ativo = acessoUtilizador.Ativo,

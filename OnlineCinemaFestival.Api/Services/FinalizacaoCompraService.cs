@@ -39,41 +39,46 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
         string metodoPagamento = "CartaoCredito"
     )
     {
-        var carrinho = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
+        return await _compraRepository.ExecuteInTransactionAsync(async () =>
+        {
+            var carrinho = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
-        await _validadorCheckout.ValidarAsync(utilizadorId, carrinho);
+            await _validadorCheckout.ValidarAsync(utilizadorId, carrinho);
 
-        var agora = DateTime.UtcNow;
+            var agora = DateTime.UtcNow;
 
-        var compra = CriarCompra(utilizadorId, carrinho!, agora);
+            var compra = CriarCompra(utilizadorId, carrinho!, agora);
 
-        compra.Pagamento = await _pagamentoService.ProcessarPagamentoSimuladoAsync(
-            compra,
-            agora,
-            metodoPagamento
-        );
+            compra.Pagamento = await _pagamentoService.ProcessarPagamentoSimuladoAsync(
+                compra,
+                agora,
+                metodoPagamento
+            );
 
-        await _compraRepository.AddAsync(compra);
+            await _compraRepository.AddAsync(compra);
 
-        var acessosComprados = carrinho!
-            .Itens.Select(item => _fabricaAcessoUtilizador.Criar(utilizadorId, compra, item, agora))
-            .ToList();
+            var acessosComprados = carrinho!
+                .Itens.Select(item =>
+                    _fabricaAcessoUtilizador.Criar(utilizadorId, compra, item, agora)
+                )
+                .ToList();
 
-        await _acessoUtilizadorRepository.AddRangeAsync(acessosComprados);
+            await _acessoUtilizadorRepository.AddRangeAsync(acessosComprados);
 
-        _carrinhoRepository.RemoveItems(carrinho.Itens.ToList());
+            _carrinhoRepository.RemoveItems(carrinho.Itens.ToList());
 
-        carrinho.AtualizadoEm = agora;
+            carrinho.AtualizadoEm = agora;
 
-        await _compraRepository.SaveChangesAsync();
+            await _compraRepository.SaveChangesAsync();
 
-        var compraCriada = await _compraRepository.ObterPorIdAsync(compra.Id);
+            var compraCriada = await _compraRepository.ObterPorIdAsync(compra.Id);
 
-        return CompraMapper.MapToCheckoutResultadoDTO(
-            compraCriada!,
-            acessosComprados.Count,
-            "Compra finalizada com sucesso."
-        );
+            return CompraMapper.MapToCheckoutResultadoDTO(
+                compraCriada!,
+                acessosComprados.Count,
+                "Compra finalizada com sucesso."
+            );
+        });
     }
 
     private Compra CriarCompra(int utilizadorId, Carrinho carrinho, DateTime dataCompra)

@@ -185,6 +185,32 @@
   font-size: 0.85rem;
 }
 
+.pagamento.mb-ref {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 0;
+}
+
+.pagamento.mb-ref div {
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.pagamento.mb-ref dt {
+  color: #2dd4bf;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.pagamento.mb-ref dd {
+  margin: 4px 0 0;
+  color: #fff;
+  font-weight: 850;
+}
+
 .compra ul {
   list-style: none;
   padding: 0;
@@ -233,9 +259,14 @@
   .compra-topo,
   .visualizacao,
   .compra li,
-  .secao-topo {
+  .secao-topo,
+  .pagamento.mb-ref {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .pagamento.mb-ref {
+    grid-template-columns: 1fr;
   }
 
   .metricas {

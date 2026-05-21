@@ -50,6 +50,8 @@ builder.Services.AddScoped<CarrinhoApiService>();
 builder.Services.AddScoped<RewardsService>();
 builder.Services.AddScoped<ComprasHistoricoService>();
 builder.Services.AddScoped<PremioFestivalService>();
+builder.Services.AddScoped<ComunidadeService>();
+builder.Services.AddScoped<ComentarioService>();
 
 builder.Services.AddMudServices();
 

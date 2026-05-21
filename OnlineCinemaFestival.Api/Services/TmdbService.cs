@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Text.RegularExpressions;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using OnlineCinemaFestival.Api.DTOs;
@@ -81,7 +80,6 @@ public class TmdbService : ITmdbService
         var produtorDetalhe = MapPessoaCrew(filmeTmdb.Credits, "Producer");
         var video = SelecionarTrailerPrincipal(filmeTmdb.Videos.Results);
         var videoUrl = CriarVideoUrl(video);
-        var duracaoVideoSegundos = await ObterDuracaoVideoSegundosAsync(video);
 
         return new TmdbFilmeDTO
         {
@@ -106,7 +104,6 @@ public class TmdbService : ITmdbService
             VideoProvider = video?.Site,
             VideoKey = video?.Key,
             VideoUrl = videoUrl,
-            DuracaoVideoSegundos = duracaoVideoSegundos,
             Realizador = realizadorDetalhe?.Nome,
             Atores = atoresDetalhes.Select(a => a.Nome).ToList(),
             AtoresDetalhes = atoresDetalhes,
@@ -168,57 +165,6 @@ public class TmdbService : ITmdbService
         var videos = await GetAsync<TmdbVideosResponseDTO>($"movie/{tmdbId}/videos?language=pt-PT");
 
         return CriarVideoUrl(SelecionarTrailerPrincipal(videos?.Results ?? new List<TmdbVideoDTO>()));
-    }
-
-    public int? ConverterDuracaoIso8601ParaSegundos(string? duracaoIso8601)
-    {
-        if (string.IsNullOrWhiteSpace(duracaoIso8601))
-            return null;
-
-        var match = Regex.Match(
-            duracaoIso8601.Trim(),
-            @"^P(?:(?<days>\d+)D)?(?:T(?:(?<hours>\d+)H)?(?:(?<minutes>\d+)M)?(?:(?<seconds>\d+)S)?)?$",
-            RegexOptions.IgnoreCase
-        );
-
-        if (!match.Success)
-            return null;
-
-        var dias = Valor(match, "days");
-        var horas = Valor(match, "hours");
-        var minutos = Valor(match, "minutes");
-        var segundos = Valor(match, "seconds");
-
-        return (dias * 24 * 60 * 60) + (horas * 60 * 60) + (minutos * 60) + segundos;
-    }
-
-    private async Task<int?> ObterDuracaoVideoSegundosAsync(TmdbVideoDTO? video)
-    {
-        if (video == null || string.IsNullOrWhiteSpace(video.Key))
-            return null;
-
-        if (!video.Site.Equals(YouTubeProvider, StringComparison.OrdinalIgnoreCase))
-            return null;
-
-        var apiKey = _configuration["YouTube:ApiKey"];
-
-        if (string.IsNullOrWhiteSpace(apiKey))
-            return null;
-
-        var baseUrl = _configuration["YouTube:BaseUrl"] ?? "https://www.googleapis.com/youtube/v3/";
-        var url =
-            $"{baseUrl.TrimEnd('/')}/videos?part=contentDetails&id={Uri.EscapeDataString(video.Key)}&key={Uri.EscapeDataString(apiKey)}";
-
-        var response = await _httpClient.GetAsync(url);
-
-        if (!response.IsSuccessStatusCode)
-            return null;
-
-        var jsonString = await response.Content.ReadAsStringAsync();
-        var youtubeResponse = JsonSerializer.Deserialize<YouTubeVideosResponse>(jsonString, JsonOptions);
-        var duration = youtubeResponse?.Items.FirstOrDefault()?.ContentDetails.Duration;
-
-        return ConverterDuracaoIso8601ParaSegundos(duration);
     }
 
     private static IEnumerable<TmdbPessoaDTO> MapAtores(TmdbCreditsResponse credits)
@@ -295,14 +241,6 @@ public class TmdbService : ITmdbService
         return string.IsNullOrWhiteSpace(profilePath)
             ? null
             : $"https://image.tmdb.org/t/p/w185{profilePath}";
-    }
-
-    private static int Valor(Match match, string groupName)
-    {
-        return match.Groups[groupName].Success
-            && int.TryParse(match.Groups[groupName].Value, out var value)
-            ? value
-            : 0;
     }
 
     private async Task<T?> GetAsync<T>(string path)

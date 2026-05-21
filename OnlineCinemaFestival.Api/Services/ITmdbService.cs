@@ -12,5 +12,4 @@ public interface ITmdbService
     Task<IEnumerable<TmdbReviewDTO>> ObterAvaliacoesExternasAsync(int tmdbId);
     Task<IEnumerable<TmdbGeneroDTO>> ObterGenerosAsync();
     Task<string?> ObterTrailerUrlAsync(int tmdbId);
-    int? ConverterDuracaoIso8601ParaSegundos(string? duracaoIso8601);
 }

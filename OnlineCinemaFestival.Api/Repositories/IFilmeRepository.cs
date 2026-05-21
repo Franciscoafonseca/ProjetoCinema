@@ -30,7 +30,7 @@ public interface IFilmeRepository
 
     Task AddAsync(Filme filme);
 
-    void AtualizarVideo(Filme filme, string? provider, string? key, string? url, int? duracaoSegundos);
+    void AtualizarVideo(Filme filme, string? provider, string? key, string? url);
 
     Task SaveChangesAsync();
 }

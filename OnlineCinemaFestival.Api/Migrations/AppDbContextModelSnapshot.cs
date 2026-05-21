@@ -449,16 +449,10 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<string>("Classificacao")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ConteudoLocalPath")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("DataLancamento")
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("DuracaoMinutos")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("DuracaoVideoSegundos")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Genero")
@@ -865,7 +859,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<DateTime>("PublicadoEm")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("PublicadoPorUtilizadorId")
+                    b.Property<int?>("PublicadoPorUtilizadorId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("TotalVotos")
@@ -1476,8 +1470,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "PublicadoPorUtilizador")
                         .WithMany("ResultadosPremiosPublicados")
                         .HasForeignKey("PublicadoPorUtilizadorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("FilmeVencedor");
 

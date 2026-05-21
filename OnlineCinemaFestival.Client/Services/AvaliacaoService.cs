@@ -25,6 +25,17 @@ public class AvaliacaoService
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
+    public async Task<AvaliacaoDTO> AtualizarMinhaAsync(int filmeId, CriarAvaliacaoDTO dto)
+    {
+        var resposta = await _http.PutAsJsonAsync($"api/filmes/{filmeId}/reviews/minha", dto);
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(await ObterMensagemErroAsync(resposta));
+
+        return await resposta.Content.ReadFromJsonAsync<AvaliacaoDTO>()
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
+    }
+
     private static async Task<string> ObterMensagemErroAsync(HttpResponseMessage resposta)
     {
         if (resposta.StatusCode == HttpStatusCode.Unauthorized)

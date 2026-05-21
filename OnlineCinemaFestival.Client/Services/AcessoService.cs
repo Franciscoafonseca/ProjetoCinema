@@ -24,7 +24,8 @@ public class AcessoService
 
     public async Task<List<AcessoUtilizadorDTO>> ObterMeusAcessosAsync()
     {
-        return await _http.GetFromJsonAsync<List<AcessoUtilizadorDTO>>("api/acessos/meus") ?? new();
+        return await _http.GetFromJsonAsync<List<AcessoUtilizadorDTO>>("api/acessos-utilizador/meus")
+            ?? new();
     }
 
     public async Task<ValidacaoAcessoDTO> ValidarFilmeAsync(int filmeId, int? festivalId = null)

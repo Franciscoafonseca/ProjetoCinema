@@ -218,6 +218,7 @@ public class ChatSessaoService : IChatSessaoService
             SessaoId = mensagem.SessaoId,
             UtilizadorId = mensagem.UtilizadorId,
             NomeUtilizador = mensagem.Utilizador?.Name ?? string.Empty,
+            ProfileImageUrl = mensagem.Utilizador?.Perfil?.ProfileImageUrl ?? string.Empty,
             Texto = mensagem.Removida ? string.Empty : mensagem.Texto,
             EnviadaEm = mensagem.EnviadaEm,
             Removida = mensagem.Removida,

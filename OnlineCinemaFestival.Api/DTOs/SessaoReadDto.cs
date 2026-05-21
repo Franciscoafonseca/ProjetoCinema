@@ -28,8 +28,6 @@ public class SessaoResumoDTO
     public decimal? PrecoBilhete { get; set; }
 
     public string? Observacoes { get; set; }
-
-    public List<FilmeSessaoReadDTO> Filmes { get; set; } = new();
 }
 
 public class SessaoDetalheDTO : SessaoResumoDTO { }

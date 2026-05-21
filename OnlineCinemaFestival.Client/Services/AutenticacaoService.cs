@@ -26,10 +26,11 @@ public class AutenticacaoService
 
         if (!resposta.IsSuccessStatusCode)
         {
-            var mensagem = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(
-                MensagemErroApi.Limpar(mensagem, "Email ou palavra-passe invalidos.")
+            var mensagem = await MensagemErroApi.ObterAsync(
+                resposta,
+                "Email ou palavra-passe invalidos."
             );
+            throw new InvalidOperationException(mensagem);
         }
 
         var resultado =
@@ -47,13 +48,11 @@ public class AutenticacaoService
 
         if (!resposta.IsSuccessStatusCode)
         {
-            var mensagem = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(
-                MensagemErroApi.Limpar(
-                    mensagem,
-                    "Nao foi possivel criar a conta. Reve os dados e tenta novamente."
-                )
+            var mensagem = await MensagemErroApi.ObterAsync(
+                resposta,
+                "Nao foi possivel criar a conta. Reve os dados e tenta novamente."
             );
+            throw new InvalidOperationException(mensagem);
         }
 
         var resultado =
@@ -87,6 +86,13 @@ public class AutenticacaoService
         await _armazenamento.GuardarAsync(resultado.Token);
         _estado.NotificarAutenticado();
         return resultado;
+    }
+
+    public async Task<List<ProvedorAutenticacaoExternaDTO>> ObterProvedoresExternosAsync()
+    {
+        return await _http.GetFromJsonAsync<List<ProvedorAutenticacaoExternaDTO>>(
+            "api/auth/external/providers"
+        ) ?? new();
     }
 
     public async Task TerminarSessaoAsync()

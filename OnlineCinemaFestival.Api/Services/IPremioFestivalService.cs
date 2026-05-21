@@ -26,4 +26,6 @@ public interface IPremioFestivalService
         int festivalId,
         bool incluirRascunhos
     );
+
+    Task<int> PublicarResultadosPendentesAsync();
 }

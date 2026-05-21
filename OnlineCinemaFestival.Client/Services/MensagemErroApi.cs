@@ -35,24 +35,37 @@ public static class MensagemErroApi
             if (raiz.TryGetProperty("message", out var message))
                 return LimparTexto(message.GetString(), mensagemPadrao);
 
+            if (raiz.TryGetProperty("detail", out var detail))
+                return LimparTexto(detail.GetString(), mensagemPadrao);
+
             if (raiz.TryGetProperty("title", out var title))
-                return LimparTexto(title.GetString(), mensagemPadrao);
+            {
+                var titulo = LimparTexto(title.GetString(), mensagemPadrao);
+
+                if (!raiz.TryGetProperty("errors", out _))
+                    return titulo;
+            }
 
             if (raiz.TryGetProperty("errors", out var errors) && errors.ValueKind == JsonValueKind.Object)
             {
+                var mensagens = new List<string>();
+
                 foreach (var erro in errors.EnumerateObject())
                 {
                     if (erro.Value.ValueKind != JsonValueKind.Array)
                         continue;
 
-                    var primeiraMensagem = erro.Value
+                    mensagens.AddRange(erro.Value
                         .EnumerateArray()
                         .Select(e => e.GetString())
-                        .FirstOrDefault(e => !string.IsNullOrWhiteSpace(e));
-
-                    if (!string.IsNullOrWhiteSpace(primeiraMensagem))
-                        return LimparTexto(primeiraMensagem, mensagemPadrao);
+                        .Where(e => !string.IsNullOrWhiteSpace(e))
+                        .Select(e => LimparTexto(e, mensagemPadrao)));
                 }
+
+                var resultado = mensagens.Distinct().ToList();
+
+                if (resultado.Count > 0)
+                    return string.Join(Environment.NewLine, resultado);
             }
         }
         catch (JsonException)

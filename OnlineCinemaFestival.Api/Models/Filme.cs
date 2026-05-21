@@ -17,8 +17,6 @@ public class Filme
     public string? VideoProvider { get; set; }
     public string? VideoKey { get; set; }
     public string? VideoUrl { get; set; }
-    public int? DuracaoVideoSegundos { get; set; }
-    public string? ConteudoLocalPath { get; set; }
     public string? Realizador { get; set; }
     public string? AtoresPrincipais { get; set; }
     public string? TmdbReviewsJson { get; set; }

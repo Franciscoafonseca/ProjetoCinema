@@ -48,7 +48,13 @@ public class FilmeService : IFilmeService
         var filmeExistente = await _filmeRepository.ObterPorTmdbIdAsync(tmdbId);
 
         if (filmeExistente != null)
-            return FilmeMapper.MapToReadDTO(filmeExistente);
+        {
+            await GarantirAcessosAutomaticosAsync(filmeExistente.Id);
+            var detalheExistente =
+                await _filmeRepository.ObterDetalhePorIdAsync(filmeExistente.Id) ?? filmeExistente;
+
+            return FilmeMapper.MapToReadDTO(detalheExistente);
+        }
 
         var filmeTmdb = await _tmdbService.ObterFilmePorTmdbIdAsync(tmdbId);
 
@@ -92,8 +98,7 @@ public class FilmeService : IFilmeService
             filme,
             NormalizarValor(dto.VideoProvider),
             NormalizarValor(dto.VideoKey),
-            NormalizarValor(videoUrl),
-            filme.DuracaoVideoSegundos
+            NormalizarValor(videoUrl)
         );
 
         await _filmeRepository.SaveChangesAsync();
@@ -157,16 +162,37 @@ public class FilmeService : IFilmeService
         await _filmeRepository.AddAvaliacaoAsync(avaliacao);
         await _filmeRepository.SaveChangesAsync();
 
-        return new AvaliacaoDTO
-        {
-            Id = avaliacao.Id,
-            FilmeId = filmeId,
-            TituloFilme = filme.Titulo,
-            UsuarioId = utilizadorId,
-            Pontuacao = avaliacao.Pontuacao,
-            Texto = avaliacao.Texto,
-            Data = avaliacao.Data,
-        };
+        return MapAvaliacaoDTO(avaliacao, filme.Titulo);
+    }
+
+    public async Task<AvaliacaoDTO> AtualizarReviewAsync(
+        int utilizadorId,
+        int filmeId,
+        CriarAvaliacaoDTO dto
+    )
+    {
+        var filme = await _filmeRepository.ObterDetalhePorIdAsync(filmeId);
+
+        if (filme == null)
+            throw new KeyNotFoundException("Filme nao encontrado.");
+
+        if (!await _filmeRepository.UtilizadorViuFilmeAsync(utilizadorId, filmeId))
+            throw new UnauthorizedAccessException("So podes avaliar depois de ver o filme.");
+
+        var avaliacao = await _filmeRepository.ObterAvaliacaoAsync(utilizadorId, filmeId);
+
+        if (avaliacao == null)
+            throw new KeyNotFoundException("Review nao encontrada.");
+
+        ValidarReview(dto);
+
+        avaliacao.Pontuacao = dto.Pontuacao;
+        avaliacao.Texto = dto.Texto.Trim();
+        avaliacao.Data = DateTime.UtcNow;
+
+        await _filmeRepository.SaveChangesAsync();
+
+        return MapAvaliacaoDTO(avaliacao, filme.Titulo);
     }
 
     private async Task GarantirAcessosAutomaticosAsync(int filmeId)
@@ -307,6 +333,21 @@ public class FilmeService : IFilmeService
 
         if (texto.Length > 1000)
             throw new ArgumentException("A review nao pode exceder 1000 caracteres.");
+    }
+
+    private static AvaliacaoDTO MapAvaliacaoDTO(Avaliacao avaliacao, string tituloFilme)
+    {
+        return new AvaliacaoDTO
+        {
+            Id = avaliacao.Id,
+            FilmeId = avaliacao.FilmeId,
+            TituloFilme = tituloFilme,
+            UsuarioId = avaliacao.UsuarioId,
+            NomeUsuario = avaliacao.Usuario?.Name ?? string.Empty,
+            Pontuacao = avaliacao.Pontuacao,
+            Texto = avaliacao.Texto,
+            Data = avaliacao.Data,
+        };
     }
 
     private async Task AdicionarPessoaAsync(

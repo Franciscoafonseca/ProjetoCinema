@@ -42,9 +42,9 @@
             <section class="perfil-publico-grid">
                 <MudCard Elevation="0" Class="cinema-panel perfil-publico-avatar">
                     <MudCardContent>
-                        @if (!string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl))
+                        @if (MostrarFotoPerfil)
                         {
-                            <img src="@_perfil.ProfileImageUrl" alt="@_perfil.Name" />
+                            <img src="@_perfil.ProfileImageUrl" alt="@_perfil.Name" @onerror="MarcarFotoPerfilFalhada" />
                         }
                         else
                         {
@@ -60,7 +60,7 @@
                                 @if (!string.IsNullOrWhiteSpace(_perfil.Nationality))
                                 {
                                     <MudChip T="string" Color="Color.Secondary" Variant="Variant.Outlined">
-                                        @_perfil.CountryFlag @_perfil.Nationality
+                                        @BandeiraPerfil @_perfil.Nationality
                                     </MudChip>
                                 }
                                 @if (!string.IsNullOrWhiteSpace(_perfil.Location))
@@ -118,6 +118,7 @@
 
     private PerfilPublicoDTO? _perfil;
     private bool _aCarregar = true;
+    private bool _fotoPerfilFalhou;
     private string? _erro;
 
     private string DescricaoPerfil =>
@@ -136,6 +137,16 @@
         }
     }
 
+    private bool MostrarFotoPerfil =>
+        _perfil is not null
+        && !string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl)
+        && !_fotoPerfilFalhou;
+
+    private string BandeiraPerfil =>
+        !string.IsNullOrWhiteSpace(_perfil?.CountryFlag)
+            ? _perfil.CountryFlag
+            : ObterBandeira(_perfil?.CountryCode ?? string.Empty);
+
     protected override async Task OnParametersSetAsync()
     {
         _aCarregar = true;
@@ -144,6 +155,7 @@
         try
         {
             _perfil = await PerfilService.ObterPerfilPublicoAsync(UtilizadorId);
+            _fotoPerfilFalhou = false;
 
             if (_perfil is null)
                 _erro = "Perfil publico nao encontrado ou indisponivel.";
@@ -161,5 +173,23 @@
     private void Voltar()
     {
         Nav.NavigateTo("/catalogo");
+    }
+
+    private void MarcarFotoPerfilFalhada()
+    {
+        _fotoPerfilFalhou = true;
+    }
+
+    private static string ObterBandeira(string countryCode)
+    {
+        if (string.IsNullOrWhiteSpace(countryCode))
+            return string.Empty;
+
+        var codigo = countryCode.Trim().ToUpperInvariant();
+
+        if (codigo.Length != 2 || codigo.Any(c => c < 'A' || c > 'Z'))
+            return string.Empty;
+
+        return string.Concat(codigo.Select(c => char.ConvertFromUtf32(0x1F1E6 + c - 'A')));
     }
 }

@@ -55,18 +55,31 @@
 
                     @if (!string.IsNullOrWhiteSpace(_mensagem))
                     {
-                        <MudAlert Severity="@_mensagemSeveridade" Variant="Variant.Filled">@_mensagem</MudAlert>
+                        <MudAlert Severity="@_mensagemSeveridade" Variant="Variant.Filled" Class="checkout-alert">
+                            @_mensagem
+                        </MudAlert>
                     }
 
                     @if (_resultado?.Pagamento is not null)
                     {
-                        <div class="cinema-state">
+                        <div class="cinema-state payment-reference">
                             <strong>Compra @_resultado.Referencia</strong>
                             @if (EhMultibanco(_resultado.Pagamento))
                             {
-                                <p>Entidade: @_resultado.Pagamento.Entidade</p>
-                                <p>Referencia: @FormatarReferenciaMb(_resultado.Pagamento.Referencia)</p>
-                                <p>Valor: @Moeda(_resultado.Pagamento.Valor)</p>
+                                <dl>
+                                    <div>
+                                        <dt>Entidade</dt>
+                                        <dd>@_resultado.Pagamento.Entidade</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Referencia</dt>
+                                        <dd>@FormatarReferenciaMb(_resultado.Pagamento.Referencia)</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Valor</dt>
+                                        <dd>@Moeda(_resultado.Pagamento.Valor)</dd>
+                                    </div>
+                                </dl>
                             }
                             else
                             {
@@ -98,7 +111,7 @@
                             <article>
                                 <div>
                                     <strong>@NomeItem(item)</strong>
-                                    <small>@RotuloTipo(item) x @item.Quantidade</small>
+                                    <small>@RotuloTipo(item)</small>
                                 </div>
                                 <span>@Moeda(item.Subtotal)</span>
                             </article>

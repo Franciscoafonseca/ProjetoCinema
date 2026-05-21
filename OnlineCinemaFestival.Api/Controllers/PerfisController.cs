@@ -53,7 +53,7 @@ public class PerfisController : ControllerBase
     [Authorize]
     [HttpPost("me/foto")]
     [RequestSizeLimit(2 * 1024 * 1024)]
-    public async Task<ActionResult<PerfilPrivadoDTO>> UploadFoto(IFormFile ficheiro)
+    public async Task<ActionResult<PerfilPrivadoDTO>> UploadFoto([FromForm] IFormFile ficheiro)
     {
         var userId = ObterUtilizadorAtualId();
 

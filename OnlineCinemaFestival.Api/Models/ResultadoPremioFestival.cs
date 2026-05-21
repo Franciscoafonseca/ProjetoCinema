@@ -14,6 +14,6 @@ public class ResultadoPremioFestival
 
     public DateTime PublicadoEm { get; set; }
 
-    public int PublicadoPorUtilizadorId { get; set; }
-    public Utilizador PublicadoPorUtilizador { get; set; } = null!;
+    public int? PublicadoPorUtilizadorId { get; set; }
+    public Utilizador? PublicadoPorUtilizador { get; set; }
 }

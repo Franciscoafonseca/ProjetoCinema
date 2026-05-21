@@ -1,0 +1,166 @@
+@page "/sessoes/{Id:int}"
+@inherits FilmePageBase
+@inject SessaoService SessaoService
+@inject CarrinhoService CarrinhoService
+@inject NavigationManager Nav
+
+<PageTitle>Sessao - Online Cinema Festival</PageTitle>
+
+<main class="sessoes-page">
+    @if (_loading)
+    {
+        <div class="state-panel">A carregar sessao...</div>
+    }
+    else if (_erro != null)
+    {
+        <div class="state-panel error">@_erro</div>
+    }
+    else if (_sessao == null)
+    {
+        <div class="state-panel">Sessao nao encontrada.</div>
+    }
+    else
+    {
+        <button class="back-link" @onclick="VoltarSessoes">Voltar as sessoes</button>
+
+        <section class="session-detail">
+            <div>
+                <p class="eyebrow">@_sessao.Festival</p>
+                <h1>@_sessao.Filme</h1>
+                <p class="lead">@TextoSessao(_sessao)</p>
+            </div>
+            <span class="status @EstadoCss(EstadoTexto(_sessao))">@EstadoRotulo(_sessao)</span>
+        </section>
+
+        <section class="detail-grid">
+            <article><strong>Festival</strong><span>@_sessao.Festival</span></article>
+            <article><strong>Filme associado</strong><span>@_sessao.Filme</span></article>
+            <article><strong>Inicio</strong><span>@_sessao.Inicio.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span></article>
+            <article><strong>Fim</strong><span>@_sessao.Fim.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span></article>
+            <article><strong>Tipo de sessao</strong><span>@_sessao.TipoNome</span></article>
+            <article><strong>Preco</strong><span>@Preco(_sessao)</span></article>
+            <article><strong>Estado</strong><span>@EstadoRotulo(_sessao)</span></article>
+            <article><strong>Chat</strong><span>@(_sessao.TemChatAoVivo ? "Chat ao vivo ativo" : "Sem chat ao vivo")</span></article>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(_feedback))
+        {
+            <div class="feedback inline @(_feedbackErro ? "error" : "success")" role="alert">@_feedback</div>
+        }
+
+        <div class="session-detail-actions">
+            <button class="secondary" @onclick="AbrirFilme">Ver detalhes do filme</button>
+            <button class="primary" disabled="@(_aComprar || SessaoTerminada(_sessao))" @onclick="Comprar">
+                @(_aComprar ? "A adicionar..." : "Comprar bilhete")
+            </button>
+            <button class="secondary" @onclick="EntrarPlayer">Entrar no player</button>
+            <button class="secondary" disabled="@(!_sessao.TemChatAoVivo)" @onclick="AbrirChat">Chat ao vivo</button>
+        </div>
+    }
+</main>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private SessaoDTO? _sessao;
+    private bool _aComprar;
+    private string? _feedback;
+    private bool _feedbackErro;
+
+    protected override async Task CarregarDadosAsync()
+    {
+        _sessao = await SessaoService.ObterSessaoAsync(Id);
+    }
+
+    private async Task Comprar()
+    {
+        if (_sessao == null) return;
+
+        _aComprar = true;
+        _feedback = null;
+        _feedbackErro = false;
+
+        try
+        {
+            await CarrinhoService.AdicionarBilheteSessaoAsync(_sessao.Id);
+            _feedback = "Bilhete adicionado ao carrinho.";
+            _feedbackErro = false;
+        }
+        catch (Exception ex)
+        {
+            _feedback = ex.Message;
+            _feedbackErro = true;
+        }
+        finally
+        {
+            _aComprar = false;
+        }
+    }
+
+    private void EntrarPlayer() => Nav.NavigateTo($"/visualizar/sessao/{Id}");
+
+    private void AbrirChat() => Nav.NavigateTo($"/visualizar/sessao/{Id}");
+
+    private void VoltarSessoes() => Nav.NavigateTo("/sessoes");
+
+    private void AbrirFilme()
+    {
+        if (_sessao == null)
+            return;
+
+        Nav.NavigateTo($"/filmes/{_sessao.FilmePrincipalId}");
+    }
+
+    private static bool SessaoTerminada(SessaoDTO sessao)
+    {
+        return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase)
+            || sessao.Fim.ToUniversalTime() <= DateTime.UtcNow;
+    }
+
+    private static string EstadoTexto(SessaoDTO sessao)
+    {
+        if (!string.IsNullOrWhiteSpace(sessao.Estado))
+            return sessao.Estado;
+
+        var agora = DateTime.UtcNow;
+        if (sessao.Inicio.ToUniversalTime() > agora)
+            return "Agendada";
+
+        return sessao.Fim.ToUniversalTime() >= agora ? "ADecorrer" : "Terminada";
+    }
+
+    private static string EstadoCss(string? estado)
+    {
+        if (string.Equals(estado, "ADecorrer", StringComparison.OrdinalIgnoreCase))
+            return "live";
+
+        if (string.Equals(estado, "Terminada", StringComparison.OrdinalIgnoreCase))
+            return "ended";
+
+        return "scheduled";
+    }
+
+    private static string Preco(SessaoDTO sessao)
+    {
+        return sessao.PrecoBilhete.HasValue
+            ? sessao.PrecoBilhete.Value.ToString("C", new System.Globalization.CultureInfo("pt-PT"))
+            : "Bilhete disponivel";
+    }
+
+    private static string EstadoRotulo(SessaoDTO sessao)
+    {
+        return EstadoTexto(sessao) switch
+        {
+            "ADecorrer" => "A decorrer",
+            var estado => estado,
+        };
+    }
+
+    private static string TextoSessao(SessaoDTO sessao)
+    {
+        if (!string.IsNullOrWhiteSpace(sessao.Observacoes))
+            return sessao.Observacoes;
+
+        return $"{sessao.TipoNome} de {sessao.Inicio.ToLocalTime():dd/MM/yyyy HH:mm} a {sessao.Fim.ToLocalTime():HH:mm}.";
+    }
+}

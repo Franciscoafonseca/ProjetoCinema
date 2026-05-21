@@ -40,10 +40,6 @@ public class FilmeDTO
 
     public string? VideoUrl { get; set; }
 
-    public int? DuracaoVideoSegundos { get; set; }
-
-    public string? ConteudoLocalPath { get; set; }
-
     public int Popularidade { get; set; }
 
     public string? Realizador { get; set; }
@@ -115,8 +111,6 @@ public class AtualizarVideoFilmeDTO
     public string? VideoKey { get; set; }
 
     public string? VideoUrl { get; set; }
-
-    public int? DuracaoVideoSegundos { get; set; }
 }
 
 public class AvaliacaoDTO

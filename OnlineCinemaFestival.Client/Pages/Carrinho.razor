@@ -66,24 +66,8 @@
 
                         <div class="item-side">
                             <div class="price">
-                                <span>@Moeda(item.PrecoUnitario) cada</span>
+                                <span>Acesso individual</span>
                                 <strong>@Moeda(item.Subtotal)</strong>
-                            </div>
-
-                            <div class="qty" aria-label="Quantidade">
-                                <button type="button"
-                                        class="secondary"
-                                        disabled="@(_aAtualizar || item.Quantidade <= 1)"
-                                        @onclick="() => AlterarQuantidade(item, item.Quantidade - 1)">
-                                    -
-                                </button>
-                                <input value="@item.Quantidade" readonly aria-label="Quantidade atual" />
-                                <button type="button"
-                                        class="secondary"
-                                        disabled="@_aAtualizar"
-                                        @onclick="() => AlterarQuantidade(item, item.Quantidade + 1)">
-                                    +
-                                </button>
                             </div>
 
                             <button type="button"
@@ -99,8 +83,8 @@
 
             <aside class="checkout-panel" aria-label="Resumo da compra">
                 <div class="summary-line">
-                    <span>Itens</span>
-                    <strong>@_carrinho.Itens.Sum(i => i.Quantidade)</strong>
+                    <span>Acessos</span>
+                    <strong>@_carrinho.Itens.Count</strong>
                 </div>
                 <div class="summary-line">
                     <span>Subtotal</span>
@@ -188,18 +172,6 @@
         await ExecutarAtualizacao(async () =>
         {
             _validacao = await CarrinhoService.ValidarAsync();
-        });
-    }
-
-    private async Task AlterarQuantidade(ItemCarrinhoDTO item, int quantidade)
-    {
-        if (quantidade < 1 || quantidade == item.Quantidade)
-            return;
-
-        await ExecutarAtualizacao(async () =>
-        {
-            _carrinho = await CarrinhoService.AtualizarQuantidadeAsync(item.Id, quantidade);
-            _validacao = _carrinho.Itens.Count == 0 ? null : await CarrinhoService.ValidarAsync();
         });
     }
 

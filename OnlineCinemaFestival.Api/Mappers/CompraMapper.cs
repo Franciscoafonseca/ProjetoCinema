@@ -72,16 +72,36 @@ public static class CompraMapper
                         Mensagem = compra.Pagamento.Mensagem,
                     },
             Itens = compra
-                .Itens.Select(item => new ItemCompraReadDTO
+                .Itens.Select(item =>
                 {
-                    Id = item.Id,
-                    AcessoId = item.AcessoId,
-                    NomeAcesso = item.NomeAcesso,
-                    TipoAcesso = item.TipoAcesso,
-                    TipoAcessoNome = item.TipoAcesso.ToString(),
-                    PrecoUnitario = item.PrecoUnitario,
-                    Quantidade = item.Quantidade,
-                    Subtotal = item.Subtotal,
+                    var acessoUtilizador = compra.AcessosUtilizador.FirstOrDefault(a =>
+                        a.AcessoId == item.AcessoId
+                    );
+                    var acesso = item.Acesso;
+
+                    return new ItemCompraReadDTO
+                    {
+                        Id = item.Id,
+                        AcessoId = item.AcessoId,
+                        NomeAcesso = item.NomeAcesso,
+                        TipoAcesso = item.TipoAcesso,
+                        TipoAcessoNome = item.TipoAcesso.ToString(),
+                        PrecoUnitario = item.PrecoUnitario,
+                        Quantidade = item.Quantidade,
+                        Subtotal = item.Subtotal,
+                        SessaoId = acesso.SessaoId,
+                        InicioSessao = acesso.Sessao?.Inicio,
+                        FimSessao = acesso.Sessao?.Fim,
+                        FestivalId = acesso.FestivalId ?? acesso.Sessao?.FestivalId,
+                        NomeFestival =
+                            acesso.Festival?.Name ?? acesso.Sessao?.Festival?.Name ?? string.Empty,
+                        FilmeId = acesso.FilmeId ?? acesso.Sessao?.FilmeId,
+                        TituloFilme =
+                            acesso.Filme?.Titulo ?? acesso.Sessao?.Filme?.Titulo ?? string.Empty,
+                        DataAcesso = acesso.DataAcesso,
+                        InicioValidade = acessoUtilizador?.InicioValidade,
+                        FimValidade = acessoUtilizador?.FimValidade,
+                    };
                 })
                 .ToList(),
         };

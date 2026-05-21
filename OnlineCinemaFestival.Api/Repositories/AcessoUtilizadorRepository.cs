@@ -23,6 +23,12 @@ public class AcessoUtilizadorRepository : IAcessoUtilizadorRepository
         return await _context
             .AcessosUtilizador.Where(a => a.UtilizadorId == utilizadorId)
             .Include(a => a.Acesso)
+            .Include(a => a.Sessao)
+                .ThenInclude(s => s!.Filme)
+            .Include(a => a.Sessao)
+                .ThenInclude(s => s!.Festival)
+            .Include(a => a.Festival)
+            .Include(a => a.Filme)
             .OrderByDescending(a => a.CriadoEm)
             .ToListAsync();
     }
@@ -40,6 +46,12 @@ public class AcessoUtilizadorRepository : IAcessoUtilizadorRepository
                 && a.FimValidade >= dataAtual
             )
             .Include(a => a.Acesso)
+            .Include(a => a.Sessao)
+                .ThenInclude(s => s!.Filme)
+            .Include(a => a.Sessao)
+                .ThenInclude(s => s!.Festival)
+            .Include(a => a.Festival)
+            .Include(a => a.Filme)
             .OrderBy(a => a.FimValidade)
             .ToListAsync();
     }

@@ -39,7 +39,7 @@
     {
         <section class="metrics">
             <article>
-                <span>@_acessos.Count</span>
+                <span>@_acessos.Count(AcessoValido)</span>
                 <small>Acessos ativos</small>
             </article>
             <article>
@@ -52,48 +52,41 @@
             </article>
         </section>
 
-        <section class="cinema-panel">
-            <div class="access-meta">
-                <span><strong>BilheteSessao</strong>: acesso a uma sessao e ao respetivo filme/trailer.</span>
-                <span><strong>PasseDiario</strong>: acesso as sessoes de um dia do festival.</span>
-                <span><strong>PasseCompleto</strong>: acesso ao festival inteiro.</span>
-                <span><strong>AluguerDigital</strong>: acesso temporario a um filme individual.</span>
-            </div>
-        </section>
-
         <section class="access-grid">
             @foreach (var acesso in _acessos.OrderBy(a => a.FimValidade))
             {
                 <article class="access-card">
                     <div class="access-top">
                         <span class="access-type">@acesso.TipoAcessoNome</span>
-                        <span class="access-state @(acesso.Ativo ? "active" : "ended")">
-                            @(acesso.Ativo ? "Ativo" : "Expirado")
+                        <span class="access-state @(AcessoValido(acesso) ? "active" : "ended")">
+                            @(AcessoValido(acesso) ? "Ativo" : "Expirado")
                         </span>
                     </div>
 
                     <h2>@TituloAcesso(acesso)</h2>
 
                     <div class="access-meta">
-                        <span>@FormatarPeriodo(acesso.InicioValidade, acesso.FimValidade)</span>
+                        @foreach (var detalhe in DetalhesAcesso(acesso))
+                        {
+                            <span>@detalhe</span>
+                        }
+                        <span>Validade: @FormatarPeriodo(acesso.InicioValidade, acesso.FimValidade)</span>
                         @if (acesso.SessaoId.HasValue)
                         {
                             <span>Sessao #@acesso.SessaoId</span>
-                        }
-                        @if (acesso.FestivalId.HasValue)
-                        {
-                            <span>Festival #@acesso.FestivalId</span>
                         }
                     </div>
 
                     <div class="access-actions">
                         @if (acesso.SessaoId.HasValue)
                         {
-                            <button @onclick="() => AbrirSessao(acesso.SessaoId.Value)">Ver sessao</button>
+                            <button @onclick="() => AbrirDetalheSessao(acesso.SessaoId.Value)">Ver sessao</button>
+                            <button disabled="@(!AcessoValido(acesso))" @onclick="() => AbrirPlayerSessao(acesso.SessaoId.Value)">Entrar no player</button>
                         }
                         else if (acesso.FilmeId.HasValue)
                         {
-                            <button @onclick="() => AbrirFilme(acesso.FilmeId.Value)">Ver filme</button>
+                            <button @onclick="() => AbrirDetalheFilme(acesso.FilmeId.Value)">Ver filme</button>
+                            <button disabled="@(!AcessoValido(acesso))" @onclick="() => AbrirPlayerFilme(acesso.FilmeId.Value)">Entrar no player</button>
                         }
                         else if (acesso.FestivalId.HasValue)
                         {
@@ -127,17 +120,50 @@
         }
     }
 
-    private void AbrirSessao(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
+    private void AbrirDetalheSessao(int sessaoId) => Nav.NavigateTo($"/sessoes/{sessaoId}");
 
-    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/visualizar/filme/{filmeId}");
+    private void AbrirPlayerSessao(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
+
+    private void AbrirDetalheFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
+
+    private void AbrirPlayerFilme(int filmeId) => Nav.NavigateTo($"/visualizar/filme/{filmeId}");
 
     private void AbrirFestival(int festivalId) => Nav.NavigateTo($"/festivais/{festivalId}");
 
     private static string TituloAcesso(AcessoUtilizadorDTO acesso)
     {
+        if (!string.IsNullOrWhiteSpace(acesso.TituloFilme))
+            return acesso.TituloFilme;
+
+        if (!string.IsNullOrWhiteSpace(acesso.NomeFestival))
+            return acesso.NomeFestival;
+
         return string.IsNullOrWhiteSpace(acesso.NomeAcesso)
             ? $"Acesso #{acesso.AcessoId}"
             : acesso.NomeAcesso;
+    }
+
+    private static IEnumerable<string> DetalhesAcesso(AcessoUtilizadorDTO acesso)
+    {
+        if (!string.IsNullOrWhiteSpace(acesso.NomeAcesso))
+            yield return acesso.NomeAcesso;
+
+        if (!string.IsNullOrWhiteSpace(acesso.NomeFestival))
+            yield return acesso.NomeFestival;
+
+        if (acesso.InicioSessao.HasValue)
+            yield return $"Sessao: {acesso.InicioSessao.Value.ToLocalTime():dd/MM/yyyy HH:mm}";
+
+        if (acesso.DataAcesso.HasValue)
+            yield return $"Dia: {acesso.DataAcesso.Value.ToLocalTime():dd/MM/yyyy}";
+
+        if (acesso.DuracaoHoras.HasValue)
+            yield return $"{acesso.DuracaoHoras.Value} horas";
+    }
+
+    private static bool AcessoValido(AcessoUtilizadorDTO acesso)
+    {
+        return acesso.Ativo && acesso.InicioValidade <= DateTime.UtcNow && acesso.FimValidade >= DateTime.UtcNow;
     }
 
     private static string FormatarPeriodo(DateTime inicio, DateTime fim)

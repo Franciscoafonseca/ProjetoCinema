@@ -11,7 +11,8 @@
         @{ Nav.NavigateTo("/login?returnUrl=/perfil", forceLoad: false); }
     </NotAuthorized>
     <Authorized Context="auth">
-        <MudContainer MaxWidth="MaxWidth.Large" Class="perfil-page">
+        <main class="cinema-page perfil-page">
+            <section class="cinema-shell perfil-shell">
             @if (_loading)
             {
                 <MudCard Elevation="0" Class="perfil-panel perfil-loading">
@@ -88,7 +89,7 @@
                                                    Variant="Variant.Outlined"
                                                    Margin="Margin.Dense"
                                                    @bind-Value="_pedido.CountryCode">
-                                            @foreach (var pais in Paises)
+                                            @foreach (var pais in _paises)
                                             {
                                                 <MudSelectItem T="string" Value="@pais.Codigo">@pais.Nome</MudSelectItem>
                                             }
@@ -100,18 +101,22 @@
                                                    Variant="Variant.Outlined"
                                                    Margin="Margin.Dense"
                                                    @bind-Value="_pedido.Location">
-                                            @foreach (var localidade in Localidades)
+                                            @foreach (var localidade in _localidades)
                                             {
                                                 <MudSelectItem T="string" Value="@localidade">@localidade</MudSelectItem>
                                             }
                                         </MudSelect>
                                     </MudItem>
                                     <MudItem xs="12" md="6">
-                                        <MudTextField T="string"
-                                                      Label="URL da foto de perfil"
-                                                      Variant="Variant.Outlined"
-                                                      Margin="Margin.Dense"
-                                                      @bind-Value="_pedido.ProfileImageUrl" />
+                                        <div class="perfil-file-field">
+                                            <label>Foto de perfil</label>
+                                            <InputFile OnChange="SelecionarFoto" accept="image/png,image/jpeg,image/webp" />
+                                            <small>JPG, PNG ou WEBP ate 2MB.</small>
+                                            @if (!string.IsNullOrWhiteSpace(_nomeFotoSelecionada))
+                                            {
+                                                <span>@_nomeFotoSelecionada</span>
+                                            }
+                                        </div>
                                     </MudItem>
                                     <MudItem xs="12">
                                         <MudTextField T="string"
@@ -172,11 +177,12 @@
                                            Size="Size.Large"
                                            Color="Color.Primary"
                                            Class="perfil-avatar">
-                                    @if (!string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl))
+                                    @if (MostrarFotoPerfil)
                                     {
                                         <img class="perfil-avatar-img"
                                              src="@_perfil.ProfileImageUrl"
-                                             alt="@_perfil.Name" />
+                                             alt="@_perfil.Name"
+                                             @onerror="MarcarFotoPerfilFalhada" />
                                     }
                                     else
                                     {
@@ -263,7 +269,7 @@
                                                      Variant="Variant.Filled"
                                                      Color="Color.Default"
                                                      Icon="@Icons.Material.Filled.Flag">
-                                                @_perfil.CountryFlag @_perfil.Nationality
+                                                @BandeiraPerfil(_perfil) @_perfil.Nationality (@_perfil.CountryCode)
                                             </MudChip>
                                         }
                                         @if (!string.IsNullOrWhiteSpace(_perfil.Location))
@@ -461,7 +467,8 @@
                     </MudCardContent>
                 </MudCard>
             }
-        </MudContainer>
+            </section>
+        </main>
     </Authorized>
 </AuthorizeView>
 
@@ -473,12 +480,17 @@
     private bool _loading = true;
     private bool _emEdicao;
     private bool _aGuardar;
+    private IBrowserFile? _fotoSelecionada;
+    private string? _nomeFotoSelecionada;
+    private bool _fotoPerfilFalhou;
     private string? _erro;
     private string? _erroEdicao;
     private string? _erroListas;
     private string? _erroHistorico;
+    private List<PaisOpcao> _paises = PaisesPadrao;
+    private List<string> _localidades = LocalidadesPadrao.ToList();
 
-    private static readonly List<PaisOpcao> Paises =
+    private static readonly List<PaisOpcao> PaisesPadrao =
     [
         new("PT", "Portugal"),
         new("BR", "Brasil"),
@@ -493,7 +505,7 @@
         new("US", "Estados Unidos"),
     ];
 
-    private static readonly string[] Localidades =
+    private static readonly string[] LocalidadesPadrao =
     [
         "Funchal",
         "Camara de Lobos",
@@ -514,7 +526,26 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await CarregarOpcoesAsync();
         await CarregarPerfilAsync();
+    }
+
+    private async Task CarregarOpcoesAsync()
+    {
+        try
+        {
+            var opcoes = await PerfilService.ObterOpcoesAsync();
+
+            if (opcoes.Paises.Count > 0)
+                _paises = opcoes.Paises.Select(p => new PaisOpcao(p.Codigo, p.Nome)).ToList();
+
+            if (opcoes.Localidades.Count > 0)
+                _localidades = opcoes.Localidades;
+        }
+        catch
+        {
+            // Mantem opcoes locais se a API ainda estiver indisponivel.
+        }
     }
 
     private async Task CarregarPerfilAsync()
@@ -522,6 +553,7 @@
         try
         {
             _perfil = await PerfilService.ObterMeuPerfilAsync();
+            _fotoPerfilFalhou = false;
 
             if (_perfil == null)
             {
@@ -581,11 +613,12 @@
             CountryCode = _perfil.CountryCode,
             Nationality = _perfil.Nationality,
             Bio = _perfil.Bio,
-            ProfileImageUrl = _perfil.ProfileImageUrl,
             Location = _perfil.Location,
             IsPublic = _perfil.IsPublic,
             FavoriteGenreIds = new(),
         };
+        _fotoSelecionada = null;
+        _nomeFotoSelecionada = null;
         _erroEdicao = null;
         _emEdicao = true;
     }
@@ -603,10 +636,15 @@
 
         try
         {
-            _pedido.Nationality = Paises.FirstOrDefault(p => p.Codigo == _pedido.CountryCode)?.Nome ?? string.Empty;
+            _pedido.Nationality = _paises.FirstOrDefault(p => p.Codigo == _pedido.CountryCode)?.Nome ?? string.Empty;
             var atualizado = await PerfilService.AtualizarMeuPerfilAsync(_pedido);
+            if (_fotoSelecionada != null)
+                atualizado = await PerfilService.EnviarFotoAsync(_fotoSelecionada);
             if (atualizado != null)
+            {
                 _perfil = atualizado;
+                _fotoPerfilFalhou = false;
+            }
             _emEdicao = false;
         }
         catch (Exception ex)
@@ -682,6 +720,64 @@
     }
 
     private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
+
+    private void SelecionarFoto(InputFileChangeEventArgs e)
+    {
+        var ficheiro = e.File;
+        var tiposPermitidos = new[] { "image/jpeg", "image/png", "image/webp" };
+
+        if (!tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            _fotoSelecionada = null;
+            _nomeFotoSelecionada = null;
+            _erroEdicao = "Formato invalido. Escolhe uma imagem JPG, PNG ou WEBP.";
+            return;
+        }
+
+        if (ficheiro.Size > 2 * 1024 * 1024)
+        {
+            _fotoSelecionada = null;
+            _nomeFotoSelecionada = null;
+            _erroEdicao = "A foto nao pode exceder 2MB.";
+            return;
+        }
+
+        _erroEdicao = null;
+        _fotoSelecionada = ficheiro;
+        _nomeFotoSelecionada = ficheiro.Name;
+    }
+
+    private bool MostrarFotoPerfil =>
+        _perfil is not null
+        && !string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl)
+        && !_fotoPerfilFalhou;
+
+    private void MarcarFotoPerfilFalhada()
+    {
+        _fotoPerfilFalhou = true;
+    }
+
+    private static string BandeiraPerfil(PerfilPublicoDTO perfil)
+    {
+        if (!string.IsNullOrWhiteSpace(perfil.CountryFlag))
+            return perfil.CountryFlag;
+
+        return perfil.CountryCode.ToUpperInvariant() switch
+        {
+            "PT" => "🇵🇹",
+            "BR" => "🇧🇷",
+            "AO" => "🇦🇴",
+            "CV" => "🇨🇻",
+            "MZ" => "🇲🇿",
+            "ES" => "🇪🇸",
+            "FR" => "🇫🇷",
+            "IT" => "🇮🇹",
+            "DE" => "🇩🇪",
+            "GB" => "🇬🇧",
+            "US" => "🇺🇸",
+            _ => "🏳",
+        };
+    }
 
     private static string ObterInicial(string nome)
     {

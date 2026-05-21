@@ -10,6 +10,8 @@ public class MensagemChatSessaoReadDTO
 
     public string NomeUtilizador { get; set; } = string.Empty;
 
+    public string ProfileImageUrl { get; set; } = string.Empty;
+
     public string Texto { get; set; } = string.Empty;
 
     public DateTime EnviadaEm { get; set; }

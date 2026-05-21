@@ -44,6 +44,8 @@ public class FilmeRepository : IFilmeRepository
                 .ThenInclude(ff => ff.Festival)
             .Include(f => f.Sessoes)
                 .ThenInclude(s => s.Festival)
+            .Include(f => f.Sessoes)
+                .ThenInclude(s => s.Acessos)
             .Include(f => f.Acessos)
             .Include(f => f.ResultadosPremiosFestival)
                 .ThenInclude(r => r.PremioFestival)
@@ -170,19 +172,12 @@ public class FilmeRepository : IFilmeRepository
         await _context.Filmes.AddAsync(filme);
     }
 
-    public void AtualizarVideo(
-        Filme filme,
-        string? provider,
-        string? key,
-        string? url,
-        int? duracaoSegundos
-    )
+    public void AtualizarVideo(Filme filme, string? provider, string? key, string? url)
     {
         filme.VideoProvider = provider;
         filme.VideoKey = key;
         filme.VideoUrl = url;
         filme.TrailerUrl = url;
-        filme.DuracaoVideoSegundos = duracaoSegundos;
     }
 
     public async Task SaveChangesAsync()
