@@ -15,10 +15,7 @@ public class SessaoRepository : ISessaoRepository
 
     public async Task<IEnumerable<Sessao>> ObterTodosAsync()
     {
-        return await _context
-            .Sessoes.Include(s => s.Festival)
-            .Include(s => s.Filme)
-            .Include(s => s.Acessos)
+        return await SessoesComDetalhes()
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -26,20 +23,14 @@ public class SessaoRepository : ISessaoRepository
 
     public async Task<Sessao?> ObterPorIdAsync(int id)
     {
-        return await _context
-            .Sessoes.Include(s => s.Festival)
-            .Include(s => s.Filme)
-            .Include(s => s.Acessos)
+        return await SessoesComDetalhes()
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
     public async Task<IEnumerable<Sessao>> ObterPorFestivalIdAsync(int festivalId)
     {
-        return await _context
-            .Sessoes.Where(s => s.FestivalId == festivalId)
-            .Include(s => s.Festival)
-            .Include(s => s.Filme)
-            .Include(s => s.Acessos)
+        return await SessoesComDetalhes()
+            .Where(s => s.FestivalId == festivalId)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -47,11 +38,8 @@ public class SessaoRepository : ISessaoRepository
 
     public async Task<IEnumerable<Sessao>> ObterPorFilmeIdAsync(int filmeId)
     {
-        return await _context
-            .Sessoes.Where(s => s.FilmeId == filmeId)
-            .Include(s => s.Festival)
-            .Include(s => s.Filme)
-            .Include(s => s.Acessos)
+        return await SessoesComDetalhes()
+            .Where(s => s.FilmeId == filmeId)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -59,11 +47,8 @@ public class SessaoRepository : ISessaoRepository
 
     public async Task<IEnumerable<Sessao>> ObterDisponiveisAsync(DateTime dataAtual)
     {
-        return await _context
-            .Sessoes.Where(s => s.Fim >= dataAtual)
-            .Include(s => s.Festival)
-            .Include(s => s.Filme)
-            .Include(s => s.Acessos)
+        return await SessoesComDetalhes()
+            .Where(s => s.Fim >= dataAtual)
             .AsNoTracking()
             .OrderBy(s => s.Inicio)
             .ToListAsync();
@@ -109,5 +94,14 @@ public class SessaoRepository : ISessaoRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    private IQueryable<Sessao> SessoesComDetalhes()
+    {
+        return _context
+            .Sessoes.AsSplitQuery()
+            .Include(s => s.Festival)
+            .Include(s => s.Filme)
+            .Include(s => s.Acessos);
     }
 }

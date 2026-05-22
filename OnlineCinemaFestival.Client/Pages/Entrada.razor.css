@@ -73,9 +73,10 @@
 }
 
 .auth-logo img {
-  width: 100%;
-  height: 100%;
+  width: 38px;
+  height: 38px;
   display: block;
+  object-fit: contain;
 }
 
 .auth-card-head h2 {
@@ -117,7 +118,7 @@
   background: rgba(31, 211, 198, 0.1);
 }
 
-.auth-social span {
+.auth-social .auth-provider-logo {
   width: 24px;
   height: 24px;
   display: grid;
@@ -126,6 +127,15 @@
   background: #fff;
   color: #101521;
   font-weight: 950;
+}
+
+.auth-social .apple-logo {
+  width: 34px;
+  border-radius: 8px;
+  background: #050505;
+  color: #fff;
+  font-size: 0.58rem;
+  letter-spacing: 0;
 }
 
 .auth-social strong {
@@ -228,12 +238,12 @@
   min-height: 52px;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--ocf-sunset-strong), var(--ocf-sunset));
+  background: linear-gradient(135deg, var(--ocf-sky), var(--ocf-sky-light));
   color: #fff;
   font: inherit;
   font-weight: 950;
   cursor: pointer;
-  box-shadow: 0 16px 34px rgba(255, 94, 108, 0.32);
+  box-shadow: 0 16px 34px rgba(0, 114, 206, 0.32);
 }
 
 .btn-auth:disabled,

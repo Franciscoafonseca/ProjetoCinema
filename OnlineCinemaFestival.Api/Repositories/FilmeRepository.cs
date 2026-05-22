@@ -16,7 +16,8 @@ public class FilmeRepository : IFilmeRepository
     public async Task<IEnumerable<Filme>> ObterTodosAsync()
     {
         return await _context
-            .Filmes.Include(f => f.FilmeGeneros)
+            .Filmes.AsSplitQuery()
+            .Include(f => f.FilmeGeneros)
                 .ThenInclude(fg => fg.Genero)
             .Include(f => f.PessoasDoFilme)
                 .ThenInclude(fp => fp.Pessoa)
@@ -54,7 +55,8 @@ public class FilmeRepository : IFilmeRepository
     public async Task<Filme?> ObterPorTmdbIdAsync(int tmdbId)
     {
         return await _context
-            .Filmes.Include(f => f.FilmeGeneros)
+            .Filmes.AsSplitQuery()
+            .Include(f => f.FilmeGeneros)
                 .ThenInclude(fg => fg.Genero)
             .Include(f => f.PessoasDoFilme)
                 .ThenInclude(fp => fp.Pessoa)
@@ -66,7 +68,8 @@ public class FilmeRepository : IFilmeRepository
     public async Task<List<Filme>> ObterPrincipaisAsync(int quantidade)
     {
         return await _context
-            .Filmes.Include(f => f.FilmeGeneros)
+            .Filmes.AsSplitQuery()
+            .Include(f => f.FilmeGeneros)
                 .ThenInclude(fg => fg.Genero)
             .Include(f => f.PessoasDoFilme)
                 .ThenInclude(fp => fp.Pessoa)

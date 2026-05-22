@@ -15,21 +15,7 @@ public class CarrinhoRepository : ICarrinhoRepository
 
     public async Task<Carrinho?> ObterPorUtilizadorIdAsync(int utilizadorId)
     {
-        return await _context
-            .Carrinhos.Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Sessao)
-                        .ThenInclude(s => s!.Filme)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Sessao)
-                        .ThenInclude(s => s!.Festival)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Festival)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Filme)
+        return await CarrinhosComItens()
             .FirstOrDefaultAsync(c => c.UtilizadorId == utilizadorId);
     }
 
@@ -50,17 +36,7 @@ public class CarrinhoRepository : ICarrinhoRepository
 
     public async Task<CarrinhoItem?> ObterItemAsync(int carrinhoId, int itemId)
     {
-        return await _context
-            .ItensCarrinho.Include(i => i.Acesso)
-                .ThenInclude(a => a.Sessao)
-                    .ThenInclude(s => s!.Filme)
-            .Include(i => i.Acesso)
-                .ThenInclude(a => a.Sessao)
-                    .ThenInclude(s => s!.Festival)
-            .Include(i => i.Acesso)
-                .ThenInclude(a => a.Festival)
-            .Include(i => i.Acesso)
-                .ThenInclude(a => a.Filme)
+        return await ItensComAcesso()
             .FirstOrDefaultAsync(i => i.CarrinhoId == carrinhoId && i.Id == itemId);
     }
 
@@ -96,5 +72,41 @@ public class CarrinhoRepository : ICarrinhoRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    private IQueryable<Carrinho> CarrinhosComItens()
+    {
+        return _context
+            .Carrinhos.AsSplitQuery()
+            .Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+                    .ThenInclude(a => a.Sessao)
+                        .ThenInclude(s => s!.Filme)
+            .Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+                    .ThenInclude(a => a.Sessao)
+                        .ThenInclude(s => s!.Festival)
+            .Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+                    .ThenInclude(a => a.Festival)
+            .Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+                    .ThenInclude(a => a.Filme);
+    }
+
+    private IQueryable<CarrinhoItem> ItensComAcesso()
+    {
+        return _context
+            .ItensCarrinho.AsSplitQuery()
+            .Include(i => i.Acesso)
+                .ThenInclude(a => a.Sessao)
+                    .ThenInclude(s => s!.Filme)
+            .Include(i => i.Acesso)
+                .ThenInclude(a => a.Sessao)
+                    .ThenInclude(s => s!.Festival)
+            .Include(i => i.Acesso)
+                .ThenInclude(a => a.Festival)
+            .Include(i => i.Acesso)
+                .ThenInclude(a => a.Filme);
     }
 }

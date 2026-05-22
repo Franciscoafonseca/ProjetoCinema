@@ -8,6 +8,21 @@ public class TmdbSearchResponse
     public List<TmdbFilmeResult> Results { get; set; } = new();
 }
 
+public class TmdbWatchProviderResponse
+{
+    [JsonPropertyName("results")]
+    public List<TmdbWatchProviderResult> Results { get; set; } = new();
+}
+
+public class TmdbWatchProviderResult
+{
+    [JsonPropertyName("provider_id")]
+    public int ProviderId { get; set; }
+
+    [JsonPropertyName("provider_name")]
+    public string ProviderName { get; set; } = string.Empty;
+}
+
 public class TmdbFilmeResult
 {
     [JsonPropertyName("id")]

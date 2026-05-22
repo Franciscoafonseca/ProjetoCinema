@@ -90,6 +90,17 @@
                                             <dt>Valor</dt>
                                             <dd>@Moeda(compra.Pagamento.Valor)</dd>
                                         </div>
+                                        <div>
+                                            <dt>Estado</dt>
+                                            <dd>@compra.Pagamento.EstadoNome</dd>
+                                        </div>
+                                        @if (compra.Pagamento.ExpiraEm.HasValue)
+                                        {
+                                            <div>
+                                                <dt>Expira</dt>
+                                                <dd>@compra.Pagamento.ExpiraEm.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+                                            </div>
+                                        }
                                     </dl>
                                 }
                                 else

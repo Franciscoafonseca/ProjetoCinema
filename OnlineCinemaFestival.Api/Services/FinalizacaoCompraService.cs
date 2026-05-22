@@ -14,6 +14,7 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
     private readonly IGeradorReferenciaCompra _geradorReferenciaCompra;
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
     private readonly IPagamentoService _pagamentoService;
+    private readonly IEnumerable<ICompraObserver> _compraObservers;
 
     public FinalizacaoCompraService(
         ICarrinhoRepository carrinhoRepository,
@@ -22,7 +23,8 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
         IAcessoUtilizadorFactory fabricaAcessoUtilizador,
         IGeradorReferenciaCompra geradorReferenciaCompra,
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
-        IPagamentoService pagamentoService
+        IPagamentoService pagamentoService,
+        IEnumerable<ICompraObserver> compraObservers
     )
     {
         _carrinhoRepository = carrinhoRepository;
@@ -32,6 +34,7 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
         _geradorReferenciaCompra = geradorReferenciaCompra;
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
         _pagamentoService = pagamentoService;
+        _compraObservers = compraObservers;
     }
 
     public async Task<ResultadoFinalizacaoCompraDTO> FinalizarCompraAsync(
@@ -44,10 +47,11 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
             var carrinho = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
             await _validadorCheckout.ValidarAsync(utilizadorId, carrinho);
+            var carrinhoValido = carrinho!;
 
             var agora = DateTime.UtcNow;
 
-            var compra = CriarCompra(utilizadorId, carrinho!, agora);
+            var compra = CriarCompra(utilizadorId, carrinhoValido, agora);
 
             compra.Pagamento = await _pagamentoService.ProcessarPagamentoSimuladoAsync(
                 compra,
@@ -57,17 +61,34 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
 
             await _compraRepository.AddAsync(compra);
 
-            var acessosComprados = carrinho!
-                .Itens.Select(item =>
-                    _fabricaAcessoUtilizador.Criar(utilizadorId, compra, item, agora)
-                )
-                .ToList();
+            var pagamentoAprovado = compra.Pagamento.Estado == EstadoPagamento.Aprovado;
+            compra.Estado = pagamentoAprovado ? EstadoCompra.Pago : EstadoCompra.Pendente;
+            compra.PagaEm = pagamentoAprovado ? agora : null;
 
-            await _acessoUtilizadorRepository.AddRangeAsync(acessosComprados);
+            var acessosComprados = pagamentoAprovado
+                ? carrinhoValido
+                    .Itens.Select(item =>
+                        _fabricaAcessoUtilizador.Criar(utilizadorId, compra, item, agora)
+                    )
+                    .ToList()
+                : new List<AcessoUtilizador>();
 
-            _carrinhoRepository.RemoveItems(carrinho.Itens.ToList());
+            if (acessosComprados.Count > 0)
+                await _acessoUtilizadorRepository.AddRangeAsync(acessosComprados);
 
-            carrinho.AtualizadoEm = agora;
+            if (pagamentoAprovado)
+            {
+                var acessos = carrinhoValido.Itens.Select(item => item.Acesso).ToList();
+                await Task.WhenAll(
+                    _compraObservers.Select(observer =>
+                        observer.NotificarAsync(utilizadorId, compra.ValorTotal, acessos)
+                    )
+                );
+            }
+
+            _carrinhoRepository.RemoveItems(carrinhoValido.Itens.ToList());
+
+            carrinhoValido.AtualizadoEm = agora;
 
             await _compraRepository.SaveChangesAsync();
 
@@ -76,7 +97,9 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
             return CompraMapper.MapToCheckoutResultadoDTO(
                 compraCriada!,
                 acessosComprados.Count,
-                "Compra finalizada com sucesso."
+                pagamentoAprovado
+                    ? "Compra finalizada com sucesso."
+                    : "Referencia Multibanco gerada. O pagamento fica pendente durante 3 horas."
             );
         });
     }
@@ -88,8 +111,7 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
             UtilizadorId = utilizadorId,
             Referencia = _geradorReferenciaCompra.Gerar(),
             CriadaEm = dataCompra,
-            Estado = EstadoCompra.Pago,
-            PagaEm = dataCompra,
+            Estado = EstadoCompra.Pendente,
             Itens = carrinho
                 .Itens.Select(item => new ItemCompra
                 {

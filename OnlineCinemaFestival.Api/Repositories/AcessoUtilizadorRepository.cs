@@ -20,15 +20,8 @@ public class AcessoUtilizadorRepository : IAcessoUtilizadorRepository
 
     public async Task<IEnumerable<AcessoUtilizador>> ObterPorUtilizadorIdAsync(int utilizadorId)
     {
-        return await _context
-            .AcessosUtilizador.Where(a => a.UtilizadorId == utilizadorId)
-            .Include(a => a.Acesso)
-            .Include(a => a.Sessao)
-                .ThenInclude(s => s!.Filme)
-            .Include(a => a.Sessao)
-                .ThenInclude(s => s!.Festival)
-            .Include(a => a.Festival)
-            .Include(a => a.Filme)
+        return await AcessosUtilizadorComDetalhes()
+            .Where(a => a.UtilizadorId == utilizadorId)
             .OrderByDescending(a => a.CriadoEm)
             .ToListAsync();
     }
@@ -38,20 +31,13 @@ public class AcessoUtilizadorRepository : IAcessoUtilizadorRepository
         DateTime dataAtual
     )
     {
-        return await _context
-            .AcessosUtilizador.Where(a =>
+        return await AcessosUtilizadorComDetalhes()
+            .Where(a =>
                 a.UtilizadorId == utilizadorId
                 && a.Ativo
                 && a.InicioValidade <= dataAtual
                 && a.FimValidade >= dataAtual
             )
-            .Include(a => a.Acesso)
-            .Include(a => a.Sessao)
-                .ThenInclude(s => s!.Filme)
-            .Include(a => a.Sessao)
-                .ThenInclude(s => s!.Festival)
-            .Include(a => a.Festival)
-            .Include(a => a.Filme)
             .OrderBy(a => a.FimValidade)
             .ToListAsync();
     }
@@ -130,5 +116,18 @@ public class AcessoUtilizadorRepository : IAcessoUtilizadorRepository
             )
             .OrderByDescending(a => a.FimValidade)
             .FirstOrDefaultAsync();
+    }
+
+    private IQueryable<AcessoUtilizador> AcessosUtilizadorComDetalhes()
+    {
+        return _context
+            .AcessosUtilizador.AsSplitQuery()
+            .Include(a => a.Acesso)
+            .Include(a => a.Sessao)
+                .ThenInclude(s => s!.Filme)
+            .Include(a => a.Sessao)
+                .ThenInclude(s => s!.Festival)
+            .Include(a => a.Festival)
+            .Include(a => a.Filme);
     }
 }

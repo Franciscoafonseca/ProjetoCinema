@@ -1,4 +1,4 @@
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
@@ -17,13 +17,26 @@ public class RewardsQueryService : IRewardsQueryService
         _rewardTransacaoRepository = rewardTransacaoRepository;
     }
 
-    public int ObterSaldo(int utilizadorId)
+    public RewardsSaldoReadDto ObterSaldo(int utilizadorId)
     {
-        return _rewardsRepository.ObterSaldo(utilizadorId);
+        return new RewardsSaldoReadDto
+        {
+            UtilizadorId = utilizadorId,
+            Pontos = _rewardsRepository.ObterSaldo(utilizadorId),
+        };
     }
 
-    public List<RewardTransacao> ObterHistorico(int utilizadorId)
+    public IEnumerable<RewardTransacaoReadDto> ObterHistorico(int utilizadorId)
     {
-        return _rewardTransacaoRepository.ObterHistorico(utilizadorId);
+        return _rewardTransacaoRepository
+            .ObterHistorico(utilizadorId)
+            .Select(t => new RewardTransacaoReadDto
+            {
+                Id = t.Id,
+                UtilizadorId = t.UtilizadorId,
+                Pontos = t.Pontos,
+                Data = t.Data,
+                Motivo = t.Motivo,
+            });
     }
 }

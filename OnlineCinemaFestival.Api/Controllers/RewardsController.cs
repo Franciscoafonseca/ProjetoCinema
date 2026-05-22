@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.Autorizacao;
-using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Controllers;
@@ -29,23 +28,14 @@ public class RewardsController : ControllerBase
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
         var saldo = _queryService.ObterSaldo(utilizadorId);
 
-        return Ok(new { utilizadorId, pontos = saldo });
+        return Ok(saldo);
     }
 
     [HttpGet("historico")]
     public IActionResult ObterHistorico()
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
-        var historico = _queryService
-            .ObterHistorico(utilizadorId)
-            .Select(t => new RewardTransacaoReadDto
-            {
-                Id = t.Id,
-                UtilizadorId = t.UtilizadorId,
-                Pontos = t.Pontos,
-                Data = t.Data,
-                Motivo = t.Motivo,
-            });
+        var historico = _queryService.ObterHistorico(utilizadorId);
 
         return Ok(historico);
     }

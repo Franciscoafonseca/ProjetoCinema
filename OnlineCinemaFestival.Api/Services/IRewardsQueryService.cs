@@ -1,9 +1,10 @@
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.DTOs;
 
 namespace OnlineCinemaFestival.Api.Services;
 
 public interface IRewardsQueryService
 {
-    int ObterSaldo(int utilizadorId);
-    List<RewardTransacao> ObterHistorico(int utilizadorId);
+    RewardsSaldoReadDto ObterSaldo(int utilizadorId);
+
+    IEnumerable<RewardTransacaoReadDto> ObterHistorico(int utilizadorId);
 }

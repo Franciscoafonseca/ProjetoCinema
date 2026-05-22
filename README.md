@@ -34,6 +34,16 @@ Controller -> Service -> Repository -> AppDbContext
 
 Controllers ficam finos, services concentram regras de negocio e repositories centralizam acesso a dados.
 
+Principios e padroes aplicados:
+
+- Caminho B: o Blazor WebAssembly comunica com a API apenas via `HttpClient`; nao referencia EF Core, repositories nem modelos internos da API.
+- SRP/DIP: regras de negocio ficam em services dependentes de interfaces; controllers so recebem HTTP e devolvem respostas.
+- Repository: queries EF Core ficam em repositories, com `AsSplitQuery` nas leituras com multiplos `Include`.
+- Strategy/OCP: validacao de tipos de acesso, ordenacao de catalogo e pagamentos usam strategies extensiveis.
+- Factory: acessos automaticos de catalogo sao criados por `IAcessoAutomaticoFactory`.
+- Adapter/Facade: chamadas TMDB passam por `ITmdbApiClient` e `ITmdbService`.
+- Observer: compras, visualizacoes e avaliacoes notificam observers para rewards/acessos sem acoplar os fluxos principais.
+
 ## Configuracao
 
 Preencher `OnlineCinemaFestival.Api/appsettings.json` antes de arrancar a API:

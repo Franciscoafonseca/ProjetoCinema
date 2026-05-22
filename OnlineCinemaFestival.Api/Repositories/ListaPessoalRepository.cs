@@ -15,10 +15,8 @@ public class ListaPessoalRepository : IListaPessoalRepository
 
     public async Task<IEnumerable<ListaPessoal>> GetByUtilizadorAsync(int utilizadorId)
     {
-        return await _context
-            .ListasPessoais.AsNoTracking()
-            .Include(l => l.Items)
-                .ThenInclude(i => i.Filme)
+        return await ListasPessoaisComItems()
+            .AsNoTracking()
             .Where(l => l.UtilizadorId == utilizadorId)
             .OrderBy(l => l.Tipo)
             .ThenBy(l => l.CreatedAt)
@@ -36,9 +34,7 @@ public class ListaPessoalRepository : IListaPessoalRepository
 
     public async Task<ListaPessoal?> ObterPorIdAsync(int id)
     {
-        return await _context
-            .ListasPessoais.Include(l => l.Items)
-                .ThenInclude(i => i.Filme)
+        return await ListasPessoaisComItems()
             .FirstOrDefaultAsync(l => l.Id == id);
     }
 
@@ -77,5 +73,13 @@ public class ListaPessoalRepository : IListaPessoalRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    private IQueryable<ListaPessoal> ListasPessoaisComItems()
+    {
+        return _context
+            .ListasPessoais.AsSplitQuery()
+            .Include(l => l.Items)
+                .ThenInclude(i => i.Filme);
     }
 }

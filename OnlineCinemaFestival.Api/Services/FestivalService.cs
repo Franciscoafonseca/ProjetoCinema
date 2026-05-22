@@ -12,7 +12,7 @@ namespace OnlineCinemaFestival.Api.Services;
 public class FestivalService : IFestivalService
 {
     private readonly IFestivalRepository _repository;
-    private readonly IAcessoRepository _acessoRepository;
+    private readonly IAcessoAutomaticoService _acessoAutomaticoService;
 
     /// <summary>
     /// Inicializa uma nova instância do serviço de festivais.
@@ -20,10 +20,13 @@ public class FestivalService : IFestivalService
     /// <param name="repository">
     /// Repositório responsável pelo acesso aos dados dos festivais.
     /// </param>
-    public FestivalService(IFestivalRepository repository, IAcessoRepository acessoRepository)
+    public FestivalService(
+        IFestivalRepository repository,
+        IAcessoAutomaticoService acessoAutomaticoService
+    )
     {
         _repository = repository;
-        _acessoRepository = acessoRepository;
+        _acessoAutomaticoService = acessoAutomaticoService;
     }
 
     /// <summary>
@@ -77,7 +80,7 @@ public class FestivalService : IFestivalService
         // Guarda o novo festival na base de dados.
         await _repository.AddAsync(festival);
         await _repository.SaveChangesAsync();
-        await GarantirAcessosFestivalAsync(festival);
+        await _acessoAutomaticoService.GarantirParaFestivalAsync(festival);
 
         // Devolve o festival criado em formato DTO.
         return FestivalMapper.MapToReadDTO(festival);
@@ -154,69 +157,4 @@ public class FestivalService : IFestivalService
             throw new ArgumentException("A data de fim não pode ser anterior à data de início.");
     }
 
-    private async Task GarantirAcessosFestivalAsync(Festival festival)
-    {
-        var acessos = new List<Acesso>();
-
-        if (
-            await _acessoRepository.GetAtivoParaCarrinhoAsync(
-                TipoAcesso.PasseCompleto,
-                festival.Id,
-                null,
-                null,
-                null
-            ) == null
-        )
-        {
-            acessos.Add(
-                new Acesso
-                {
-                    Nome = $"Passe Completo - {festival.Name}",
-                    Descricao = "Passe valido para todo o festival.",
-                    Tipo = TipoAcesso.PasseCompleto,
-                    Preco = 24.99m,
-                    FestivalId = festival.Id,
-                    IsAtivo = true,
-                    CriadoEm = DateTime.UtcNow,
-                }
-            );
-        }
-
-        var totalDias = Math.Max(1, (festival.EndDate.Date - festival.StartDate.Date).Days + 1);
-        for (var i = 0; i < totalDias; i++)
-        {
-            var dia = festival.StartDate.Date.AddDays(i);
-
-            if (
-                await _acessoRepository.GetAtivoParaCarrinhoAsync(
-                    TipoAcesso.PasseDiario,
-                    festival.Id,
-                    null,
-                    null,
-                    dia
-                ) != null
-            )
-                continue;
-
-            acessos.Add(
-                new Acesso
-                {
-                    Nome = $"Passe Diario - {festival.Name} - {dia:dd/MM/yyyy}",
-                    Descricao = "Passe valido para todas as sessoes de um dia do festival.",
-                    Tipo = TipoAcesso.PasseDiario,
-                    Preco = 9.99m,
-                    FestivalId = festival.Id,
-                    DataAcesso = dia,
-                    IsAtivo = true,
-                    CriadoEm = DateTime.UtcNow,
-                }
-            );
-        }
-
-        if (acessos.Count == 0)
-            return;
-
-        await _acessoRepository.AddManyAsync(acessos);
-        await _acessoRepository.SaveChangesAsync();
-    }
 }

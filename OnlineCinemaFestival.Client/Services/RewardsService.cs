@@ -14,20 +14,20 @@ public class RewardsService
 
     public async Task<int> GetSaldoAsync(string utilizadorId)
     {
-        var response = await _http.GetFromJsonAsync<RewardsSaldoDto>($"api/rewards/{utilizadorId}");
+        var response = await _http.GetFromJsonAsync<RewardsSaldoDto>("api/rewards");
         return response?.Pontos ?? 0;
     }
 
     public async Task<List<RewardTransacaoDto>> GetHistoricoAsync(string utilizadorId)
     {
         var response = await _http.GetFromJsonAsync<List<RewardTransacaoDto>>(
-            $"api/rewards/{utilizadorId}/historico");
+            "api/rewards/historico");
         return response ?? new List<RewardTransacaoDto>();
     }
 
     private sealed class RewardsSaldoDto
     {
-        public string UtilizadorId { get; set; } = string.Empty;
+        public int UtilizadorId { get; set; }
         public int Pontos { get; set; }
     }
 }

@@ -12,25 +12,19 @@ public class CarrinhoService : ICarrinhoService
     private readonly ICarrinhoRepository _carrinhoRepository;
     private readonly IAcessoRepository _acessoRepository;
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
-    private readonly ISessaoRepository _sessaoRepository;
-    private readonly IFestivalRepository _festivalRepository;
-    private readonly IFilmeRepository _filmeRepository;
+    private readonly IReadOnlyDictionary<TipoAcesso, ICarrinhoAcessoStrategy> _acessoStrategies;
 
     public CarrinhoService(
         ICarrinhoRepository carrinhoRepository,
         IAcessoRepository acessoRepository,
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
-        ISessaoRepository sessaoRepository,
-        IFestivalRepository festivalRepository,
-        IFilmeRepository filmeRepository
+        IEnumerable<ICarrinhoAcessoStrategy> acessoStrategies
     )
     {
         _carrinhoRepository = carrinhoRepository;
         _acessoRepository = acessoRepository;
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
-        _sessaoRepository = sessaoRepository;
-        _festivalRepository = festivalRepository;
-        _filmeRepository = filmeRepository;
+        _acessoStrategies = acessoStrategies.ToDictionary(s => s.Tipo);
     }
 
     public async Task<CarrinhoReadDTO> ObterCarrinhoAsync(int utilizadorId)
@@ -61,8 +55,11 @@ public class CarrinhoService : ICarrinhoService
         CarrinhoItemCreateDTO dto
     )
     {
-        ValidarPedidoCriacao(dto);
-        await ValidarAlvoPedidoCriacaoAsync(dto);
+        ValidarQuantidade(dto.Quantidade);
+
+        var strategy = ObterStrategy(dto.TipoAcesso);
+        strategy.ValidarPedido(dto);
+        await strategy.ValidarAlvoAsync(dto);
 
         var acesso = await _acessoRepository.GetAtivoParaCarrinhoAsync(
             dto.TipoAcesso,
@@ -102,7 +99,9 @@ public class CarrinhoService : ICarrinhoService
         if (item == null)
             throw new KeyNotFoundException("Item nao encontrado no carrinho.");
 
-        if (item.Acesso.Tipo != TipoAcesso.BilheteSessao && dto.Quantidade != 1)
+        var strategy = ObterStrategy(item.Acesso.Tipo);
+
+        if (!strategy.PermiteQuantidadeMultipla && dto.Quantidade != 1)
             throw new InvalidOperationException(
                 "Apenas bilhetes de sessao permitem quantidade superior a 1."
             );
@@ -213,7 +212,9 @@ public class CarrinhoService : ICarrinhoService
 
         if (itemExistente != null)
         {
-            if (acesso.Tipo != TipoAcesso.BilheteSessao)
+            var strategy = ObterStrategy(acesso.Tipo);
+
+            if (!strategy.PermiteQuantidadeMultipla)
                 throw new InvalidOperationException("Este acesso ja esta no carrinho.");
 
             if (itemExistente.Quantidade + quantidade > QuantidadeMaxima)
@@ -263,194 +264,36 @@ public class CarrinhoService : ICarrinhoService
             throw new InvalidOperationException("O utilizador ja possui este acesso ativo.");
     }
 
-    private static void ValidarPedidoCriacao(CarrinhoItemCreateDTO dto)
+    private static void ValidarQuantidade(int quantidade)
     {
-        if (dto.Quantidade <= 0)
-            throw new ArgumentException("A quantidade deve ser maior que zero.");
-
-        if (dto.Quantidade > QuantidadeMaxima)
-            throw new ArgumentException($"A quantidade nao pode exceder {QuantidadeMaxima}.");
-
-        switch (dto.TipoAcesso)
-        {
-            case TipoAcesso.BilheteSessao:
-                if (dto.SessaoId is null)
-                    throw new ArgumentException("SessaoId e obrigatorio para bilhete de sessao.");
-                if (
-                    dto.FestivalId is not null
-                    || dto.FilmeId is not null
-                    || dto.DataPasse is not null
-                )
-                    throw new ArgumentException(
-                        "Bilhete de sessao deve indicar apenas SessaoId como alvo."
-                    );
-                break;
-
-            case TipoAcesso.PasseDiario:
-                if (dto.FestivalId is null || dto.DataPasse is null)
-                    throw new ArgumentException(
-                        "FestivalId e DataPasse sao obrigatorios para passe diario."
-                    );
-                if (dto.SessaoId is not null || dto.FilmeId is not null)
-                    throw new ArgumentException(
-                        "Passe diario deve indicar apenas FestivalId e DataPasse como alvo."
-                    );
-                break;
-
-            case TipoAcesso.PasseCompleto:
-                if (dto.FestivalId is null)
-                    throw new ArgumentException("FestivalId e obrigatorio para passe completo.");
-                if (
-                    dto.SessaoId is not null
-                    || dto.FilmeId is not null
-                    || dto.DataPasse is not null
-                )
-                    throw new ArgumentException(
-                        "Passe completo deve indicar apenas FestivalId como alvo."
-                    );
-                break;
-
-            case TipoAcesso.AluguerDigital:
-                if (dto.FilmeId is null)
-                    throw new ArgumentException("FilmeId e obrigatorio para aluguer digital.");
-                if (dto.SessaoId is not null || dto.FestivalId is not null || dto.DataPasse is not null)
-                    throw new ArgumentException(
-                        "Aluguer digital deve indicar apenas FilmeId como alvo."
-                    );
-                break;
-
-            default:
-                throw new ArgumentException("Tipo de acesso invalido.");
-        }
-    }
-
-    private async Task ValidarAlvoPedidoCriacaoAsync(CarrinhoItemCreateDTO dto)
-    {
-        var agora = DateTime.UtcNow;
-
-        switch (dto.TipoAcesso)
-        {
-            case TipoAcesso.BilheteSessao:
-                var sessao = await _sessaoRepository.ObterPorIdAsync(dto.SessaoId!.Value);
-
-                if (sessao == null)
-                    throw new KeyNotFoundException("Sessao nao encontrada.");
-
-                if (sessao.Fim <= agora)
-                    throw new InvalidOperationException("A sessao ja terminou.");
-                break;
-
-            case TipoAcesso.PasseDiario:
-                var festivalDiario = await _festivalRepository.ObterPorIdAsync(dto.FestivalId!.Value);
-
-                if (festivalDiario == null)
-                    throw new KeyNotFoundException("Festival nao encontrado.");
-
-                if (
-                    dto.DataPasse!.Value.Date < festivalDiario.StartDate.Date
-                    || dto.DataPasse.Value.Date > festivalDiario.EndDate.Date
-                )
-                    throw new InvalidOperationException(
-                        "A data do passe diario tem de estar dentro do periodo do festival."
-                    );
-
-                if (dto.DataPasse.Value.Date < agora.Date)
-                    throw new InvalidOperationException(
-                        "A data do passe diario nao pode estar no passado."
-                    );
-                break;
-
-            case TipoAcesso.PasseCompleto:
-                var festivalCompleto = await _festivalRepository.ObterPorIdAsync(
-                    dto.FestivalId!.Value
-                );
-
-                if (festivalCompleto == null)
-                    throw new KeyNotFoundException("Festival nao encontrado.");
-
-                if (festivalCompleto.EndDate < agora)
-                    throw new InvalidOperationException("O festival ja terminou.");
-                break;
-
-            case TipoAcesso.AluguerDigital:
-                var filme = await _filmeRepository.ObterPorIdAsync(dto.FilmeId!.Value);
-
-                if (filme == null)
-                    throw new KeyNotFoundException("Filme nao encontrado.");
-                break;
-        }
-    }
-
-    private static void ValidarAcessoParaCarrinho(Acesso acesso, int quantidade)
-    {
-        if (!acesso.IsAtivo)
-            throw new InvalidOperationException("Este acesso nao esta disponivel para compra.");
-
         if (quantidade <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
 
         if (quantidade > QuantidadeMaxima)
             throw new ArgumentException($"A quantidade nao pode exceder {QuantidadeMaxima}.");
+    }
 
-        if (acesso.Tipo != TipoAcesso.BilheteSessao && quantidade != 1)
+    private ICarrinhoAcessoStrategy ObterStrategy(TipoAcesso tipo)
+    {
+        return _acessoStrategies.TryGetValue(tipo, out var strategy)
+            ? strategy
+            : throw new InvalidOperationException("Tipo de acesso nao suportado pelo carrinho.");
+    }
+
+    private void ValidarAcessoParaCarrinho(Acesso acesso, int quantidade)
+    {
+        if (!acesso.IsAtivo)
+            throw new InvalidOperationException("Este acesso nao esta disponivel para compra.");
+
+        ValidarQuantidade(quantidade);
+
+        var strategy = ObterStrategy(acesso.Tipo);
+
+        if (!strategy.PermiteQuantidadeMultipla && quantidade != 1)
             throw new InvalidOperationException(
                 "Apenas bilhetes de sessao permitem quantidade superior a 1."
             );
 
-        var agora = DateTime.UtcNow;
-
-        switch (acesso.Tipo)
-        {
-            case TipoAcesso.BilheteSessao:
-                if (acesso.SessaoId == null || acesso.Sessao == null)
-                    throw new InvalidOperationException("Bilhete de sessao sem sessao associada.");
-
-                if (acesso.Sessao.Fim <= agora)
-                    throw new InvalidOperationException("A sessao ja terminou.");
-                break;
-
-            case TipoAcesso.PasseDiario:
-                if (
-                    acesso.FestivalId == null
-                    || acesso.Festival == null
-                    || acesso.DataAcesso == null
-                )
-                    throw new InvalidOperationException(
-                        "Passe diario sem festival ou data de acesso associada."
-                    );
-
-                if (
-                    acesso.DataAcesso.Value.Date < acesso.Festival.StartDate.Date
-                    || acesso.DataAcesso.Value.Date > acesso.Festival.EndDate.Date
-                )
-                    throw new InvalidOperationException(
-                        "A data do passe diario tem de estar dentro do periodo do festival."
-                    );
-
-                if (acesso.DataAcesso.Value.Date < agora.Date)
-                    throw new InvalidOperationException(
-                        "A data do passe diario nao pode estar no passado."
-                    );
-                break;
-
-            case TipoAcesso.PasseCompleto:
-                if (acesso.FestivalId == null || acesso.Festival == null)
-                    throw new InvalidOperationException("Passe completo sem festival associado.");
-
-                if (acesso.Festival.EndDate < agora)
-                    throw new InvalidOperationException("O festival ja terminou.");
-                break;
-
-            case TipoAcesso.AluguerDigital:
-                if (acesso.FilmeId == null || acesso.Filme == null)
-                    throw new InvalidOperationException("Aluguer digital sem filme associado.");
-
-                if (acesso.DuracaoHoras.GetValueOrDefault(48) <= 0)
-                    throw new InvalidOperationException("Aluguer digital com duracao invalida.");
-                break;
-
-            default:
-                throw new InvalidOperationException("Tipo de acesso nao suportado pelo carrinho.");
-        }
+        strategy.ValidarAcesso(acesso);
     }
 }

@@ -1,0 +1,43 @@
+using OnlineCinemaFestival.Api.Models;
+
+namespace OnlineCinemaFestival.Api.Services;
+
+public class PagamentoAprovadoSimuladoStrategy : IPagamentoStrategy
+{
+    private static readonly HashSet<string> Metodos = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "CartaoCredito",
+        "PayPal",
+        "MBWay",
+        "ApplePay",
+        "GooglePay",
+    };
+
+    public bool Suporta(string metodoPagamento) =>
+        string.IsNullOrWhiteSpace(metodoPagamento) || Metodos.Contains(metodoPagamento.Trim());
+
+    public Task<Pagamento> ProcessarAsync(
+        Compra compra,
+        DateTime dataPagamento,
+        string metodoPagamento
+    )
+    {
+        var metodo = string.IsNullOrWhiteSpace(metodoPagamento)
+            ? "CartaoCredito"
+            : metodoPagamento.Trim();
+
+        return Task.FromResult(
+            new Pagamento
+            {
+                Compra = compra,
+                Referencia = $"PG-{compra.Referencia}",
+                Valor = compra.ValorTotal,
+                Metodo = metodo,
+                Estado = EstadoPagamento.Aprovado,
+                CriadoEm = dataPagamento,
+                ProcessadoEm = dataPagamento,
+                Mensagem = "Pagamento simulado aprovado automaticamente.",
+            }
+        );
+    }
+}

@@ -2,6 +2,7 @@
 @inherits FilmePageBase
 @inject FilmeService FilmeService
 @inject TmdbService TmdbService
+@inject FestivalService FestivalService
 @inject NavigationManager Nav
 
 <PageTitle>Catalogo - Online Cinema Festival</PageTitle>
@@ -153,7 +154,30 @@
                         <span class="cinema-kicker">Catalogo interno</span>
                         <h2>Filmes disponiveis</h2>
                     </div>
-                    <div class="genre-filter">
+                    <div class="catalogo-filters">
+                        <MudSelect T="int"
+                                   Value="_ordenarPor"
+                                   ValueChanged="OnOrdenacaoAlterada"
+                                   Label="Ordenar"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense">
+                            <MudSelectItem T="int" Value="2">Popularidade</MudSelectItem>
+                            <MudSelectItem T="int" Value="3">Classificacao</MudSelectItem>
+                            <MudSelectItem T="int" Value="1">Titulo</MudSelectItem>
+                            <MudSelectItem T="int" Value="4">Lancamento</MudSelectItem>
+                        </MudSelect>
+                        <MudSelect T="int?"
+                                   Value="_festivalSelecionadoId"
+                                   ValueChanged="OnFestivalAlterado"
+                                   Label="Festival"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense">
+                            <MudSelectItem T="int?" Value="null">Todos</MudSelectItem>
+                            @foreach (var festival in _festivais)
+                            {
+                                <MudSelectItem T="int?" Value="@festival.Id">@festival.Name</MudSelectItem>
+                            }
+                        </MudSelect>
                         <MudMenu Label="@RotuloFiltro()"
                                  Variant="Variant.Outlined"
                                  Color="Color.Secondary"
@@ -197,7 +221,10 @@
     private List<FilmeDTO> _resultadosInternosPesquisa = new();
     private List<FilmeDTO> _resultadosTmdb = new();
     private List<string> _generos = new();
+    private List<FestivalDTO> _festivais = new();
     private readonly HashSet<string> _generosSelecionados = new(StringComparer.OrdinalIgnoreCase);
+    private int _ordenarPor = 2;
+    private int? _festivalSelecionadoId;
     private string? _pesquisa;
     private string? _erroPesquisa;
     private bool _pesquisaAtiva;
@@ -205,8 +232,13 @@
 
     protected override async Task CarregarDadosAsync()
     {
-        _filmesInternos = await FilmeService.ObterFilmesAsync(ordenarPor: 2, descendente: true);
-        _filmesFiltrados = _filmesInternos.Take(20).ToList();
+        _festivais = await FestivalService.ObterFestivaisAsync();
+        _filmesInternos = await FilmeService.ObterFilmesAsync(
+            ordenarPor: _ordenarPor,
+            descendente: true,
+            festivalId: _festivalSelecionadoId
+        );
+        _filmesFiltrados = _filmesInternos.ToList();
         _generos = ExtrairGeneros(_filmesInternos).ToList();
     }
 
@@ -231,15 +263,20 @@
 
         try
         {
-            var internos = await FilmeService.ObterFilmesAsync(pesquisa: termo);
-            _resultadosInternosPesquisa = FiltrarPorGeneros(internos).Take(20).ToList();
+            var internos = await FilmeService.ObterFilmesAsync(
+                pesquisa: termo,
+                ordenarPor: _ordenarPor,
+                descendente: true,
+                festivalId: _festivalSelecionadoId
+            );
+            _resultadosInternosPesquisa = FiltrarPorGeneros(internos).ToList();
 
             if (_resultadosInternosPesquisa.Count > 0)
                 return;
 
             _aPesquisarTmdb = true;
             await InvokeAsync(StateHasChanged);
-            _resultadosTmdb = (await TmdbService.PesquisarAsync(termo)).Take(20).ToList();
+            _resultadosTmdb = (await TmdbService.PesquisarAsync(termo)).ToList();
         }
         catch (Exception ex)
         {
@@ -300,8 +337,34 @@
 
     private Task AplicarFiltrosInternos()
     {
-        _filmesFiltrados = FiltrarPorGeneros(_filmesInternos).Take(20).ToList();
+        _filmesFiltrados = FiltrarPorGeneros(_filmesInternos).ToList();
         return Task.CompletedTask;
+    }
+
+    private async Task OnOrdenacaoAlterada(int valor)
+    {
+        _ordenarPor = valor;
+        await RecarregarCatalogoAsync();
+    }
+
+    private async Task OnFestivalAlterado(int? valor)
+    {
+        _festivalSelecionadoId = valor;
+        await RecarregarCatalogoAsync();
+    }
+
+    private async Task RecarregarCatalogoAsync()
+    {
+        _filmesInternos = await FilmeService.ObterFilmesAsync(
+            ordenarPor: _ordenarPor,
+            descendente: true,
+            festivalId: _festivalSelecionadoId
+        );
+        _generos = ExtrairGeneros(_filmesInternos).ToList();
+        await AplicarFiltrosInternos();
+
+        if (_pesquisaAtiva)
+            await OnPesquisaAlterada(_pesquisa);
     }
 
     private IEnumerable<FilmeDTO> FiltrarPorGeneros(IEnumerable<FilmeDTO> filmes)

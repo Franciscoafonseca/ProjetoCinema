@@ -1,6 +1,6 @@
 .layout {
   min-height: 100vh;
-  background: #111;
+  background: #050913;
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -16,7 +16,7 @@
   gap: 20px;
   min-height: 72px;
   padding: 0 32px;
-  background: rgba(17, 17, 17, 0.96);
+  background: rgba(5, 9, 19, 0.96);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(14px);
 }
@@ -28,7 +28,8 @@
   min-width: max-content;
   color: #fff;
   font-size: 0.98rem;
-  font-weight: 800;
+  font-weight: 900;
+  letter-spacing: 0;
   text-decoration: none;
 }
 
@@ -92,18 +93,18 @@
 ::deep .nav-icon-btn.active,
 ::deep .nav-user.active {
   color: #fff;
-  border-color: rgba(229, 9, 20, 0.55);
-  background: rgba(229, 9, 20, 0.14);
+  border-color: rgba(0, 114, 206, 0.55);
+  background: rgba(0, 114, 206, 0.18);
 }
 
 .nav-btn-destaque {
   color: #fff;
-  background: #e50914;
+  background: linear-gradient(135deg, #0072ce, #00a3e0);
 }
 
 .nav-btn-destaque:hover {
   color: #fff;
-  background: #f1252f;
+  background: linear-gradient(135deg, #0088e8, #25c2ff);
 }
 
 .nav-btn-sair {

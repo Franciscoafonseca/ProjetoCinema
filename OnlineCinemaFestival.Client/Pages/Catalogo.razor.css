@@ -59,9 +59,16 @@
   gap: 10px;
 }
 
-.genre-filter {
+.genre-filter,
+.catalogo-filters {
   display: flex;
   justify-content: flex-end;
+}
+
+.catalogo-filters {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .tmdb-grid,
@@ -196,7 +203,8 @@
     grid-template-columns: 1fr;
   }
 
-  .genre-filter {
+  .genre-filter,
+  .catalogo-filters {
     justify-content: flex-start;
   }
 }

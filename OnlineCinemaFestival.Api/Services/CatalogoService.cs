@@ -11,13 +11,13 @@ public class CatalogoService : ICatalogoService
     private readonly IFilmeRepository _filmeRepository;
     private readonly IFestivalRepository _festivalRepository;
     private readonly IFestivalFilmeRepository _festivalFilmeRepository;
-    private readonly CatalogoOrdenacaoStrategyFactory _ordenacaoFactory;
+    private readonly ICatalogoOrdenacaoStrategyFactory _ordenacaoFactory;
 
     public CatalogoService(
         IFilmeRepository filmeRepository,
         IFestivalRepository festivalRepository,
         IFestivalFilmeRepository festivalFilmeRepository,
-        CatalogoOrdenacaoStrategyFactory ordenacaoFactory
+        ICatalogoOrdenacaoStrategyFactory ordenacaoFactory
     )
     {
         _filmeRepository = filmeRepository;
@@ -42,7 +42,7 @@ public class CatalogoService : ICatalogoService
         filmes = AplicarFiltros(filmes, query);
         filmes = AplicarOrdenacao(filmes, query);
 
-        return filmes.Take(20).Select(FilmeMapper.MapToReadDTO);
+        return filmes.Select(FilmeMapper.MapToReadDTO);
     }
 
     public async Task<IEnumerable<FilmeReadDTO>> ObterFilmesPorFestivalAsync(

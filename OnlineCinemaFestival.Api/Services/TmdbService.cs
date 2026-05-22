@@ -1,5 +1,3 @@
-using System.Net.Http.Headers;
-using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
@@ -8,21 +6,15 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public class TmdbService : ITmdbService
 {
-    private readonly HttpClient _httpClient;
-    private readonly IConfiguration _configuration;
+    private readonly ITmdbApiClient _apiClient;
     private readonly IMemoryCache _cache;
     private const string YouTubeProvider = "YouTube";
     private static readonly TimeSpan SearchCacheDuration = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan PopularCacheDuration = TimeSpan.FromMinutes(15);
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
 
-    public TmdbService(HttpClient httpClient, IConfiguration configuration, IMemoryCache cache)
+    public TmdbService(ITmdbApiClient apiClient, IMemoryCache cache)
     {
-        _httpClient = httpClient;
-        _configuration = configuration;
+        _apiClient = apiClient;
         _cache = cache;
     }
 
@@ -36,7 +28,7 @@ public class TmdbService : ITmdbService
         if (_cache.TryGetValue(cacheKey, out List<TmdbFilmeDTO>? cached) && cached != null)
             return cached;
 
-        var result = await GetAsync<TmdbSearchResponse>(
+        var result = await _apiClient.GetAsync<TmdbSearchResponse>(
             $"search/movie?query={Uri.EscapeDataString(query)}&language=pt-PT"
         );
 
@@ -49,26 +41,63 @@ public class TmdbService : ITmdbService
 
     public async Task<IEnumerable<TmdbFilmeDTO>> ObterFilmesIniciaisAsync()
     {
-        const string cacheKey = "tmdb:popular:pt-pt:1";
+        const string cacheKey = "tmdb:initial:pt-pt:random";
 
         if (_cache.TryGetValue(cacheKey, out List<TmdbFilmeDTO>? cached) && cached != null)
             return cached;
 
-        var result = await GetAsync<TmdbSearchResponse>(
-            "movie/popular?language=pt-PT&page=1"
-        );
+        var result = await ObterPopularesPreferindoSkyShowtimeAsync()
+            ?? await _apiClient.GetAsync<TmdbSearchResponse>(
+                $"movie/popular?language=pt-PT&page={Random.Shared.Next(1, 6)}"
+            );
 
         var filmes =
-            result?.Results?.Take(20).Select(FilmeMapper.MapFromTmdbResult).ToList()
+            result
+                ?.Results?
+                .Where(f => f.TmdbId > 0)
+                .OrderBy(_ => Random.Shared.Next())
+                .Take(20)
+                .Select(FilmeMapper.MapFromTmdbResult)
+                .ToList()
             ?? new List<TmdbFilmeDTO>();
 
         _cache.Set(cacheKey, filmes, PopularCacheDuration);
         return filmes;
     }
 
+    private async Task<TmdbSearchResponse?> ObterPopularesPreferindoSkyShowtimeAsync()
+    {
+        var providers = await _apiClient.GetAsync<TmdbWatchProviderResponse>(
+            "watch/providers/movie?language=pt-PT&watch_region=PT"
+        );
+
+        var providerIds =
+            providers
+                ?.Results.Where(p =>
+                    p.ProviderName.Contains("Sky", StringComparison.OrdinalIgnoreCase)
+                    || p.ProviderName.Contains("Showtime", StringComparison.OrdinalIgnoreCase)
+                )
+                .Select(p => p.ProviderId)
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+        if (providerIds.Count == 0)
+            return null;
+
+        var result = await _apiClient.GetAsync<TmdbSearchResponse>(
+            "discover/movie?language=pt-PT"
+                + "&watch_region=PT"
+                + $"&with_watch_providers={string.Join('|', providerIds)}"
+                + $"&page={Random.Shared.Next(1, 4)}"
+                + "&sort_by=popularity.desc"
+        );
+
+        return result?.Results.Count > 0 ? result : null;
+    }
+
     public async Task<TmdbFilmeDTO?> ObterFilmePorTmdbIdAsync(int tmdbId)
     {
-        var filmeTmdb = await GetAsync<TmdbMovieDetails>(
+        var filmeTmdb = await _apiClient.GetAsync<TmdbMovieDetails>(
             $"movie/{tmdbId}?language=pt-PT&append_to_response=videos,credits,reviews"
         );
 
@@ -115,7 +144,7 @@ public class TmdbService : ITmdbService
 
     public async Task<IEnumerable<string>> ObterAtoresAsync(int tmdbId)
     {
-        var credits = await GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
+        var credits = await _apiClient.GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
 
         return credits
                 ?.Cast.OrderBy(c => c.Order)
@@ -127,7 +156,7 @@ public class TmdbService : ITmdbService
 
     public async Task<string?> ObterRealizadorAsync(int tmdbId)
     {
-        var credits = await GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
+        var credits = await _apiClient.GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
 
         return credits
             ?.Crew.FirstOrDefault(c => c.Job.Equals("Director", StringComparison.OrdinalIgnoreCase))
@@ -136,7 +165,7 @@ public class TmdbService : ITmdbService
 
     public async Task<IEnumerable<TmdbReviewDTO>> ObterAvaliacoesExternasAsync(int tmdbId)
     {
-        var reviews = await GetAsync<TmdbReviewsResponse>($"movie/{tmdbId}/reviews?language=en-US&page=1");
+        var reviews = await _apiClient.GetAsync<TmdbReviewsResponse>($"movie/{tmdbId}/reviews?language=en-US&page=1");
 
         return reviews
                 ?.Results.Take(10)
@@ -153,7 +182,7 @@ public class TmdbService : ITmdbService
 
     public async Task<IEnumerable<TmdbGeneroDTO>> ObterGenerosAsync()
     {
-        var result = await GetAsync<TmdbGenreResponse>("genre/movie/list?language=pt-PT");
+        var result = await _apiClient.GetAsync<TmdbGenreResponse>("genre/movie/list?language=pt-PT");
 
         return result
                 ?.Genres.Select(g => new TmdbGeneroDTO { Id = g.Id, Nome = g.Name })
@@ -162,7 +191,7 @@ public class TmdbService : ITmdbService
 
     public async Task<string?> ObterTrailerUrlAsync(int tmdbId)
     {
-        var videos = await GetAsync<TmdbVideosResponseDTO>($"movie/{tmdbId}/videos?language=pt-PT");
+        var videos = await _apiClient.GetAsync<TmdbVideosResponseDTO>($"movie/{tmdbId}/videos?language=pt-PT");
 
         return CriarVideoUrl(SelecionarTrailerPrincipal(videos?.Results ?? new List<TmdbVideoDTO>()));
     }
@@ -243,23 +272,4 @@ public class TmdbService : ITmdbService
             : $"https://image.tmdb.org/t/p/w185{profilePath}";
     }
 
-    private async Task<T?> GetAsync<T>(string path)
-    {
-        var token = _configuration["Tmdb:Token"];
-        var baseUrl = _configuration["Tmdb:BaseUrl"];
-
-        if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(baseUrl))
-            throw new InvalidOperationException("Configuracao TMDB em falta.");
-
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{path}");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await _httpClient.SendAsync(request);
-
-        if (!response.IsSuccessStatusCode)
-            return default;
-
-        var jsonString = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<T>(jsonString, JsonOptions);
-    }
 }

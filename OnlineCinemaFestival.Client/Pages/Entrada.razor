@@ -1,6 +1,8 @@
 @page "/login"
+@implements IAsyncDisposable
 @inject AutenticacaoService AutenticacaoService
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>Entrar - Online Cinema Festival</PageTitle>
 
@@ -15,7 +17,7 @@
         <div class="auth-card">
             <div class="auth-card-head">
                 <span class="auth-logo">
-                    <img src="images/logos/ocf-logo.svg" alt="" />
+                    <img src="images/logos/cinehub-icon-cor.png" alt="" />
                 </span>
                 <div>
                     <h2>Entrar</h2>
@@ -24,15 +26,15 @@
             </div>
 
             <div class="auth-social-grid">
-                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => MostrarOAuthPreparado("Google")'>
-                    <span>G</span>
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Google")'>
+                    <span class="auth-provider-logo google-logo">G</span>
                     <strong>Google</strong>
-                    <small>preparado</small>
+                    <small>@EstadoProvider("Google")</small>
                 </button>
-                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => MostrarOAuthPreparado("Apple")'>
-                    <span>A</span>
+                <button type="button" class="auth-social" disabled="@_aSubmeter" @onclick='() => EntrarExterno("Apple")'>
+                    <span class="auth-provider-logo apple-logo">Apple</span>
                     <strong>Apple</strong>
-                    <small>preparado</small>
+                    <small>@EstadoProvider("Apple")</small>
                 </button>
             </div>
 
@@ -75,8 +77,22 @@
     [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
 
     private readonly PedidoLoginDTO _modelo = new();
+    private List<ProvedorAutenticacaoExternaDTO> _provedoresExternos = new();
+    private IJSObjectReference? _externalAuthModule;
     private string? _erro;
     private bool _aSubmeter;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _provedoresExternos = await AutenticacaoService.ObterProvedoresExternosAsync();
+        }
+        catch
+        {
+            _provedoresExternos = new();
+        }
+    }
 
     private async Task Entrar()
     {
@@ -99,8 +115,57 @@
         }
     }
 
-    private void MostrarOAuthPreparado(string provider)
+    private async Task EntrarExterno(string provider)
     {
-        _erro = $"Login com {provider} esta preparado, mas o OAuth ainda nao esta configurado. Usa email e palavra-passe.";
+        _erro = null;
+        _aSubmeter = true;
+
+        try
+        {
+            var configuracao = _provedoresExternos.FirstOrDefault(p =>
+                p.Provider.Equals(provider, StringComparison.OrdinalIgnoreCase)
+            );
+
+            if (configuracao == null || !configuracao.Configurado)
+                throw new InvalidOperationException($"{provider} ainda nao esta configurado no servidor.");
+
+            _externalAuthModule ??= await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./js/external-auth.js"
+            );
+
+            var pedido = await _externalAuthModule.InvokeAsync<PedidoAutenticacaoExternaDTO>(
+                "signIn",
+                provider,
+                configuracao.ClientId,
+                ReturnUrl ?? string.Empty
+            );
+
+            await AutenticacaoService.EntrarComExternoAsync(pedido);
+            Nav.NavigateTo(string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _aSubmeter = false;
+        }
+    }
+
+    private string EstadoProvider(string provider)
+    {
+        var configurado = _provedoresExternos.FirstOrDefault(p =>
+            p.Provider.Equals(provider, StringComparison.OrdinalIgnoreCase)
+        )?.Configurado;
+
+        return configurado == true ? "oauth" : "configurar";
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_externalAuthModule is not null)
+            await _externalAuthModule.DisposeAsync();
     }
 }

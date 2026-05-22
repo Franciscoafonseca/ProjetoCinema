@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
@@ -81,14 +80,8 @@ public class PremioFestivalService : IPremioFestivalService
             }
         );
 
-        try
-        {
-            await _repository.SaveChangesAsync();
-        }
-        catch (DbUpdateException)
-        {
+        if (!await _repository.TrySaveChangesAsync())
             throw new InvalidOperationException("Ja votaste neste premio.");
-        }
     }
 
     public async Task<PremioFestivalReadDTO> FecharVotacaoAsync(int premioFestivalId)

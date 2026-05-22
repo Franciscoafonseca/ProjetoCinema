@@ -31,4 +31,6 @@ public interface IPremioFestivalRepository
     Task<List<PremioFestival>> ObterPremiosPendentesPublicacaoAsync(DateTime dataAtual);
 
     Task SaveChangesAsync();
+
+    Task<bool> TrySaveChangesAsync();
 }

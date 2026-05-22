@@ -43,7 +43,7 @@ public class CatalogoTmdbSeedService
 
         var populares = (await _tmdbService.ObterFilmesIniciaisAsync())
             .Where(f => f.TmdbId > 0)
-            .OrderByDescending(f => f.AvaliacaoTmdb ?? 0)
+            .OrderBy(_ => Guid.NewGuid())
             .Take(QuantidadeCatalogoInterno)
             .ToList();
 

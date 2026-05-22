@@ -38,25 +38,12 @@ public class UtilizadorRepository : IUtilizadorRepository
 
     public async Task<Utilizador?> ObterComPerfilAsync(int id)
     {
-        return await _context
-            .Utilizadores.Include(u => u.Perfil)
-            .Include(u => u.GenerosFavoritos)
-                .ThenInclude(ug => ug.Genero)
-            .Include(u => u.Avaliacoes)
-            .Include(u => u.Comunidades)
-            .Include(u => u.ListasPessoais)
-            .FirstOrDefaultAsync(u => u.Id == id);
+        return await UtilizadoresComPerfilCompleto().FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<List<Utilizador>> ObterPerfisPublicosAsync()
     {
-        return await _context
-            .Utilizadores.Include(u => u.Perfil)
-            .Include(u => u.GenerosFavoritos)
-                .ThenInclude(ug => ug.Genero)
-            .Include(u => u.Avaliacoes)
-            .Include(u => u.Comunidades)
-            .Include(u => u.ListasPessoais)
+        return await UtilizadoresComPerfilCompleto()
             .Where(u => u.IsActive && u.Perfil != null && u.Perfil.IsPublic)
             .OrderBy(u => u.Name)
             .ToListAsync();
@@ -71,5 +58,17 @@ public class UtilizadorRepository : IUtilizadorRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    private IQueryable<Utilizador> UtilizadoresComPerfilCompleto()
+    {
+        return _context
+            .Utilizadores.AsSplitQuery()
+            .Include(u => u.Perfil)
+            .Include(u => u.GenerosFavoritos)
+                .ThenInclude(ug => ug.Genero)
+            .Include(u => u.Avaliacoes)
+            .Include(u => u.Comunidades)
+            .Include(u => u.ListasPessoais);
     }
 }

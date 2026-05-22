@@ -8,21 +8,24 @@ namespace OnlineCinemaFestival.Api.Services;
 public class FilmeService : IFilmeService
 {
     private readonly IFilmeRepository _filmeRepository;
-    private readonly IAcessoRepository _acessoRepository;
     private readonly ITmdbService _tmdbService;
     private readonly IValidacaoAcessoService _validacaoAcessoService;
+    private readonly IAcessoAutomaticoService _acessoAutomaticoService;
+    private readonly IEnumerable<IAvaliacaoObserver> _avaliacaoObservers;
 
     public FilmeService(
         IFilmeRepository filmeRepository,
-        IAcessoRepository acessoRepository,
         ITmdbService tmdbService,
-        IValidacaoAcessoService validacaoAcessoService
+        IValidacaoAcessoService validacaoAcessoService,
+        IAcessoAutomaticoService acessoAutomaticoService,
+        IEnumerable<IAvaliacaoObserver> avaliacaoObservers
     )
     {
         _filmeRepository = filmeRepository;
-        _acessoRepository = acessoRepository;
         _tmdbService = tmdbService;
         _validacaoAcessoService = validacaoAcessoService;
+        _acessoAutomaticoService = acessoAutomaticoService;
+        _avaliacaoObservers = avaliacaoObservers;
     }
 
     public async Task<IEnumerable<FilmeReadDTO>> ObterTodosFilmesAsync()
@@ -49,7 +52,7 @@ public class FilmeService : IFilmeService
 
         if (filmeExistente != null)
         {
-            await GarantirAcessosAutomaticosAsync(filmeExistente.Id);
+            await _acessoAutomaticoService.GarantirParaFilmeAsync(filmeExistente.Id);
             var detalheExistente =
                 await _filmeRepository.ObterDetalhePorIdAsync(filmeExistente.Id) ?? filmeExistente;
 
@@ -78,7 +81,7 @@ public class FilmeService : IFilmeService
         await _filmeRepository.AddAsync(novoFilme);
         await _filmeRepository.SaveChangesAsync();
 
-        await GarantirAcessosAutomaticosAsync(novoFilme.Id);
+        await _acessoAutomaticoService.GarantirParaFilmeAsync(novoFilme.Id);
 
         return FilmeMapper.MapToReadDTO(novoFilme);
     }
@@ -165,6 +168,7 @@ public class FilmeService : IFilmeService
 
         await _filmeRepository.AddAvaliacaoAsync(avaliacao);
         await _filmeRepository.SaveChangesAsync();
+        await Task.WhenAll(_avaliacaoObservers.Select(observer => observer.NotificarAsync(avaliacao)));
 
         return MapAvaliacaoDTO(avaliacao, filme.Titulo);
     }
@@ -197,132 +201,6 @@ public class FilmeService : IFilmeService
         await _filmeRepository.SaveChangesAsync();
 
         return MapAvaliacaoDTO(avaliacao, filme.Titulo);
-    }
-
-    private async Task GarantirAcessosAutomaticosAsync(int filmeId)
-    {
-        var acessos = new List<Acesso>();
-
-        if (
-            await _acessoRepository.GetAtivoParaCarrinhoAsync(
-                TipoAcesso.AluguerDigital,
-                null,
-                filmeId,
-                null,
-                null
-            ) == null
-        )
-        {
-            acessos.Add(
-                new Acesso
-                {
-                    Nome = $"Aluguer Digital - Filme {filmeId}",
-                    Descricao = "Aluguer individual do filme durante 48 horas.",
-                    Tipo = TipoAcesso.AluguerDigital,
-                    Preco = 3.99m,
-                    FilmeId = filmeId,
-                    DuracaoHoras = 48,
-                    IsAtivo = true,
-                    CriadoEm = DateTime.UtcNow,
-                }
-            );
-        }
-
-        var festivais = await _filmeRepository.ObterFestivaisDoFilmeAsync(filmeId);
-
-        foreach (var festival in festivais)
-        {
-            if (
-                await _acessoRepository.GetAtivoParaCarrinhoAsync(
-                    TipoAcesso.PasseCompleto,
-                    festival.Id,
-                    null,
-                    null,
-                    null
-                ) == null
-            )
-            {
-                acessos.Add(
-                    new Acesso
-                    {
-                        Nome = $"Passe Completo - {festival.Name}",
-                        Descricao = "Passe valido para todo o festival.",
-                        Tipo = TipoAcesso.PasseCompleto,
-                        Preco = 24.99m,
-                        FestivalId = festival.Id,
-                        IsAtivo = true,
-                        CriadoEm = DateTime.UtcNow,
-                    }
-                );
-            }
-
-            var totalDias = Math.Max(1, (festival.EndDate.Date - festival.StartDate.Date).Days + 1);
-            for (var i = 0; i < totalDias; i++)
-            {
-                var dia = festival.StartDate.Date.AddDays(i);
-
-                if (
-                    await _acessoRepository.GetAtivoParaCarrinhoAsync(
-                        TipoAcesso.PasseDiario,
-                        festival.Id,
-                        null,
-                        null,
-                        dia
-                    ) != null
-                )
-                    continue;
-
-                acessos.Add(
-                    new Acesso
-                    {
-                        Nome = $"Passe Diario - {festival.Name} - {dia:dd/MM/yyyy}",
-                        Descricao = "Passe valido para todas as sessoes de um dia do festival.",
-                        Tipo = TipoAcesso.PasseDiario,
-                        Preco = 9.99m,
-                        FestivalId = festival.Id,
-                        DataAcesso = dia,
-                        IsAtivo = true,
-                        CriadoEm = DateTime.UtcNow,
-                    }
-                );
-            }
-        }
-
-        var sessoes = await _filmeRepository.ObterSessoesDoFilmeAsync(filmeId);
-
-        foreach (var sessao in sessoes)
-        {
-            if (
-                await _acessoRepository.GetAtivoParaCarrinhoAsync(
-                    TipoAcesso.BilheteSessao,
-                    null,
-                    null,
-                    sessao.Id,
-                    null
-                ) != null
-            )
-                continue;
-
-            acessos.Add(
-                new Acesso
-                {
-                    Nome = $"Bilhete - Sessao {sessao.Id}",
-                    Descricao = "Bilhete valido para uma sessao especifica.",
-                    Tipo = TipoAcesso.BilheteSessao,
-                    Preco = sessao.TemChatAoVivo ? 5.99m : 4.99m,
-                    SessaoId = sessao.Id,
-                    FilmeId = sessao.FilmeId,
-                    IsAtivo = true,
-                    CriadoEm = DateTime.UtcNow,
-                }
-            );
-        }
-
-        if (acessos.Count > 0)
-        {
-            await _acessoRepository.AddManyAsync(acessos);
-            await _acessoRepository.SaveChangesAsync();
-        }
     }
 
     private static void ValidarReview(CriarAvaliacaoDTO dto)

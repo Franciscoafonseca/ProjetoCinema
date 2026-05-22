@@ -102,6 +102,8 @@ public class PagamentoDTO
 
     public DateTime CriadoEm { get; set; }
 
+    public DateTime? ExpiraEm { get; set; }
+
     public DateTime? ProcessadoEm { get; set; }
 
     public string? Mensagem { get; set; }

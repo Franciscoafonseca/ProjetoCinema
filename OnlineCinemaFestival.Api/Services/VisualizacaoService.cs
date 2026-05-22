@@ -8,14 +8,17 @@ public class VisualizacaoService : IVisualizacaoService
 {
     private readonly IVisualizacaoRepository _visualizacaoRepository;
     private readonly IValidacaoAcessoService _validacaoAcessoService;
+    private readonly IEnumerable<IVisualizacaoObserver> _observers;
 
     public VisualizacaoService(
         IVisualizacaoRepository visualizacaoRepository,
-        IValidacaoAcessoService validacaoAcessoService
+        IValidacaoAcessoService validacaoAcessoService,
+        IEnumerable<IVisualizacaoObserver> observers
     )
     {
         _visualizacaoRepository = visualizacaoRepository;
         _validacaoAcessoService = validacaoAcessoService;
+        _observers = observers;
     }
 
     public async Task<VisualizacaoReadDTO> ObterVisualizacaoFilmeAsync(
@@ -201,6 +204,7 @@ public class VisualizacaoService : IVisualizacaoService
 
         await _visualizacaoRepository.AddAsync(visualizacao);
         await _visualizacaoRepository.SaveChangesAsync();
+        await NotificarVisualizacaoAsync(visualizacao);
 
         return new VisualizacaoHistoricoReadDTO
         {
@@ -238,21 +242,22 @@ public class VisualizacaoService : IVisualizacaoService
         string urlVisualizacao
     )
     {
-        await _visualizacaoRepository.AddAsync(
-            new Visualizacao
-            {
-                UtilizadorId = utilizadorId,
-                FilmeId = filmeId,
-                SessaoId = sessaoId,
-                FestivalId = festivalId,
-                TipoConteudo = tipoConteudo,
-                TipoAcessoUsado = tipoAcessoUsado,
-                UrlVisualizacao = urlVisualizacao,
-                VisualizadoEm = DateTime.UtcNow,
-            }
-        );
+        var visualizacao = new Visualizacao
+        {
+            UtilizadorId = utilizadorId,
+            FilmeId = filmeId,
+            SessaoId = sessaoId,
+            FestivalId = festivalId,
+            TipoConteudo = tipoConteudo,
+            TipoAcessoUsado = tipoAcessoUsado,
+            UrlVisualizacao = urlVisualizacao,
+            VisualizadoEm = DateTime.UtcNow,
+        };
+
+        await _visualizacaoRepository.AddAsync(visualizacao);
 
         await _visualizacaoRepository.SaveChangesAsync();
+        await NotificarVisualizacaoAsync(visualizacao);
     }
 
     private async Task RegistarVisualizacoesSessaoAsync(
@@ -276,8 +281,15 @@ public class VisualizacaoService : IVisualizacaoService
             VisualizadoEm = agora,
         });
 
-        await _visualizacaoRepository.AddRangeAsync(visualizacoes);
+        var lista = visualizacoes.ToList();
+        await _visualizacaoRepository.AddRangeAsync(lista);
         await _visualizacaoRepository.SaveChangesAsync();
+        await Task.WhenAll(lista.Select(NotificarVisualizacaoAsync));
+    }
+
+    private Task NotificarVisualizacaoAsync(Visualizacao visualizacao)
+    {
+        return Task.WhenAll(_observers.Select(observer => observer.NotificarAsync(visualizacao)));
     }
 
     private static VisualizacaoHistoricoReadDTO MapToHistoricoDTO(Visualizacao visualizacao)

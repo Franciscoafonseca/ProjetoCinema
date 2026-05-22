@@ -26,7 +26,8 @@ public class FestivalRepository : IFestivalRepository
     public async Task<Festival?> ObterDetalhePorIdAsync(int id)
     {
         return await _context
-            .Festivals.Include(f => f.FestivalFilmes)
+            .Festivals.AsSplitQuery()
+            .Include(f => f.FestivalFilmes)
                 .ThenInclude(ff => ff.Filme)
                     .ThenInclude(f => f.FilmeGeneros)
                         .ThenInclude(fg => fg.Genero)

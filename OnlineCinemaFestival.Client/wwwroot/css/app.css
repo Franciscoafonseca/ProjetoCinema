@@ -129,6 +129,8 @@ code {
   --ocf-line-strong: rgba(255, 255, 255, 0.18);
   --ocf-text: #f7f8fc;
   --ocf-muted: #a7b0c2;
+  --ocf-sky: #0072ce;
+  --ocf-sky-light: #00a3e0;
   --ocf-sunset: #ff7e5f;
   --ocf-sunset-strong: #ff4f6d;
   --ocf-gold: #ffcb70;
@@ -246,8 +248,8 @@ code {
 }
 
 .cinema-btn.primary {
-  background: linear-gradient(135deg, var(--ocf-sunset-strong), var(--ocf-sunset));
-  box-shadow: 0 16px 34px rgba(255, 94, 108, 0.28);
+  background: linear-gradient(135deg, var(--ocf-sky), var(--ocf-sky-light));
+  box-shadow: 0 16px 34px rgba(0, 114, 206, 0.28);
 }
 
 .cinema-btn.secondary,

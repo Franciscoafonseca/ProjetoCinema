@@ -64,11 +64,13 @@ public class AutenticacaoService
         return resultado;
     }
 
-    public async Task<AutenticacaoRespostaDTO> EntrarComExternoAsync(string provider)
+    public async Task<AutenticacaoRespostaDTO> EntrarComExternoAsync(
+        PedidoAutenticacaoExternaDTO pedido
+    )
     {
         var resposta = await _http.PostAsJsonAsync(
             "api/auth/external/login",
-            new PedidoAutenticacaoExternaDTO { Provider = provider }
+            pedido
         );
 
         if (!resposta.IsSuccessStatusCode)

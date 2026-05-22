@@ -6,6 +6,8 @@ public class ProvedorAutenticacaoExternaDTO
 
     public string Nome { get; set; } = string.Empty;
 
+    public string ClientId { get; set; } = string.Empty;
+
     public bool Configurado { get; set; }
 }
 

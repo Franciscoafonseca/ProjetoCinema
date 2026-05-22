@@ -20,13 +20,15 @@ public class PerfilService
         if (!resposta.IsSuccessStatusCode)
             return null;
 
-        return NormalizarFoto(await resposta.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>());
+        return NormalizarFoto(
+            await resposta.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>()
+        );
     }
 
     public async Task<List<PerfilPublicoDTO>> ObterPerfisPublicosAsync()
     {
-        var perfis = await _http.GetFromJsonAsync<List<PerfilPublicoDTO>>("api/profiles/public")
-            ?? new();
+        var perfis =
+            await _http.GetFromJsonAsync<List<PerfilPublicoDTO>>("api/profiles/public") ?? new();
 
         foreach (var perfil in perfis)
             NormalizarFoto(perfil);
@@ -59,31 +61,39 @@ public class PerfilService
             throw new InvalidOperationException(mensagem);
         }
 
-        return NormalizarFoto(await resposta.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>());
+        return NormalizarFoto(
+            await resposta.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>()
+        );
     }
 
     public async Task<PerfilUtilizadorRespostaDTO?> EnviarFotoAsync(IBrowserFile ficheiro)
     {
-        using var form = new MultipartFormDataContent();
-        await using var stream = ficheiro.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
-        using var content = new StreamContent(stream);
-        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+        const long tamanhoMaximo = 2 * 1024 * 1024;
+
+        using var content = new MultipartFormDataContent();
+
+        var stream = ficheiro.OpenReadStream(tamanhoMaximo);
+        var fileContent = new StreamContent(stream);
+
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
             ficheiro.ContentType
         );
-        form.Add(content, "ficheiro", ficheiro.Name);
 
-        var resposta = await _http.PostAsync("api/profiles/me/foto", form);
+        content.Add(fileContent, "foto", ficheiro.Name);
 
-        if (!resposta.IsSuccessStatusCode)
+        var response = await _http.PostAsync("api/profiles/foto", content);
+
+        if (!response.IsSuccessStatusCode)
         {
-            var mensagem = await MensagemErroApi.ObterAsync(
-                resposta,
-                "Nao foi possivel enviar a foto."
+            var erro = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(erro) ? "Não foi possível enviar a foto." : erro
             );
-            throw new InvalidOperationException(mensagem);
         }
 
-        return NormalizarFoto(await resposta.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>());
+        return NormalizarFoto(
+            await response.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>()
+        );
     }
 
     public async Task<PerfilOpcoesDTO> ObterOpcoesAsync()

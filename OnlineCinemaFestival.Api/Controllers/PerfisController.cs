@@ -51,9 +51,9 @@ public class PerfisController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost("me/foto")]
-    [RequestSizeLimit(2 * 1024 * 1024)]
-    public async Task<ActionResult<PerfilPrivadoDTO>> UploadFoto([FromForm] IFormFile ficheiro)
+    [HttpPost("foto")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<PerfilPrivadoDTO>> UploadFoto(IFormFile foto)
     {
         var userId = ObterUtilizadorAtualId();
 
@@ -62,7 +62,7 @@ public class PerfisController : ControllerBase
 
         try
         {
-            return Ok(await _profileService.EnviarFotoPerfilAsync(userId.Value, ficheiro));
+            return Ok(await _profileService.EnviarFotoPerfilAsync(userId.Value, foto));
         }
         catch (ArgumentException ex)
         {

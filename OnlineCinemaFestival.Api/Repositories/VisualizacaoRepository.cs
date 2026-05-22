@@ -21,7 +21,8 @@ public class VisualizacaoRepository : IVisualizacaoRepository
     public async Task<Sessao?> ObterSessaoPorIdAsync(int sessaoId)
     {
         return await _context
-            .Sessoes.Include(s => s.Festival)
+            .Sessoes.AsSplitQuery()
+            .Include(s => s.Festival)
             .Include(s => s.Filme)
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == sessaoId);
@@ -109,7 +110,8 @@ public class VisualizacaoRepository : IVisualizacaoRepository
     public async Task<IEnumerable<Visualizacao>> ObterPorUtilizadorIdAsync(int utilizadorId)
     {
         return await _context
-            .Visualizacoes.Where(v => v.UtilizadorId == utilizadorId)
+            .Visualizacoes.AsSplitQuery()
+            .Where(v => v.UtilizadorId == utilizadorId)
             .Include(v => v.Filme)
             .Include(v => v.Sessao)
             .Include(v => v.Festival)

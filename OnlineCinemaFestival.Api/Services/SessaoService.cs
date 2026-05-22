@@ -11,21 +11,21 @@ public class SessaoService : ISessaoService
     private readonly IFestivalRepository _festivalRepository;
     private readonly IFilmeRepository _filmeRepository;
     private readonly IFestivalFilmeRepository _festivalFilmeRepository;
-    private readonly IAcessoRepository _acessoRepository;
+    private readonly IAcessoAutomaticoService _acessoAutomaticoService;
 
     public SessaoService(
         ISessaoRepository sessaoRepository,
         IFestivalRepository festivalRepository,
         IFilmeRepository filmeRepository,
         IFestivalFilmeRepository festivalFilmeRepository,
-        IAcessoRepository acessoRepository
+        IAcessoAutomaticoService acessoAutomaticoService
     )
     {
         _sessaoRepository = sessaoRepository;
         _festivalRepository = festivalRepository;
         _filmeRepository = filmeRepository;
         _festivalFilmeRepository = festivalFilmeRepository;
-        _acessoRepository = acessoRepository;
+        _acessoAutomaticoService = acessoAutomaticoService;
     }
 
     public async Task<IEnumerable<SessaoReadDTO>> ObterTodosAsync()
@@ -88,7 +88,7 @@ public class SessaoService : ISessaoService
 
         await _sessaoRepository.AddAsync(sessao);
         await _sessaoRepository.SaveChangesAsync();
-        await GarantirBilheteSessaoAsync(sessao.Id);
+        await _acessoAutomaticoService.GarantirParaSessaoAsync(sessao.Id);
 
         var created = await _sessaoRepository.ObterPorIdAsync(sessao.Id);
         return SessaoMapper.MapToReadDTO(created!);
@@ -106,7 +106,7 @@ public class SessaoService : ISessaoService
         SessaoMapper.MapToExistingSessao(dto, sessao);
 
         await _sessaoRepository.SaveChangesAsync();
-        await GarantirBilheteSessaoAsync(sessao.Id);
+        await _acessoAutomaticoService.GarantirParaSessaoAsync(sessao.Id);
     }
 
     public async Task EliminarAsync(int id)
@@ -158,37 +158,4 @@ public class SessaoService : ISessaoService
             );
     }
 
-    private async Task GarantirBilheteSessaoAsync(int sessaoId)
-    {
-        if (
-            await _acessoRepository.GetAtivoParaCarrinhoAsync(
-                TipoAcesso.BilheteSessao,
-                null,
-                null,
-                sessaoId,
-                null
-            ) != null
-        )
-            return;
-
-        var sessao = await _sessaoRepository.ObterPorIdAsync(sessaoId);
-        if (sessao == null)
-            return;
-
-        await _acessoRepository.AddAsync(
-            new Acesso
-            {
-                Nome = $"Bilhete - {sessao.Filme.Titulo}",
-                Descricao = "Bilhete valido para uma sessao especifica.",
-                Tipo = TipoAcesso.BilheteSessao,
-                Preco = sessao.TemChatAoVivo ? 5.99m : 4.99m,
-                SessaoId = sessao.Id,
-                FilmeId = sessao.FilmeId,
-                IsAtivo = true,
-                CriadoEm = DateTime.UtcNow,
-            }
-        );
-
-        await _acessoRepository.SaveChangesAsync();
-    }
 }

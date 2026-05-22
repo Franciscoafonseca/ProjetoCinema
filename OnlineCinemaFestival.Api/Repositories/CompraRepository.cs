@@ -20,68 +20,21 @@ public class CompraRepository : ICompraRepository
 
     public async Task<Compra?> ObterPorIdAsync(int id)
     {
-        return await _context
-            .Compras.Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Sessao)
-                        .ThenInclude(s => s!.Filme)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Sessao)
-                        .ThenInclude(s => s!.Festival)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Festival)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Filme)
-            .Include(c => c.AcessosUtilizador)
-            .Include(c => c.Pagamento)
+        return await ComprasComDetalhes(incluirPagamento: true)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
     public async Task<IEnumerable<Compra>> ObterPorUtilizadorIdAsync(int utilizadorId)
     {
-        return await _context
-            .Compras.Where(c => c.UtilizadorId == utilizadorId)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Sessao)
-                        .ThenInclude(s => s!.Filme)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Sessao)
-                        .ThenInclude(s => s!.Festival)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Festival)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Filme)
-            .Include(c => c.AcessosUtilizador)
-            .Include(c => c.Pagamento)
+        return await ComprasComDetalhes(incluirPagamento: true)
+            .Where(c => c.UtilizadorId == utilizadorId)
             .OrderByDescending(c => c.CriadaEm)
             .ToListAsync();
     }
 
     public async Task<List<Compra>> ObterHistoricoPorUtilizadorAsync(int utilizadorId)
     {
-        return await _context
-            .Compras.Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Sessao)
-                        .ThenInclude(s => s!.Filme)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Sessao)
-                        .ThenInclude(s => s!.Festival)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Festival)
-            .Include(c => c.Itens)
-                .ThenInclude(i => i.Acesso)
-                    .ThenInclude(a => a.Filme)
-            .Include(c => c.AcessosUtilizador)
+        return await ComprasComDetalhes(incluirPagamento: false)
             .Where(c => c.UtilizadorId == utilizadorId)
             .OrderByDescending(c => c.CriadaEm)
             .ToListAsync();
@@ -107,5 +60,28 @@ public class CompraRepository : ICompraRepository
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    private IQueryable<Compra> ComprasComDetalhes(bool incluirPagamento)
+    {
+        var query = _context
+            .Compras.AsSplitQuery()
+            .Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+                    .ThenInclude(a => a.Sessao)
+                        .ThenInclude(s => s!.Filme)
+            .Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+                    .ThenInclude(a => a.Sessao)
+                        .ThenInclude(s => s!.Festival)
+            .Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+                    .ThenInclude(a => a.Festival)
+            .Include(c => c.Itens)
+                .ThenInclude(i => i.Acesso)
+                    .ThenInclude(a => a.Filme)
+            .Include(c => c.AcessosUtilizador);
+
+        return incluirPagamento ? query.Include(c => c.Pagamento) : query;
     }
 }

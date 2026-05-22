@@ -16,7 +16,8 @@ public class FilmeService
         string? genero = null,
         string? pesquisa = null,
         int? ordenarPor = null,
-        bool descendente = false
+        bool descendente = false,
+        int? festivalId = null
     )
     {
         var parametros = new List<string>();
@@ -29,6 +30,9 @@ public class FilmeService
 
         if (ordenarPor.HasValue)
             parametros.Add($"ordenarPor={ordenarPor.Value}");
+
+        if (festivalId.HasValue)
+            parametros.Add($"festivalId={festivalId.Value}");
 
         if (descendente)
             parametros.Add("descendente=true");

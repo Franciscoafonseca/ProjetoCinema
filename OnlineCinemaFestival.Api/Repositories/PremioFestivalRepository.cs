@@ -141,4 +141,17 @@ public class PremioFestivalRepository : IPremioFestivalRepository
     {
         await _context.SaveChangesAsync();
     }
+
+    public async Task<bool> TrySaveChangesAsync()
+    {
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            return false;
+        }
+    }
 }

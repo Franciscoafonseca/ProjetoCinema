@@ -9,17 +9,17 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
 {
     private readonly IUtilizadorRepository _utilizadorRepository;
     private readonly IGeneroRepository _generoRepository;
-    private readonly IWebHostEnvironment _environment;
+    private readonly IPerfilFotoUploadService _fotoUploadService;
 
     public PerfilUtilizadorService(
         IUtilizadorRepository utilizadorRepository,
         IGeneroRepository generoRepository,
-        IWebHostEnvironment environment
+        IPerfilFotoUploadService fotoUploadService
     )
     {
         _utilizadorRepository = utilizadorRepository;
         _generoRepository = generoRepository;
-        _environment = environment;
+        _fotoUploadService = fotoUploadService;
     }
 
     public async Task<PerfilPrivadoDTO> ObterMeuPerfilAsync(int userId)
@@ -97,42 +97,7 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         if (utilizador == null || utilizador.Perfil == null)
             throw new ArgumentException("Perfil nao encontrado.");
 
-        if (ficheiro == null || ficheiro.Length == 0)
-            throw new ArgumentException("Ficheiro obrigatorio.");
-
-        const long maxBytes = 2 * 1024 * 1024;
-        if (ficheiro.Length > maxBytes)
-            throw new ArgumentException("A foto nao pode exceder 2MB.");
-
-        var extensao = Path.GetExtension(ficheiro.FileName).ToLowerInvariant();
-        var contentTypesValidos = new Dictionary<string, string>
-        {
-            [".jpg"] = "image/jpeg",
-            [".jpeg"] = "image/jpeg",
-            [".png"] = "image/png",
-            [".webp"] = "image/webp",
-        };
-
-        if (!contentTypesValidos.TryGetValue(extensao, out var contentTypeEsperado)
-            || !string.Equals(ficheiro.ContentType, contentTypeEsperado, StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("Formato invalido. Usa jpg, png ou webp.");
-
-        var webRoot = _environment.WebRootPath;
-        if (string.IsNullOrWhiteSpace(webRoot))
-            webRoot = Path.Combine(_environment.ContentRootPath, "wwwroot");
-
-        var pasta = Path.Combine(webRoot, "uploads", "perfis");
-        Directory.CreateDirectory(pasta);
-
-        var nomeFicheiro = $"{Guid.NewGuid():N}{extensao}";
-        var caminhoCompleto = Path.Combine(pasta, nomeFicheiro);
-
-        await using (var stream = File.Create(caminhoCompleto))
-        {
-            await ficheiro.CopyToAsync(stream);
-        }
-
-        utilizador.Perfil.ProfileImageUrl = $"/uploads/perfis/{nomeFicheiro}";
+        utilizador.Perfil.ProfileImageUrl = await _fotoUploadService.GuardarAsync(ficheiro);
         utilizador.Perfil.UpdatedAt = DateTime.UtcNow;
         utilizador.UpdatedAt = DateTime.UtcNow;
 

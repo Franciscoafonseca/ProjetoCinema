@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.DTOs;
 
 namespace OnlineCinemaFestival.Api.Services.Catalogo;
 
-public class CatalogoOrdenacaoStrategyFactory
+public class CatalogoOrdenacaoStrategyFactory : ICatalogoOrdenacaoStrategyFactory
 {
     private readonly IEnumerable<ICatalogoOrdenacaoStrategy> _strategies;
 

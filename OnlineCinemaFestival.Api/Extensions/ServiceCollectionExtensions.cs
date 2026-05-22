@@ -175,6 +175,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICarrinhoService, CarrinhoService>();
         services.AddScoped<IAcessoRepository, AcessoRepository>();
         services.AddScoped<IAcessoService, AcessoService>();
+        services.AddScoped<IAcessoAutomaticoFactory, AcessoAutomaticoFactory>();
+        services.AddScoped<IAcessoAutomaticoService, AcessoAutomaticoService>();
         services.AddScoped<IRewardsRepository, RewardsRepository>();
         services.AddScoped<IRewardTransacaoRepository, RewardTransacaoRepository>();
         services.AddScoped<IRewardsQueryService, RewardsQueryService>();
@@ -191,6 +193,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IAutenticacaoService, AutenticacaoService>();
         services.AddScoped<IAutenticacaoExternaService, AutenticacaoExternaService>();
+        services.AddScoped<IPerfilFotoUploadService, PerfilFotoUploadService>();
         services.AddScoped<IPerfilUtilizadorService, PerfilUtilizadorService>();
         services.AddScoped<CatalogoTmdbSeedService>();
         services.AddScoped<IListaPessoalRepository, ListaPessoalRepository>();
@@ -226,11 +229,22 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorClassificacaoStrategy>();
         services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorDataLancamentoStrategy>();
         services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorVisualizacoesStrategy>();
-        services.AddScoped<CatalogoOrdenacaoStrategyFactory>();
+        services.AddScoped<ICatalogoOrdenacaoStrategyFactory, CatalogoOrdenacaoStrategyFactory>();
         services.AddScoped<IPrecoStrategy, BilheteIndividualPrecoStrategy>();
         services.AddScoped<IPrecoStrategy, PasseFestivalPrecoStrategy>();
+        // Strategy: novos metodos de pagamento entram por DI sem alterar o checkout.
+        services.AddScoped<IPagamentoStrategy, PagamentoAprovadoSimuladoStrategy>();
+        services.AddScoped<IPagamentoStrategy, PagamentoReferenciaMultibancoStrategy>();
+        // Observer: efeitos apos eventos de dominio ficam desacoplados do fluxo principal.
         services.AddScoped<ICompraObserver, AcessoObserver>();
         services.AddScoped<ICompraObserver, RewardsObserver>();
+        services.AddScoped<IVisualizacaoObserver, RewardsVisualizacaoObserver>();
+        services.AddScoped<IAvaliacaoObserver, RewardsAvaliacaoObserver>();
+        // Strategy/OCP: cada tipo de acesso valida as suas proprias regras.
+        services.AddScoped<ICarrinhoAcessoStrategy, CarrinhoBilheteSessaoStrategy>();
+        services.AddScoped<ICarrinhoAcessoStrategy, CarrinhoPasseDiarioStrategy>();
+        services.AddScoped<ICarrinhoAcessoStrategy, CarrinhoPasseCompletoStrategy>();
+        services.AddScoped<ICarrinhoAcessoStrategy, CarrinhoAluguerDigitalStrategy>();
         services.AddScoped<ICompraItemValidator, BilheteSessaoCompraItemValidator>();
         services.AddScoped<ICompraItemValidator, AluguerDigitalCompraItemValidator>();
         services.AddScoped<IEstrategiaValidacaoAcesso, BilheteSessaoValidacaoStrategy>();
@@ -238,7 +252,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEstrategiaValidacaoAcesso, ValidacaoPasseCompletoStrategy>();
         services.AddScoped<IEstrategiaValidacaoAcesso, AluguerDigitalValidacaoStrategy>();
 
-        services.AddHttpClient<ITmdbService, TmdbService>();
+        services.AddHttpClient<ITmdbApiClient, TmdbApiClient>();
+        services.AddScoped<ITmdbService, TmdbService>();
 
         return services;
     }

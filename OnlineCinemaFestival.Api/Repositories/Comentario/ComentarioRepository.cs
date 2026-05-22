@@ -13,7 +13,6 @@ public class ComentarioRepository : IComentarioRepository
         _context = context;
     }
 
-    //
     public async Task<Comentario> AddAsync(Comentario comentario)
     {
         _context.Comentarios.Add(comentario);
@@ -23,11 +22,7 @@ public class ComentarioRepository : IComentarioRepository
 
     public async Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(int comunidadeId)
     {
-        return await _context
-            .Comentarios.Include(c => c.Usuario)
-            .ThenInclude(u => u.Perfil)
-            .Include(c => c.Comunidade)
-            .Include(c => c.Filme)
+        return await ComentariosComDetalhes()
             .Where(c => c.ComunidadeId == comunidadeId && c.Visivel)
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();
@@ -35,13 +30,19 @@ public class ComentarioRepository : IComentarioRepository
 
     public async Task<IEnumerable<Comentario>> ObterPorFilmeIdAsync(int filmeId)
     {
-        return await _context
-            .Comentarios.Include(c => c.Usuario)
-            .ThenInclude(u => u.Perfil)
-            .Include(c => c.Comunidade)
-            .Include(c => c.Filme)
+        return await ComentariosComDetalhes()
             .Where(c => c.FilmeId == filmeId && c.Visivel)
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();
+    }
+
+    private IQueryable<Comentario> ComentariosComDetalhes()
+    {
+        return _context
+            .Comentarios.AsSplitQuery()
+            .Include(c => c.Usuario)
+                .ThenInclude(u => u.Perfil)
+            .Include(c => c.Comunidade)
+            .Include(c => c.Filme);
     }
 }
