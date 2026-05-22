@@ -13,11 +13,11 @@
     <section class="cinema-shell">
         <header class="cinema-page-head">
             <div>
-                <span class="cinema-kicker">Admin basico</span>
-                <h1>Painel operacional</h1>
+                <span class="cinema-kicker">Administracao</span>
+                <h1>Painel de administracao</h1>
                 <p>
-                    Visao rapida do catalogo, festivais, sessoes e acessos para acompanhar o estado
-                    principal da plataforma.
+                    Gestao unica de filmes, importacoes TMDB, festivais, sessoes e premios.
+                    Estas operacoes estao reservadas a administradores.
                 </p>
             </div>
             <MudButton Variant="Variant.Filled"
@@ -220,7 +220,7 @@
                             <div class="admin-lista">
                                 @foreach (var sessao in _sessoes.Take(5))
                                 {
-                                    <a href="@($"/visualizar/sessao/{sessao.Id}")">
+                                    <a href="@($"/sessoes/{sessao.Id}")">
                                         <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM HH:mm")</span>
                                         <strong>@TituloSessao(sessao)</strong>
                                     </a>
@@ -402,7 +402,7 @@
             var festival = await FestivalService.CriarAsync(_novoFestival);
             _festivais.Add(festival);
             _novoFestival = new CriarFestivalDTO();
-            _mensagemOperacao = "Festival criado.";
+            _mensagemOperacao = "Festival criado com passes automaticos.";
         });
     }
 
@@ -412,7 +412,7 @@
         {
             await FestivalService.AssociarFilmeAsync(_festivalOperacaoId, _associacao);
             _associacao = new AssociarFilmeFestivalDTO();
-            _mensagemOperacao = "Filme adicionado ao festival.";
+            _mensagemOperacao = "Filme adicionado ao festival com acessos automaticos.";
         });
     }
 

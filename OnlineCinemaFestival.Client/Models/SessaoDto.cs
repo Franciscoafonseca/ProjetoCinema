@@ -30,6 +30,8 @@ public class SessaoDTO
 
     public decimal? PrecoBilhete { get; set; }
 
+    public string AcessoNecessario { get; set; } = string.Empty;
+
     public string? Observacoes { get; set; }
 
     public string Festival =>

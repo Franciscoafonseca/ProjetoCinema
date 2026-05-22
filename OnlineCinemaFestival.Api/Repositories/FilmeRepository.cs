@@ -21,6 +21,7 @@ public class FilmeRepository : IFilmeRepository
             .Include(f => f.PessoasDoFilme)
                 .ThenInclude(fp => fp.Pessoa)
             .Include(f => f.Avaliacoes)
+            .Include(f => f.Visualizacoes)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -47,9 +48,6 @@ public class FilmeRepository : IFilmeRepository
             .Include(f => f.Sessoes)
                 .ThenInclude(s => s.Acessos)
             .Include(f => f.Acessos)
-            .Include(f => f.ResultadosPremiosFestival)
-                .ThenInclude(r => r.PremioFestival)
-                    .ThenInclude(p => p.Festival)
             .FirstOrDefaultAsync(f => f.Id == id);
     }
 
@@ -61,6 +59,7 @@ public class FilmeRepository : IFilmeRepository
             .Include(f => f.PessoasDoFilme)
                 .ThenInclude(fp => fp.Pessoa)
             .Include(f => f.Avaliacoes)
+            .Include(f => f.Visualizacoes)
             .FirstOrDefaultAsync(f => f.TmdbId == tmdbId);
     }
 

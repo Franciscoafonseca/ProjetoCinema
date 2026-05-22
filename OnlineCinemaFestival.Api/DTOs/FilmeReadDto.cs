@@ -16,6 +16,7 @@ namespace OnlineCinemaFestival.Api.DTOs
         public double? AvaliacaoTmdb { get; set; }
         public double? AvaliacaoInternaMedia { get; set; }
         public int AvaliacoesInternasTotal { get; set; }
+        public int VisualizacoesTotal { get; set; }
         public string CapaUrl { get; set; } = "";
         public string? TrailerUrl { get; set; }
         public string? VideoProvider { get; set; }

@@ -1,7 +1,7 @@
 @page "/comunidades"
 @attribute [Authorize]
 @inject ComunidadeService ComunidadeService
-@inject ComentarioService ComentarioService
+@inject NavigationManager Nav
 
 <PageTitle>Comunidades - Online Cinema Festival</PageTitle>
 
@@ -145,92 +145,23 @@
                 </section>
             </aside>
         </section>
-
-        @if (_selecionada != null)
-        {
-            <section class="cinema-panel community-detail">
-                <div class="detail-head">
-                    <div>
-                        <span class="cinema-kicker">Detalhe</span>
-                        <h2>@_selecionada.Name</h2>
-                        <p>@Resumo(_selecionada.Description)</p>
-                    </div>
-                    <div class="detail-meta">
-                        <span>@_selecionada.MembersCount membros</span>
-                        <span>@(_selecionada.IsPublic ? "Publica" : "Privada")</span>
-                        @if (!string.IsNullOrWhiteSpace(_selecionada.CodigoConvite))
-                        {
-                            <span>Convite @_selecionada.CodigoConvite</span>
-                        }
-                    </div>
-                </div>
-
-                @if (_aCarregarComentarios)
-                {
-                    <div class="cinema-state slim">A carregar comentarios...</div>
-                }
-                else if (_comentarios.Count == 0)
-                {
-                    <div class="cinema-state slim">Ainda nao ha comentarios nesta comunidade.</div>
-                }
-                else
-                {
-                    <div class="comment-list">
-                        @foreach (var comentario in _comentarios.OrderByDescending(c => c.CriadoEm))
-                        {
-                            <article class="comment-card">
-                                <div class="comment-avatar">@Inicial(comentario.NomeUsuario)</div>
-                                <div>
-                                    <strong>@NomeUtilizador(comentario.NomeUsuario)</strong>
-                                    <span>@comentario.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
-                                    <p>@comentario.Texto</p>
-                                </div>
-                            </article>
-                        }
-                    </div>
-                }
-
-                <EditForm Model="_novoComentario" OnValidSubmit="PublicarComentarioAsync">
-                    <DataAnnotationsValidator />
-                    <div class="comment-form">
-                        <InputTextArea class="text-area" @bind-Value="_novoComentario.Texto" placeholder="Escreve um comentario" />
-                        <ValidationMessage For="@(() => _novoComentario.Texto)" />
-                        <button class="cinema-btn primary" type="submit" disabled="@_aComentar">
-                            @(_aComentar ? "A publicar..." : "Publicar comentario")
-                        </button>
-                    </div>
-                </EditForm>
-
-                @if (!string.IsNullOrWhiteSpace(_mensagemComentario))
-                {
-                    <MudAlert Severity="@_severidadeComentario" Variant="Variant.Filled">@_mensagemComentario</MudAlert>
-                }
-            </section>
-        }
     </section>
 </main>
 
 @code {
     private List<ComunidadeDTO> _minhas = new();
     private List<ComunidadeDTO> _publicas = new();
-    private List<ComentarioDTO> _comentarios = new();
-    private ComunidadeDTO? _selecionada;
     private ComunidadeDTO? _conviteEncontrado;
     private ComunidadeCreateDTO _novaComunidade = new();
-    private ComentarioCreateDTO _novoComentario = new();
     private bool _aCarregar = true;
     private bool _aCriar;
     private bool _aConvite;
     private bool _aAderir;
-    private bool _aCarregarComentarios;
-    private bool _aComentar;
     private string? _erroGeral;
     private string? _mensagemCriar;
     private string? _mensagemConvite;
-    private string? _mensagemComentario;
     private Severity _severidadeCriar = Severity.Info;
     private Severity _severidadeConvite = Severity.Info;
-    private Severity _severidadeComentario = Severity.Info;
     private string _codigoConvite = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -272,7 +203,7 @@
             _novaComunidade = new ComunidadeCreateDTO();
             _mensagemCriar = "Comunidade criada.";
             _severidadeCriar = Severity.Success;
-            await SelecionarComunidadeAsync(comunidade);
+            Nav.NavigateTo($"/comunidades/{comunidade.Id}");
         }
         catch (Exception ex)
         {
@@ -346,7 +277,7 @@
             _publicas.Remove(comunidade);
             comunidade.MembersCount++;
             _minhas.Insert(0, comunidade);
-            await SelecionarComunidadeAsync(comunidade);
+            Nav.NavigateTo($"/comunidades/{comunidade.Id}");
         }
         catch (Exception ex)
         {
@@ -355,57 +286,6 @@
         finally
         {
             _aAderir = false;
-        }
-    }
-
-    private async Task SelecionarComunidadeAsync(ComunidadeDTO comunidade)
-    {
-        _selecionada = comunidade;
-        _mensagemComentario = null;
-        _aCarregarComentarios = true;
-
-        try
-        {
-            _comentarios = await ComentarioService.ObterDaComunidadeAsync(comunidade.Id);
-        }
-        catch (Exception ex)
-        {
-            _mensagemComentario = ex.Message;
-            _severidadeComentario = Severity.Error;
-        }
-        finally
-        {
-            _aCarregarComentarios = false;
-        }
-    }
-
-    private async Task PublicarComentarioAsync()
-    {
-        if (_selecionada == null)
-            return;
-
-        _aComentar = true;
-        _mensagemComentario = null;
-
-        try
-        {
-            var comentario = await ComentarioService.CriarNaComunidadeAsync(
-                _selecionada.Id,
-                _novoComentario
-            );
-            _comentarios.Insert(0, comentario);
-            _novoComentario = new ComentarioCreateDTO();
-            _mensagemComentario = "Comentario publicado.";
-            _severidadeComentario = Severity.Success;
-        }
-        catch (Exception ex)
-        {
-            _mensagemComentario = ex.Message;
-            _severidadeComentario = Severity.Error;
-        }
-        finally
-        {
-            _aComentar = false;
         }
     }
 
@@ -438,7 +318,7 @@
                 <span>@comunidade.ComentariosCount comentarios</span>
             </div>
             <div class="community-actions">
-                <button class="cinema-btn secondary" @onclick="() => SelecionarComunidadeAsync(comunidade)">Ver detalhes</button>
+                <button class="cinema-btn secondary" @onclick="() => AbrirDetalhe(comunidade.Id)">Ver detalhes</button>
                 @if (!membro)
                 {
                     <button class="cinema-btn primary" disabled="@_aAderir" @onclick="() => AderirAsync(comunidade)">Aderir</button>
@@ -455,9 +335,9 @@
         return texto.Length <= 160 ? texto : texto[..160] + "...";
     }
 
-    private static string NomeUtilizador(string? nome)
+    private void AbrirDetalhe(Guid comunidadeId)
     {
-        return string.IsNullOrWhiteSpace(nome) ? "Utilizador" : nome;
+        Nav.NavigateTo($"/comunidades/{comunidadeId}");
     }
 
     private static string Inicial(string? valor)

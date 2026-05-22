@@ -26,6 +26,8 @@ public class ComunidadeRepository : IComunidadeRepository
         return await _context
             .Comunidades.Include(c => c.CreatedByUser)
             .Include(c => c.Members)
+            .ThenInclude(m => m.Utilizador)
+            .ThenInclude(u => u.Perfil)
             .Include(c => c.Comentarios)
             .FirstOrDefaultAsync(c => c.PublicId == publicId);
     }
@@ -37,6 +39,8 @@ public class ComunidadeRepository : IComunidadeRepository
         return await _context
             .Comunidades.Include(c => c.CreatedByUser)
             .Include(c => c.Members)
+            .ThenInclude(m => m.Utilizador)
+            .ThenInclude(u => u.Perfil)
             .Include(c => c.Comentarios)
             .Where(predicate)
             .OrderByDescending(c => c.Members.Count)
@@ -56,6 +60,8 @@ public class ComunidadeRepository : IComunidadeRepository
         return await _context
             .Comunidades.Include(c => c.CreatedByUser)
             .Include(c => c.Members)
+            .ThenInclude(m => m.Utilizador)
+            .ThenInclude(u => u.Perfil)
             .Include(c => c.Comentarios)
             .FirstOrDefaultAsync(c => c.CodigoConvite == codigoConvite);
     }

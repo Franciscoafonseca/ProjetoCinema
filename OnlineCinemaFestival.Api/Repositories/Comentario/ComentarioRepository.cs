@@ -25,6 +25,7 @@ public class ComentarioRepository : IComentarioRepository
     {
         return await _context
             .Comentarios.Include(c => c.Usuario)
+            .ThenInclude(u => u.Perfil)
             .Include(c => c.Comunidade)
             .Include(c => c.Filme)
             .Where(c => c.ComunidadeId == comunidadeId && c.Visivel)
@@ -36,6 +37,7 @@ public class ComentarioRepository : IComentarioRepository
     {
         return await _context
             .Comentarios.Include(c => c.Usuario)
+            .ThenInclude(u => u.Perfil)
             .Include(c => c.Comunidade)
             .Include(c => c.Filme)
             .Where(c => c.FilmeId == filmeId && c.Visivel)

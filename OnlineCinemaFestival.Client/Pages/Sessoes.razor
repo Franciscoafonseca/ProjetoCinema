@@ -66,6 +66,7 @@
                         <div class="meta-panel">
                             <span><strong>Filme</strong> @TituloSessao(sessao)</span>
                             <span><strong>Bilhete</strong> @Preco(sessao)</span>
+                            <span><strong>Acesso</strong> @AcessoNecessario(sessao)</span>
                             <span><strong>Sessao</strong> @sessao.TipoNome</span>
                             <span><strong>Estado</strong> @EstadoRotulo(sessao)</span>
                         </div>
@@ -198,6 +199,13 @@
         return sessao.PrecoBilhete.HasValue
             ? sessao.PrecoBilhete.Value.ToString("C", new System.Globalization.CultureInfo("pt-PT"))
             : "Bilhete disponivel no carrinho";
+    }
+
+    private static string AcessoNecessario(SessaoDTO sessao)
+    {
+        return string.IsNullOrWhiteSpace(sessao.AcessoNecessario)
+            ? "Bilhete, passe diario ou passe completo"
+            : sessao.AcessoNecessario;
     }
 
     private static string TextoPlayer(SessaoDTO sessao)

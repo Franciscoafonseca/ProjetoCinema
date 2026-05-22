@@ -66,6 +66,7 @@
 
                             <EditForm Model="_pedido" OnValidSubmit="Guardar">
                                 <DataAnnotationsValidator />
+                                <ValidationSummary class="perfil-form-alert" />
 
                                 <MudGrid Spacing="3">
                                     <MudItem xs="12" md="6">
@@ -81,6 +82,7 @@
                                                       Label="Telefone"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense"
+                                                      For="@(() => _pedido.PhoneNumber)"
                                                       @bind-Value="_pedido.PhoneNumber" />
                                     </MudItem>
                                     <MudItem xs="12" md="6">

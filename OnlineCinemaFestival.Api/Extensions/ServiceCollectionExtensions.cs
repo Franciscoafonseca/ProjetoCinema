@@ -225,6 +225,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorPopularidadeStrategy>();
         services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorClassificacaoStrategy>();
         services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorDataLancamentoStrategy>();
+        services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorVisualizacoesStrategy>();
         services.AddScoped<CatalogoOrdenacaoStrategyFactory>();
         services.AddScoped<IPrecoStrategy, BilheteIndividualPrecoStrategy>();
         services.AddScoped<IPrecoStrategy, PasseFestivalPrecoStrategy>();

@@ -50,6 +50,9 @@
                                 @(_aImportar ? "A adicionar..." : "Adicionar ao catalogo")
                             </button>
                         </Authorized>
+                        <NotAuthorized>
+                            <div class="admin-only-note">Apenas administradores podem adicionar filmes TMDB ao catalogo.</div>
+                        </NotAuthorized>
                     </AuthorizeView>
                     @if (!string.IsNullOrWhiteSpace(_mensagem))
                     {
@@ -116,7 +119,7 @@
     private bool _aImportar;
     private string? _mensagem;
     private Severity _mensagemSeveridade = Severity.Info;
-    private string? TrailerEmbedUrl => ConverterParaEmbed(_filme?.VideoUrl ?? _filme?.TrailerUrl);
+    private string? TrailerEmbedUrl => ConverterParaEmbed(_filme?.TrailerUrl ?? _filme?.VideoUrl);
 
     protected override async Task CarregarDadosAsync()
     {

@@ -6,4 +6,5 @@ public enum CatalogoOrdenacao
     Popularidade = 2,
     Classificacao = 3,
     DataLancamento = 4,
+    Visualizacoes = 5,
 }

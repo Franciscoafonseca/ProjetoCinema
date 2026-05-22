@@ -32,20 +32,11 @@
     {
         <section class="player-shell">
             <div class="video-frame">
-                @if (UsarVideoTag(_conteudoSelecionado.UrlVisualizacao))
-                {
-                    <video src="@_conteudoSelecionado.UrlVisualizacao" controls autoplay>
-                        O teu browser nao suporta video HTML5.
-                    </video>
-                }
-                else
-                {
-                    <iframe src="@UrlPlayer(_conteudoSelecionado.UrlVisualizacao)"
-                            title="@_conteudoSelecionado.Titulo"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowfullscreen>
-                    </iframe>
-                }
+                <iframe src="@UrlPlayer(_conteudoSelecionado.UrlVisualizacao)"
+                        title="@_conteudoSelecionado.Titulo"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen>
+                </iframe>
             </div>
 
             <div class="player-meta">
@@ -166,16 +157,6 @@
         }
 
         return url;
-    }
-
-    private static bool UsarVideoTag(string url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-            return false;
-
-        return url.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)
-            || url.EndsWith(".webm", StringComparison.OrdinalIgnoreCase)
-            || url.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string LimparMensagem(string mensagem)

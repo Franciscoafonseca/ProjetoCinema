@@ -30,6 +30,8 @@ public class FilmeDTO
 
     public int AvaliacoesInternasTotal { get; set; }
 
+    public int VisualizacoesTotal { get; set; }
+
     public string CapaUrl { get; set; } = string.Empty;
 
     public string? TrailerUrl { get; set; }
@@ -102,15 +104,6 @@ public class PessoaFilmeDTO
     public string? Personagem { get; set; }
 
     public int Ordem { get; set; }
-}
-
-public class AtualizarVideoFilmeDTO
-{
-    public string? VideoProvider { get; set; }
-
-    public string? VideoKey { get; set; }
-
-    public string? VideoUrl { get; set; }
 }
 
 public class AvaliacaoDTO

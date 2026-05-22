@@ -4,10 +4,10 @@ namespace OnlineCinemaFestival.Api.DTOs;
 
 public class PedidoLoginDTO
 {
-    [Required]
-    [EmailAddress]
+    [Required(ErrorMessage = "O email e obrigatorio.")]
+    [EmailAddress(ErrorMessage = "Introduz um email valido.")]
     public string Email { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "A palavra-passe e obrigatoria.")]
     public string Password { get; set; } = string.Empty;
 }

@@ -35,6 +35,9 @@ public static class MensagemErroApi
             if (raiz.TryGetProperty("message", out var message))
                 return LimparTexto(message.GetString(), mensagemPadrao);
 
+            if (raiz.TryGetProperty("mensagem", out var mensagemApi))
+                return LimparTexto(mensagemApi.GetString(), mensagemPadrao);
+
             if (raiz.TryGetProperty("detail", out var detail))
                 return LimparTexto(detail.GetString(), mensagemPadrao);
 

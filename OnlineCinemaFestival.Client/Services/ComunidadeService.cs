@@ -18,10 +18,16 @@ public class ComunidadeService
 
         if (!resposta.IsSuccessStatusCode)
             throw new InvalidOperationException(
-                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel carregar comunidades publicas.")
+                await MensagemErroApi.ObterAsync(
+                    resposta,
+                    "Nao foi possivel carregar comunidades publicas."
+                )
             );
 
-        return await resposta.Content.ReadFromJsonAsync<List<ComunidadeDTO>>() ?? new();
+        var comunidades = await resposta.Content.ReadFromJsonAsync<List<ComunidadeDTO>>() ?? new();
+        foreach (var comunidade in comunidades)
+            NormalizarFotosMembros(comunidade);
+        return comunidades;
     }
 
     public async Task<List<ComunidadeDTO>> ObterMinhasAsync()
@@ -30,10 +36,16 @@ public class ComunidadeService
 
         if (!resposta.IsSuccessStatusCode)
             throw new InvalidOperationException(
-                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel carregar as tuas comunidades.")
+                await MensagemErroApi.ObterAsync(
+                    resposta,
+                    "Nao foi possivel carregar as tuas comunidades."
+                )
             );
 
-        return await resposta.Content.ReadFromJsonAsync<List<ComunidadeDTO>>() ?? new();
+        var comunidades = await resposta.Content.ReadFromJsonAsync<List<ComunidadeDTO>>() ?? new();
+        foreach (var comunidade in comunidades)
+            NormalizarFotosMembros(comunidade);
+        return comunidades;
     }
 
     public async Task<ComunidadeDTO> ObterPorIdAsync(Guid id)
@@ -45,7 +57,7 @@ public class ComunidadeService
                 await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel abrir a comunidade.")
             );
 
-        return await resposta.Content.ReadFromJsonAsync<ComunidadeDTO>()
+        return NormalizarFotosMembros(await resposta.Content.ReadFromJsonAsync<ComunidadeDTO>())
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
@@ -58,7 +70,7 @@ public class ComunidadeService
                 await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel criar a comunidade.")
             );
 
-        return await resposta.Content.ReadFromJsonAsync<ComunidadeDTO>()
+        return NormalizarFotosMembros(await resposta.Content.ReadFromJsonAsync<ComunidadeDTO>())
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
@@ -74,14 +86,16 @@ public class ComunidadeService
 
     public async Task<ComunidadeDTO> ObterPorConviteAsync(string codigo)
     {
-        var resposta = await _http.GetAsync($"api/comunidades/convite/{Uri.EscapeDataString(codigo.Trim())}");
+        var resposta = await _http.GetAsync(
+            $"api/comunidades/convite/{Uri.EscapeDataString(codigo.Trim())}"
+        );
 
         if (!resposta.IsSuccessStatusCode)
             throw new InvalidOperationException(
                 await MensagemErroApi.ObterAsync(resposta, "Convite nao encontrado.")
             );
 
-        return await resposta.Content.ReadFromJsonAsync<ComunidadeDTO>()
+        return NormalizarFotosMembros(await resposta.Content.ReadFromJsonAsync<ComunidadeDTO>())
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
@@ -96,5 +110,25 @@ public class ComunidadeService
             throw new InvalidOperationException(
                 await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel aceitar o convite.")
             );
+    }
+
+    private ComunidadeDTO? NormalizarFotosMembros(ComunidadeDTO? comunidade)
+    {
+        if (comunidade == null)
+            return comunidade;
+
+        foreach (var membro in comunidade.Members)
+        {
+            if (string.IsNullOrWhiteSpace(membro.ProfileImageUrl))
+                continue;
+
+            if (Uri.TryCreate(membro.ProfileImageUrl, UriKind.Absolute, out _))
+                continue;
+
+            var baseUri = _http.BaseAddress?.GetLeftPart(UriPartial.Authority) ?? string.Empty;
+            membro.ProfileImageUrl = $"{baseUri}{membro.ProfileImageUrl}";
+        }
+
+        return comunidade;
     }
 }

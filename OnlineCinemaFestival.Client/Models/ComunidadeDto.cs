@@ -25,6 +25,21 @@ public class ComunidadeDTO
     public int ComentariosCount { get; set; }
 
     public string? CodigoConvite { get; set; }
+
+    public List<MembroComunidadeDTO> Members { get; set; } = new();
+}
+
+public class MembroComunidadeDTO
+{
+    public int UserId { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string ProfileImageUrl { get; set; } = string.Empty;
+
+    public string Role { get; set; } = string.Empty;
+
+    public DateTime JoinedAt { get; set; }
 }
 
 public class ComunidadeCreateDTO
@@ -50,6 +65,10 @@ public class ComentarioDTO
 
     public string NomeUsuario { get; set; } = string.Empty;
 
+    public string? UsuarioFotoUrl { get; set; }
+
+    public bool UsuarioPerfilPublico { get; set; }
+
     public int? ComunidadeId { get; set; }
 
     public string? NomeComunidade { get; set; }
@@ -57,6 +76,8 @@ public class ComentarioDTO
     public int? FilmeId { get; set; }
 
     public string? TituloFilme { get; set; }
+
+    public string? FilmeCapaUrl { get; set; }
 
     public string Texto { get; set; } = string.Empty;
 
@@ -72,4 +93,6 @@ public class ComentarioCreateDTO
     [Required(ErrorMessage = "Escreve um comentario.")]
     [StringLength(600, MinimumLength = 3, ErrorMessage = "O comentario deve ter entre 3 e 600 caracteres.")]
     public string Texto { get; set; } = string.Empty;
+
+    public int? FilmeId { get; set; }
 }

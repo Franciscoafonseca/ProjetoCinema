@@ -4,6 +4,25 @@
   margin-bottom: 28px;
 }
 
+.search-note {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--ocf-line);
+  border-radius: 8px;
+  color: var(--ocf-muted);
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.search-note.success {
+  color: var(--ocf-teal-soft);
+  border-color: rgba(31, 211, 198, 0.28);
+  background: rgba(31, 211, 198, 0.08);
+}
+
 .catalogo-section {
   margin-top: 34px;
 }
@@ -61,6 +80,15 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
     rgba(10, 16, 29, 0.86);
   box-shadow: var(--ocf-shadow-md);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease;
+}
+
+.tmdb-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(31, 211, 198, 0.32);
 }
 
 .tmdb-poster {

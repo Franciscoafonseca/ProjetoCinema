@@ -55,8 +55,6 @@ public class FestivalService
 
     private static async Task<string> LerErroAsync(HttpResponseMessage resposta, string fallback)
     {
-        var conteudo = await resposta.Content.ReadAsStringAsync();
-
-        return string.IsNullOrWhiteSpace(conteudo) ? fallback : conteudo.Trim('"');
+        return await MensagemErroApi.ObterAsync(resposta, fallback);
     }
 }

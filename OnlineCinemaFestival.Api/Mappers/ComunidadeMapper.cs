@@ -35,6 +35,17 @@ public static class ComunidadeMapper
             CreatedAt = comunidade.CreatedAt,
             MembersCount = comunidade.Members?.Count ?? 0,
             ComentariosCount = comunidade.Comentarios?.Count ?? 0,
+            Members = (comunidade.Members ?? new List<ComunidadeMembro>())
+                .OrderBy(m => m.JoinedAt)
+                .Select(m => new MembroComunidadeRespostaDTO
+                {
+                    UserId = m.UtilizadorId,
+                    Name = m.Utilizador?.Name ?? "Utilizador",
+                    ProfileImageUrl = m.Utilizador?.Perfil?.ProfileImageUrl ?? string.Empty,
+                    Role = m.Role.ToString(),
+                    JoinedAt = m.JoinedAt,
+                })
+                .ToList(),
         };
     }
 }

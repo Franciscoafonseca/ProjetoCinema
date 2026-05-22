@@ -27,6 +27,7 @@ public static class FilmeMapper
                 ? null
                 : f.Avaliacoes.Average(a => a.Pontuacao),
             AvaliacoesInternasTotal = f.Avaliacoes.Count,
+            VisualizacoesTotal = f.Visualizacoes.Count,
             CapaUrl = f.CapaUrl,
             TrailerUrl = f.TrailerUrl,
             VideoProvider = f.VideoProvider,

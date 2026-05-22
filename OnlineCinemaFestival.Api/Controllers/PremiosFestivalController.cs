@@ -19,6 +19,7 @@ public class PremiosFestivalController : ControllerBase
     }
 
     [HttpGet("festivals/{festivalId:int}/premios")]
+    [HttpGet("festivais/{festivalId:int}/premios")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<PremioFestivalReadDTO>>> ObterPremios(
         int festivalId
@@ -41,6 +42,7 @@ public class PremiosFestivalController : ControllerBase
     }
 
     [HttpGet("festivals/{festivalId:int}/premios/resultados-publicos")]
+    [HttpGet("festivais/{festivalId:int}/premios/resultados-publicos")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<ResultadoPremioFestivalDTO>>> ObterResultadosFestival(
         int festivalId
@@ -61,6 +63,7 @@ public class PremiosFestivalController : ControllerBase
     }
 
     [HttpPost("festivals/{festivalId:int}/premios")]
+    [HttpPost("festivais/{festivalId:int}/premios")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<PremioFestivalReadDTO>> CriarPremio(
         int festivalId,

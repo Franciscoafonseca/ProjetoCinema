@@ -11,4 +11,6 @@ public class ComentarioCreateDTO
         ErrorMessage = "O comentario deve ter entre 3 e 600 caracteres."
     )]
     public string Texto { get; set; } = string.Empty;
+
+    public int? FilmeId { get; set; }
 }

@@ -8,6 +8,7 @@ namespace OnlineCinemaFestival.Api.Controllers;
 
 [ApiController]
 [Route("api/festivals")]
+[Route("api/festivais")]
 public class FestivaisController : ControllerBase
 {
     private readonly IFestivalService _service;

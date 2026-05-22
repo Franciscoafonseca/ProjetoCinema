@@ -33,7 +33,11 @@ public static class FestivalMapper
                 .PremiosFestival.Where(p =>
                     p.EstadoPremio == EstadoPremio.Publicado && p.Resultado != null
                 )
-                .Select(p => PremioFestivalMapper.MapResultadoToDTO(p.Resultado!))
+                .Select(p =>
+                {
+                    p.Resultado!.PremioFestival ??= p;
+                    return PremioFestivalMapper.MapResultadoToDTO(p.Resultado);
+                })
                 .ToList(),
         };
     }

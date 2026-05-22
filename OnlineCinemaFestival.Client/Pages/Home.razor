@@ -190,8 +190,8 @@
             <div class="section-inner">
                 <div class="section-head">
                     <div>
-                        <span class="section-kicker">Seleção editorial</span>
-                        <h2>Filmes em destaque</h2>
+                        <span class="section-kicker">Filmes</span>
+                        <h2>@TituloAba(_abaAtiva)</h2>
                     </div>
 
                     <a href="/catalogo" class="section-link">
@@ -200,14 +200,27 @@
                     </a>
                 </div>
 
-                @if (_filmes.Count == 0)
+                <div class="home-tabs" role="tablist" aria-label="Seccoes de filmes">
+                    @foreach (var aba in AbasHome)
+                    {
+                        <button type="button"
+                                class="@ClasseAba(aba.Chave)"
+                                role="tab"
+                                aria-selected="@(_abaAtiva == aba.Chave)"
+                                @onclick="() => SelecionarAba(aba.Chave)">
+                            @aba.Titulo
+                        </button>
+                    }
+                </div>
+
+                @if (!FilmesDaAba().Any())
                 {
                     <p class="empty-state">Nenhum filme disponível de momento.</p>
                 }
                 else
                 {
                     <div class="featured-grid">
-                        @foreach (var filme in _filmes)
+                        @foreach (var filme in FilmesDaAba())
                         {
                             <FilmeCard Filme="filme" />
                         }
@@ -268,7 +281,7 @@
                         <div class="quick-list">
                             @foreach (var sessao in _sessoes.Take(6))
                             {
-                                <a href="@($"/visualizar/sessao/{sessao.Id}")" class="quick-item">
+                                <a href="@($"/sessoes/{sessao.Id}")" class="quick-item">
                                     <div class="quick-date">
                                         <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM")</span>
                                         <strong>@sessao.Inicio.ToLocalTime().ToString("HH:mm")</strong>
@@ -338,10 +351,25 @@
     private const int MaxDestaques = 10;
 
     private List<FilmeDTO> _filmes = new();
+    private List<FilmeDTO> _maisPopulares = new();
+    private List<FilmeDTO> _maisVistos = new();
+    private List<FilmeDTO> _emDestaque = new();
+    private List<FilmeDTO> _catalogo = new();
     private List<SessaoDTO> _sessoes = new();
     private List<FestivalDTO> _festivais = new();
+    private string _abaAtiva = "populares";
 
-    private FilmeDTO? FilmeDestaque => _filmes.FirstOrDefault();
+    private static readonly (string Chave, string Titulo)[] AbasHome =
+    [
+        ("populares", "Mais populares"),
+        ("vistos", "Mais vistos"),
+        ("destaque", "Em destaque"),
+        ("catalogo", "Catálogo"),
+    ];
+
+    private FilmeDTO? FilmeDestaque => _emDestaque.FirstOrDefault()
+        ?? _maisPopulares.FirstOrDefault()
+        ?? _catalogo.FirstOrDefault();
 
     private int FestivaisADecorrer => _festivais.Count(EstaFestivalADecorrer);
 
@@ -359,11 +387,18 @@
 
     protected override async Task CarregarDadosAsync()
     {
-        var todos = await FilmeService.ObterFilmesAsync(ordenarPor: 2, descendente: true);
+        var popularesTask = FilmeService.ObterFilmesAsync(ordenarPor: 2, descendente: true);
+        var vistosTask = FilmeService.ObterFilmesAsync(ordenarPor: 5, descendente: true);
+        var destaqueTask = FilmeService.ObterFilmesAsync(ordenarPor: 3, descendente: true);
+        var catalogoTask = FilmeService.ObterFilmesAsync();
 
-        _filmes = todos
-            .Take(MaxDestaques)
-            .ToList();
+        await Task.WhenAll(popularesTask, vistosTask, destaqueTask, catalogoTask);
+
+        _maisPopulares = popularesTask.Result.Take(MaxDestaques).ToList();
+        _maisVistos = vistosTask.Result.Take(MaxDestaques).ToList();
+        _emDestaque = destaqueTask.Result.Take(MaxDestaques).ToList();
+        _catalogo = catalogoTask.Result.Take(MaxDestaques).ToList();
+        _filmes = _emDestaque.Count > 0 ? _emDestaque : _maisPopulares;
 
         _sessoes = (await SessaoService.ObterSessoesDisponiveisAsync())
             .OrderBy(s => Math.Abs((s.Inicio.ToLocalTime() - DateTime.Now).TotalMinutes))
@@ -375,6 +410,38 @@
             .ThenBy(f => f.StartDate)
             .Take(8)
             .ToList();
+    }
+
+    private IEnumerable<FilmeDTO> FilmesDaAba()
+    {
+        return _abaAtiva switch
+        {
+            "vistos" => _maisVistos.Count > 0 ? _maisVistos : _maisPopulares,
+            "destaque" => _emDestaque.Count > 0 ? _emDestaque : _maisPopulares,
+            "catalogo" => _catalogo.Count > 0 ? _catalogo : _maisPopulares,
+            _ => _maisPopulares,
+        };
+    }
+
+    private void SelecionarAba(string chave)
+    {
+        _abaAtiva = chave;
+    }
+
+    private string ClasseAba(string chave)
+    {
+        return _abaAtiva == chave ? "home-tab active" : "home-tab";
+    }
+
+    private static string TituloAba(string chave)
+    {
+        return chave switch
+        {
+            "vistos" => "Mais vistos",
+            "destaque" => "Em destaque",
+            "catalogo" => "Catálogo",
+            _ => "Mais populares",
+        };
     }
 
     private static string TituloSessao(SessaoDTO sessao)

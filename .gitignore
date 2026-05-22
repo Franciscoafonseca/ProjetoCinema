@@ -57,3 +57,6 @@ TestResults/
 
 CoisasProjeto/
 *.CLAUDE.md
+
+# ASP.NET DataProtection local keys
+OnlineCinemaFestival.Api/DataProtectionKeys/

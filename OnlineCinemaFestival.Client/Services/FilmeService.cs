@@ -77,22 +77,6 @@ public class FilmeService
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
-    public async Task<FilmeDTO> AtualizarVideoAsync(int filmeId, AtualizarVideoFilmeDTO dto)
-    {
-        var resposta = await _http.PatchAsJsonAsync($"api/filmes/{filmeId}/video", dto);
-
-        if (!resposta.IsSuccessStatusCode)
-        {
-            var conteudo = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(
-                MensagemErroApi.Limpar(conteudo, "Nao foi possivel atualizar o video.")
-            );
-        }
-
-        return await resposta.Content.ReadFromJsonAsync<FilmeDTO>()
-            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
-    }
-
     public async Task<List<string>> ObterGenerosAsync()
     {
         var filmes = await ObterFilmesAsync();

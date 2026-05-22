@@ -1,0 +1,323 @@
+@page "/comunidades/{Id:guid}"
+@attribute [Authorize]
+@inject ComunidadeService ComunidadeService
+@inject ComentarioService ComentarioService
+@inject FilmeService FilmeService
+@inject NavigationManager Nav
+
+<PageTitle>Comunidade - Online Cinema Festival</PageTitle>
+
+<main class="cinema-page comunidade-detail-page">
+    <section class="cinema-shell">
+        @if (_aCarregar)
+        {
+            <div class="cinema-state">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <p>A carregar comunidade...</p>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_erroGeral))
+        {
+            <div class="cinema-state error">
+                <p>@_erroGeral</p>
+                <button class="cinema-btn secondary" @onclick="Voltar">Voltar as comunidades</button>
+            </div>
+        }
+        else if (_comunidade is not null)
+        {
+            <header class="community-detail-hero cinema-panel">
+                <div class="community-detail-cover">
+                    @if (string.IsNullOrWhiteSpace(_comunidade.ImageUrl))
+                    {
+                        <span>@Inicial(_comunidade.Name)</span>
+                    }
+                    else
+                    {
+                        <img src="@_comunidade.ImageUrl" alt="@_comunidade.Name" />
+                    }
+                </div>
+                <div class="community-detail-copy">
+                    <span class="cinema-kicker">Comunidade</span>
+                    <h1>@_comunidade.Name</h1>
+                    <p>@ResumoLongo(_comunidade.Description)</p>
+                    <div class="detail-meta">
+                        <span>@_comunidade.MembersCount membros</span>
+                        <span>@(_comunidade.IsPublic ? "Publica" : "Privada")</span>
+                        <span>@_comunidade.ComentariosCount comentarios</span>
+                        @if (!string.IsNullOrWhiteSpace(_comunidade.CodigoConvite))
+                        {
+                            <span>Convite @_comunidade.CodigoConvite</span>
+                        }
+                    </div>
+                </div>
+                <button class="cinema-btn secondary" @onclick="Voltar">Voltar</button>
+            </header>
+
+            <section class="community-detail-grid">
+                <aside class="cinema-panel members-panel">
+                    <div class="cinema-section-head compact">
+                        <div>
+                            <span class="cinema-kicker">Membros</span>
+                            <h2>Participantes</h2>
+                        </div>
+                    </div>
+
+                    @if (_comunidade.Members.Count == 0)
+                    {
+                        <div class="cinema-state slim">Sem membros visiveis.</div>
+                    }
+                    else
+                    {
+                        <div class="member-list">
+                            @foreach (var membro in _comunidade.Members)
+                            {
+                                <article class="member-row">
+                                    <div class="member-avatar">
+                                        @if (string.IsNullOrWhiteSpace(membro.ProfileImageUrl))
+                                        {
+                                            <span>@Inicial(membro.Name)</span>
+                                        }
+                                        else
+                                        {
+                                            <img src="@membro.ProfileImageUrl" alt="@membro.Name" />
+                                        }
+                                    </div>
+                                    <div>
+                                        <strong>@NomeUtilizador(membro.Name)</strong>
+                                        <span>@membro.Role</span>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+                </aside>
+
+                <section class="cinema-panel comments-panel">
+                    <div class="cinema-section-head compact">
+                        <div>
+                            <span class="cinema-kicker">Comentarios</span>
+                            <h2>Discussao</h2>
+                        </div>
+                    </div>
+
+                    <EditForm Model="_novoComentario" OnValidSubmit="PublicarComentarioAsync">
+                        <DataAnnotationsValidator />
+                        <div class="comment-form">
+                            <InputTextArea class="text-area" @bind-Value="_novoComentario.Texto" placeholder="Escreve um comentario" />
+                            <ValidationMessage For="@(() => _novoComentario.Texto)" />
+
+                            <label class="field-label" for="filme-associado">Filme associado opcional</label>
+                            <InputSelect id="filme-associado" class="select-input" @bind-Value="_novoComentario.FilmeId">
+                                <option value="">Sem filme associado</option>
+                                @foreach (var filme in _filmes)
+                                {
+                                    <option value="@filme.Id">@filme.Titulo</option>
+                                }
+                            </InputSelect>
+
+                            <button class="cinema-btn primary" type="submit" disabled="@_aComentar">
+                                @(_aComentar ? "A publicar..." : "Publicar comentario")
+                            </button>
+                        </div>
+                    </EditForm>
+
+                    @if (!string.IsNullOrWhiteSpace(_mensagemComentario))
+                    {
+                        <MudAlert Severity="@_severidadeComentario" Variant="Variant.Filled">@_mensagemComentario</MudAlert>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(_mensagemPerfil))
+                    {
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">@_mensagemPerfil</MudAlert>
+                    }
+
+                    @if (_aCarregarComentarios)
+                    {
+                        <div class="cinema-state slim">A carregar comentarios...</div>
+                    }
+                    else if (_comentarios.Count == 0)
+                    {
+                        <div class="cinema-state slim">Ainda nao ha comentarios nesta comunidade.</div>
+                    }
+                    else
+                    {
+                        <div class="comment-list">
+                            @foreach (var comentario in _comentarios.OrderByDescending(c => c.CriadoEm))
+                            {
+                                <article class="comment-card"
+                                         role="button"
+                                         tabindex="0"
+                                         @onclick="() => AbrirPerfilAutor(comentario)">
+                                    <button class="comment-avatar"
+                                            type="button"
+                                            title="Abrir perfil"
+                                            @onclick="() => AbrirPerfilAutor(comentario)">
+                                        @if (string.IsNullOrWhiteSpace(comentario.UsuarioFotoUrl))
+                                        {
+                                            <span>@Inicial(comentario.NomeUsuario)</span>
+                                        }
+                                        else
+                                        {
+                                            <img src="@comentario.UsuarioFotoUrl" alt="@NomeUtilizador(comentario.NomeUsuario)" />
+                                        }
+                                    </button>
+
+                                    <div class="comment-body">
+                                        <button class="comment-author" type="button" @onclick="() => AbrirPerfilAutor(comentario)">
+                                            @NomeUtilizador(comentario.NomeUsuario)
+                                        </button>
+                                        <span>@comentario.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                        <p>@comentario.Texto</p>
+
+                                        @if (comentario.FilmeId.HasValue)
+                                        {
+                                            <button class="comment-movie"
+                                                    type="button"
+                                                    @onclick:stopPropagation="true"
+                                                    @onclick="() => AbrirFilme(comentario.FilmeId.Value)">
+                                                @if (!string.IsNullOrWhiteSpace(comentario.FilmeCapaUrl))
+                                                {
+                                                    <img src="@comentario.FilmeCapaUrl" alt="@comentario.TituloFilme" />
+                                                }
+                                                <span>@(comentario.TituloFilme ?? "Filme associado")</span>
+                                            </button>
+                                        }
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+                </section>
+            </section>
+        }
+    </section>
+</main>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private ComunidadeDTO? _comunidade;
+    private List<ComentarioDTO> _comentarios = new();
+    private List<FilmeDTO> _filmes = new();
+    private ComentarioCreateDTO _novoComentario = new();
+    private bool _aCarregar = true;
+    private bool _aCarregarComentarios;
+    private bool _aComentar;
+    private string? _erroGeral;
+    private string? _mensagemComentario;
+    private string? _mensagemPerfil;
+    private Severity _severidadeComentario = Severity.Info;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _aCarregar = true;
+        _erroGeral = null;
+        _mensagemComentario = null;
+        _mensagemPerfil = null;
+
+        try
+        {
+            _comunidade = await ComunidadeService.ObterPorIdAsync(Id);
+            _filmes = (await FilmeService.ObterFilmesAsync()).OrderBy(f => f.Titulo).ToList();
+            await CarregarComentariosAsync();
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private async Task CarregarComentariosAsync()
+    {
+        _aCarregarComentarios = true;
+
+        try
+        {
+            _comentarios = await ComentarioService.ObterDaComunidadeAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            _mensagemComentario = ex.Message;
+            _severidadeComentario = Severity.Error;
+        }
+        finally
+        {
+            _aCarregarComentarios = false;
+        }
+    }
+
+    private async Task PublicarComentarioAsync()
+    {
+        _aComentar = true;
+        _mensagemComentario = null;
+        _mensagemPerfil = null;
+
+        try
+        {
+            _novoComentario.Texto = _novoComentario.Texto.Trim();
+            var comentario = await ComentarioService.CriarNaComunidadeAsync(Id, _novoComentario);
+            _comentarios.Insert(0, comentario);
+            _novoComentario = new ComentarioCreateDTO();
+            if (_comunidade is not null)
+            {
+                _comunidade.ComentariosCount++;
+            }
+            _mensagemComentario = "Comentario publicado.";
+            _severidadeComentario = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _mensagemComentario = ex.Message;
+            _severidadeComentario = Severity.Error;
+        }
+        finally
+        {
+            _aComentar = false;
+        }
+    }
+
+    private void AbrirPerfilAutor(ComentarioDTO comentario)
+    {
+        _mensagemPerfil = null;
+
+        if (comentario.UsuarioPerfilPublico)
+        {
+            Nav.NavigateTo($"/perfil/{comentario.UsuarioId}");
+            return;
+        }
+
+        _mensagemPerfil = "Este perfil e privado.";
+    }
+
+    private void AbrirFilme(int filmeId)
+    {
+        Nav.NavigateTo($"/filmes/{filmeId}");
+    }
+
+    private void Voltar()
+    {
+        Nav.NavigateTo("/comunidades");
+    }
+
+    private static string ResumoLongo(string? texto)
+    {
+        return string.IsNullOrWhiteSpace(texto) ? "Sem descricao." : texto;
+    }
+
+    private static string NomeUtilizador(string? nome)
+    {
+        return string.IsNullOrWhiteSpace(nome) ? "Utilizador" : nome;
+    }
+
+    private static string Inicial(string? valor)
+    {
+        var texto = valor?.Trim();
+        return string.IsNullOrWhiteSpace(texto)
+            ? "?"
+            : char.ToUpperInvariant(texto[0]).ToString();
+    }
+}

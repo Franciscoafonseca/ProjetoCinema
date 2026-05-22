@@ -27,6 +27,7 @@ public static class SessaoMapper
                 .OrderBy(a => a.Preco)
                 .Select(a => (decimal?)a.Preco)
                 .FirstOrDefault(),
+            AcessoNecessario = "Bilhete de sessao, passe diario ou passe completo do festival",
             Observacoes = sessao.Observacoes,
         };
     }

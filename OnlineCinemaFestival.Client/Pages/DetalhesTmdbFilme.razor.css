@@ -60,6 +60,20 @@
   line-height: 1.78;
 }
 
+.admin-only-note {
+  width: fit-content;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--ocf-line);
+  color: var(--ocf-muted);
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
 .facts-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

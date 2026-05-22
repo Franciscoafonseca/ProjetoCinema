@@ -38,6 +38,7 @@
             <article><strong>Inicio</strong><span>@_sessao.Inicio.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span></article>
             <article><strong>Fim</strong><span>@_sessao.Fim.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span></article>
             <article><strong>Tipo de sessao</strong><span>@_sessao.TipoNome</span></article>
+            <article><strong>Acesso necessario</strong><span>@AcessoNecessario(_sessao)</span></article>
             <article><strong>Preco</strong><span>@Preco(_sessao)</span></article>
             <article><strong>Estado</strong><span>@EstadoRotulo(_sessao)</span></article>
             <article><strong>Chat</strong><span>@(_sessao.TemChatAoVivo ? "Chat ao vivo ativo" : "Sem chat ao vivo")</span></article>
@@ -145,6 +146,13 @@
         return sessao.PrecoBilhete.HasValue
             ? sessao.PrecoBilhete.Value.ToString("C", new System.Globalization.CultureInfo("pt-PT"))
             : "Bilhete disponivel";
+    }
+
+    private static string AcessoNecessario(SessaoDTO sessao)
+    {
+        return string.IsNullOrWhiteSpace(sessao.AcessoNecessario)
+            ? "Bilhete de sessao, passe diario ou passe completo"
+            : sessao.AcessoNecessario;
     }
 
     private static string EstadoRotulo(SessaoDTO sessao)

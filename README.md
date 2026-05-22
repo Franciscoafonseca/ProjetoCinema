@@ -1,20 +1,24 @@
 # Online Cinema Festival
 
-Plataforma academica para festivais de cinema online, com backend ASP.NET Core Web API, frontend Blazor WebAssembly, EF Core e SQLite.
+Plataforma academica para festivais de cinema online, com ASP.NET Core Web API, Blazor WebAssembly, EF Core e SQLite.
 
-## Funcionalidades
+## Funcionalidades Reais
 
-- Registo, login JWT, perfis privados/publicos e roles de utilizador/admin.
-- Catalogo de filmes com dados TMDB, pesquisa/importacao TMDB e detalhe de filme.
-- Festivais, associacao de filmes a festivais e sessoes digitais.
-- Acessos: bilhete de sessao, passe diario, passe completo e aluguer digital.
-- Carrinho, checkout com pagamento simulado e historico de compras.
-- Validacao de acesso antes do player.
-- Chat ao vivo por sessao com SignalR, historico persistido, nome real do utilizador, validacao anti-spam simples e remocao por moderacao admin.
-- Comentarios, avaliacoes, listas pessoais, comunidades, rewards e premios do publico.
-- Seed de desenvolvimento com admin, utilizadores, 20 filmes TMDB, festivais, sessoes, acessos e compras de teste.
+- Registo e login JWT com validacoes claras para email, telefone, palavra-passe forte, confirmacao e campos obrigatorios.
+- Perfil privado/publico com upload de foto por ficheiro, bandeira por pais, localidade, bio, listas e atividade recente.
+- Home com seccoes Mais populares, Mais vistos, Em destaque e Catalogo.
+- Catalogo interno com pesquisa local primeiro; TMDB so aparece quando nao ha resultados internos relevantes.
+- Detalhe de filme com trailer TMDB/YouTube, realizador, atores, generos, reviews internas, premios vencidos, acessos e sessoes.
+- Detalhe TMDB separado: apenas Admin pode importar/adicionar ao catalogo.
+- Festivais com filmes associados, sessoes, passes, votacao do publico e resultados publicados.
+- Sessoes em `/sessoes/{id}` com festival, filme, inicio/fim, estado, acesso necessario e acoes Comprar/Entrar.
+- Carrinho e checkout com bilhete de sessao, passe diario, passe completo e aluguer digital de 48h.
+- Player para filme/sessao com validacao de acesso e registo de visualizacao.
+- Reviews de 10 estrelas com texto validado e bloqueio ate existir visualizacao valida.
+- Comunidades com pagina propria, membros, privacidade, comentarios, autor, perfil publico/privado e filme associado opcional.
+- Admin unico em `/admin` para gerir importacoes TMDB, filmes, festivais, sessoes, premios e publicacao de vencedores.
 
-## Estrutura
+## Arquitetura
 
 ```text
 OnlineCinemaFestival.Api/      Backend ASP.NET Core Web API
@@ -28,31 +32,34 @@ Fluxo esperado no backend:
 Controller -> Service -> Repository -> AppDbContext
 ```
 
-Controllers devem ficar magros, services concentram regras de negocio e repositories centralizam o acesso a dados.
+Controllers ficam finos, services concentram regras de negocio e repositories centralizam acesso a dados.
 
-## Credenciais de Teste
+## Configuracao
+
+Preencher `OnlineCinemaFestival.Api/appsettings.json` antes de arrancar a API:
+
+```json
+{
+  "Jwt": {
+    "Key": "chave-local-com-pelo-menos-32-caracteres",
+    "Issuer": "OnlineCinemaFestival",
+    "Audience": "OnlineCinemaFestivalClient"
+  },
+  "Tmdb": {
+    "Token": "token-read-access-do-tmdb"
+  }
+}
+```
+
+Sem `Jwt:Key`, a API falha no arranque por configuracao de seguranca.
+
+## Credenciais de Demo
 
 - Admin: `admin@festival.pt` / `Admin123!`
 - Utilizador: `utilizador1@teste.pt` / `User123!`
 - Outros utilizadores seed: `utilizador2@teste.pt` ate `utilizador35@teste.pt` / `User123!`
 
-## Requisitos
-
-- .NET SDK 10
-- SQLite
-- Ferramenta EF Core:
-
-```bash
-dotnet tool install --global dotnet-ef
-```
-
-ou:
-
-```bash
-dotnet tool update --global dotnet-ef
-```
-
-## Migrations e Base de Dados
+## Executar
 
 Na raiz:
 
@@ -68,52 +75,40 @@ cd OnlineCinemaFestival.Api
 dotnet ef database update
 ```
 
-Em ambiente `Development`, o `DbSeeder` corre no arranque da API e cria/atualiza dados de demo.
-
-Se forem geradas novas alteracoes ao modelo, criar uma migration:
+Arrancar API:
 
 ```bash
-cd OnlineCinemaFestival.Api
-dotnet ef migrations add NomeDaMigration
-dotnet ef database update
+dotnet run --project OnlineCinemaFestival.Api
 ```
 
-## Executar
-
-API:
+Arrancar frontend:
 
 ```bash
-cd OnlineCinemaFestival.Api
-dotnet run
+dotnet run --project OnlineCinemaFestival.Client
 ```
 
-Frontend:
+Confirmar o URL da API em `OnlineCinemaFestival.Client/Program.cs`. Em `Development`, o `DbSeeder` cria/atualiza dados de demo.
 
-```bash
-cd OnlineCinemaFestival.Client
-dotnet run
-```
+## Fluxo de Demo
 
-Confirma o URL da API em `OnlineCinemaFestival.Client/Program.cs`. O player de teste do chat usa a API em `http://localhost:5152` quando aberto a partir da pagina de visualizacao.
-
-## Demo Rapida
-
-1. Arrancar a API em `Development` para aplicar migrations e seed.
-2. Arrancar o frontend.
-3. Entrar como `utilizador1@teste.pt`.
-4. Abrir `Catalogo` para ver os 20 filmes TMDB seed/importados.
-5. Abrir `Sessoes`, comprar um bilhete ou usar o acesso seed.
-6. Abrir o player da sessao com chat ao vivo.
-7. Enviar mensagens; o chat mostra o nome real e carrega historico persistido.
-8. Entrar como admin e abrir o player com `?admin=1` para remover mensagens do chat.
-9. Testar checkout em `Carrinho`/`Finalizacao da compra` e consultar historico em `Minhas compras`.
+1. Entrar como `admin@festival.pt`.
+2. Abrir `/admin`, pesquisar no TMDB e adicionar um filme ao catalogo.
+3. Criar festival, associar filme ao festival e criar uma sessao.
+4. Criar premio de festival, abrir votacao, fechar e publicar resultados.
+5. Confirmar o vencedor no detalhe do festival e no detalhe do filme.
+6. Entrar como `utilizador1@teste.pt`.
+7. Pesquisar no Catalogo; abrir filme interno ou detalhe TMDB conforme o resultado.
+8. Comprar acesso no detalhe do filme/sessao, finalizar checkout e abrir o player.
+9. Depois de uma visualizacao valida, criar review de 10 estrelas e comentario.
+10. Abrir Comunidades, entrar/criar comunidade, comentar e associar opcionalmente um filme.
+11. Editar Perfil, enviar foto por ficheiro e confirmar bandeira do pais.
 
 ## Comandos Uteis
 
 ```bash
 dotnet clean
 dotnet restore
-dotnet build
+dotnet build OnlineCinemaFestival.slnx
 dotnet build OnlineCinemaFestival.Api/OnlineCinemaFestival.Api.csproj
 dotnet build OnlineCinemaFestival.Client/OnlineCinemaFestival.Client.csproj
 ```

@@ -25,8 +25,8 @@ public class PedidoRegistoDTO
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Telefone e obrigatorio.")]
-    [Phone(ErrorMessage = "Telefone invalido.")]
-    [MaxLength(30)]
+    [RegularExpression(@"^\+?[0-9\s().-]{7,30}$", ErrorMessage = "Introduz um telefone valido.")]
+    [MaxLength(30, ErrorMessage = "O telefone nao pode exceder 30 caracteres.")]
     public string PhoneNumber { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Palavra-passe e obrigatoria.")]

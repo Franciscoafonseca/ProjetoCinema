@@ -16,4 +16,5 @@ public class ComunidadeReadDTO
     public int MembersCount { get; set; }
     public int ComentariosCount { get; set; }
     public string? CodigoConvite { get; set; }
+    public List<MembroComunidadeRespostaDTO> Members { get; set; } = new();
 }

@@ -635,6 +635,43 @@
   border-color: rgba(31, 211, 198, 0.46);
 }
 
+.home-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -4px 0 22px;
+}
+
+.home-tab {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.home-tab:hover {
+  transform: translateY(-2px);
+  color: var(--text);
+  border-color: rgba(31, 211, 198, 0.35);
+}
+
+.home-tab.active {
+  color: #05131c;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--teal), var(--green));
+}
+
 .featured-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

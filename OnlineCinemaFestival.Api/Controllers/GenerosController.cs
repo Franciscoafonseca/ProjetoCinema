@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OnlineCinemaFestival.Api.Autorizacao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Services;
 
@@ -7,6 +8,7 @@ namespace OnlineCinemaFestival.Api.Controllers;
 
 [ApiController]
 [Route("api/genres")]
+[Route("api/generos")]
 public class GenerosController : ControllerBase
 {
     private readonly IGeneroService _generoService;
@@ -24,7 +26,7 @@ public class GenerosController : ControllerBase
         return Ok(generos);
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     [HttpPost]
     public async Task<ActionResult<GeneroDTO>> Criar(CriarGeneroDTO dto)
     {

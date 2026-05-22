@@ -43,8 +43,8 @@ public class PedidoAtualizarPerfilDTO
     [MaxLength(120)]
     public string Name { get; set; } = string.Empty;
 
-    [Phone]
-    [MaxLength(30)]
+    [RegularExpression(@"^\+?[0-9\s().-]{7,30}$", ErrorMessage = "Introduz um telefone valido.")]
+    [MaxLength(30, ErrorMessage = "O telefone nao pode exceder 30 caracteres.")]
     public string PhoneNumber { get; set; } = string.Empty;
 
     [MaxLength(2)]
@@ -55,9 +55,6 @@ public class PedidoAtualizarPerfilDTO
 
     [MaxLength(500)]
     public string Bio { get; set; } = string.Empty;
-
-    [MaxLength(300)]
-    public string ProfileImageUrl { get; set; } = string.Empty;
 
     [MaxLength(120)]
     public string Location { get; set; } = string.Empty;

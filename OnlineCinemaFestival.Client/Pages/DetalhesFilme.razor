@@ -7,6 +7,7 @@
 @inject AvaliacaoService AvaliacaoService
 @inject ListaService ListaService
 @inject PremioFestivalService PremioFestivalService
+@inject ComentarioService ComentarioService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
 @using System.Security.Claims
@@ -323,7 +324,7 @@
                                     <strong>@TituloSessao(sessao)</strong>
                                     <small>@sessao.Festival</small>
                                 </div>
-                                <button class="cinema-btn ghost" @onclick="() => AbrirPlayerSessao(sessao.Id)">Ver agora</button>
+                                <button class="cinema-btn ghost" @onclick="() => AbrirDetalheSessao(sessao.Id)">Ver sessao</button>
                             </article>
                         }
                     </div>
@@ -414,6 +415,63 @@
 
             </section>
 
+            <section class="cinema-panel comentarios-section">
+                <div class="cinema-section-head compact">
+                    <div>
+                        <span class="cinema-kicker">Comentarios</span>
+                        <h2>Conversa depois da visualizacao</h2>
+                    </div>
+                </div>
+
+                @if (_comentarios.Count == 0)
+                {
+                    <div class="cinema-state slim">Ainda nao ha comentarios neste filme.</div>
+                }
+                else
+                {
+                    <div class="review-list">
+                        @foreach (var comentario in _comentarios.OrderByDescending(c => c.CriadoEm))
+                        {
+                            <article>
+                                <strong>@comentario.NomeUsuario</strong>
+                                <span>@comentario.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                <p>@comentario.Texto</p>
+                            </article>
+                        }
+                    </div>
+                }
+
+                <AuthorizeView>
+                    <Authorized Context="comentarioAuth">
+                        @if (PodeMostrarFormularioReview())
+                        {
+                            <EditForm Model="_novoComentario" OnValidSubmit="EnviarComentario">
+                                <DataAnnotationsValidator />
+                                <div class="review-form">
+                                    <InputTextArea class="text-area" @bind-Value="_novoComentario.Texto" placeholder="Escreve um comentario" />
+                                    <ValidationMessage For="@(() => _novoComentario.Texto)" />
+                                    <button class="cinema-btn secondary" disabled="@_aEnviarComentario" type="submit">
+                                        @(_aEnviarComentario ? "A publicar..." : "Publicar comentario")
+                                    </button>
+                                </div>
+                            </EditForm>
+                        }
+                        else
+                        {
+                            <div class="review-lock">So podes comentar este filme depois de o veres atraves da plataforma.</div>
+                        }
+                    </Authorized>
+                    <NotAuthorized>
+                        <div class="review-lock">Inicia sessao para comentar depois de veres o filme.</div>
+                    </NotAuthorized>
+                </AuthorizeView>
+
+                @if (!string.IsNullOrWhiteSpace(_mensagemComentario))
+                {
+                    <MudAlert Severity="@_mensagemComentarioSeveridade" Variant="Variant.Filled">@_mensagemComentario</MudAlert>
+                }
+            </section>
+
             <section class="cinema-panel listas-section">
                 <div class="cinema-section-head compact">
                     <div>
@@ -462,6 +520,7 @@
     private List<AcessoDTO> _acessos = new();
     private List<ListaPessoalDTO> _listas = new();
     private List<PremioFestivalDTO> _premiosVotacao = new();
+    private List<ComentarioDTO> _comentarios = new();
     private int? _sessaoSelecionadaId;
     private int? _festivalSelecionadoId;
     private DateTime _dataPasseDiario = DateTime.Today;
@@ -469,6 +528,7 @@
     private bool _aEnviarReview;
     private bool _aAtualizarLista;
     private bool _aCriarListaRapida;
+    private bool _aEnviarComentario;
     private bool _aVotar;
     private int? _utilizadorAtualId;
     private string _nomeUtilizadorAtual = string.Empty;
@@ -479,12 +539,15 @@
     private Severity _mensagemReviewSeveridade = Severity.Info;
     private string? _mensagemListas;
     private Severity _mensagemListasSeveridade = Severity.Info;
+    private string? _mensagemComentario;
+    private Severity _mensagemComentarioSeveridade = Severity.Info;
     private string? _mensagemVoto;
     private Severity _mensagemVotoSeveridade = Severity.Info;
     private CriarAvaliacaoDTO _novaReview = new() { Pontuacao = 8 };
+    private ComentarioCreateDTO _novoComentario = new();
     private CriarListaRequest _novaListaRapida = new();
 
-    private string? TrailerEmbedUrl => ConverterParaEmbed(_filme?.VideoUrl ?? _filme?.TrailerUrl);
+    private string? TrailerEmbedUrl => ConverterParaEmbed(_filme?.TrailerUrl ?? _filme?.VideoUrl);
 
     protected override async Task CarregarDadosAsync()
     {
@@ -505,6 +568,7 @@
             : await AcessoService.ObterAcessosAsync();
 
         _listas = await ListaService.ObterMinhasListasAsync();
+        _comentarios = await ObterComentariosAsync();
         _premiosVotacao = await ObterPremiosVotacaoAsync();
     }
 
@@ -600,6 +664,30 @@
         }
     }
 
+    private async Task EnviarComentario()
+    {
+        _aEnviarComentario = true;
+        _mensagemComentario = null;
+
+        try
+        {
+            var comentario = await ComentarioService.CriarNoFilmeAsync(Id, _novoComentario);
+            _comentarios.Insert(0, comentario);
+            _novoComentario = new ComentarioCreateDTO();
+            _mensagemComentarioSeveridade = Severity.Success;
+            _mensagemComentario = "Comentario publicado.";
+        }
+        catch (Exception ex)
+        {
+            _mensagemComentarioSeveridade = Severity.Error;
+            _mensagemComentario = ex.Message;
+        }
+        finally
+        {
+            _aEnviarComentario = false;
+        }
+    }
+
     private async Task CriarListaRapida()
     {
         _aCriarListaRapida = true;
@@ -686,7 +774,7 @@
 
     private void AbrirPlayerFilme() => Nav.NavigateTo($"/visualizar/filme/{Id}");
 
-    private void AbrirPlayerSessao(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
+    private void AbrirDetalheSessao(int sessaoId) => Nav.NavigateTo($"/sessoes/{sessaoId}");
 
     private void Voltar() => Nav.NavigateTo("/catalogo");
 
@@ -825,6 +913,18 @@
         }
 
         return premios;
+    }
+
+    private async Task<List<ComentarioDTO>> ObterComentariosAsync()
+    {
+        try
+        {
+            return await ComentarioService.ObterDoFilmeAsync(Id);
+        }
+        catch
+        {
+            return new();
+        }
     }
 
     private string ClasseEstrela(int valor)

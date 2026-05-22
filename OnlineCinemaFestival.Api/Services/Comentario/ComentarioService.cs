@@ -1,5 +1,6 @@
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
+using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Api.Services;
@@ -30,27 +31,38 @@ public class ComentarioService : IComentarioService
         int utilizadorId
     )
     {
+        ValidarComentario(dto);
+
         var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(comunidadeId);
         if (comunidade == null)
-            throw new Exception("Comunidade não encontrada");
+            throw new KeyNotFoundException("Comunidade nao encontrada.");
 
         if (!comunidade.IsPublic)
         {
-            // uso o id interno para verificar se o usuario é membro
             var eMembro = await _comunidadeRepository.IsMembroAsync(comunidade.Id, utilizadorId);
             if (!eMembro)
-                throw new UnauthorizedAccessException("Acesso negado à comunidade privada");
+                throw new UnauthorizedAccessException("Acesso negado a comunidade privada.");
         }
 
         var utilizador = await _utilizadorRepository.ObterPorIdAsync(utilizadorId);
         if (utilizador == null)
-            throw new Exception("Usuário não encontrado");
+            throw new KeyNotFoundException("Usuario nao encontrado.");
+
+        Filme? filmeAssociado = null;
+        if (dto.FilmeId.HasValue)
+        {
+            filmeAssociado = await _filmeRepository.ObterPorIdAsync(dto.FilmeId.Value);
+            if (filmeAssociado == null)
+                throw new KeyNotFoundException("Filme associado nao encontrado.");
+        }
 
         var comentario = ComentarioMapper.ToEntity(comunidade.Id, utilizadorId, dto);
         var result = await _comentarioRepository.AddAsync(comentario);
 
         result.Usuario = utilizador;
         result.Comunidade = comunidade;
+        result.Filme = filmeAssociado;
+
         return ComentarioMapper.ToReadDTO(result);
     }
 
@@ -61,13 +73,13 @@ public class ComentarioService : IComentarioService
     {
         var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(comunidadeId);
         if (comunidade == null)
-            throw new Exception("Comunidade não encontrada");
+            throw new KeyNotFoundException("Comunidade nao encontrada.");
 
-        bool acessoProibido =
+        var acessoProibido =
             !comunidade.IsPublic
             && !await _comunidadeRepository.IsMembroAsync(comunidade.Id, utilizadorId);
         if (acessoProibido)
-            throw new UnauthorizedAccessException("Acesso negado à comunidade privada");
+            throw new UnauthorizedAccessException("Acesso negado a comunidade privada.");
 
         var listaDeComentarios = await _comentarioRepository.ObterPorComunidadeIdAsync(
             comunidade.Id
@@ -103,17 +115,6 @@ public class ComentarioService : IComentarioService
         return ComentarioMapper.ToReadDTO(result);
     }
 
-    private static void ValidarComentario(ComentarioCreateDTO dto)
-    {
-        var texto = dto.Texto?.Trim() ?? string.Empty;
-
-        if (texto.Length < 3)
-            throw new ArgumentException("O comentario deve ter pelo menos 3 caracteres.");
-
-        if (texto.Length > 600)
-            throw new ArgumentException("O comentario nao pode exceder 600 caracteres.");
-    }
-
     public async Task<IEnumerable<ComentarioReadDTO>> ObterComentariosPorFilmeIdAsync(int filmeId)
     {
         var filme = await _filmeRepository.ObterPorIdAsync(filmeId);
@@ -122,5 +123,19 @@ public class ComentarioService : IComentarioService
 
         var comentarios = await _comentarioRepository.ObterPorFilmeIdAsync(filmeId);
         return comentarios.Select(ComentarioMapper.ToReadDTO);
+    }
+
+    private static void ValidarComentario(ComentarioCreateDTO dto)
+    {
+        var texto = dto.Texto?.Trim() ?? string.Empty;
+
+        if (texto.Length == 0)
+            throw new ArgumentException("Escreve um comentario.");
+
+        if (texto.Length < 3)
+            throw new ArgumentException("O comentario deve ter pelo menos 3 caracteres.");
+
+        if (texto.Length > 600)
+            throw new ArgumentException("O comentario nao pode exceder 600 caracteres.");
     }
 }

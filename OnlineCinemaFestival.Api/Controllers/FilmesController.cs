@@ -82,14 +82,11 @@ public class FilmesController : ControllerBase
 
     [HttpPatch("{filmeId:int}/video")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
-    public async Task<ActionResult<FilmeDetalheDTO>> AtualizarVideo(
-        int filmeId,
-        [FromBody] AtualizarVideoFilmeDTO dto
-    )
+    public async Task<ActionResult<FilmeDetalheDTO>> AtualizarVideo(int filmeId)
     {
         try
         {
-            return Ok(await _service.AtualizarVideoAsync(filmeId, dto));
+            return Ok(await _service.AtualizarVideoAsync(filmeId));
         }
         catch (KeyNotFoundException ex)
         {

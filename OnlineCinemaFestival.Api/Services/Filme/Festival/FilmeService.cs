@@ -83,22 +83,26 @@ public class FilmeService : IFilmeService
         return FilmeMapper.MapToReadDTO(novoFilme);
     }
 
-    public async Task<FilmeReadDTO> AtualizarVideoAsync(int filmeId, AtualizarVideoFilmeDTO dto)
+    public async Task<FilmeReadDTO> AtualizarVideoAsync(int filmeId)
     {
         var filme = await _filmeRepository.ObterDetalhePorIdAsync(filmeId);
 
         if (filme == null)
             throw new KeyNotFoundException("Filme nao encontrado.");
 
-        var videoUrl = string.IsNullOrWhiteSpace(dto.VideoUrl)
-            ? CriarVideoUrl(dto.VideoProvider, dto.VideoKey)
-            : dto.VideoUrl.Trim();
+        if (filme.TmdbId <= 0)
+            throw new InvalidOperationException("Este filme nao tem identificador TMDB para obter trailer.");
+
+        var videoUrl = await _tmdbService.ObterTrailerUrlAsync(filme.TmdbId);
+
+        if (string.IsNullOrWhiteSpace(videoUrl))
+            throw new InvalidOperationException("Trailer TMDB/YouTube indisponivel para este filme.");
 
         _filmeRepository.AtualizarVideo(
             filme,
-            NormalizarValor(dto.VideoProvider),
-            NormalizarValor(dto.VideoKey),
-            NormalizarValor(videoUrl)
+            "YouTube",
+            ExtrairYouTubeKey(videoUrl),
+            videoUrl
         );
 
         await _filmeRepository.SaveChangesAsync();
@@ -328,6 +332,9 @@ public class FilmeService : IFilmeService
 
         var texto = dto.Texto?.Trim() ?? string.Empty;
 
+        if (string.IsNullOrWhiteSpace(texto))
+            throw new ArgumentException("A review e obrigatoria.");
+
         if (texto.Length < 20)
             throw new ArgumentException("A review deve ter pelo menos 20 caracteres.");
 
@@ -385,18 +392,31 @@ public class FilmeService : IFilmeService
         );
     }
 
-    private static string? CriarVideoUrl(string? provider, string? key)
+    private static string? ExtrairYouTubeKey(string url)
     {
-        if (string.IsNullOrWhiteSpace(provider) || string.IsNullOrWhiteSpace(key))
+        if (string.IsNullOrWhiteSpace(url))
             return null;
 
-        return provider.Equals("YouTube", StringComparison.OrdinalIgnoreCase)
-            ? $"https://www.youtube.com/embed/{key.Trim()}"
-            : null;
-    }
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            if (uri.AbsolutePath.Contains("/embed/", StringComparison.OrdinalIgnoreCase))
+                return uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
 
-    private static string? NormalizarValor(string? valor)
-    {
-        return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
+            if (uri.Host.Contains("youtu.be", StringComparison.OrdinalIgnoreCase))
+                return uri.AbsolutePath.Trim('/');
+
+            var videoId = uri.Query
+                .TrimStart('?')
+                .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                .Select(parte => parte.Split('=', 2))
+                .FirstOrDefault(partes =>
+                    partes.Length == 2 && string.Equals(partes[0], "v", StringComparison.OrdinalIgnoreCase)
+                )?[1];
+
+            if (!string.IsNullOrWhiteSpace(videoId))
+                return Uri.UnescapeDataString(videoId);
+        }
+
+        return null;
     }
 }

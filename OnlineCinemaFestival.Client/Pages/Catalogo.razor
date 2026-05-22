@@ -10,12 +10,9 @@
     <section class="cinema-shell">
         <header class="cinema-page-head">
             <div>
-                <span class="cinema-kicker">Catalogo TMDB</span>
-                <h1>Explora o catalogo e pesquisa no TMDB</h1>
-                <p>
-                    O catalogo interno mostra filmes ja importados. A pesquisa TMDB apresenta qualquer
-                    resultado encontrado, mas so administradores podem adicionar filmes ao catalogo.
-                </p>
+                <span class="cinema-kicker">Catalogo</span>
+                <h1>Explora o catalogo do festival</h1>
+                <p>Pesquisa filmes disponiveis e descobre resultados externos quando ainda nao existem no catalogo.</p>
             </div>
         </header>
 
@@ -23,7 +20,7 @@
             <MudTextField T="string"
                           Value="_pesquisa"
                           ValueChanged="OnPesquisaAlterada"
-                          Label="Pesquisar no TMDB"
+                          Label="Pesquisar filmes"
                           Placeholder="Escreve o nome de um filme"
                           Variant="Variant.Outlined"
                           Immediate="true"
@@ -31,6 +28,18 @@
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search" />
 
+            @if (!string.IsNullOrWhiteSpace(_erroPesquisa))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@_erroPesquisa</MudAlert>
+            }
+            else if (_pesquisaAtiva && _resultadosInternosPesquisa.Count > 0)
+            {
+                <div class="search-note success">Resultados encontrados no catalogo interno.</div>
+            }
+            else if (_pesquisaAtiva && _aPesquisarTmdb)
+            {
+                <div class="search-note">Sem resultados internos. A procurar no TMDB...</div>
+            }
         </section>
 
         @if (_loading)
@@ -44,84 +53,105 @@
         {
             <div class="cinema-state error">@_erro</div>
         }
+        else if (_pesquisaAtiva)
+        {
+            @if (_resultadosInternosPesquisa.Count > 0)
+            {
+                <section class="catalogo-section">
+                    <div class="cinema-section-head">
+                        <div>
+                            <span class="cinema-kicker">Catalogo interno</span>
+                            <h2>Resultados no catalogo</h2>
+                        </div>
+                    </div>
+
+                    <div class="catalogo-grid">
+                        @foreach (var filme in _resultadosInternosPesquisa)
+                        {
+                            <FilmeCard Filme="filme" />
+                        }
+                    </div>
+                </section>
+            }
+            else
+            {
+                <section class="catalogo-section">
+                    <div class="cinema-section-head">
+                        <div>
+                            <span class="cinema-kicker">TMDB</span>
+                            <h2>Resultados externos</h2>
+                        </div>
+                    </div>
+
+                    @if (_aPesquisarTmdb)
+                    {
+                        <div class="cinema-state slim">
+                            <div class="spinner"></div>
+                            <p>A procurar no TMDB...</p>
+                        </div>
+                    }
+                    else if (_resultadosTmdb.Count == 0)
+                    {
+                        <div class="cinema-state">Nenhum resultado encontrado.</div>
+                    }
+                    else
+                    {
+                        <div class="tmdb-grid">
+                            @foreach (var filme in _resultadosTmdb)
+                            {
+                                var existente = FilmeJaExiste(filme);
+
+                                <article class="tmdb-card" @onclick="() => AbrirResultadoTmdb(filme)">
+                                    <div class="tmdb-poster">
+                                        <img src="@ImagemFilme(filme)" alt="@filme.Titulo" />
+                                        @if (existente)
+                                        {
+                                            <span class="catalog-badge">No catalogo</span>
+                                        }
+                                    </div>
+
+                                    <div class="tmdb-body">
+                                        <div class="tmdb-meta">
+                                            <span>@AnoFilme(filme)</span>
+                                            @if (!string.IsNullOrWhiteSpace(GeneroFilme(filme)))
+                                            {
+                                                <span>@GeneroFilme(filme)</span>
+                                            }
+                                        </div>
+                                        <h3>@filme.Titulo</h3>
+                                        <p>@SinopseCurta(filme)</p>
+
+                                        <div class="tmdb-actions">
+                                            @if (existente)
+                                            {
+                                                <button type="button" class="cinema-btn secondary" @onclick="() => AbrirExistente(filme)">
+                                                    Abrir no catalogo
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button"
+                                                        class="cinema-btn secondary"
+                                                        @onclick="() => AbrirTmdb(filme.TmdbId)">
+                                                    Ver detalhe TMDB
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    }
+                </section>
+            }
+        }
         else
         {
             <section class="catalogo-section">
                 <div class="cinema-section-head">
                     <div>
-                        <span class="cinema-kicker">@(_aPesquisar ? "Resultados TMDB" : "Sugestoes TMDB")</span>
-                        <h2>@(_aPesquisar ? "Escolhe um resultado para importar" : "20 filmes iniciais")</h2>
-                    </div>
-                </div>
-
-                @if (ResultadosAtuais.Count == 0)
-                {
-                    <div class="cinema-state">Nenhum resultado encontrado.</div>
-                }
-                else
-                {
-                    <div class="tmdb-grid">
-                        @foreach (var filme in ResultadosAtuais)
-                        {
-                            var existente = FilmeJaExiste(filme);
-
-                            <article class="tmdb-card">
-                                <div class="tmdb-poster">
-                                    <img src="@ImagemFilme(filme)" alt="@filme.Titulo" />
-                                    @if (existente)
-                                    {
-                                        <span class="catalog-badge">No catalogo</span>
-                                    }
-                                </div>
-
-                                <div class="tmdb-body">
-                                    <div class="tmdb-meta">
-                                        <span>@AnoFilme(filme)</span>
-                                        @if (!string.IsNullOrWhiteSpace(GeneroFilme(filme)))
-                                        {
-                                            <span>@GeneroFilme(filme)</span>
-                                        }
-                                    </div>
-                                    <h3>@filme.Titulo</h3>
-                                    <p>@SinopseCurta(filme)</p>
-
-                                    <div class="tmdb-actions">
-                                        @if (existente)
-                                        {
-                                            <button type="button" class="cinema-btn secondary" @onclick="() => AbrirExistente(filme)">
-                                                Abrir detalhe
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <AuthorizeView Roles="Administrador">
-                                                <Authorized>
-                                                    <button type="button"
-                                                            class="cinema-btn primary"
-                                                            @onclick="() => AbrirTmdb(filme.TmdbId)">
-                                                        Ver detalhe TMDB
-                                                    </button>
-                                                </Authorized>
-                                                <NotAuthorized>
-                                                    <button type="button" class="cinema-btn secondary" @onclick="() => AbrirTmdb(filme.TmdbId)">
-                                                        Ver detalhe TMDB
-                                                    </button>
-                                                </NotAuthorized>
-                                            </AuthorizeView>
-                                        }
-                                    </div>
-                                </div>
-                            </article>
-                        }
-                    </div>
-                }
-            </section>
-
-            <section class="catalogo-section">
-                <div class="cinema-section-head">
-                    <div>
                         <span class="cinema-kicker">Catalogo interno</span>
-                        <h2>Filmes ja disponiveis</h2>
+                        <h2>Filmes disponiveis</h2>
                     </div>
                     <div class="genre-filter">
                         <MudMenu Label="@RotuloFiltro()"
@@ -150,7 +180,7 @@
                 else
                 {
                     <div class="catalogo-grid">
-                        @foreach (var filme in _filmesFiltrados.Take(20))
+                        @foreach (var filme in _filmesFiltrados)
                         {
                             <FilmeCard Filme="filme" />
                         }
@@ -164,38 +194,66 @@
 @code {
     private List<FilmeDTO> _filmesInternos = new();
     private List<FilmeDTO> _filmesFiltrados = new();
-    private List<FilmeDTO> _tmdbIniciais = new();
-    private List<FilmeDTO> _resultadosPesquisa = new();
+    private List<FilmeDTO> _resultadosInternosPesquisa = new();
+    private List<FilmeDTO> _resultadosTmdb = new();
     private List<string> _generos = new();
     private readonly HashSet<string> _generosSelecionados = new(StringComparer.OrdinalIgnoreCase);
     private string? _pesquisa;
-    private bool _aPesquisar;
-
-    private List<FilmeDTO> ResultadosAtuais => _aPesquisar ? _resultadosPesquisa : _tmdbIniciais;
+    private string? _erroPesquisa;
+    private bool _pesquisaAtiva;
+    private bool _aPesquisarTmdb;
 
     protected override async Task CarregarDadosAsync()
     {
-        _filmesInternos = await FilmeService.ObterFilmesAsync();
+        _filmesInternos = await FilmeService.ObterFilmesAsync(ordenarPor: 2, descendente: true);
         _filmesFiltrados = _filmesInternos.Take(20).ToList();
         _generos = ExtrairGeneros(_filmesInternos).ToList();
-        _tmdbIniciais = await TmdbService.ObterFilmesIniciaisAsync();
     }
 
     private async Task OnPesquisaAlterada(string? valor)
     {
         _pesquisa = valor;
+        _erroPesquisa = null;
 
-        if (string.IsNullOrWhiteSpace(_pesquisa) || _pesquisa.Trim().Length < 2)
+        var termo = _pesquisa?.Trim() ?? string.Empty;
+        if (termo.Length < 2)
         {
-            _aPesquisar = false;
-            _resultadosPesquisa.Clear();
+            _pesquisaAtiva = false;
+            _aPesquisarTmdb = false;
+            _resultadosInternosPesquisa.Clear();
+            _resultadosTmdb.Clear();
             await AplicarFiltrosInternos();
             return;
         }
 
-        _aPesquisar = true;
-        _resultadosPesquisa = await TmdbService.PesquisarAsync(_pesquisa.Trim());
-        await AplicarFiltrosInternos();
+        _pesquisaAtiva = true;
+        _resultadosTmdb.Clear();
+
+        try
+        {
+            var internos = await FilmeService.ObterFilmesAsync(pesquisa: termo);
+            _resultadosInternosPesquisa = FiltrarPorGeneros(internos).Take(20).ToList();
+
+            if (_resultadosInternosPesquisa.Count > 0)
+                return;
+
+            _aPesquisarTmdb = true;
+            await InvokeAsync(StateHasChanged);
+            _resultadosTmdb = (await TmdbService.PesquisarAsync(termo)).Take(20).ToList();
+        }
+        catch (Exception ex)
+        {
+            _erroPesquisa = MensagemErroApi.Limpar(
+                ex.Message,
+                "Nao foi possivel concluir a pesquisa. Tenta novamente."
+            );
+            _resultadosInternosPesquisa.Clear();
+            _resultadosTmdb.Clear();
+        }
+        finally
+        {
+            _aPesquisarTmdb = false;
+        }
     }
 
     private void AbrirExistente(FilmeDTO filme)
@@ -211,43 +269,51 @@
             Nav.NavigateTo($"/tmdb/filmes/{tmdbId}");
     }
 
+    private void AbrirResultadoTmdb(FilmeDTO filme)
+    {
+        if (FilmeJaExiste(filme))
+            AbrirExistente(filme);
+        else
+            AbrirTmdb(filme.TmdbId);
+    }
+
     private async Task AlternarGenero(string genero)
     {
         if (!_generosSelecionados.Add(genero))
             _generosSelecionados.Remove(genero);
 
-        await AplicarFiltrosInternos();
+        if (_pesquisaAtiva)
+            await OnPesquisaAlterada(_pesquisa);
+        else
+            await AplicarFiltrosInternos();
     }
 
     private async Task LimparGeneros()
     {
         _generosSelecionados.Clear();
-        await AplicarFiltrosInternos();
+
+        if (_pesquisaAtiva)
+            await OnPesquisaAlterada(_pesquisa);
+        else
+            await AplicarFiltrosInternos();
     }
 
     private Task AplicarFiltrosInternos()
     {
-        IEnumerable<FilmeDTO> filmes = _filmesInternos;
-
-        if (!string.IsNullOrWhiteSpace(_pesquisa))
-        {
-            filmes = filmes.Where(f =>
-                f.Titulo.Contains(_pesquisa, StringComparison.OrdinalIgnoreCase)
-                || (f.Sinopse?.Contains(_pesquisa, StringComparison.OrdinalIgnoreCase) ?? false)
-            );
-        }
-
-        if (_generosSelecionados.Count > 0)
-        {
-            filmes = filmes.Where(f =>
-            {
-                var generos = GenerosDoFilme(f).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                return _generosSelecionados.All(g => generos.Contains(g));
-            });
-        }
-
-        _filmesFiltrados = filmes.Take(20).ToList();
+        _filmesFiltrados = FiltrarPorGeneros(_filmesInternos).Take(20).ToList();
         return Task.CompletedTask;
+    }
+
+    private IEnumerable<FilmeDTO> FiltrarPorGeneros(IEnumerable<FilmeDTO> filmes)
+    {
+        if (_generosSelecionados.Count == 0)
+            return filmes;
+
+        return filmes.Where(f =>
+        {
+            var generos = GenerosDoFilme(f).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            return _generosSelecionados.All(g => generos.Contains(g));
+        });
     }
 
     private bool FilmeJaExiste(FilmeDTO filme)

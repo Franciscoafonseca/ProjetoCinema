@@ -97,11 +97,8 @@ public class PremioFestivalService
         if (resposta.IsSuccessStatusCode)
             return;
 
-        var conteudo = await resposta.Content.ReadAsStringAsync();
         throw new InvalidOperationException(
-            string.IsNullOrWhiteSpace(conteudo)
-                ? "Nao foi possivel concluir a operacao."
-                : conteudo.Trim('"')
+            await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel concluir a operacao.")
         );
     }
 }

@@ -219,13 +219,13 @@ public class VisualizacaoService : IVisualizacaoService
 
     private async Task<string> ObterUrlVisualizacaoAsync(Filme filme)
     {
-        if (!string.IsNullOrWhiteSpace(filme.VideoUrl))
-            return filme.VideoUrl;
-
         if (!string.IsNullOrWhiteSpace(filme.TrailerUrl))
             return filme.TrailerUrl;
 
-        return "https://www.youtube.com/embed/dQw4w9WgXcQ";
+        if (!string.IsNullOrWhiteSpace(filme.VideoUrl))
+            return filme.VideoUrl;
+
+        throw new InvalidOperationException("Trailer TMDB/YouTube indisponivel para este filme.");
     }
 
     private async Task RegistarVisualizacaoInternaAsync(
