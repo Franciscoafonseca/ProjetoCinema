@@ -160,6 +160,40 @@ public class ComunidadeService : IComunidadeService
         await _comunidadeRepository.ApagarComunidadeAsync(comunidade);
     }
 
+    public async Task SairComunidadeAsync(Guid comunidadePublicId, int utilizadorId)
+    {
+        var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(
+            comunidadePublicId
+        );
+
+        if (comunidade == null)
+            throw new Exception("Comunidade não encontrada.");
+
+        var membro = comunidade.Members.FirstOrDefault(m => m.UtilizadorId == utilizadorId);
+
+        if (membro == null)
+            throw new Exception("Utilizador não é membro desta comunidade.");
+
+        if (membro.Role == PapelMembroComunidade.Proprietario)
+        {
+            var proximoLider = comunidade.Members
+                .Where(m => m.UtilizadorId != utilizadorId)
+                .OrderBy(m => m.JoinedAt)
+                .FirstOrDefault();
+            
+            if (proximoLider != null)
+            {
+                proximoLider.Role = PapelMembroComunidade.Proprietario;
+            }
+            else
+            {
+                await _comunidadeRepository.ApagarComunidadeAsync(comunidade);
+                return;
+            }
+        }
+        await _comunidadeRepository.RemoverMembroAsync(membro);
+    }
+
     private async Task ValidarRegrasDeAdesaoAsync(
         Comunidade? comunidade,
         Utilizador? utilizador,

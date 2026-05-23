@@ -58,11 +58,13 @@
                 <div class="community-detail-actions">
                     @if (_comunidade.IsOwner)
                     {
-                        <button class="cinema-btn error" disabled="@_aApagar"
-                                @onclick="ApagarComunidadeAsync">
+                        <button class="cinema-btn error" disabled="@_aApagar" @onclick="ApagarComunidadeAsync">
                             Apagar
                         </button>
                     }
+                    <button class="cinema-btn secondary" disabled="@_aSair" @onclick="SairComunidadeAsync">
+                        Sair
+                    </button>
                     <button class="cinema-btn secondary" @onclick="Voltar">Voltar</button>
                 </div>
             </header>
@@ -117,7 +119,8 @@
                     <EditForm Model="_novoComentario" OnValidSubmit="PublicarComentarioAsync">
                         <DataAnnotationsValidator />
                         <div class="comment-form">
-                            <InputTextArea class="text-area" @bind-Value="_novoComentario.Texto" placeholder="Escreve um comentario" />
+                            <InputTextArea class="text-area" @bind-Value="_novoComentario.Texto"
+                                           placeholder="Escreve um comentario" />
                             <ValidationMessage For="@(() => _novoComentario.Texto)" />
 
                             <label class="field-label" for="filme-associado">Filme associado opcional</label>
@@ -158,13 +161,9 @@
                         <div class="comment-list">
                             @foreach (var comentario in _comentarios.OrderByDescending(c => c.CriadoEm))
                             {
-                                <article class="comment-card"
-                                         role="button"
-                                         tabindex="0"
+                                <article class="comment-card" role="button" tabindex="0"
                                          @onclick="() => AbrirPerfilAutor(comentario)">
-                                    <button class="comment-avatar"
-                                            type="button"
-                                            title="Abrir perfil"
+                                    <button class="comment-avatar" type="button" title="Abrir perfil"
                                             @onclick="() => AbrirPerfilAutor(comentario)">
                                         @if (string.IsNullOrWhiteSpace(comentario.UsuarioFotoUrl))
                                         {
@@ -185,9 +184,7 @@
 
                                         @if (comentario.FilmeId.HasValue)
                                         {
-                                            <button class="comment-movie"
-                                                    type="button"
-                                                    @onclick:stopPropagation="true"
+                                            <button class="comment-movie" type="button" @onclick:stopPropagation="true"
                                                     @onclick="() => AbrirFilme(comentario.FilmeId.Value)">
                                                 @if (!string.IsNullOrWhiteSpace(comentario.FilmeCapaUrl))
                                                 {
@@ -218,6 +215,7 @@
     private bool _aCarregarComentarios;
     private bool _aComentar;
     private bool _aApagar;
+    private bool _aSair;
     private string? _erroGeral;
     private string? _mensagemComentario;
     private string? _mensagemPerfil;
@@ -315,6 +313,29 @@
         finally
         {
             _aApagar = false;
+        }
+    }
+
+    private async Task SairComunidadeAsync()
+    {
+        if (_comunidade == null)
+            return;
+
+        _aSair = true;
+        _erroGeral = null;
+
+        try
+        {
+            await ComunidadeService.SairAsync(_comunidade.Id);
+            Nav.NavigateTo("/comunidades");
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aSair = false;
         }
     }
 

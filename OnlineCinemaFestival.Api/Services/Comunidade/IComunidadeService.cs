@@ -22,4 +22,5 @@ public interface IComunidadeService
     Task AderirComunidadePorConviteAsync(string codigoConvite, int utilizadorId);
 
     Task ApagarComunidadeAsync(Guid comunidadePublicId, int utilizadorId);
+    Task SairComunidadeAsync(Guid comunidadePublicId, int utilizadorId);
 }

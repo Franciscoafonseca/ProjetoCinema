@@ -196,6 +196,7 @@
     private bool _aAderir;
     private bool _aPesquisar;
     private bool _aApagar;
+    private bool _aSair;
     private string? _erroGeral;
     private string? _mensagemCriar;
     private string? _mensagemConvite;
@@ -382,6 +383,26 @@
         }
     }
 
+    private async Task SairComunidadeAsync(ComunidadeDTO comunidade)
+    {
+        _aSair = true;
+        _erroGeral = null;
+
+        try
+        {
+            await ComunidadeService.SairAsync(comunidade.Id);
+            _minhas.Remove(comunidade);
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aSair = false;
+        }
+    }
+
     private void ValidarCodigoConvite()
     {
         _codigoConvite = _codigoConvite.Trim();
@@ -421,6 +442,11 @@
                 {
                     <button class="cinema-btn error" disabled="@_aApagar"
                             @onclick="() => ApagarComunidadeAsync(comunidade)">Apagar</button>
+                }
+                @if (membro)
+                {
+                    <button class="cinema-btn secondary" disabled="@_aSair"
+                            @onclick="() => SairComunidadeAsync(comunidade)">Sair</button>
                 }
             </div>
         </div>

@@ -103,7 +103,7 @@ public class ComunidadesController : ControllerBase
         }
     }
 
-    // 🎟️ Rota VIP para entrar com o Código de Convite
+    // Para entrar com o Código de Convite
     [HttpPost("convite/{codigoConvite}/aderir")]
     public async Task<ActionResult> AderirPorConvite(string codigoConvite)
     {
@@ -125,6 +125,27 @@ public class ComunidadesController : ControllerBase
         }
     }
 
+    [HttpPost("{id:guid}/sair")]
+    public async Task<ActionResult> SairComunidade(Guid id)
+    {
+        try
+        {
+            await _comunidadeService.SairComunidadeAsync(id, User.GetUserId());
+            return Ok(new { mensagem = "Saíste da comunidade com sucesso!" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensagem = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
 
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> ApagarComunidade(Guid id)
