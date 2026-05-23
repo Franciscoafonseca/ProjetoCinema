@@ -20,11 +20,15 @@ public static class ComunidadeMapper
     }
 
     // Entidade (BD) para DTO (ComunidadeReadDTO).
-    public static ComunidadeReadDTO ToReadDTO(Comunidade comunidade)
+    public static ComunidadeReadDTO ToReadDTO(Comunidade comunidade, int utilizadorIdPedido)
     {
         return new ComunidadeReadDTO
         {
             PublicId = comunidade.PublicId,
+            IsOwner = comunidade.Members?.Any(m =>
+                m.UtilizadorId == utilizadorIdPedido
+                && m.Role == PapelMembroComunidade.Proprietario
+            ) ?? false,
             Name = comunidade.Name,
             Description = comunidade.Description,
             ImageUrl = comunidade.ImageUrl,

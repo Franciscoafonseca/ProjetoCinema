@@ -9,6 +9,13 @@
   align-items: start;
 }
 
+.community-detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
 .community-detail-cover {
   width: 150px;
   aspect-ratio: 1;
@@ -68,6 +75,37 @@
   color: var(--ocf-muted);
   font-size: 0.78rem;
   font-weight: 800;
+}
+
+.community-id {
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(31, 211, 198, 0.3);
+  background: rgba(31, 211, 198, 0.08);
+}
+
+.community-id span {
+  color: var(--ocf-teal-soft);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.community-id code {
+  font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+  font-size: 0.92rem;
+  color: var(--ocf-text);
+  word-break: break-all;
+}
+
+.community-id p {
+  margin: 0;
+  color: var(--ocf-muted);
+  font-size: 0.85rem;
 }
 
 .community-detail-grid {
@@ -225,6 +263,11 @@
   .community-detail-hero,
   .community-detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .community-detail-actions {
+    flex-direction: row;
+    justify-content: flex-start;
   }
 
   .community-detail-cover {

@@ -57,14 +57,20 @@ public class ComunidadeRepository : IComunidadeRepository
         return result.Entity;
     }
 
+    public async Task ApagarComunidadeAsync(Comunidade comunidade)
+    {
+        _context.Comunidades.Remove(comunidade);
+        await _context.SaveChangesAsync();
+    }
+
     private IQueryable<Comunidade> ComunidadesComDetalhes()
     {
         return _context
             .Comunidades.AsSplitQuery()
             .Include(c => c.CreatedByUser)
             .Include(c => c.Members)
-                .ThenInclude(m => m.Utilizador)
-                    .ThenInclude(u => u.Perfil)
+            .ThenInclude(m => m.Utilizador)
+            .ThenInclude(u => u.Perfil)
             .Include(c => c.Comentarios);
     }
 }

@@ -13,4 +13,5 @@ public interface IComunidadeRepository
     Task<bool> IsMembroAsync(int comunidadeId, int utilizadorId);
     Task<Comunidade?> GetComunidadeByConviteAsync(string codigoConvite);
     Task<ComunidadeMembro> AdicionarMembroAsync(ComunidadeMembro membro);
+    Task ApagarComunidadeAsync(Comunidade comunidade);
 }

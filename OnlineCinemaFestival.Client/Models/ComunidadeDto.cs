@@ -14,6 +14,8 @@ public class ComunidadeDTO
 
     public bool IsPublic { get; set; }
 
+    public bool IsOwner { get; set; }
+
     public int? CreatedByUserId { get; set; }
 
     public string? CreatedByUserName { get; set; }
