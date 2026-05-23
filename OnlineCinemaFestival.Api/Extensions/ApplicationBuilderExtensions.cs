@@ -1,5 +1,6 @@
 using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Data;
+using OnlineCinemaFestival.Api.Data.Seed;
 using OnlineCinemaFestival.Api.Hubs;
 using OnlineCinemaFestival.Api.Middleware;
 using OnlineCinemaFestival.Api.Services;

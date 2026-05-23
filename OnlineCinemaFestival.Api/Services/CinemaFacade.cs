@@ -9,16 +9,19 @@ public class CinemaFacade : ICinemaFacade
     private readonly ICompraService _compraService;
     private readonly ICompraValidator _validator;
     private readonly ICompraHistoricoService _historicoService;
+    private readonly IAcessoVisualizacaoService _acessoVisualizacaoService;
 
     public CinemaFacade(
         ICompraService compraService,
         ICompraValidator validator,
-        ICompraHistoricoService historicoService
+        ICompraHistoricoService historicoService,
+        IAcessoVisualizacaoService acessoVisualizacaoService
     )
     {
         _compraService = compraService;
         _validator = validator;
         _historicoService = historicoService;
+        _acessoVisualizacaoService = acessoVisualizacaoService;
     }
 
     public async Task ComprarItens(int utilizadorId, List<CompraItemDto> itens)
@@ -37,12 +40,6 @@ public class CinemaFacade : ICinemaFacade
 
     public bool VerificarPermissaoAssistir(ModelAcesso acesso)
     {
-        if (acesso.Tipo == TipoAcesso.AluguerDigital)
-        {
-            var decorador = new AluguerDigitalDecorator(acesso);
-            return decorador.TemAcesso();
-        }
-
-        return true;
+        return _acessoVisualizacaoService.PodeVisualizar(acesso);
     }
 }

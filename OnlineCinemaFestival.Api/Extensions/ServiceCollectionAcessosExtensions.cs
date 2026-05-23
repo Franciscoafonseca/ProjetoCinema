@@ -1,6 +1,7 @@
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Api.Services.AcessosFolder;
+using OnlineCinemaFestival.Api.Services.PoliticasAcesso;
 
 namespace OnlineCinemaFestival.Api.Extensions;
 
@@ -12,6 +13,7 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<IAcessoService, AcessoService>();
         services.AddScoped<IAcessoUtilizadorRepository, AcessoUtilizadorRepository>();
         services.AddScoped<IAcessoUtilizadorService, AcessoUtilizadorService>();
+        services.AddScoped<IAcessoVisualizacaoService, AcessoVisualizacaoService>();
         services.AddScoped<IValidacaoAcessoService, ValidacaoAcessoService>();
         services.AddScoped<IVisualizacaoRepository, VisualizacaoRepository>();
         services.AddScoped<IVisualizacaoService, VisualizacaoService>();
@@ -45,6 +47,12 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<IEstrategiaValidacaoAcesso, EstrategiaValidacaoPasseDiario>();
         services.AddScoped<IEstrategiaValidacaoAcesso, ValidacaoPasseCompletoStrategy>();
         services.AddScoped<IEstrategiaValidacaoAcesso, AluguerDigitalValidacaoStrategy>();
+        services.AddScoped<IPoliticaAcesso, PoliticaBilheteSessao>();
+        services.AddScoped<IPoliticaAcesso, PoliticaPasseDiario>();
+        services.AddScoped<IPoliticaAcesso, PoliticaPasseCompleto>();
+        services.AddScoped<IPoliticaAcesso, PoliticaAluguerDigital>();
+        services.AddScoped<IPoliticaAcessoResolver, PoliticaAcessoResolver>();
+        services.AddSingleton(TimeProvider.System);
 
         return services;
     }
