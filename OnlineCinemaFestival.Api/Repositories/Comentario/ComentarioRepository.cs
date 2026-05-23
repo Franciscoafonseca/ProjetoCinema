@@ -20,10 +20,23 @@ public class ComentarioRepository : IComentarioRepository
         return comentario;
     }
 
+    public async Task<Comentario?> GetByIdAsync(int comentarioId)
+    {
+        return await ComentariosComDetalhes().FirstOrDefaultAsync(c => c.Id == comentarioId);
+    }
+
     public async Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(int comunidadeId)
     {
         return await ComentariosComDetalhes()
             .Where(c => c.ComunidadeId == comunidadeId && c.Visivel)
+            .OrderByDescending(c => c.CriadoEm)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Comentario>> ObterReportadosPorComunidadeIdAsync(int comunidadeId)
+    {
+        return await ComentariosComDetalhes()
+            .Where(c => c.ComunidadeId == comunidadeId && c.Reportado)
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();
     }
@@ -34,6 +47,12 @@ public class ComentarioRepository : IComentarioRepository
             .Where(c => c.FilmeId == filmeId && c.Visivel)
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();
+    }
+
+    public async Task UpdateAsync(Comentario comentario)
+    {
+        _context.Comentarios.Update(comentario);
+        await _context.SaveChangesAsync();
     }
 
     private IQueryable<Comentario> ComentariosComDetalhes()
