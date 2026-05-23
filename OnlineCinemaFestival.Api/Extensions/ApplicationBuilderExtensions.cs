@@ -1,5 +1,7 @@
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Hubs;
+using OnlineCinemaFestival.Api.Middleware;
 using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Extensions;
@@ -8,9 +10,10 @@ public static class ApplicationBuilderExtensions
 {
     public static WebApplication UseApiPipeline(this WebApplication app)
     {
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseSwagger();
         app.UseSwaggerUI();
-        app.UseCors("BlazorClient");
+        app.UseCors(NomesCors.BlazorClient);
 
         if (Directory.Exists(app.Environment.WebRootPath))
             app.UseStaticFiles();
@@ -34,9 +37,9 @@ public static class ApplicationBuilderExtensions
         var passwordHashingStrategy =
             scope.ServiceProvider.GetRequiredService<IPasswordHashingStrategy>();
 
-        await DbSeeder.SeedAsync(db, passwordHashingStrategy);
+        await DbSeeder.SeedAsync(db, passwordHashingStrategy, app.Configuration);
 
-        await scope.ServiceProvider.GetRequiredService<IPremioFestivalService>()
+        await scope.ServiceProvider.GetRequiredService<IPublicacaoPremiosService>()
             .PublicarResultadosPendentesAsync();
 
         try

@@ -3,6 +3,7 @@
 @inject VisualizacaoService VisualizacaoService
 @inject NavigationManager Nav
 @inject ArmazenamentoToken ArmazenamentoToken
+@inject IConfiguration Configuracao
 
 <PageTitle>Visualizar sessao - Online Cinema Festival</PageTitle>
 
@@ -131,12 +132,21 @@
     private async Task AbrirChatAoVivo()
     {
         var token = await ArmazenamentoToken.ObterAsync();
-        var url = $"http://localhost:5152/sessao-player.html?sessaoId={SessaoId}";
+        var url = $"{ApiBaseUrl()}sessao-player.html?sessaoId={SessaoId}";
 
         if (!string.IsNullOrWhiteSpace(token))
             url += $"&token={Uri.EscapeDataString(token)}";
 
         Nav.NavigateTo(url, forceLoad: true);
+    }
+
+    private string ApiBaseUrl()
+    {
+        var apiBaseUrl =
+            Configuracao["ApiBaseUrl"]
+            ?? throw new InvalidOperationException("ApiBaseUrl nao configurado.");
+
+        return apiBaseUrl.EndsWith('/') ? apiBaseUrl : $"{apiBaseUrl}/";
     }
 
     private static string UrlPlayer(string url)

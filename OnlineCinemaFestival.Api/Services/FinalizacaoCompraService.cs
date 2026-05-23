@@ -1,4 +1,5 @@
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
@@ -15,6 +16,7 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
     private readonly IPagamentoService _pagamentoService;
     private readonly IEnumerable<ICompraObserver> _compraObservers;
+    private readonly int _expiracaoMultibancoHoras;
 
     public FinalizacaoCompraService(
         ICarrinhoRepository carrinhoRepository,
@@ -24,7 +26,8 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
         IGeradorReferenciaCompra geradorReferenciaCompra,
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
         IPagamentoService pagamentoService,
-        IEnumerable<ICompraObserver> compraObservers
+        IEnumerable<ICompraObserver> compraObservers,
+        IConfiguration configuration
     )
     {
         _carrinhoRepository = carrinhoRepository;
@@ -35,11 +38,14 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
         _pagamentoService = pagamentoService;
         _compraObservers = compraObservers;
+        _expiracaoMultibancoHoras = PagamentosConfiguracao.ObterExpiracaoMultibancoHoras(
+            configuration
+        );
     }
 
     public async Task<ResultadoFinalizacaoCompraDTO> FinalizarCompraAsync(
         int utilizadorId,
-        string metodoPagamento = "CartaoCredito"
+        string metodoPagamento = MetodosPagamento.CartaoCredito
     )
     {
         return await _compraRepository.ExecuteInTransactionAsync(async () =>
@@ -99,7 +105,8 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
                 acessosComprados.Count,
                 pagamentoAprovado
                     ? "Compra finalizada com sucesso."
-                    : "Referencia Multibanco gerada. O pagamento fica pendente durante 3 horas."
+                    : $"Referencia Multibanco gerada. O pagamento fica pendente durante {_expiracaoMultibancoHoras} horas.",
+                _expiracaoMultibancoHoras
             );
         });
     }

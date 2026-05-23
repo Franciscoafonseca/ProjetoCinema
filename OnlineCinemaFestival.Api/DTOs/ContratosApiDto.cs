@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using OnlineCinemaFestival.Api.Configuracao;
 
 namespace OnlineCinemaFestival.Api.DTOs;
 
@@ -17,7 +18,7 @@ public class PedidoFinalizacaoCompraDTO { }
 public class PedidoFinalizarCompraDTO
 {
     [Required]
-    public string MetodoPagamento { get; set; } = "CartaoCredito";
+    public string MetodoPagamento { get; set; } = MetodosPagamento.CartaoCredito;
 }
 
 public class ResultadoFinalizacaoCompraDTO : CompraReadDTO

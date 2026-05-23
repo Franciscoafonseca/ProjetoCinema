@@ -1,7 +1,7 @@
 @page "/tmdb/filmes/{TmdbId:int}"
 @inherits FilmePageBase
 @inject TmdbService TmdbService
-@inject FilmeService FilmeService
+@inject IImportacaoFilmeService ImportacaoFilmeService
 @inject NavigationManager Nav
 
 <PageTitle>TMDB - Online Cinema Festival</PageTitle>
@@ -44,7 +44,7 @@
                         <div><dt>Trailer</dt><dd>@(string.IsNullOrWhiteSpace(_filme.VideoKey) ? "N/D" : _filme.VideoProvider)</dd></div>
                     </dl>
 
-                    <AuthorizeView Roles="Administrador">
+                    <AuthorizeView Roles="@NomesPapeis.Administrador">
                         <Authorized>
                             <button class="cinema-btn primary" disabled="@_aImportar" @onclick="Importar">
                                 @(_aImportar ? "A adicionar..." : "Adicionar ao catalogo")
@@ -132,7 +132,7 @@
         _mensagem = null;
         try
         {
-            var importado = await FilmeService.ImportarTmdbAsync(TmdbId);
+            var importado = await ImportacaoFilmeService.ImportarTmdbAsync(TmdbId);
             Nav.NavigateTo($"/filmes/{importado.Id}");
         }
         catch (Exception ex)

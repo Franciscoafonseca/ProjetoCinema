@@ -149,15 +149,16 @@ public static class DbSeeder
 
     public static async Task SeedAsync(
         AppDbContext db,
-        IPasswordHashingStrategy passwordHashingStrategy
+        IPasswordHashingStrategy passwordHashingStrategy,
+        IConfiguration configuration
     )
     {
         await db.Database.MigrateAsync();
 
         Randomizer.Seed = new Random(2120622);
 
-        var admin = await CriarAdminAsync(db, passwordHashingStrategy);
-        var utilizadores = await CriarUtilizadoresAsync(db, passwordHashingStrategy);
+        var admin = await CriarAdminAsync(db, passwordHashingStrategy, configuration);
+        var utilizadores = await CriarUtilizadoresAsync(db, passwordHashingStrategy, configuration);
         var todosUtilizadores = utilizadores.Append(admin).ToList();
 
         var generos = await CriarGenerosAsync(db);
@@ -209,13 +210,20 @@ public static class DbSeeder
         return string.Join(":", valores.Select(v => v?.ToString() ?? ""));
     }
 
+    private static string ObterConfiguracaoObrigatoria(IConfiguration configuration, string chave)
+    {
+        return configuration[chave]
+            ?? throw new InvalidOperationException($"{chave} nao configurado no appsettings.json.");
+    }
+
     private static async Task<Utilizador> CriarAdminAsync(
         AppDbContext db,
-        IPasswordHashingStrategy passwordHashingStrategy
+        IPasswordHashingStrategy passwordHashingStrategy,
+        IConfiguration configuration
     )
     {
-        const string emailAdmin = "admin@festival.pt";
-        const string passwordAdmin = "Admin123!";
+        var emailAdmin = ObterConfiguracaoObrigatoria(configuration, "Seed:AdminEmail");
+        var passwordAdmin = ObterConfiguracaoObrigatoria(configuration, "Seed:AdminPassword");
 
         var admin = await db.Utilizadores.FirstOrDefaultAsync(u => u.Email == emailAdmin);
 
@@ -243,10 +251,15 @@ public static class DbSeeder
 
     private static async Task<List<Utilizador>> CriarUtilizadoresAsync(
         AppDbContext db,
-        IPasswordHashingStrategy passwordHashingStrategy
+        IPasswordHashingStrategy passwordHashingStrategy,
+        IConfiguration configuration
     )
     {
         var faker = new Faker("pt_PT");
+        var passwordUtilizador = ObterConfiguracaoObrigatoria(
+            configuration,
+            "Seed:UtilizadorPassword"
+        );
 
         var utilizadoresExistentes = await db
             .Utilizadores.Where(u => u.Email.EndsWith("@teste.pt"))
@@ -275,7 +288,10 @@ public static class DbSeeder
                 CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 180)),
             };
 
-            utilizador.PasswordHash = passwordHashingStrategy.HashPassword(utilizador, "User123!");
+            utilizador.PasswordHash = passwordHashingStrategy.HashPassword(
+                utilizador,
+                passwordUtilizador
+            );
 
             utilizadores.Add(utilizador);
         }

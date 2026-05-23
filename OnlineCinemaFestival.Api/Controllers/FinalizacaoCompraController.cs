@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.Autorizacao;
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Services;
 
@@ -29,24 +29,13 @@ public class FinalizacaoCompraController : ControllerBase
         [FromBody] PedidoFinalizarCompraDTO? request
     )
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var compra = await _checkoutService.FinalizarCompraAsync(
-                utilizadorId,
-                request?.MetodoPagamento ?? "CartaoCredito"
-            );
+        var compra = await _checkoutService.FinalizarCompraAsync(
+            utilizadorId,
+            request?.MetodoPagamento ?? MetodosPagamento.CartaoCredito
+        );
 
-            return Ok(compra);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        return Ok(compra);
     }
 }

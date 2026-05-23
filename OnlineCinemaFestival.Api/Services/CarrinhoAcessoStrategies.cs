@@ -199,7 +199,7 @@ public class CarrinhoAluguerDigitalStrategy : CarrinhoAcessoStrategyBase
         if (acesso.FilmeId == null || acesso.Filme == null)
             throw new InvalidOperationException("Aluguer digital sem filme associado.");
 
-        if (acesso.DuracaoHoras.GetValueOrDefault(48) <= 0)
+        if (acesso.DuracaoHoras is null or <= 0)
             throw new InvalidOperationException("Aluguer digital com duracao invalida.");
     }
 }

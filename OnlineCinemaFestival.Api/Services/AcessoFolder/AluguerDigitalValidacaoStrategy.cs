@@ -18,7 +18,7 @@ public class AluguerDigitalValidacaoStrategy : IEstrategiaValidacaoAcesso
     public string Nome => "Aluguer digital";
 
     public string Descricao =>
-        "Aluguer digital de um filme durante uma janela temporal, por exemplo 48 horas.";
+        "Aluguer digital de um filme durante a janela temporal configurada.";
 
     public async Task ValidarAsync(AcessoCreateDTO dto)
     {

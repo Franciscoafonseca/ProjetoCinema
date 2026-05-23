@@ -1,12 +1,30 @@
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.Services;
 
 public class PagamentoReferenciaMultibancoStrategy : IPagamentoStrategy
 {
+    private readonly string _entidade;
+    private readonly int _expiracaoHoras;
+
+    public PagamentoReferenciaMultibancoStrategy(IConfiguration configuration)
+    {
+        _entidade =
+            configuration["Pagamentos:Multibanco:Entidade"]
+            ?? throw new InvalidOperationException(
+                "Pagamentos:Multibanco:Entidade nao configurada no appsettings.json."
+            );
+
+        _expiracaoHoras = PagamentosConfiguracao.ObterExpiracaoMultibancoHoras(configuration);
+    }
+
     public bool Suporta(string metodoPagamento) =>
-        metodoPagamento.Equals("Multibanco", StringComparison.OrdinalIgnoreCase)
-        || metodoPagamento.Equals("ReferenciaMultibanco", StringComparison.OrdinalIgnoreCase);
+        metodoPagamento.Equals(MetodosPagamento.Multibanco, StringComparison.OrdinalIgnoreCase)
+        || metodoPagamento.Equals(
+            MetodosPagamento.ReferenciaMultibanco,
+            StringComparison.OrdinalIgnoreCase
+        );
 
     public Task<Pagamento> ProcessarAsync(
         Compra compra,
@@ -25,13 +43,13 @@ public class PagamentoReferenciaMultibancoStrategy : IPagamentoStrategy
             {
                 Compra = compra,
                 Referencia = referenciaMb,
-                Entidade = "12345",
+                Entidade = _entidade,
                 Valor = compra.ValorTotal,
-                Metodo = "ReferenciaMultibanco",
+                Metodo = MetodosPagamento.ReferenciaMultibanco,
                 Estado = EstadoPagamento.Pendente,
                 CriadoEm = dataPagamento,
                 Mensagem =
-                    $"Referencia Multibanco simulada: Entidade 12345, Referencia {referenciaMb[..3]} {referenciaMb.Substring(3, 3)} {referenciaMb[6..]}, Valor {compra.ValorTotal:0.00} EUR. Expira em 3 horas.",
+                    $"Referencia Multibanco simulada: Entidade {_entidade}, Referencia {referenciaMb[..3]} {referenciaMb.Substring(3, 3)} {referenciaMb[6..]}, Valor {compra.ValorTotal:0.00} EUR. Expira em {_expiracaoHoras} horas.",
             }
         );
     }

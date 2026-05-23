@@ -43,51 +43,26 @@ public class FestivaisController : ControllerBase
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<FestivalDetalheDTO>> Criar(CriarFestivalDTO dto)
     {
-        try
-        {
-            var festival = await _service.CriarAsync(dto);
+        var festival = await _service.CriarAsync(dto);
 
-            return CreatedAtAction(nameof(ObterPorId), new { id = festival.Id }, festival);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return CreatedAtAction(nameof(ObterPorId), new { id = festival.Id }, festival);
     }
 
     [HttpPut("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> Atualizar(int id, AtualizarFestivalDTO dto)
     {
-        try
-        {
-            await _service.AtualizarAsync(id, dto);
+        await _service.AtualizarAsync(id, dto);
 
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return NoContent();
     }
 
     [HttpDelete("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> Eliminar(int id)
     {
-        try
-        {
-            await _service.EliminarAsync(id);
+        await _service.EliminarAsync(id);
 
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return NoContent();
     }
 }

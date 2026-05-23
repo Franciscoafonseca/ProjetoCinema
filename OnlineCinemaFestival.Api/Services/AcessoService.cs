@@ -1,3 +1,4 @@
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
@@ -10,14 +11,19 @@ public class AcessoService : IAcessoService
 {
     private readonly IAcessoRepository _repository;
     private readonly IValidacaoAcessoStrategyFactory _fabricaValidacao;
+    private readonly int _duracaoAluguerDigitalHoras;
 
     public AcessoService(
         IAcessoRepository repository,
-        IValidacaoAcessoStrategyFactory fabricaValidacao
+        IValidacaoAcessoStrategyFactory fabricaValidacao,
+        IConfiguration configuration
     )
     {
         _repository = repository;
         _fabricaValidacao = fabricaValidacao;
+        _duracaoAluguerDigitalHoras = AcessosConfiguracao.ObterDuracaoAluguerDigitalHoras(
+            configuration
+        );
     }
 
     public async Task<IEnumerable<AcessoReadDTO>> ObterTodosAsync()
@@ -57,7 +63,7 @@ public class AcessoService : IAcessoService
 
         await estrategia.ValidarAsync(dto);
 
-        var acesso = AcessoMapper.MapFromCreateDTO(dto);
+        var acesso = AcessoMapper.MapFromCreateDTO(dto, _duracaoAluguerDigitalHoras);
 
         await _repository.AddAsync(acesso);
         await _repository.SaveChangesAsync();
@@ -112,9 +118,6 @@ public class AcessoService : IAcessoService
     //             "Passe que dá acesso às sessões de um festival durante um dia.",
 
     //         TipoAcesso.PasseCompleto => "Passe que dá acesso a todas as sessões de um festival.",
-
-    //         TipoAcesso.AluguerDigital =>
-    //             "Aluguer digital de um filme durante uma janela temporal, por exemplo 48 horas.",
 
     //         _ => "Tipo de acesso desconhecido.",
     //     };

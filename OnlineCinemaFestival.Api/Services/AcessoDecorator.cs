@@ -10,10 +10,10 @@ public abstract class AcessoDecorator : ModelAcesso
     public abstract bool TemAcesso();
 }
 
-// Implementação específica para a regra de 48 horas
-public class Aluguer48hDecorator : AcessoDecorator
+// Implementacao especifica para a validade configurada do aluguer digital.
+public class AluguerDigitalDecorator : AcessoDecorator
 {
-    public Aluguer48hDecorator(ModelAcesso acesso) : base(acesso) { }
+    public AluguerDigitalDecorator(ModelAcesso acesso) : base(acesso) { }
 
     public override bool TemAcesso()
     {

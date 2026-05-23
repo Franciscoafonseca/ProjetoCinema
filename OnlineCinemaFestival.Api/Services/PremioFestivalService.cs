@@ -115,8 +115,6 @@ public class PremioFestivalService : IPremioFestivalService
         int? filmeId = null
     )
     {
-        await PublicarResultadosPendentesAsync();
-
         var resultados = await _repository.ObterResultadosPublicosAsync(festivalId, filmeId);
         return resultados.Select(PremioFestivalMapper.MapResultadoToDTO);
     }
@@ -129,44 +127,8 @@ public class PremioFestivalService : IPremioFestivalService
         if (!await _repository.FestivalExisteAsync(festivalId))
             throw new KeyNotFoundException("Festival nao encontrado.");
 
-        await PublicarResultadosPendentesAsync();
-
         var premios = await _repository.ObterPremiosPorFestivalAsync(festivalId, incluirRascunhos);
         return premios.Select(PremioFestivalMapper.MapToReadDTO);
-    }
-
-    public async Task<int> PublicarResultadosPendentesAsync()
-    {
-        var premios = await _repository.ObterPremiosPendentesPublicacaoAsync(DateTime.UtcNow);
-        var publicados = 0;
-
-        foreach (var premio in premios)
-        {
-            var vencedor = await _repository.ObterVencedorPorVotosAsync(premio.Id);
-
-            if (vencedor == null)
-            {
-                premio.EstadoPremio = EstadoPremio.Fechado;
-                continue;
-            }
-
-            premio.Resultado = new ResultadoPremioFestival
-            {
-                PremioFestivalId = premio.Id,
-                FilmeIdVencedor = vencedor.Value.FilmeId,
-                TotalVotos = vencedor.Value.TotalVotos,
-                PublicadoEm = DateTime.UtcNow,
-                PublicadoPorUtilizadorId = null,
-            };
-
-            premio.EstadoPremio = EstadoPremio.Publicado;
-            publicados++;
-        }
-
-        if (premios.Count > 0)
-            await _repository.SaveChangesAsync();
-
-        return publicados;
     }
 
     private async Task<ResultadoPremioFestival> PublicarResultadoInternoAsync(

@@ -96,82 +96,46 @@ public class AcessosController : ControllerBase
     [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
     public async Task<ActionResult<ValidacaoAcessoReadDTO>> ValidarSessao(int sessaoId)
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var temAcesso = await _acessoUtilizadorService.UtilizadorTemAcessoASessaoAsync(
-                utilizadorId,
-                sessaoId
-            );
+        var temAcesso = await _acessoUtilizadorService.UtilizadorTemAcessoASessaoAsync(
+            utilizadorId,
+            sessaoId
+        );
 
-            return Ok(
-                new ValidacaoAcessoReadDTO
-                {
-                    TemAcesso = temAcesso,
-                    Mensagem = temAcesso ? "Acesso valido." : "Sem acesso valido para esta sessao.",
-                }
-            );
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return Ok(
+            new ValidacaoAcessoReadDTO
+            {
+                TemAcesso = temAcesso,
+                Mensagem = temAcesso ? "Acesso valido." : "Sem acesso valido para esta sessao.",
+            }
+        );
     }
 
     [HttpPost]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<AcessoDTO>> Criar(CriarAcessoDTO dto)
     {
-        try
-        {
-            var acesso = await _service.CriarAsync(dto);
+        var acesso = await _service.CriarAsync(dto);
 
-            return CreatedAtAction(nameof(ObterPorId), new { id = acesso.Id }, acesso);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return CreatedAtAction(nameof(ObterPorId), new { id = acesso.Id }, acesso);
     }
 
     [HttpPut("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> Atualizar(int id, AcessoUpdateDTO dto)
     {
-        try
-        {
-            await _service.AtualizarAsync(id, dto);
+        await _service.AtualizarAsync(id, dto);
 
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return NoContent();
     }
 
     [HttpDelete("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> Eliminar(int id)
     {
-        try
-        {
-            await _service.EliminarAsync(id);
+        await _service.EliminarAsync(id);
 
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return NoContent();
     }
 }

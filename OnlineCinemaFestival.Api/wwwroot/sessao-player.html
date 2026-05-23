@@ -272,11 +272,10 @@
 
         async function iniciarPagina() {
             try {
-                chatStatus.textContent = "A preparar sessao de teste...";
+                chatStatus.textContent = "A preparar sessao...";
 
                 if (!token) {
-                    token = await obterTokenTeste();
-                    window.localStorage.setItem("jwt", token);
+                    throw new Error("Token de autenticacao em falta.");
                 }
 
                 if (!sessaoId) {
@@ -292,26 +291,10 @@
                 await iniciarChat();
                 await carregarHistoricoChat();
             } catch (error) {
-                chatStatus.textContent = error?.message || "Nao foi possivel iniciar o teste.";
+                chatStatus.textContent = error?.message || "Nao foi possivel iniciar a sessao.";
                 description.textContent =
-                    "Confirma que a API arrancou em Development para executar o DbSeeder.";
+                    "Abre o player a partir da aplicacao para enviar o token de acesso.";
             }
-        }
-
-        async function obterTokenTeste() {
-            const resposta = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: "utilizador1@teste.pt",
-                    password: "User123!",
-                }),
-            });
-
-            if (!resposta.ok) throw new Error(await resposta.text());
-
-            const autenticacao = await resposta.json();
-            return autenticacao.token;
         }
 
         async function obterSessaoChatAtivoTeste() {

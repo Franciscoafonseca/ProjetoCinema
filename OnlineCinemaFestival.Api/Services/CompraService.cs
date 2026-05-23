@@ -1,4 +1,5 @@
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
@@ -12,13 +13,15 @@ public class CompraService : ICompraService
     private readonly List<IPrecoStrategy> _precoStrategies;
     private readonly IAcessoRepository _acessoRepository;
     private readonly IAcessoFactory _acessoFactory;
+    private readonly int _expiracaoMultibancoHoras;
 
     public CompraService(
         ICompraRepository compraRepository,
         IAcessoRepository acessoRepository,
         IEnumerable<ICompraObserver> observadores,
         IEnumerable<IPrecoStrategy> precoStrategies,
-        IAcessoFactory acessoFactory
+        IAcessoFactory acessoFactory,
+        IConfiguration configuration
     )
     {
         _compraRepository = compraRepository;
@@ -26,13 +29,18 @@ public class CompraService : ICompraService
         _observadores = observadores.ToList();
         _precoStrategies = precoStrategies.ToList();
         _acessoFactory = acessoFactory;
+        _expiracaoMultibancoHoras = PagamentosConfiguracao.ObterExpiracaoMultibancoHoras(
+            configuration
+        );
     }
 
     public async Task<IEnumerable<CompraReadDTO>> ObterComprasDoUtilizadorAsync(int utilizadorId)
     {
         var compras = await _compraRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
-        return compras.Select(CompraMapper.MapToReadDTO);
+        return compras.Select(compra =>
+            CompraMapper.MapToReadDTO(compra, _expiracaoMultibancoHoras)
+        );
     }
 
     public async Task<IEnumerable<CompraHistoricoReadDto>> ObterHistoricoDoUtilizadorAsync(

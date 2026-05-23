@@ -1,15 +1,16 @@
 @page "/filmes/{Id:int}"
 @inherits FilmePageBase
-@inject FilmeService FilmeService
+@inject IConsultaFilmeService FilmeService
 @inject SessaoService SessaoService
 @inject AcessoService AcessoService
-@inject CarrinhoService CarrinhoService
+@inject ICarrinhoService CarrinhoService
 @inject AvaliacaoService AvaliacaoService
 @inject ListaService ListaService
 @inject PremioFestivalService PremioFestivalService
 @inject ComentarioService ComentarioService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
+@inject IConfiguration Configuracao
 @using System.Security.Claims
 
 <PageTitle>@(_filme?.Titulo ?? "Filme") - Online Cinema Festival</PageTitle>
@@ -287,11 +288,11 @@
                     </article>
 
                     <article class="access-choice cinema-panel">
-                        <span>Aluguer 48h</span>
+                        <span>Aluguer @DuracaoAluguerDigitalHoras()h</span>
                         <h3>Alugar filme</h3>
-                        <p>Depois da compra, o aluguer fica valido durante 48 horas.</p>
+                        <p>Depois da compra, o aluguer fica valido durante @DuracaoAluguerDigitalHoras() horas.</p>
                         <button class="cinema-btn primary" disabled="@_aAtualizarCarrinho" @onclick="AdicionarAluguer">
-                            Alugar por 48h
+                            Alugar por @DuracaoAluguerDigitalHoras()h
                         </button>
                     </article>
                 </div>
@@ -592,7 +593,10 @@
 
     private async Task AdicionarAluguer()
     {
-        await AdicionarAoCarrinho(() => CarrinhoService.AdicionarAluguerDigitalAsync(Id), "Aluguer digital adicionado ao carrinho. Valido por 48h apos a compra.");
+        await AdicionarAoCarrinho(
+            () => CarrinhoService.AdicionarAluguerDigitalAsync(Id),
+            $"Aluguer digital adicionado ao carrinho. Valido por {DuracaoAluguerDigitalHoras()}h apos a compra."
+        );
     }
 
     private async Task AdicionarAcessoRapido()
@@ -1017,6 +1021,18 @@
     private static string FormatarDataHora(DateTime valor)
     {
         return valor.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+    }
+
+    private int DuracaoAluguerDigitalHoras()
+    {
+        var duracao = Configuracao.GetValue<int>("Acessos:DuracaoAluguerDigitalHoras");
+
+        if (duracao <= 0)
+            throw new InvalidOperationException(
+                "Acessos:DuracaoAluguerDigitalHoras deve ser maior que zero."
+            );
+
+        return duracao;
     }
 
     private string MediaAplicacao()

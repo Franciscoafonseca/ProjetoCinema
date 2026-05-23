@@ -3,7 +3,7 @@ using OnlineCinemaFestival.Client.Models;
 
 namespace OnlineCinemaFestival.Client.Services;
 
-public class AutenticacaoService
+public class AutenticacaoService : IAutenticacaoService
 {
     private readonly HttpClient _http;
     private readonly ArmazenamentoToken _armazenamento;

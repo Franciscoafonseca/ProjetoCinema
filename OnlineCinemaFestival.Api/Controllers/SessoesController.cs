@@ -54,16 +54,9 @@ public class SessoesController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<SessaoEstadoReadDTO>> GetEstado(int id)
     {
-        try
-        {
-            var estado = await _service.ObterEstadoAsync(id);
+        var estado = await _service.ObterEstadoAsync(id);
 
-            return Ok(estado);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return Ok(estado);
     }
 
     [HttpGet("{id:int}/chat/mensagens")]
@@ -73,132 +66,58 @@ public class SessoesController : ControllerBase
         [FromQuery] int quantidade = 50
     )
     {
-        try
-        {
-            var mensagens = await _chatSessaoService.ObterHistoricoRecenteAsync(
-                id,
-                User.GetUserId(),
-                User.IsInRole(NomesPapeis.Administrador),
-                quantidade
-            );
+        var mensagens = await _chatSessaoService.ObterHistoricoRecenteAsync(
+            id,
+            User.GetUserId(),
+            User.IsInRole(NomesPapeis.Administrador),
+            quantidade
+        );
 
-            return Ok(mensagens);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(mensagens);
     }
 
     [HttpGet("festival/{festivalId:int}")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<SessaoResumoDTO>>> GetByFestival(int festivalId)
     {
-        try
-        {
-            var sessoes = await _service.ObterPorFestivalIdAsync(festivalId);
+        var sessoes = await _service.ObterPorFestivalIdAsync(festivalId);
 
-            return Ok(sessoes);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return Ok(sessoes);
     }
 
     [HttpGet("filme/{filmeId:int}")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<SessaoResumoDTO>>> GetByFilme(int filmeId)
     {
-        try
-        {
-            var sessoes = await _service.ObterPorFilmeIdAsync(filmeId);
+        var sessoes = await _service.ObterPorFilmeIdAsync(filmeId);
 
-            return Ok(sessoes);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return Ok(sessoes);
     }
 
     [HttpPost]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<SessaoDetalheDTO>> Criar(CriarSessaoDTO dto)
     {
-        try
-        {
-            var sessao = await _service.CriarAsync(dto);
+        var sessao = await _service.CriarAsync(dto);
 
-            return CreatedAtAction(nameof(ObterPorId), new { id = sessao.Id }, sessao);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return CreatedAtAction(nameof(ObterPorId), new { id = sessao.Id }, sessao);
     }
 
     [HttpPut("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> Atualizar(int id, SessaoUpdateDTO dto)
     {
-        try
-        {
-            await _service.AtualizarAsync(id, dto);
+        await _service.AtualizarAsync(id, dto);
 
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return NoContent();
     }
 
     [HttpDelete("{id:int}")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<IActionResult> Eliminar(int id)
     {
-        try
-        {
-            await _service.EliminarAsync(id);
+        await _service.EliminarAsync(id);
 
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        return NoContent();
     }
 }

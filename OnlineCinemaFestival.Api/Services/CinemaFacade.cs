@@ -39,7 +39,7 @@ public class CinemaFacade : ICinemaFacade
     {
         if (acesso.Tipo == TipoAcesso.AluguerDigital)
         {
-            var decorador = new Aluguer48hDecorator(acesso);
+            var decorador = new AluguerDigitalDecorator(acesso);
             return decorador.TemAcesso();
         }
 

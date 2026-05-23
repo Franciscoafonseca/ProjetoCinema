@@ -23,20 +23,9 @@ public class CatalogoController : ControllerBase
         [FromQuery] CatalogoQueryDTO query
     )
     {
-        try
-        {
-            var filmes = await _service.ObterCatalogoAsync(query);
+        var filmes = await _service.ObterCatalogoAsync(query);
 
-            return Ok(filmes);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(filmes);
     }
 
     [HttpGet("festival/{festivalId:int}")]
@@ -45,20 +34,9 @@ public class CatalogoController : ControllerBase
         [FromQuery] CatalogoQueryDTO query
     )
     {
-        try
-        {
-            var filmes = await _service.ObterFilmesPorFestivalAsync(festivalId, query);
+        var filmes = await _service.ObterFilmesPorFestivalAsync(festivalId, query);
 
-            return Ok(filmes);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(filmes);
     }
 
     [HttpGet("filmes/{filmeId:int}")]
