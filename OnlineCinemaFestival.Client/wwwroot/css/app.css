@@ -259,6 +259,12 @@ code {
   color: var(--ocf-teal-soft);
 }
 
+.cinema-btn.error {
+  border-color: rgba(229, 9, 20, 0.4);
+  background: rgba(229, 9, 20, 0.18);
+  color: #ffe9ec;
+}
+
 .cinema-btn.ghost {
   border-color: var(--ocf-line-strong);
   background: rgba(255, 255, 255, 0.07);

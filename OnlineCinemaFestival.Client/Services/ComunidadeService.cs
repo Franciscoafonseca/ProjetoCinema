@@ -112,6 +112,16 @@ public class ComunidadeService
             );
     }
 
+    public async Task ApagarAsync(Guid id)
+    {
+        var resposta = await _http.DeleteAsync($"api/comunidades/{id}");
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel apagar a comunidade.")
+            );
+    }
+
     private ComunidadeDTO? NormalizarFotosMembros(ComunidadeDTO? comunidade)
     {
         if (comunidade == null)

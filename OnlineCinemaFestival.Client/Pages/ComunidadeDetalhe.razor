@@ -49,8 +49,22 @@
                             <span>Convite @_comunidade.CodigoConvite</span>
                         }
                     </div>
+                    <div class="community-id">
+                        <span>ID da comunidade</span>
+                        <code>@_comunidade.Id</code>
+                        <p>Partilha este ID para permitir a pesquisa rapida.</p>
+                    </div>
                 </div>
-                <button class="cinema-btn secondary" @onclick="Voltar">Voltar</button>
+                <div class="community-detail-actions">
+                    @if (_comunidade.IsOwner)
+                    {
+                        <button class="cinema-btn error" disabled="@_aApagar"
+                                @onclick="ApagarComunidadeAsync">
+                            Apagar
+                        </button>
+                    }
+                    <button class="cinema-btn secondary" @onclick="Voltar">Voltar</button>
+                </div>
             </header>
 
             <section class="community-detail-grid">
@@ -203,6 +217,7 @@
     private bool _aCarregar = true;
     private bool _aCarregarComentarios;
     private bool _aComentar;
+    private bool _aApagar;
     private string? _erroGeral;
     private string? _mensagemComentario;
     private string? _mensagemPerfil;
@@ -277,6 +292,29 @@
         finally
         {
             _aComentar = false;
+        }
+    }
+
+    private async Task ApagarComunidadeAsync()
+    {
+        if (_comunidade == null)
+            return;
+
+        _aApagar = true;
+        _erroGeral = null;
+
+        try
+        {
+            await ComunidadeService.ApagarAsync(_comunidade.Id);
+            Nav.NavigateTo("/comunidades");
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aApagar = false;
         }
     }
 

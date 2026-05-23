@@ -76,7 +76,10 @@ public class ComunidadesController : ControllerBase
     [HttpGet("convite/{codigoConvite}")]
     public async Task<ActionResult<ComunidadeReadDTO>> ObterComunidadePorConvite(string codigoConvite)
     {
-        var comunidade = await _comunidadeService.ObterComunidadePorConviteAsync(codigoConvite);
+        var comunidade = await _comunidadeService.ObterComunidadePorConviteAsync(
+            codigoConvite,
+            User.GetUserId()
+        );
         if (comunidade == null)
             return NotFound("Comunidade não encontrada.");
         return Ok(comunidade);
@@ -111,6 +114,29 @@ public class ComunidadesController : ControllerBase
                 User.GetUserId()
             );
             return Ok(new { mensagem = "Convite aceite! Bem-vindo à comunidade." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> ApagarComunidade(Guid id)
+    {
+        try
+        {
+            await _comunidadeService.ApagarComunidadeAsync(id, User.GetUserId());
+            return Ok(new { mensagem = "Comunidade apagada com sucesso!" });
+        } 
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensagem = ex.Message });
         }
         catch (UnauthorizedAccessException ex)
         {
