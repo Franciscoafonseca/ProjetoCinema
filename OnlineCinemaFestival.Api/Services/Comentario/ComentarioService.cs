@@ -125,6 +125,78 @@ public class ComentarioService : IComentarioService
         return comentarios.Select(ComentarioMapper.ToReadDTO);
     }
 
+    public async Task ReportarComentarioAsync(Guid comunidadeId, int comentarioId, int utilizadorId)
+    {
+        var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(comunidadeId);
+        if (comunidade == null)
+            throw new KeyNotFoundException("Comunidade nao encontrada.");
+
+        var acessoProibido =
+            !comunidade.IsPublic
+            && !await _comunidadeRepository.IsMembroAsync(comunidade.Id, utilizadorId);
+        if (acessoProibido)
+            throw new UnauthorizedAccessException("Acesso negado a comunidade privada.");
+
+        var comentario = await _comentarioRepository.GetByIdAsync(comentarioId);
+        if (comentario == null || comentario.ComunidadeId != comunidade.Id)
+            throw new KeyNotFoundException("Comentario nao encontrado.");
+
+        if (!comentario.Reportado)
+        {
+            comentario.Reportado = true;
+            await _comentarioRepository.UpdateAsync(comentario);
+        }
+    }
+
+    public async Task<IEnumerable<ComentarioReadDTO>> ObterComentariosReportadosAsync(
+        Guid comunidadeId,
+        int utilizadorId
+    )
+    {
+        var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(comunidadeId);
+        if (comunidade == null)
+            throw new KeyNotFoundException("Comunidade nao encontrada.");
+
+        var isOwner = comunidade.Members.Any(m =>
+            m.UtilizadorId == utilizadorId && m.Role == PapelMembroComunidade.Proprietario
+        );
+
+        if (!isOwner)
+            throw new UnauthorizedAccessException("Apenas o proprietario pode ver reportes.");
+
+        var comentarios = await _comentarioRepository.ObterReportadosPorComunidadeIdAsync(
+            comunidade.Id
+        );
+        return comentarios.Select(ComentarioMapper.ToReadDTO);
+    }
+
+    public async Task AtualizarVisibilidadeComentarioAsync(
+        Guid comunidadeId,
+        int comentarioId,
+        bool visivel,
+        int utilizadorId
+    )
+    {
+        var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(comunidadeId);
+        if (comunidade == null)
+            throw new KeyNotFoundException("Comunidade nao encontrada.");
+
+        var isOwner = comunidade.Members.Any(m =>
+            m.UtilizadorId == utilizadorId && m.Role == PapelMembroComunidade.Proprietario
+        );
+
+        if (!isOwner)
+            throw new UnauthorizedAccessException("Apenas o proprietario pode moderar comentarios.");
+
+        var comentario = await _comentarioRepository.GetByIdAsync(comentarioId);
+        if (comentario == null || comentario.ComunidadeId != comunidade.Id)
+            throw new KeyNotFoundException("Comentario nao encontrado.");
+
+        comentario.Visivel = visivel;
+        comentario.Reportado = false;
+        await _comentarioRepository.UpdateAsync(comentario);
+    }
+
     private static void ValidarComentario(ComentarioCreateDTO dto)
     {
         var texto = dto.Texto?.Trim() ?? string.Empty;

@@ -98,3 +98,8 @@ public class ComentarioCreateDTO
 
     public int? FilmeId { get; set; }
 }
+
+public class ComentarioVisibilidadeDTO
+{
+    public bool Visivel { get; set; }
+}
