@@ -63,6 +63,12 @@ public class ComunidadeRepository : IComunidadeRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task RemoverMembroAsync(ComunidadeMembro membro)
+    {
+        _context.ComunidadeMembros.Remove(membro);
+        await _context.SaveChangesAsync();
+    }
+
     private IQueryable<Comunidade> ComunidadesComDetalhes()
     {
         return _context

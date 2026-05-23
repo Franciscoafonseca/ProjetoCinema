@@ -122,6 +122,16 @@ public class ComunidadeService
             );
     }
 
+    public async Task SairAsync(Guid id)
+    {
+        var resposta = await _http.PostAsync($"api/comunidades/{id}/sair", null);
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel sair da comunidade.")
+            );
+    }
+
     private ComunidadeDTO? NormalizarFotosMembros(ComunidadeDTO? comunidade)
     {
         if (comunidade == null)
