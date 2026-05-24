@@ -77,6 +77,10 @@ public class AcessoUtilizadorDTO
     public DateTime FimValidade { get; set; }
 
     public bool Ativo { get; set; }
+
+    public bool PodeVisualizarAgora { get; set; }
+
+    public string EstadoAcesso { get; set; } = string.Empty;
 }
 
 public class AcessoAtivoDTO : AcessoUtilizadorDTO { }

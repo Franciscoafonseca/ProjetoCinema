@@ -16,6 +16,8 @@ public interface IPremioFestivalRepository
 
     Task<bool> UtilizadorJaVotouAsync(int premioFestivalId, int utilizadorId);
 
+    Task<bool> UtilizadorViuTodosFilmesElegiveisAsync(int festivalId, int utilizadorId);
+
     Task AddVotoAsync(VotoPremioFestival voto);
 
     Task<(int FilmeId, int TotalVotos)?> ObterVencedorPorVotosAsync(int premioFestivalId);

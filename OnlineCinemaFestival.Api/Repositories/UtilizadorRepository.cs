@@ -68,7 +68,11 @@ public class UtilizadorRepository : IUtilizadorRepository
             .Include(u => u.GenerosFavoritos)
                 .ThenInclude(ug => ug.Genero)
             .Include(u => u.Avaliacoes)
+                .ThenInclude(a => a.Filme)
             .Include(u => u.Comunidades)
-            .Include(u => u.ListasPessoais);
+                .ThenInclude(c => c.Comunidade)
+                    .ThenInclude(c => c.Members)
+            .Include(u => u.ListasPessoais)
+                .ThenInclude(l => l.Items);
     }
 }

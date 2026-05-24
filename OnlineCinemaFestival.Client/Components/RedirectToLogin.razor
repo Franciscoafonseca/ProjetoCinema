@@ -1,0 +1,11 @@
+@inject NavigationManager Nav
+
+@code {
+    [Parameter] public string ReturnPath { get; set; } = "/";
+
+    protected override void OnInitialized()
+    {
+        var destino = string.IsNullOrWhiteSpace(ReturnPath) ? "/" : ReturnPath;
+        Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(destino)}", replace: true);
+    }
+}

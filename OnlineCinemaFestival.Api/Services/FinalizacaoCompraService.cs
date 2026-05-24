@@ -54,8 +54,9 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
 
             await _compraRepository.AddAsync(compra);
 
-            var pagamentoAprovado = compra.Pagamento.Estado == EstadoPagamento.Aprovado;
-            compra.Estado = pagamentoAprovado ? EstadoCompra.Pago : EstadoCompra.Pendente;
+            var estadoPagamento = compra.Pagamento.Estado;
+            var pagamentoAprovado = estadoPagamento == EstadoPagamento.Aprovado;
+            compra.Estado = ResolverEstadoCompra(estadoPagamento);
             compra.PagaEm = pagamentoAprovado
                 ? compra.Pagamento.ProcessadoEm ?? compra.Pagamento.CriadoEm
                 : null;
@@ -66,17 +67,20 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
                 carrinhoValido
             );
 
-            if (pagamentoAprovado)
+            if (pagamentoAprovado || estadoPagamento == EstadoPagamento.Pendente)
             {
+                if (pagamentoAprovado)
+                {
                 var acessos = carrinhoValido.Itens.Select(item => item.Acesso).ToList();
                 await Task.WhenAll(
                     _compraObservers.Select(observer =>
                         observer.NotificarAsync(utilizadorId, compra.ValorTotal, acessos)
                     )
                 );
-            }
+                }
 
-            await _carrinhoCheckoutService.LimparCarrinhoAsync(carrinhoValido);
+                await _carrinhoCheckoutService.LimparCarrinhoAsync(carrinhoValido);
+            }
 
             await _compraRepository.SaveChangesAsync();
 
@@ -85,11 +89,33 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
             return CompraMapper.MapToCheckoutResultadoDTO(
                 compraCriada!,
                 acessosGerados,
-                pagamentoAprovado
-                    ? "Compra finalizada com sucesso."
-                    : $"Referencia Multibanco gerada. O pagamento fica pendente durante {_expiracaoMultibancoHoras} horas.",
+                ObterMensagemResultado(estadoPagamento),
                 _expiracaoMultibancoHoras
             );
         });
+    }
+
+    private EstadoCompra ResolverEstadoCompra(EstadoPagamento estadoPagamento)
+    {
+        return estadoPagamento switch
+        {
+            EstadoPagamento.Aprovado => EstadoCompra.Pago,
+            EstadoPagamento.Pendente => EstadoCompra.Pendente,
+            EstadoPagamento.Recusado => EstadoCompra.Cancelado,
+            _ => EstadoCompra.Cancelado,
+        };
+    }
+
+    private string ObterMensagemResultado(EstadoPagamento estadoPagamento)
+    {
+        return estadoPagamento switch
+        {
+            EstadoPagamento.Aprovado => "Compra finalizada com sucesso.",
+            EstadoPagamento.Pendente =>
+                $"Referencia Multibanco gerada. O pagamento fica pendente durante {_expiracaoMultibancoHoras} horas.",
+            EstadoPagamento.Recusado => "Pagamento recusado. A compra foi cancelada.",
+            EstadoPagamento.Expirado => "Referencia Multibanco expirada.",
+            _ => "Pagamento nao aprovado. A compra foi cancelada.",
+        };
     }
 }

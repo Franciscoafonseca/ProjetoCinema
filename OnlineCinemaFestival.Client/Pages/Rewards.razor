@@ -1,66 +1,115 @@
 @page "/rewards"
+@attribute [Authorize]
+@inject RewardsService RewardsService
 
-<PageTitle>Rewards — Online Cinema Festival</PageTitle>
+<PageTitle>Rewards - Online Cinema Festival</PageTitle>
 
-<div class="rewards-shell">
-    <header class="rewards-header">
-        <div class="header-left">
-            <div class="gift-icon">🎁</div>
+<main class="cinema-page rewards-page">
+    <section class="cinema-shell rewards-shell">
+        <header class="cinema-page-head rewards-header">
             <div>
-                <h1>My Rewards</h1>
-                <div class="tier-name">@RewardTier</div>
+                <span class="cinema-kicker">Rewards</span>
+                <h1>Os teus pontos</h1>
+                <p>Historico de pontos ganhos por acoes reais na plataforma.</p>
             </div>
-        </div>
-        <div class="level-tag">Lvl @Level</div>
-    </header>
+            <div class="points-total">
+                <span>Total</span>
+                <strong>@_saldo</strong>
+            </div>
+        </header>
 
-    <section class="progress-panel">
-        <div class="progress-title">Your Progress</div>
-        <div class="progress-value">@CurrentExp/@TargetExp exp</div>
-        <div class="progress-bar">
-            <div class="progress-fill" style="width:@ProgressPercent%"></div>
-        </div>
-    </section>
-
-    <section class="missions-panel">
-        <div class="section-header">
-            <h2>Missões Diárias</h2>
-            <div class="accent-bar"></div>
-        </div>
-        <div class="missions-grid">
-            @foreach (var mission in DailyMissions)
-            {
-                <div class="mission-pill">
-                    <span>@mission.Name</span>
-                    <span class="mission-reward">@mission.Reward</span>
+        @if (_loading)
+        {
+            <div class="cinema-state">
+                <div class="spinner"></div>
+                <p>A carregar rewards...</p>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_erro))
+        {
+            <div class="cinema-state error">
+                <p>@_erro</p>
+                <button class="cinema-btn secondary" @onclick="CarregarRewardsAsync">Tentar novamente</button>
+            </div>
+        }
+        else
+        {
+            <section class="cinema-panel rewards-summary">
+                <div>
+                    <span class="summary-label">Saldo disponivel</span>
+                    <strong>@_saldo pontos</strong>
                 </div>
-            }
-        </div>
-    </section>
+                <div>
+                    <span class="summary-label">Acoes registadas</span>
+                    <strong>@_historico.Count</strong>
+                </div>
+            </section>
 
-    <section class="actions-panel">
-        <button class="cta-button">Ver loja de pontos</button>
-        <button class="cta-button secondary">Conquistas</button>
+            <section class="cinema-panel">
+                <div class="cinema-section-head compact">
+                    <div>
+                        <span class="cinema-kicker">Historico</span>
+                        <h2>Movimentos de pontos</h2>
+                    </div>
+                </div>
+
+                @if (_historico.Count == 0)
+                {
+                    <div class="cinema-state slim">Ainda nao ha pontos registados.</div>
+                }
+                else
+                {
+                    <div class="reward-history">
+                        @foreach (var transacao in _historico.OrderByDescending(t => t.Data))
+                        {
+                            <article class="reward-row">
+                                <div>
+                                    <strong>@transacao.Motivo</strong>
+                                    <span>@transacao.Data.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                                <b>+@transacao.Pontos</b>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+        }
     </section>
-</div>
+</main>
 
 @code {
-    private readonly int Level = 12;
-    private readonly string RewardTier = "Silver Critic";
-    private readonly int CurrentExp = 1450;
-    private readonly int TargetExp = 2000;
+    private int _saldo;
+    private bool _loading = true;
+    private string? _erro;
+    private List<RewardTransacaoDto> _historico = new();
 
-    private int ProgressPercent => (int)(CurrentExp * 100m / TargetExp);
-
-    private readonly List<MissionItem> DailyMissions = new()
+    protected override async Task OnInitializedAsync()
     {
-        new("Assistir a 1 filme indie", "+50 exp"),
-        new("Avaliar 3 filmes", "+30 exp"),
-        new("Participar numa comunidade", "+40 exp"),
-        new("Completar um festival", "+80 exp"),
-        new("Partilhar uma lista", "+20 exp"),
-        new("Comentar um filme", "+25 exp")
-    };
+        await CarregarRewardsAsync();
+    }
 
-    private sealed record MissionItem(string Name, string Reward);
+    private async Task CarregarRewardsAsync()
+    {
+        _loading = true;
+        _erro = null;
+
+        try
+        {
+            _saldo = await RewardsService.GetSaldoAsync();
+            _historico = await RewardsService.GetHistoricoAsync();
+        }
+        catch (Exception ex)
+        {
+            _erro = MensagemErroApi.Limpar(
+                ex.Message,
+                "Nao foi possivel carregar os teus rewards."
+            );
+            _historico.Clear();
+            _saldo = 0;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
 }

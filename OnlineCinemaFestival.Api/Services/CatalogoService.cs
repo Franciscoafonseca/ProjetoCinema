@@ -39,8 +39,10 @@ public class CatalogoService : ICatalogoService
             filmes = await _filmeRepository.ObterTodosAsync();
         }
 
-        filmes = AplicarFiltros(filmes, query);
-        filmes = AplicarOrdenacao(filmes, query);
+        var generosSelecionados = ObterGenerosSelecionados(query.Genero);
+
+        filmes = AplicarFiltros(filmes, query, generosSelecionados);
+        filmes = AplicarOrdenacao(filmes, query, generosSelecionados);
 
         return filmes.Select(FilmeMapper.MapToReadDTO);
     }
@@ -77,7 +79,8 @@ public class CatalogoService : ICatalogoService
 
     private static IEnumerable<Filme> AplicarFiltros(
         IEnumerable<Filme> filmes,
-        CatalogoQueryDTO query
+        CatalogoQueryDTO query,
+        IReadOnlyCollection<string> generosSelecionados
     )
     {
         if (!string.IsNullOrWhiteSpace(query.Pesquisa))
@@ -96,23 +99,78 @@ public class CatalogoService : ICatalogoService
             );
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Genero))
+        if (generosSelecionados.Count > 0)
         {
-            var genero = query.Genero.Trim();
-
             filmes = filmes.Where(f =>
-                !string.IsNullOrWhiteSpace(f.Genero)
-                && f.Genero.Contains(genero, StringComparison.OrdinalIgnoreCase)
+                ContarGenerosEmComum(f, generosSelecionados) > 0
             );
         }
 
         return filmes;
     }
 
-    private IEnumerable<Filme> AplicarOrdenacao(IEnumerable<Filme> filmes, CatalogoQueryDTO query)
+    private IEnumerable<Filme> AplicarOrdenacao(
+        IEnumerable<Filme> filmes,
+        CatalogoQueryDTO query,
+        IReadOnlyCollection<string> generosSelecionados
+    )
     {
         var strategy = _ordenacaoFactory.GetStrategy(query.OrdenarPor);
+        var ordenados = strategy.Ordenar(filmes, query.Descendente);
 
-        return strategy.Ordenar(filmes, query.Descendente);
+        if (generosSelecionados.Count == 0)
+            return ordenados;
+
+        return ordenados
+            .Select((filme, indice) => new
+            {
+                Filme = filme,
+                Indice = indice,
+                Correspondencias = ContarGenerosEmComum(filme, generosSelecionados),
+            })
+            .OrderByDescending(item => item.Correspondencias)
+            .ThenBy(item => item.Indice)
+            .Select(item => item.Filme);
+    }
+
+    private static IReadOnlyCollection<string> ObterGenerosSelecionados(string? genero)
+    {
+        if (string.IsNullOrWhiteSpace(genero))
+            return Array.Empty<string>();
+
+        return genero
+            .Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(g => !string.IsNullOrWhiteSpace(g))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static int ContarGenerosEmComum(
+        Filme filme,
+        IReadOnlyCollection<string> generosSelecionados
+    )
+    {
+        if (generosSelecionados.Count == 0)
+            return 0;
+
+        var generosFilme = GenerosDoFilme(filme).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return generosSelecionados.Count(generosFilme.Contains);
+    }
+
+    private static IEnumerable<string> GenerosDoFilme(Filme filme)
+    {
+        var porTabela = filme.FilmeGeneros
+            .Select(fg => fg.Genero?.Name)
+            .Where(g => !string.IsNullOrWhiteSpace(g))
+            .Select(g => g!);
+
+        var porTexto = string.IsNullOrWhiteSpace(filme.Genero)
+            ? Array.Empty<string>()
+            : filme.Genero.Split(
+                ',',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+            );
+
+        return porTabela.Concat(porTexto).Where(g => !string.IsNullOrWhiteSpace(g));
     }
 }

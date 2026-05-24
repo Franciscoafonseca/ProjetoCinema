@@ -12,6 +12,8 @@ public class FestivalDTO
 
     public DateTime EndDate { get; set; }
 
+    public string EstadoFestival { get; set; } = string.Empty;
+
     public List<FestivalFilmeDTO> FilmesDoFestival { get; set; } = new();
 
     public List<ResultadoPremioFestivalDTO> ResultadosPremiosPublicados { get; set; } = new();

@@ -11,18 +11,21 @@ public class ComentarioService : IComentarioService
     private readonly IUtilizadorRepository _utilizadorRepository;
     private readonly IComunidadeRepository _comunidadeRepository;
     private readonly IFilmeRepository _filmeRepository;
+    private readonly IEnumerable<IComentarioObserver> _comentarioObservers;
 
     public ComentarioService(
         IComentarioRepository comentarioRepository,
         IUtilizadorRepository utilizadorRepository,
         IComunidadeRepository comunidadeRepository,
-        IFilmeRepository filmeRepository
+        IFilmeRepository filmeRepository,
+        IEnumerable<IComentarioObserver> comentarioObservers
     )
     {
         _comentarioRepository = comentarioRepository;
         _utilizadorRepository = utilizadorRepository;
         _comunidadeRepository = comunidadeRepository;
         _filmeRepository = filmeRepository;
+        _comentarioObservers = comentarioObservers;
     }
 
     public async Task<ComentarioReadDTO> CriarComentarioAsync(
@@ -62,6 +65,7 @@ public class ComentarioService : IComentarioService
         result.Usuario = utilizador;
         result.Comunidade = comunidade;
         result.Filme = filmeAssociado;
+        await NotificarComentarioAsync(result);
 
         return ComentarioMapper.ToReadDTO(result);
     }
@@ -82,7 +86,8 @@ public class ComentarioService : IComentarioService
             throw new UnauthorizedAccessException("Acesso negado a comunidade privada.");
 
         var listaDeComentarios = await _comentarioRepository.ObterPorComunidadeIdAsync(
-            comunidade.Id
+            comunidade.Id,
+            incluirModerados: await UtilizadorPodeModerarAsync(comunidade, utilizadorId)
         );
         return listaDeComentarios.Select(ComentarioMapper.ToReadDTO);
     }
@@ -111,6 +116,7 @@ public class ComentarioService : IComentarioService
 
         result.Usuario = utilizador;
         result.Filme = filme;
+        await NotificarComentarioAsync(result);
 
         return ComentarioMapper.ToReadDTO(result);
     }
@@ -125,6 +131,30 @@ public class ComentarioService : IComentarioService
         return comentarios.Select(ComentarioMapper.ToReadDTO);
     }
 
+    public async Task<ComentarioReadDTO> ModerarComentarioComunidadeAsync(
+        Guid comunidadeId,
+        int comentarioId,
+        ModerarComentarioDTO dto,
+        int moderadorUtilizadorId
+    )
+    {
+        var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(comunidadeId);
+        if (comunidade == null)
+            throw new KeyNotFoundException("Comunidade nao encontrada.");
+
+        if (!await UtilizadorPodeModerarAsync(comunidade, moderadorUtilizadorId))
+            throw new UnauthorizedAccessException("Apenas o dono da comunidade pode moderar comentarios.");
+
+        var comentario = await _comentarioRepository.ObterPorIdAsync(comentarioId);
+        if (comentario == null || comentario.ComunidadeId != comunidade.Id)
+            throw new KeyNotFoundException("Comentario nao encontrado nesta comunidade.");
+
+        AplicarModeracao(comentario, dto.Acao, moderadorUtilizadorId);
+
+        await _comentarioRepository.SaveChangesAsync();
+        return ComentarioMapper.ToReadDTO(comentario);
+    }
+
     private static void ValidarComentario(ComentarioCreateDTO dto)
     {
         var texto = dto.Texto?.Trim() ?? string.Empty;
@@ -137,5 +167,49 @@ public class ComentarioService : IComentarioService
 
         if (texto.Length > 600)
             throw new ArgumentException("O comentario nao pode exceder 600 caracteres.");
+    }
+
+    private Task NotificarComentarioAsync(Comentario comentario)
+    {
+        return Task.WhenAll(_comentarioObservers.Select(observer => observer.NotificarAsync(comentario)));
+    }
+
+    private async Task<bool> UtilizadorPodeModerarAsync(
+        Comunidade comunidade,
+        int utilizadorId
+    )
+    {
+        if (comunidade.CreatedByUserId == utilizadorId)
+            return true;
+
+        return await _comunidadeRepository.IsProprietarioAsync(comunidade.Id, utilizadorId);
+    }
+
+    private static void AplicarModeracao(
+        Comentario comentario,
+        AcaoModeracaoComentario acao,
+        int moderadorUtilizadorId
+    )
+    {
+        switch (acao)
+        {
+            case AcaoModeracaoComentario.Ocultar:
+                comentario.Visivel = false;
+                comentario.EstadoModeracao = EstadoModeracaoComentario.Oculto;
+                break;
+            case AcaoModeracaoComentario.Remover:
+                comentario.Visivel = false;
+                comentario.EstadoModeracao = EstadoModeracaoComentario.Removido;
+                break;
+            case AcaoModeracaoComentario.Restaurar:
+                comentario.Visivel = true;
+                comentario.EstadoModeracao = EstadoModeracaoComentario.Visivel;
+                break;
+            default:
+                throw new ArgumentException("Acao de moderacao invalida.");
+        }
+
+        comentario.ModeradoPorUtilizadorId = moderadorUtilizadorId;
+        comentario.ModeradoEm = DateTime.UtcNow;
     }
 }

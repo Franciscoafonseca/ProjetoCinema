@@ -1,11 +1,17 @@
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Models;
+using System;
 
 namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class FestivalMapper
 {
     public static FestivalReadDTO MapToReadDTO(Festival festival)
+    {
+        return MapToReadDTO(festival, DateTime.UtcNow);
+    }
+
+    public static FestivalReadDTO MapToReadDTO(Festival festival, DateTime agoraUtc)
     {
         return new FestivalReadDTO
         {
@@ -14,6 +20,7 @@ public static class FestivalMapper
             Description = festival.Description,
             StartDate = festival.StartDate,
             EndDate = festival.EndDate,
+            EstadoFestival = ObterEstadoFestival(festival.StartDate, festival.EndDate, agoraUtc),
             Premios = festival.Premios,
             Filmes = festival
                 .FestivalFilmes.Select(ff => (FilmeResumoDTO)FilmeMapper.MapToReadDTO(ff.Filme))
@@ -77,5 +84,16 @@ public static class FestivalMapper
                     ? null
                     : (FilmeResumoDTO)FilmeMapper.MapToReadDTO(festivalFilme.Filme),
         };
+    }
+
+    private static string ObterEstadoFestival(DateTime startDate, DateTime endDate, DateTime agora)
+    {
+        if (agora < startDate)
+            return "Em breve";
+
+        if (agora <= endDate)
+            return "A decorrer";
+
+        return "Terminada";
     }
 }

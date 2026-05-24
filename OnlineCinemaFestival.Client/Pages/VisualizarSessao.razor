@@ -35,12 +35,24 @@
         {
             <MudPaper Elevation="0" Class="pa-0 overflow-hidden">
                 <div style="aspect-ratio: 16 / 9; width: 100%; background: #111;">
-                    <iframe src="@UrlPlayer(_conteudoSelecionado.UrlVisualizacao)"
-                            title="@_conteudoSelecionado.Titulo"
-                            style="width: 100%; height: 100%; border: 0;"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowfullscreen>
-                    </iframe>
+                    @if (EhVideoDireto(_conteudoSelecionado.UrlVisualizacao))
+                    {
+                        <video src="@_conteudoSelecionado.UrlVisualizacao"
+                               title="@_conteudoSelecionado.Titulo"
+                               style="width: 100%; height: 100%;"
+                               controls
+                               playsinline>
+                        </video>
+                    }
+                    else
+                    {
+                        <iframe src="@UrlPlayer(_conteudoSelecionado.UrlVisualizacao)"
+                                title="@_conteudoSelecionado.Titulo"
+                                style="width: 100%; height: 100%; border: 0;"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen>
+                        </iframe>
+                    }
                 </div>
             </MudPaper>
 
@@ -49,7 +61,7 @@
                     <MudText Typo="Typo.caption" Color="Color.Secondary">@_visualizacao?.TipoConteudo</MudText>
                     <MudText Typo="Typo.h5">@_conteudoSelecionado.Titulo</MudText>
                 </div>
-                @if (_visualizacao?.TemChatAoVivo == true)
+                @if (_visualizacao?.TemChatAoVivo == true && EstadoChat == ChatSessaoEstado.Ativo)
                 {
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Info"
@@ -57,6 +69,12 @@
                                OnClick="AbrirChatAoVivo">
                         Abrir chat ao vivo
                     </MudButton>
+                }
+                else if (_visualizacao?.TemChatAoVivo == true)
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                        @MensagemChat
+                    </MudAlert>
                 }
             </MudStack>
 
@@ -90,6 +108,33 @@
     private string? _erro;
     private Severity _erroSeveridade = Severity.Error;
 
+    private ChatSessaoEstado EstadoChat
+    {
+        get
+        {
+            if (_visualizacao?.TemChatAoVivo != true)
+                return ChatSessaoEstado.Indisponivel;
+
+            var agora = DateTime.UtcNow;
+
+            if (_visualizacao.SessaoInicio.HasValue && agora < _visualizacao.SessaoInicio.Value)
+                return ChatSessaoEstado.AindaNaoDisponivel;
+
+            if (_visualizacao.SessaoFim.HasValue && agora > _visualizacao.SessaoFim.Value)
+                return ChatSessaoEstado.Terminado;
+
+            return ChatSessaoEstado.Ativo;
+        }
+    }
+
+    private string MensagemChat =>
+        EstadoChat switch
+        {
+            ChatSessaoEstado.AindaNaoDisponivel => "Chat ainda nao disponivel",
+            ChatSessaoEstado.Terminado => "Chat encerrado para esta sessao.",
+            _ => "Chat indisponivel.",
+        };
+
     protected override async Task OnParametersSetAsync()
     {
         _aCarregar = true;
@@ -103,12 +148,17 @@
         }
         catch (VisualizacaoApiException ex) when (ex.StatusCode == 403)
         {
-            _erro = "Não tens acesso válido a este conteúdo";
+            _erro = MensagemErroApi.Limpar(ex.Message, "Sem acesso para abrir esta sessao.");
+            _erroSeveridade = Severity.Warning;
+        }
+        catch (VisualizacaoApiException ex) when (ex.StatusCode == 401)
+        {
+            _erro = MensagemErroApi.Limpar(ex.Message, "Inicia sessao para continuar.");
             _erroSeveridade = Severity.Warning;
         }
         catch (VisualizacaoApiException ex) when (ex.StatusCode == 404)
         {
-            _erro = "Conteúdo não encontrado";
+            _erro = MensagemErroApi.Limpar(ex.Message, "Sessao nao encontrada.");
             _erroSeveridade = Severity.Error;
         }
         catch (Exception ex)
@@ -175,5 +225,26 @@
         }
 
         return url;
+    }
+
+    private static bool EhVideoDireto(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return false;
+
+        var valor = url.Split('?', 2)[0];
+        return valor.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)
+            || valor.EndsWith(".webm", StringComparison.OrdinalIgnoreCase)
+            || valor.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase)
+            || valor.StartsWith("/videos/", StringComparison.OrdinalIgnoreCase)
+            || valor.StartsWith("videos/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private enum ChatSessaoEstado
+    {
+        Indisponivel,
+        AindaNaoDisponivel,
+        Ativo,
+        Terminado,
     }
 }

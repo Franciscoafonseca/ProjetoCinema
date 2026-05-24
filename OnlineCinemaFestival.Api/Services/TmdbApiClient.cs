@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -30,9 +31,22 @@ public class TmdbApiClient : ITmdbApiClient
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{path}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _httpClient.SendAsync(request);
+        HttpResponseMessage response;
 
-        if (!response.IsSuccessStatusCode)
+        try
+        {
+            response = await _httpClient.SendAsync(request);
+        }
+        catch (TaskCanceledException)
+        {
+            return default;
+        }
+        catch (HttpRequestException)
+        {
+            return default;
+        }
+
+        if (!response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.TooManyRequests)
             return default;
 
         var jsonString = await response.Content.ReadAsStringAsync();

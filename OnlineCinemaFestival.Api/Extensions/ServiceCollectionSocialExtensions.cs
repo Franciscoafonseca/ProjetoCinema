@@ -17,6 +17,8 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<IComentarioService, ComentarioService>();
         services.AddScoped<IComunidadeRepository, ComunidadeRepository>();
         services.AddScoped<IComunidadeService, ComunidadeService>();
+        services.AddScoped<IReporteUtilizadorRepository, ReporteUtilizadorRepository>();
+        services.AddScoped<IReporteUtilizadorService, ReporteUtilizadorService>();
 
         return services;
     }

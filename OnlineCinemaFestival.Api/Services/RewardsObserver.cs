@@ -9,17 +9,14 @@ namespace OnlineCinemaFestival.Api.Services;
 public class RewardsObserver : ICompraObserver
 {
     private readonly ILogger<RewardsObserver> _logger;
-    private readonly IRewardsRepository _rewardsRepository;
-    private readonly IRewardTransacaoRepository _transacaoRepository;
+    private readonly IRewardsPontuacaoService _rewardsPontuacaoService;
 
     public RewardsObserver(
         ILogger<RewardsObserver> logger,
-        IRewardsRepository rewardsRepository,
-        IRewardTransacaoRepository transacaoRepository)
+        IRewardsPontuacaoService rewardsPontuacaoService)
     {
         _logger = logger;
-        _rewardsRepository = rewardsRepository;
-        _transacaoRepository = transacaoRepository;
+        _rewardsPontuacaoService = rewardsPontuacaoService;
     }
 
     public async Task NotificarAsync(int utilizadorId, decimal valorTotal, List<ModelAcesso> acessos)
@@ -29,15 +26,15 @@ public class RewardsObserver : ICompraObserver
 
         if (pontosGanhos > 0)
         {
-            await _rewardsRepository.AddOrUpdatePointsAsync(utilizadorId, pontosGanhos);
-            await _transacaoRepository.AddAsync(new RewardTransacao
-            {
-                UtilizadorId = utilizadorId,
-                Pontos = pontosGanhos,
-                Motivo = "Compra"
-            });
-            await _transacaoRepository.SaveChangesAsync();
-            _logger.LogInformation("[REWARDS] Utilizador {UtilizadorId} ganhou {Pontos} pontos.", utilizadorId, pontosGanhos);
+            var atribuido = await _rewardsPontuacaoService.AtribuirSeAindaNaoAtribuidoAsync(
+                utilizadorId,
+                pontosGanhos,
+                "Compra",
+                $"compra:{string.Join(',', acessos.Select(a => a.Id).OrderBy(id => id))}:{valorTotal:0.00}"
+            );
+
+            if (atribuido)
+                _logger.LogInformation("[REWARDS] Utilizador {UtilizadorId} ganhou {Pontos} pontos.", utilizadorId, pontosGanhos);
         }
     }
 }

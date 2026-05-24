@@ -102,3 +102,35 @@ public class ComunidadeMembroConfiguration : IEntityTypeConfiguration<Comunidade
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public class ReporteUtilizadorConfiguration : IEntityTypeConfiguration<ReporteUtilizador>
+{
+    public void Configure(EntityTypeBuilder<ReporteUtilizador> builder)
+    {
+        builder.HasIndex(r => new { r.UtilizadorReportadoId, r.ReportadoPorUtilizadorId })
+            .IsUnique();
+
+        builder
+            .HasOne(r => r.UtilizadorReportado)
+            .WithMany()
+            .HasForeignKey(r => r.UtilizadorReportadoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(r => r.ReportadoPorUtilizador)
+            .WithMany()
+            .HasForeignKey(r => r.ReportadoPorUtilizadorId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public class RewardTransacaoConfiguration : IEntityTypeConfiguration<RewardTransacao>
+{
+    public void Configure(EntityTypeBuilder<RewardTransacao> builder)
+    {
+        builder.Property(t => t.Motivo).HasMaxLength(250);
+        builder.Property(t => t.ChaveAcao).HasMaxLength(160);
+
+        builder.HasIndex(t => new { t.UtilizadorId, t.ChaveAcao }).IsUnique();
+    }
+}

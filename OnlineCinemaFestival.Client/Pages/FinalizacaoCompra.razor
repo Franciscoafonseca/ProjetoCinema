@@ -157,7 +157,7 @@
         }
         catch (Exception ex)
         {
-            _erro = ex.Message;
+            _erro = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel concluir a compra.");
         }
         finally
         {
@@ -173,16 +173,20 @@
         try
         {
             _resultado = await FinalizacaoCompraService.FinalizarCompraAsync(_metodoPagamento);
-            _mensagemSeveridade = Severity.Success;
+            _mensagemSeveridade = SeveridadeResultado(_resultado);
             _mensagem = string.IsNullOrWhiteSpace(_resultado.Mensagem)
                 ? "Compra finalizada com sucesso."
                 : _resultado.Mensagem;
-            _carrinho.Itens.Clear();
+
+            if (string.Equals(_resultado.EstadoNome, "Pago", StringComparison.OrdinalIgnoreCase))
+                _carrinho.Itens.Clear();
+            else
+                _carrinho = await CarrinhoService.ObterAsync();
         }
         catch (Exception ex)
         {
             _mensagemSeveridade = Severity.Error;
-            _mensagem = ex.Message;
+            _mensagem = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel finalizar a compra.");
         }
         finally
         {
@@ -245,4 +249,14 @@
     }
 
     private sealed record MetodoPagamentoOpcao(string Codigo, string Nome, string Descricao);
+
+    private static Severity SeveridadeResultado(ResultadoFinalizacaoCompraDTO resultado)
+    {
+        return resultado.EstadoNome switch
+        {
+            "Pago" => Severity.Success,
+            "Pendente" => Severity.Info,
+            _ => Severity.Error,
+        };
+    }
 }

@@ -10,6 +10,10 @@ public class VisualizacaoDTO
 
     public bool TemChatAoVivo { get; set; }
 
+    public DateTime? SessaoInicio { get; set; }
+
+    public DateTime? SessaoFim { get; set; }
+
     public string Mensagem { get; set; } = string.Empty;
 
     public List<ConteudoVisualizacaoDTO> Conteudos { get; set; } = new();

@@ -44,6 +44,15 @@ public class ComunidadeRepository : IComunidadeRepository
         );
     }
 
+    public async Task<bool> IsProprietarioAsync(int comunidadeId, int utilizadorId)
+    {
+        return await _context.ComunidadeMembros.AnyAsync(cm =>
+            cm.ComunidadeId == comunidadeId
+            && cm.UtilizadorId == utilizadorId
+            && cm.Role == PapelMembroComunidade.Proprietario
+        );
+    }
+
     public async Task<Comunidade?> GetComunidadeByConviteAsync(string codigoConvite)
     {
         return await ComunidadesComDetalhes()

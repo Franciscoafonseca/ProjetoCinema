@@ -234,7 +234,16 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("EstadoModeracao")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("FilmeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("ModeradoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModeradoPorUtilizadorId")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("Reportado")
@@ -844,6 +853,42 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("PremiosFestival");
                 });
 
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ReporteUtilizador", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("AtualizadoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ReportadoPorUtilizadorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UtilizadorReportadoId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportadoPorUtilizadorId");
+
+                    b.HasIndex("UtilizadorReportadoId", "ReportadoPorUtilizadorId")
+                        .IsUnique();
+
+                    b.ToTable("ReportesUtilizadores");
+                });
+
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ResultadoPremioFestival", b =>
                 {
                     b.Property<int>("Id")
@@ -900,11 +945,17 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ChaveAcao")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("Data")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Motivo")
                         .IsRequired()
+                        .HasMaxLength(250)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Pontos")
@@ -914,6 +965,9 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UtilizadorId", "ChaveAcao")
+                        .IsUnique();
 
                     b.ToTable("RewardsTransacoes");
                 });
@@ -1451,6 +1505,25 @@ namespace OnlineCinemaFestival.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Festival");
+                });
+
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ReporteUtilizador", b =>
+                {
+                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "ReportadoPorUtilizador")
+                        .WithMany()
+                        .HasForeignKey("ReportadoPorUtilizadorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "UtilizadorReportado")
+                        .WithMany()
+                        .HasForeignKey("UtilizadorReportadoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ReportadoPorUtilizador");
+
+                    b.Navigation("UtilizadorReportado");
                 });
 
             modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ResultadoPremioFestival", b =>

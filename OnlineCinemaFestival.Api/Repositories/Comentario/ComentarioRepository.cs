@@ -22,8 +22,16 @@ public class ComentarioRepository : IComentarioRepository
 
     public async Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(int comunidadeId)
     {
+        return await ObterPorComunidadeIdAsync(comunidadeId, incluirModerados: false);
+    }
+
+    public async Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(
+        int comunidadeId,
+        bool incluirModerados
+    )
+    {
         return await ComentariosComDetalhes()
-            .Where(c => c.ComunidadeId == comunidadeId && c.Visivel)
+            .Where(c => c.ComunidadeId == comunidadeId && (incluirModerados || c.Visivel))
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();
     }
@@ -34,6 +42,16 @@ public class ComentarioRepository : IComentarioRepository
             .Where(c => c.FilmeId == filmeId && c.Visivel)
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();
+    }
+
+    public async Task<Comentario?> ObterPorIdAsync(int id)
+    {
+        return await ComentariosComDetalhes().FirstOrDefaultAsync(c => c.Id == id);
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 
     private IQueryable<Comentario> ComentariosComDetalhes()

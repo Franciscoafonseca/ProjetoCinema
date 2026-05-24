@@ -9,9 +9,6 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<ICarrinhoService, CarrinhoService>();
         services.AddScoped<IFinalizacaoCompraService, FinalizacaoCompraService>();
         services.AddScoped<CompraService>();
-        services.AddScoped<CartService>();
-        services.AddScoped<CarrinhoApiService>();
-        services.AddScoped<ComprasHistoricoService>();
 
         return services;
     }

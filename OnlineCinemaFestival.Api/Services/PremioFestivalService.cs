@@ -8,10 +8,18 @@ namespace OnlineCinemaFestival.Api.Services;
 public class PremioFestivalService : IPremioFestivalService
 {
     private readonly IPremioFestivalRepository _repository;
+    private readonly TimeProvider _timeProvider;
+    private readonly IEnumerable<IVotoPremioObserver> _votoObservers;
 
-    public PremioFestivalService(IPremioFestivalRepository repository)
+    public PremioFestivalService(
+        IPremioFestivalRepository repository,
+        TimeProvider timeProvider,
+        IEnumerable<IVotoPremioObserver> votoObservers
+    )
     {
         _repository = repository;
+        _timeProvider = timeProvider;
+        _votoObservers = votoObservers;
     }
 
     public async Task<PremioFestivalReadDTO> CriarPremioAsync(
@@ -31,13 +39,13 @@ public class PremioFestivalService : IPremioFestivalService
             Descricao = dto.Descricao.Trim(),
             DataAberturaVotacao = dto.DataAberturaVotacao.ToUniversalTime(),
             DataFechoVotacao = dto.DataFechoVotacao.ToUniversalTime(),
-            EstadoPremio = EstadoPremio.Rascunho,
+            EstadoPremio = EstadoPremio.Aberto,
         };
 
         await _repository.AddPremioAsync(premio);
         await _repository.SaveChangesAsync();
 
-        return PremioFestivalMapper.MapToReadDTO(premio);
+        return PremioFestivalMapper.MapToReadDTO(premio, AgoraUtc());
     }
 
     public async Task<PremioFestivalReadDTO> AbrirVotacaoAsync(int premioFestivalId)
@@ -47,13 +55,13 @@ public class PremioFestivalService : IPremioFestivalService
         if (premio.EstadoPremio == EstadoPremio.Publicado)
             throw new InvalidOperationException("Resultados ja publicados para este premio.");
 
-        if (premio.DataFechoVotacao <= DateTime.UtcNow)
+        if (premio.DataFechoVotacao <= AgoraUtc())
             throw new InvalidOperationException("Nao e possivel abrir uma votacao ja terminada.");
 
         premio.EstadoPremio = EstadoPremio.Aberto;
         await _repository.SaveChangesAsync();
 
-        return PremioFestivalMapper.MapToReadDTO(premio);
+        return PremioFestivalMapper.MapToReadDTO(premio, AgoraUtc());
     }
 
     public async Task VotarAsync(int premioFestivalId, int filmeId, int utilizadorId)
@@ -69,19 +77,26 @@ public class PremioFestivalService : IPremioFestivalService
         if (await _repository.UtilizadorJaVotouAsync(premioFestivalId, utilizadorId))
             throw new InvalidOperationException("Ja votaste neste premio.");
 
-        await _repository.AddVotoAsync(
-            new VotoPremioFestival
-            {
-                PremioFestivalId = premioFestivalId,
-                FestivalId = premio.FestivalId,
-                FilmeId = filmeId,
-                UtilizadorId = utilizadorId,
-                DataVoto = DateTime.UtcNow,
-            }
-        );
+        if (!await _repository.UtilizadorViuTodosFilmesElegiveisAsync(premio.FestivalId, utilizadorId))
+            throw new UnauthorizedAccessException(
+                "Para votar, tens de ver pelo menos uma sessao de cada filme elegivel do festival."
+            );
+
+        var voto = new VotoPremioFestival
+        {
+            PremioFestivalId = premioFestivalId,
+            FestivalId = premio.FestivalId,
+            FilmeId = filmeId,
+            UtilizadorId = utilizadorId,
+            DataVoto = AgoraUtc(),
+        };
+
+        await _repository.AddVotoAsync(voto);
 
         if (!await _repository.TrySaveChangesAsync())
             throw new InvalidOperationException("Ja votaste neste premio.");
+
+        await Task.WhenAll(_votoObservers.Select(observer => observer.NotificarAsync(voto)));
     }
 
     public async Task<PremioFestivalReadDTO> FecharVotacaoAsync(int premioFestivalId)
@@ -94,7 +109,7 @@ public class PremioFestivalService : IPremioFestivalService
         premio.EstadoPremio = EstadoPremio.Fechado;
         await _repository.SaveChangesAsync();
 
-        return PremioFestivalMapper.MapToReadDTO(premio);
+        return PremioFestivalMapper.MapToReadDTO(premio, AgoraUtc());
     }
 
     public async Task<ResultadoPremioFestivalDTO> PublicarResultadosAsync(
@@ -128,7 +143,8 @@ public class PremioFestivalService : IPremioFestivalService
             throw new KeyNotFoundException("Festival nao encontrado.");
 
         var premios = await _repository.ObterPremiosPorFestivalAsync(festivalId, incluirRascunhos);
-        return premios.Select(PremioFestivalMapper.MapToReadDTO);
+        var agora = AgoraUtc();
+        return premios.Select(p => PremioFestivalMapper.MapToReadDTO(p, agora));
     }
 
     private async Task<ResultadoPremioFestival> PublicarResultadoInternoAsync(
@@ -138,8 +154,11 @@ public class PremioFestivalService : IPremioFestivalService
     {
         var premio = await ObterPremioComResultadoAsync(premioFestivalId);
 
-        if (premio.EstadoPremio != EstadoPremio.Fechado)
-            throw new InvalidOperationException("Fecha a votacao antes de publicar resultados.");
+        if (premio.EstadoPremio == EstadoPremio.Publicado)
+            throw new InvalidOperationException("Resultados ja publicados para este premio.");
+
+        if (AgoraUtc() <= premio.DataFechoVotacao)
+            throw new InvalidOperationException("A votacao ainda nao terminou.");
 
         var vencedor = await _repository.ObterVencedorPorVotosAsync(premioFestivalId);
 
@@ -152,7 +171,7 @@ public class PremioFestivalService : IPremioFestivalService
 
         resultado.FilmeIdVencedor = vencedor.Value.FilmeId;
         resultado.TotalVotos = vencedor.Value.TotalVotos;
-        resultado.PublicadoEm = DateTime.UtcNow;
+        resultado.PublicadoEm = AgoraUtc();
         resultado.PublicadoPorUtilizadorId = publicadoPorUtilizadorId;
 
         if (premio.Resultado == null)
@@ -186,14 +205,19 @@ public class PremioFestivalService : IPremioFestivalService
             throw new ArgumentException("A data de fecho deve ser posterior a data de abertura.");
     }
 
-    private static void ValidarVotacaoAberta(PremioFestival premio)
+    private void ValidarVotacaoAberta(PremioFestival premio)
     {
-        var agora = DateTime.UtcNow;
-
-        if (premio.EstadoPremio != EstadoPremio.Aberto)
-            throw new InvalidOperationException("A votacao nao esta aberta.");
-
+        ValidarEstadoVotacaoAberta(premio);
+        var agora = AgoraUtc();
         if (agora < premio.DataAberturaVotacao || agora > premio.DataFechoVotacao)
             throw new InvalidOperationException("A votacao esta fora do periodo permitido.");
     }
+
+    private static void ValidarEstadoVotacaoAberta(PremioFestival premio)
+    {
+        if (premio.EstadoPremio != EstadoPremio.Aberto)
+            throw new InvalidOperationException("A votacao nao esta aberta.");
+    }
+
+    private DateTime AgoraUtc() => _timeProvider.GetUtcNow().UtcDateTime;
 }

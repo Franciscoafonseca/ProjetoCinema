@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\\OnlineCinemaFestival.Api\\OnlineCinemaFestival.Api.csproj" />
+    <ProjectReference Include="..\\OnlineCinemaFestival.Client\\OnlineCinemaFestival.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>

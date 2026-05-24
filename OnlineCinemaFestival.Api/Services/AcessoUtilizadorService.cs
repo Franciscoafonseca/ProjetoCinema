@@ -7,18 +7,21 @@ namespace OnlineCinemaFestival.Api.Services;
 public class AcessoUtilizadorService : IAcessoUtilizadorService
 {
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
-    private readonly IValidacaoAcessoService _validacaoAcessoService;
+    private readonly IAcessoVisualizacaoService _acessoVisualizacaoService;
     private readonly IVisualizacaoRepository _visualizacaoRepository;
+    private readonly TimeProvider _timeProvider;
 
     public AcessoUtilizadorService(
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
-        IValidacaoAcessoService validacaoAcessoService,
-        IVisualizacaoRepository visualizacaoRepository
+        IAcessoVisualizacaoService acessoVisualizacaoService,
+        IVisualizacaoRepository visualizacaoRepository,
+        TimeProvider timeProvider
     )
     {
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
-        _validacaoAcessoService = validacaoAcessoService;
+        _acessoVisualizacaoService = acessoVisualizacaoService;
         _visualizacaoRepository = visualizacaoRepository;
+        _timeProvider = timeProvider;
     }
 
     public async Task<IEnumerable<AcessoUtilizadorReadDTO>> ObterAcessosDoUtilizadorAsync(
@@ -26,8 +29,9 @@ public class AcessoUtilizadorService : IAcessoUtilizadorService
     )
     {
         var acessos = await _acessoUtilizadorRepository.ObterPorUtilizadorIdAsync(utilizadorId);
+        var agora = _timeProvider.GetUtcNow().UtcDateTime;
 
-        return acessos.Select(AcessoUtilizadorMapper.MapToReadDTO);
+        return acessos.Select(acesso => AcessoUtilizadorMapper.MapToReadDTO(acesso, agora));
     }
 
     public async Task<IEnumerable<AcessoUtilizadorReadDTO>> ObterAcessosAtivosDoUtilizadorAsync(
@@ -36,10 +40,11 @@ public class AcessoUtilizadorService : IAcessoUtilizadorService
     {
         var acessos = await _acessoUtilizadorRepository.ObterAtivosPorUtilizadorIdAsync(
             utilizadorId,
-            DateTime.UtcNow
+            _timeProvider.GetUtcNow().UtcDateTime
         );
+        var agora = _timeProvider.GetUtcNow().UtcDateTime;
 
-        return acessos.Select(AcessoUtilizadorMapper.MapToReadDTO);
+        return acessos.Select(acesso => AcessoUtilizadorMapper.MapToReadDTO(acesso, agora));
     }
 
     public async Task<bool> UtilizadorTemAcessoAFilmeAsync(
@@ -48,7 +53,7 @@ public class AcessoUtilizadorService : IAcessoUtilizadorService
         int? festivalId
     )
     {
-        return await _validacaoAcessoService.PodeVisualizarFilmeAsync(
+        return await _acessoVisualizacaoService.PodeVisualizarFilmeAsync(
             utilizadorId,
             filmeId,
             festivalId
@@ -62,6 +67,6 @@ public class AcessoUtilizadorService : IAcessoUtilizadorService
         if (sessao == null)
             throw new KeyNotFoundException("Sessao nao encontrada.");
 
-        return await _validacaoAcessoService.PodeVisualizarSessaoAsync(utilizadorId, sessao);
+        return await _acessoVisualizacaoService.PodeVisualizarSessaoAsync(utilizadorId, sessao);
     }
 }

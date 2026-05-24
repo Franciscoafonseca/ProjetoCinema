@@ -6,6 +6,8 @@ public class CompraHistoricoReadDto
     public int UtilizadorId { get; set; }
     public DateTime Data { get; set; }
     public decimal Total { get; set; }
+    public int Estado { get; set; }
+    public string EstadoNome { get; set; } = string.Empty;
     public int PontosGanhos { get; set; }
     public List<CompraHistoricoItemReadDto> Itens { get; set; } = new();
 }

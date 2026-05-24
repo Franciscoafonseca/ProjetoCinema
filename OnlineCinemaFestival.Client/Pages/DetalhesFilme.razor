@@ -106,7 +106,7 @@
                             <button class="cinema-btn primary" @onclick="AbrirPlayerFilme">Ver agora</button>
                         }
                         <button class="cinema-btn primary" disabled="@_aAtualizarCarrinho" @onclick="AdicionarAluguer">Alugar</button>
-                        <button class="cinema-btn secondary" disabled="@_aAtualizarCarrinho" @onclick="AdicionarAcessoRapido">Comprar acesso</button>
+                        <button class="cinema-btn secondary" disabled="@_aAtualizarCarrinho" @onclick="AbrirSessoes">Comprar acesso</button>
                         <a class="cinema-btn ghost" href="/carrinho">Carrinho</a>
                     </div>
 
@@ -347,20 +347,32 @@
 
                     @if (_filme.ReviewsAplicacao.Count == 0)
                     {
-                        <div class="cinema-state slim">Ainda nao ha reviews da comunidade.</div>
+                        <div class="cinema-state slim">Ainda nao ha reviews da comunidade. A primeira opiniao pode ser a tua.</div>
                     }
                     else
                     {
                         <div class="review-list featured">
-                            @foreach (var review in _filme.ReviewsAplicacao.OrderByDescending(r => r.Data))
+                            @foreach (var review in ReviewsVisiveis())
                             {
                                 <article>
                                     <strong>@review.NomeUsuario</strong>
-                                    <span>Comunidade - @review.Pontuacao/10</span>
-                                    <p>@review.Texto</p>
+                                    <span class="review-stars" aria-label="@($"{review.Pontuacao} em 10")">@EstrelasReview(review.Pontuacao)</span>
+                                    <p>@ResumoReview(review.Texto)</p>
                                 </article>
                             }
                         </div>
+
+                        @if (HaMaisReviews())
+                        {
+                            <div class="review-actions">
+                                <button type="button" class="cinema-btn secondary" @onclick="VerMaisReviews">
+                                    Ver mais
+                                </button>
+                                <button type="button" class="cinema-btn ghost" @onclick="VerTodasReviews">
+                                    Ver todas
+                                </button>
+                            </div>
+                        }
                     }
 
                     <AuthorizeView>
@@ -531,6 +543,7 @@
     private bool _aCriarListaRapida;
     private bool _aEnviarComentario;
     private bool _aVotar;
+    private int _reviewsVisiveis = 10;
     private int? _utilizadorAtualId;
     private string _nomeUtilizadorAtual = string.Empty;
     private AvaliacaoDTO? _minhaReview;
@@ -599,24 +612,7 @@
         );
     }
 
-    private async Task AdicionarAcessoRapido()
-    {
-        var proximaSessao = _sessoes
-            .Where(s => s.Fim.ToUniversalTime() > DateTime.UtcNow)
-            .OrderBy(s => s.Inicio)
-            .FirstOrDefault();
-
-        if (proximaSessao != null)
-        {
-            await AdicionarAoCarrinho(
-                () => CarrinhoService.AdicionarBilheteSessaoAsync(proximaSessao.Id),
-                "Bilhete da proxima sessao adicionado ao carrinho."
-            );
-            return;
-        }
-
-        await AdicionarAluguer();
-    }
+    private void AbrirSessoes() => Nav.NavigateTo("/sessoes");
 
     private async Task AdicionarAoCarrinho(Func<Task<CarrinhoDTO>> acao, string sucesso)
     {
@@ -632,7 +628,7 @@
         catch (Exception ex)
         {
             _mensagemCarrinhoSeveridade = Severity.Error;
-            _mensagemCarrinho = ex.Message;
+            _mensagemCarrinho = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel adicionar o acesso.");
         }
         finally
         {
@@ -660,7 +656,7 @@
         catch (Exception ex)
         {
             _mensagemReviewSeveridade = Severity.Error;
-            _mensagemReview = ex.Message;
+            _mensagemReview = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel guardar a avaliacao.");
         }
         finally
         {
@@ -684,7 +680,7 @@
         catch (Exception ex)
         {
             _mensagemComentarioSeveridade = Severity.Error;
-            _mensagemComentario = ex.Message;
+            _mensagemComentario = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel publicar o comentario.");
         }
         finally
         {
@@ -712,7 +708,7 @@
         catch (Exception ex)
         {
             _mensagemListasSeveridade = Severity.Error;
-            _mensagemListas = ex.Message;
+            _mensagemListas = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel atualizar a lista.");
         }
         finally
         {
@@ -747,7 +743,7 @@
         catch (Exception ex)
         {
             _mensagemListasSeveridade = Severity.Error;
-            _mensagemListas = ex.Message;
+            _mensagemListas = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel atualizar a lista.");
         }
         finally
         {
@@ -844,6 +840,37 @@
 
         _filme.AvaliacoesInternasTotal = _filme.ReviewsAplicacao.Count;
         _filme.AvaliacaoInternaMedia = _filme.ReviewsAplicacao.Average(r => r.Pontuacao);
+        _reviewsVisiveis = Math.Max(_reviewsVisiveis, Math.Min(10, _filme.ReviewsAplicacao.Count));
+    }
+
+    private IEnumerable<AvaliacaoDTO> ReviewsVisiveis()
+    {
+        return ReviewListagemPolicy.ObterVisiveis(
+            _filme?.ReviewsAplicacao ?? new List<AvaliacaoDTO>(),
+            _reviewsVisiveis
+        );
+    }
+
+    private bool HaMaisReviews()
+    {
+        return _filme?.ReviewsAplicacao.Count > _reviewsVisiveis;
+    }
+
+    private void VerMaisReviews()
+    {
+        if (_filme == null)
+            return;
+
+        _reviewsVisiveis = ReviewListagemPolicy.ProximaQuantidade(
+            _filme.ReviewsAplicacao.Count,
+            _reviewsVisiveis
+        );
+    }
+
+    private void VerTodasReviews()
+    {
+        if (_filme != null)
+            _reviewsVisiveis = _filme.ReviewsAplicacao.Count;
     }
 
     private void ValidarNovaListaRapida()
@@ -886,7 +913,7 @@
         catch (Exception ex)
         {
             _mensagemVotoSeveridade = Severity.Error;
-            _mensagemVoto = ex.Message;
+            _mensagemVoto = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel registar o voto.");
         }
         finally
         {
@@ -907,7 +934,8 @@
             {
                 var doFestival = await PremioFestivalService.ObterPremiosPorFestivalAsync(festival.Id);
                 premios.AddRange(doFestival.Where(p =>
-                    p.EstadoPremio.Equals("Aberto", StringComparison.OrdinalIgnoreCase)
+                    p.EstadoPremio.Equals("Aberta", StringComparison.OrdinalIgnoreCase)
+                    || p.EstadoPremio.Equals("Aberto", StringComparison.OrdinalIgnoreCase)
                 ));
             }
             catch
@@ -934,6 +962,13 @@
     private string ClasseEstrela(int valor)
     {
         return valor <= _novaReview.Pontuacao ? "star-button active" : "star-button";
+    }
+
+    private static string EstrelasReview(int pontuacao)
+    {
+        var preenchidas = Math.Clamp(pontuacao, 0, 10);
+        return new string('*', preenchidas).Replace("*", "★")
+            + new string('*', 10 - preenchidas).Replace("*", "☆");
     }
 
     private static string ImagemFilme(FilmeDTO filme)

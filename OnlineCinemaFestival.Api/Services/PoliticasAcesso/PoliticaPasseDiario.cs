@@ -1,5 +1,4 @@
 using OnlineCinemaFestival.Api.Models;
-using ModelAcesso = OnlineCinemaFestival.Api.Models.Acesso;
 
 namespace OnlineCinemaFestival.Api.Services.PoliticasAcesso;
 
@@ -7,12 +6,22 @@ public sealed class PoliticaPasseDiario : IPoliticaAcesso
 {
     public TipoAcesso TipoSuportado => TipoAcesso.PasseDiario;
 
-    public bool TemAcesso(ModelAcesso acesso, DateTime agora)
+    public int OrdemPreferencia => 2;
+
+    public bool PermiteVisualizacao(
+        AcessoUtilizador acesso,
+        ContextoVisualizacao contexto,
+        DateTime agora
+    )
     {
-        if (acesso.Tipo != TipoSuportado || !acesso.DataAcesso.HasValue)
+        if (acesso.TipoAcesso != TipoSuportado || !ValidadeAcessoUtilizador.EstaAtivo(acesso, agora))
             return false;
 
-        return acesso.DataAcesso.Value.Date == agora.Date;
+        return contexto.SessaoId.HasValue
+            && contexto.InicioSessao.HasValue
+            && acesso.FestivalId == contexto.FestivalId
+            && contexto.InicioSessao.Value >= acesso.InicioValidade
+            && contexto.InicioSessao.Value < acesso.FimValidade;
     }
 }
 

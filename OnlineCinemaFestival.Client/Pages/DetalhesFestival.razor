@@ -45,7 +45,7 @@ else
             <div class="festival-hero-metrics">
                 <span>@_filmes.Count filmes</span>
                 <span>@_sessoes.Count sessoes</span>
-                <span>@EstadoFestival(_festival)</span>
+                <span>@_festival.EstadoFestival</span>
             </div>
         </section>
 
@@ -337,7 +337,7 @@ else
         }
         catch (Exception ex)
         {
-            _mensagemCarrinho = ex.Message;
+            _mensagemCarrinho = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel adicionar o acesso.");
         }
         finally
         {
@@ -386,7 +386,7 @@ else
         }
         catch (Exception ex)
         {
-            _mensagemVoto = ex.Message;
+            _mensagemVoto = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel registar o voto.");
         }
         finally
         {
@@ -409,20 +409,12 @@ else
 
     private static bool SessaoTerminada(SessaoDTO sessao)
     {
-        return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase)
-            || sessao.Fim.ToUniversalTime() <= DateTime.UtcNow;
+        return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string EstadoTexto(SessaoDTO sessao)
     {
-        if (!string.IsNullOrWhiteSpace(sessao.Estado))
-            return sessao.Estado;
-
-        var agora = DateTime.UtcNow;
-        if (sessao.Inicio.ToUniversalTime() > agora)
-            return "Agendada";
-
-        return sessao.Fim.ToUniversalTime() >= agora ? "ADecorrer" : "Terminada";
+        return string.IsNullOrWhiteSpace(sessao.Estado) ? "Desconhecido" : sessao.Estado;
     }
 
     private static string EstadoCss(string estado)
@@ -438,24 +430,13 @@ else
 
     private static bool VotacaoDisponivel(PremioFestivalDTO premio)
     {
-        var agora = DateTime.UtcNow;
-
-        return string.Equals(premio.EstadoPremio, "Aberto", StringComparison.OrdinalIgnoreCase)
-            && premio.DataAberturaVotacao.ToUniversalTime() <= agora
-            && premio.DataFechoVotacao.ToUniversalTime() >= agora;
+        return string.Equals(premio.EstadoPremio, "Aberta", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(premio.EstadoPremio, "Aberto", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string EstadoFestival(FestivalDTO festival)
     {
-        var agora = DateTime.Now;
-
-        if (agora < festival.StartDate)
-            return "Em breve";
-
-        if (agora <= festival.EndDate)
-            return "A decorrer";
-
-        return "Terminado";
+        return festival.EstadoFestival;
     }
 
     private static string FormatarPeriodo(DateTime inicio, DateTime fim)

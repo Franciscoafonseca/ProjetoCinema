@@ -29,13 +29,101 @@ public class PerfilPublicoDTO
     public int CommunitiesCount { get; set; }
 
     public int PublicListsCount { get; set; }
+
+    public List<ListaPessoalPublicaDTO> PublicLists { get; set; } = new();
+
+    public List<ReviewPublicaDTO> PublicReviews { get; set; } = new();
+
+    public List<ComunidadePublicaPerfilDTO> PublicCommunities { get; set; } = new();
 }
 
-public class PerfilUtilizadorRespostaDTO : PerfilPublicoDTO
+public class PerfilPrivadoDTO : PerfilPublicoDTO
 {
     public string Email { get; set; } = string.Empty;
 
     public string PhoneNumber { get; set; } = string.Empty;
+}
+
+public class PerfilUtilizadorRespostaDTO : PerfilPrivadoDTO { }
+
+public class ListaPessoalPublicaDTO
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string Description { get; set; } = string.Empty;
+
+    public int TotalFilmes { get; set; }
+}
+
+public class ReviewPublicaDTO
+{
+    public int Id { get; set; }
+
+    public int FilmeId { get; set; }
+
+    public string FilmeTitulo { get; set; } = string.Empty;
+
+    public int Pontuacao { get; set; }
+
+    public string Texto { get; set; } = string.Empty;
+
+    public DateTime Data { get; set; }
+}
+
+public class ComunidadePublicaPerfilDTO
+{
+    public Guid Id { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string Description { get; set; } = string.Empty;
+
+    public string ImageUrl { get; set; } = string.Empty;
+
+    public int MembersCount { get; set; }
+}
+
+public class CriarReporteUtilizadorDTO
+{
+    [Required(ErrorMessage = "Indica o motivo do reporte.")]
+    [StringLength(500, MinimumLength = 10, ErrorMessage = "O motivo deve ter entre 10 e 500 caracteres.")]
+    public string Motivo { get; set; } = string.Empty;
+}
+
+public class ReporteUtilizadorDTO
+{
+    public int Id { get; set; }
+
+    public EstadoReporteUtilizador Estado { get; set; }
+
+    public string Motivo { get; set; } = string.Empty;
+
+    public DateTime CriadoEm { get; set; }
+
+    public DateTime? AtualizadoEm { get; set; }
+
+    public int UtilizadorReportadoId { get; set; }
+
+    public string UtilizadorReportadoNome { get; set; } = string.Empty;
+
+    public int ReportadoPorUtilizadorId { get; set; }
+
+    public string ReportadoPorUtilizadorNome { get; set; } = string.Empty;
+}
+
+public class AtualizarEstadoReporteUtilizadorDTO
+{
+    public EstadoReporteUtilizador Estado { get; set; }
+}
+
+public enum EstadoReporteUtilizador
+{
+    Pendente = 0,
+    Analisado = 1,
+    Rejeitado = 2,
+    AcaoAplicada = 3,
 }
 
 public class PedidoAtualizarPerfilDTO

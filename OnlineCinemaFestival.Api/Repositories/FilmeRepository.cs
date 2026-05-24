@@ -23,6 +23,11 @@ public class FilmeRepository : IFilmeRepository
                 .ThenInclude(fp => fp.Pessoa)
             .Include(f => f.Avaliacoes)
             .Include(f => f.Visualizacoes)
+            .Include(f => f.FestivalFilmes)
+                .ThenInclude(ff => ff.Festival)
+            .Include(f => f.VotosPremiosFestival)
+            .Include(f => f.ResultadosPremiosFestival)
+                .ThenInclude(r => r.PremioFestival)
             .AsNoTracking()
             .ToListAsync();
     }

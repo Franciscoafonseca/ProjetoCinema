@@ -43,6 +43,7 @@ public class AppDbContext : DbContext
     public DbSet<Visualizacao> Visualizacoes => Set<Visualizacao>();
     public DbSet<Comunidade> Comunidades => Set<Comunidade>();
     public DbSet<ComunidadeMembro> ComunidadeMembros => Set<ComunidadeMembro>();
+    public DbSet<ReporteUtilizador> ReportesUtilizadores => Set<ReporteUtilizador>();
 
     public DbSet<Reward> Rewards => Set<Reward>();
     public DbSet<RewardTransacao> RewardsTransacoes => Set<RewardTransacao>();

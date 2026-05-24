@@ -34,4 +34,9 @@ public class CompraService
     {
         return await _http.GetFromJsonAsync<List<CompraDTO>>("api/compras/minhas") ?? new();
     }
+
+    public async Task<List<CompraDTO>> ObterPagamentosPendentesAsync()
+    {
+        return await _http.GetFromJsonAsync<List<CompraDTO>>("api/pagamentos-pendentes") ?? new();
+    }
 }

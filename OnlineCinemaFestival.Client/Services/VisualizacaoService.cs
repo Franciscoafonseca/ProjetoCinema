@@ -50,10 +50,16 @@ public class VisualizacaoService
 
         if (!resposta.IsSuccessStatusCode)
         {
-            var conteudo = await resposta.Content.ReadAsStringAsync();
+            var mensagem = resposta.StatusCode == System.Net.HttpStatusCode.Unauthorized
+                ? "Inicia sessao para visualizar este conteudo."
+                : MensagemErroApi.Limpar(
+                    await resposta.Content.ReadAsStringAsync(),
+                    "Sem acesso valido ao conteudo."
+                );
+
             throw new VisualizacaoApiException(
                 (int)resposta.StatusCode,
-                string.IsNullOrWhiteSpace(conteudo) ? "Sem acesso valido ao conteudo." : conteudo
+                mensagem
             );
         }
 

@@ -38,7 +38,7 @@
                         {
                             <span class="festival-card-badge ativo">A decorrer</span>
                         }
-                        else if (f.StartDate > DateTime.Now)
+                        else if (string.Equals(f.EstadoFestival, "Em breve", StringComparison.OrdinalIgnoreCase))
                         {
                             <span class="festival-card-badge futuro">Em breve</span>
                         }
@@ -72,11 +72,8 @@
 
     private void AbrirFestival(int id) => Nav.NavigateTo($"/festivais/{id}");
 
-    private static bool EstaAtivo(FestivalDTO f)
-    {
-        var agora = DateTime.Now;
-        return agora >= f.StartDate && agora <= f.EndDate;
-    }
+    private static bool EstaAtivo(FestivalDTO f) =>
+        string.Equals(f.EstadoFestival, "A decorrer", StringComparison.OrdinalIgnoreCase);
 
     private static string FormatarPeriodo(DateTime inicio, DateTime fim)
     {

@@ -13,10 +13,15 @@ namespace OnlineCinemaFestival.Api.Services;
 public class ListaPessoalService : IListaPessoalService
 {
     private readonly IListaPessoalRepository _repository;
+    private readonly IEnumerable<IListaPessoalObserver> _observers;
 
-    public ListaPessoalService(IListaPessoalRepository repository)
+    public ListaPessoalService(
+        IListaPessoalRepository repository,
+        IEnumerable<IListaPessoalObserver> observers
+    )
     {
         _repository = repository;
+        _observers = observers;
     }
 
     /// <summary>
@@ -45,6 +50,7 @@ public class ListaPessoalService : IListaPessoalService
 
         await _repository.AddAsync(lista);
         await _repository.SaveChangesAsync();
+        await Task.WhenAll(_observers.Select(observer => observer.NotificarCriadaAsync(lista)));
 
         return ListaPessoalMapper.MapToReadDTO(lista);
     }

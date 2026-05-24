@@ -1,0 +1,33 @@
+.recomendacoes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.recomendacao-card {
+  display: grid;
+  gap: 10px;
+}
+
+.recomendacao-reason {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--ocf-line);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.recomendacao-reason strong,
+.recomendacao-reason span {
+  display: block;
+}
+
+.recomendacao-reason strong {
+  color: var(--ocf-text);
+  font-size: 0.88rem;
+}
+
+.recomendacao-reason span {
+  margin-top: 4px;
+  color: var(--ocf-muted);
+  line-height: 1.45;
+}

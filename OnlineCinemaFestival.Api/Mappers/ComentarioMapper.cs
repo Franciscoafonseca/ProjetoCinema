@@ -52,6 +52,7 @@ public static class ComentarioMapper
             CriadoEm = comentario.CriadoEm,
             Visivel = comentario.Visivel,
             Reportado = comentario.Reportado,
+            EstadoModeracao = comentario.EstadoModeracao,
         };
     }
 }

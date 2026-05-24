@@ -28,15 +28,23 @@ public class TmdbService : ITmdbService
         if (_cache.TryGetValue(cacheKey, out List<TmdbFilmeDTO>? cached) && cached != null)
             return cached;
 
-        var result = await _apiClient.GetAsync<TmdbSearchResponse>(
-            $"search/movie?query={Uri.EscapeDataString(query)}&language=pt-PT"
-        );
+        try
+        {
+            var result = await _apiClient.GetAsync<TmdbSearchResponse>(
+                $"search/movie?query={Uri.EscapeDataString(query)}&language=pt-PT"
+            );
 
-        var filmes =
-            result?.Results?.Select(FilmeMapper.MapFromTmdbResult).ToList() ?? new List<TmdbFilmeDTO>();
+            var filmes =
+                result?.Results?.Select(FilmeMapper.MapFromTmdbResult).ToList()
+                ?? new List<TmdbFilmeDTO>();
 
-        _cache.Set(cacheKey, filmes, SearchCacheDuration);
-        return filmes;
+            _cache.Set(cacheKey, filmes, SearchCacheDuration);
+            return filmes;
+        }
+        catch
+        {
+            return Enumerable.Empty<TmdbFilmeDTO>();
+        }
     }
 
     public async Task<IEnumerable<TmdbFilmeDTO>> ObterFilmesIniciaisAsync()
@@ -46,154 +54,210 @@ public class TmdbService : ITmdbService
         if (_cache.TryGetValue(cacheKey, out List<TmdbFilmeDTO>? cached) && cached != null)
             return cached;
 
-        var result = await ObterPopularesPreferindoSkyShowtimeAsync()
-            ?? await _apiClient.GetAsync<TmdbSearchResponse>(
-                $"movie/popular?language=pt-PT&page={Random.Shared.Next(1, 6)}"
-            );
+        try
+        {
+            var result = await ObterPopularesPreferindoSkyShowtimeAsync()
+                ?? await _apiClient.GetAsync<TmdbSearchResponse>(
+                    $"movie/popular?language=pt-PT&page={Random.Shared.Next(1, 6)}"
+                );
 
-        var filmes =
-            result
-                ?.Results?
-                .Where(f => f.TmdbId > 0)
-                .OrderBy(_ => Random.Shared.Next())
-                .Take(20)
-                .Select(FilmeMapper.MapFromTmdbResult)
-                .ToList()
-            ?? new List<TmdbFilmeDTO>();
+            var filmes =
+                result
+                    ?.Results?
+                    .Where(f => f.TmdbId > 0)
+                    .OrderBy(_ => Random.Shared.Next())
+                    .Take(20)
+                    .Select(FilmeMapper.MapFromTmdbResult)
+                    .ToList()
+                ?? new List<TmdbFilmeDTO>();
 
-        _cache.Set(cacheKey, filmes, PopularCacheDuration);
-        return filmes;
+            _cache.Set(cacheKey, filmes, PopularCacheDuration);
+            return filmes;
+        }
+        catch
+        {
+            return Enumerable.Empty<TmdbFilmeDTO>();
+        }
     }
 
     private async Task<TmdbSearchResponse?> ObterPopularesPreferindoSkyShowtimeAsync()
     {
-        var providers = await _apiClient.GetAsync<TmdbWatchProviderResponse>(
-            "watch/providers/movie?language=pt-PT&watch_region=PT"
-        );
+        try
+        {
+            var providers = await _apiClient.GetAsync<TmdbWatchProviderResponse>(
+                "watch/providers/movie?language=pt-PT&watch_region=PT"
+            );
 
-        var providerIds =
-            providers
-                ?.Results.Where(p =>
-                    p.ProviderName.Contains("Sky", StringComparison.OrdinalIgnoreCase)
-                    || p.ProviderName.Contains("Showtime", StringComparison.OrdinalIgnoreCase)
-                )
-                .Select(p => p.ProviderId)
-                .Distinct()
-                .ToList() ?? new List<int>();
+            var providerIds =
+                providers
+                    ?.Results.Where(p =>
+                        p.ProviderName.Contains("Sky", StringComparison.OrdinalIgnoreCase)
+                        || p.ProviderName.Contains("Showtime", StringComparison.OrdinalIgnoreCase)
+                    )
+                    .Select(p => p.ProviderId)
+                    .Distinct()
+                    .ToList() ?? new List<int>();
 
-        if (providerIds.Count == 0)
+            if (providerIds.Count == 0)
+                return null;
+
+            var result = await _apiClient.GetAsync<TmdbSearchResponse>(
+                "discover/movie?language=pt-PT"
+                    + "&watch_region=PT"
+                    + $"&with_watch_providers={string.Join('|', providerIds)}"
+                    + $"&page={Random.Shared.Next(1, 4)}"
+                    + "&sort_by=popularity.desc"
+            );
+
+            return result?.Results.Count > 0 ? result : null;
+        }
+        catch
+        {
             return null;
-
-        var result = await _apiClient.GetAsync<TmdbSearchResponse>(
-            "discover/movie?language=pt-PT"
-                + "&watch_region=PT"
-                + $"&with_watch_providers={string.Join('|', providerIds)}"
-                + $"&page={Random.Shared.Next(1, 4)}"
-                + "&sort_by=popularity.desc"
-        );
-
-        return result?.Results.Count > 0 ? result : null;
+        }
     }
 
     public async Task<TmdbFilmeDTO?> ObterFilmePorTmdbIdAsync(int tmdbId)
     {
-        var filmeTmdb = await _apiClient.GetAsync<TmdbMovieDetails>(
-            $"movie/{tmdbId}?language=pt-PT&append_to_response=videos,credits,reviews"
-        );
-
-        if (filmeTmdb == null)
-            return null;
-
-        var atoresDetalhes = MapAtores(filmeTmdb.Credits).ToList();
-        var realizadorDetalhe = MapPessoaCrew(filmeTmdb.Credits, "Director");
-        var produtorDetalhe = MapPessoaCrew(filmeTmdb.Credits, "Producer");
-        var video = SelecionarTrailerPrincipal(filmeTmdb.Videos.Results);
-        var videoUrl = CriarVideoUrl(video);
-
-        return new TmdbFilmeDTO
+        try
         {
-            TmdbId = filmeTmdb.TmdbId,
-            Titulo = filmeTmdb.Titulo,
-            TituloOriginal = filmeTmdb.TituloOriginal,
-            Sinopse = filmeTmdb.Sinopse,
-            DataLancamento = DateTime.TryParse(filmeTmdb.DataLancamento, out var date)
-                ? date
-                : DateTime.MinValue,
-            DuracaoMinutos = filmeTmdb.DuracaoMinutos,
-            CapaUrl = !string.IsNullOrWhiteSpace(filmeTmdb.CapaUrl)
-                ? $"https://image.tmdb.org/t/p/w500{filmeTmdb.CapaUrl}"
-                : string.Empty,
-            Classificacao = filmeTmdb.Classificacao?.ToString("0.0"),
-            AvaliacaoTmdb = filmeTmdb.Classificacao,
-            Generos = filmeTmdb.Genres.Select(g => g.Name).Where(n => !string.IsNullOrWhiteSpace(n)).ToList(),
-            Genero = filmeTmdb.Genres.Any()
-                ? string.Join(", ", filmeTmdb.Genres.Select(g => g.Name))
-                : "Geral",
-            TrailerUrl = videoUrl,
-            VideoProvider = video?.Site,
-            VideoKey = video?.Key,
-            VideoUrl = videoUrl,
-            Realizador = realizadorDetalhe?.Nome,
-            Atores = atoresDetalhes.Select(a => a.Nome).ToList(),
-            AtoresDetalhes = atoresDetalhes,
-            RealizadorDetalhe = realizadorDetalhe,
-            ProdutorDetalhe = produtorDetalhe,
-            Reviews = MapReviews(filmeTmdb.Reviews).ToList(),
-        };
+            var filmeTmdb = await _apiClient.GetAsync<TmdbMovieDetails>(
+                $"movie/{tmdbId}?language=pt-PT&append_to_response=videos,credits,reviews"
+            );
+
+            if (filmeTmdb == null)
+                return null;
+
+            var atoresDetalhes = MapAtores(filmeTmdb.Credits).ToList();
+            var realizadorDetalhe = MapPessoaCrew(filmeTmdb.Credits, "Director");
+            var produtorDetalhe = MapPessoaCrew(filmeTmdb.Credits, "Producer");
+            var video = SelecionarTrailerPrincipal(filmeTmdb.Videos.Results);
+            var videoUrl = CriarVideoUrl(video);
+
+            return new TmdbFilmeDTO
+            {
+                TmdbId = filmeTmdb.TmdbId,
+                Titulo = filmeTmdb.Titulo,
+                TituloOriginal = filmeTmdb.TituloOriginal,
+                Sinopse = filmeTmdb.Sinopse,
+                DataLancamento = DateTime.TryParse(filmeTmdb.DataLancamento, out var date)
+                    ? date
+                    : DateTime.MinValue,
+                DuracaoMinutos = filmeTmdb.DuracaoMinutos,
+                CapaUrl = !string.IsNullOrWhiteSpace(filmeTmdb.CapaUrl)
+                    ? $"https://image.tmdb.org/t/p/w500{filmeTmdb.CapaUrl}"
+                    : string.Empty,
+                Classificacao = filmeTmdb.Classificacao?.ToString("0.0"),
+                AvaliacaoTmdb = filmeTmdb.Classificacao,
+                Generos = filmeTmdb.Genres.Select(g => g.Name).Where(n => !string.IsNullOrWhiteSpace(n)).ToList(),
+                Genero = filmeTmdb.Genres.Any()
+                    ? string.Join(", ", filmeTmdb.Genres.Select(g => g.Name))
+                    : "Geral",
+                TrailerUrl = videoUrl,
+                VideoProvider = video?.Site,
+                VideoKey = video?.Key,
+                VideoUrl = videoUrl,
+                Realizador = realizadorDetalhe?.Nome,
+                Atores = atoresDetalhes.Select(a => a.Nome).ToList(),
+                AtoresDetalhes = atoresDetalhes,
+                RealizadorDetalhe = realizadorDetalhe,
+                ProdutorDetalhe = produtorDetalhe,
+                Reviews = MapReviews(filmeTmdb.Reviews).ToList(),
+            };
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<IEnumerable<string>> ObterAtoresAsync(int tmdbId)
     {
-        var credits = await _apiClient.GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
+        try
+        {
+            var credits = await _apiClient.GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
 
-        return credits
-                ?.Cast.OrderBy(c => c.Order)
-                .Take(10)
-                .Select(c => c.Name)
-                .Where(n => !string.IsNullOrWhiteSpace(n))
-            ?? Enumerable.Empty<string>();
+            return credits
+                    ?.Cast.OrderBy(c => c.Order)
+                    .Take(10)
+                    .Select(c => c.Name)
+                    .Where(n => !string.IsNullOrWhiteSpace(n))
+                ?? Enumerable.Empty<string>();
+        }
+        catch
+        {
+            return Enumerable.Empty<string>();
+        }
     }
 
     public async Task<string?> ObterRealizadorAsync(int tmdbId)
     {
-        var credits = await _apiClient.GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
+        try
+        {
+            var credits = await _apiClient.GetAsync<TmdbCreditsResponse>($"movie/{tmdbId}/credits?language=pt-PT");
 
-        return credits
-            ?.Crew.FirstOrDefault(c => c.Job.Equals("Director", StringComparison.OrdinalIgnoreCase))
-            ?.Name;
+            return credits
+                ?.Crew.FirstOrDefault(c => c.Job.Equals("Director", StringComparison.OrdinalIgnoreCase))
+                ?.Name;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<IEnumerable<TmdbReviewDTO>> ObterAvaliacoesExternasAsync(int tmdbId)
     {
-        var reviews = await _apiClient.GetAsync<TmdbReviewsResponse>($"movie/{tmdbId}/reviews?language=en-US&page=1");
+        try
+        {
+            var reviews = await _apiClient.GetAsync<TmdbReviewsResponse>($"movie/{tmdbId}/reviews?language=en-US&page=1");
 
-        return reviews
-                ?.Results.Take(10)
-                .Select(r => new TmdbReviewDTO
-                {
-                    Autor = r.Author,
-                    Texto = r.Content,
-                    Url = r.Url,
-                    CriadaEm = r.CreatedAt,
-                    Nota = r.AuthorDetails?.Rating,
-                })
-            ?? Enumerable.Empty<TmdbReviewDTO>();
+            return reviews
+                    ?.Results.Take(10)
+                    .Select(r => new TmdbReviewDTO
+                    {
+                        Autor = r.Author,
+                        Texto = r.Content,
+                        Url = r.Url,
+                        CriadaEm = r.CreatedAt,
+                        Nota = r.AuthorDetails?.Rating,
+                    })
+                ?? Enumerable.Empty<TmdbReviewDTO>();
+        }
+        catch
+        {
+            return Enumerable.Empty<TmdbReviewDTO>();
+        }
     }
 
     public async Task<IEnumerable<TmdbGeneroDTO>> ObterGenerosAsync()
     {
-        var result = await _apiClient.GetAsync<TmdbGenreResponse>("genre/movie/list?language=pt-PT");
+        try
+        {
+            var result = await _apiClient.GetAsync<TmdbGenreResponse>("genre/movie/list?language=pt-PT");
 
-        return result
-                ?.Genres.Select(g => new TmdbGeneroDTO { Id = g.Id, Nome = g.Name })
-            ?? Enumerable.Empty<TmdbGeneroDTO>();
+            return result
+                    ?.Genres.Select(g => new TmdbGeneroDTO { Id = g.Id, Nome = g.Name })
+                ?? Enumerable.Empty<TmdbGeneroDTO>();
+        }
+        catch
+        {
+            return Enumerable.Empty<TmdbGeneroDTO>();
+        }
     }
 
     public async Task<string?> ObterTrailerUrlAsync(int tmdbId)
     {
-        var videos = await _apiClient.GetAsync<TmdbVideosResponseDTO>($"movie/{tmdbId}/videos?language=pt-PT");
+        try
+        {
+            var videos = await _apiClient.GetAsync<TmdbVideosResponseDTO>($"movie/{tmdbId}/videos?language=pt-PT");
 
-        return CriarVideoUrl(SelecionarTrailerPrincipal(videos?.Results ?? new List<TmdbVideoDTO>()));
+            return CriarVideoUrl(SelecionarTrailerPrincipal(videos?.Results ?? new List<TmdbVideoDTO>()));
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static IEnumerable<TmdbPessoaDTO> MapAtores(TmdbCreditsResponse credits)

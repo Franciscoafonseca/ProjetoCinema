@@ -15,19 +15,5 @@ public interface IAcessoUtilizadorRepository
 
     Task<bool> ExisteAcessoAtivoAsync(int utilizadorId, int acessoId, DateTime dataAtual);
 
-    Task<AcessoUtilizador?> ObterAcessoValidoAsync(
-        int utilizadorId,
-        TipoAcesso tipoAcesso,
-        DateTime dataAtual,
-        int? filmeId = null,
-        int? sessaoId = null,
-        int? festivalId = null
-    );
-
-    Task<AcessoUtilizador?> ObterPasseCompletoValidoParaFilmeAsync(
-        int utilizadorId,
-        int filmeId,
-        int? festivalId,
-        DateTime dataAtual
-    );
+    Task<bool> ExisteParaCompraAsync(int compraId);
 }

@@ -44,4 +44,21 @@ public class ComentariosController : ControllerBase
         );
         return Ok(comentarios);
     }
+
+    [HttpPatch("{comentarioId:int}/moderacao")]
+    public async Task<ActionResult<ComentarioReadDTO>> ModerarComentario(
+        Guid comunidadeId,
+        int comentarioId,
+        ModerarComentarioDTO dto
+    )
+    {
+        return Ok(
+            await _comentarioService.ModerarComentarioComunidadeAsync(
+                comunidadeId,
+                comentarioId,
+                dto,
+                User.GetUserId()
+            )
+        );
+    }
 }

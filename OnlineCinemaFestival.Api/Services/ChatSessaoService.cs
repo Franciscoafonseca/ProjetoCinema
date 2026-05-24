@@ -6,7 +6,6 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public class ChatSessaoService : IChatSessaoService
 {
-    private const int MinutosAntesAberturaChat = 15;
     private const int TamanhoMaximoMensagem = 600;
     private const int QuantidadeMaximaHistorico = 100;
     private const int MaximoMensagensJanelaSpam = 5;
@@ -14,18 +13,21 @@ public class ChatSessaoService : IChatSessaoService
     private static readonly TimeSpan JanelaMensagemRepetida = TimeSpan.FromSeconds(30);
 
     private readonly IMensagemChatSessaoRepository _mensagemChatSessaoRepository;
-    private readonly IValidacaoAcessoService _validacaoAcessoService;
+    private readonly IAcessoVisualizacaoService _acessoVisualizacaoService;
     private readonly IUtilizadorRepository _utilizadorRepository;
+    private readonly TimeProvider _timeProvider;
 
     public ChatSessaoService(
         IMensagemChatSessaoRepository mensagemChatSessaoRepository,
-        IValidacaoAcessoService validacaoAcessoService,
-        IUtilizadorRepository utilizadorRepository
+        IAcessoVisualizacaoService acessoVisualizacaoService,
+        IUtilizadorRepository utilizadorRepository,
+        TimeProvider timeProvider
     )
     {
         _mensagemChatSessaoRepository = mensagemChatSessaoRepository;
-        _validacaoAcessoService = validacaoAcessoService;
+        _acessoVisualizacaoService = acessoVisualizacaoService;
         _utilizadorRepository = utilizadorRepository;
+        _timeProvider = timeProvider;
     }
 
     public async Task<SessaoChatEntradaDTO> EntrarNaSessaoAsync(
@@ -69,7 +71,7 @@ public class ChatSessaoService : IChatSessaoService
             UtilizadorId = utilizadorId,
             Utilizador = utilizador,
             Texto = textoNormalizado,
-            EnviadaEm = DateTime.UtcNow,
+            EnviadaEm = AgoraUtc(),
             Removida = false,
             RemovidaPorModeracao = false,
         };
@@ -148,7 +150,7 @@ public class ChatSessaoService : IChatSessaoService
         if (administrador)
             return sessao;
 
-        var acesso = await _validacaoAcessoService.ObterAcessoValidoParaSessaoAsync(
+        var acesso = await _acessoVisualizacaoService.ObterAcessoValidoParaSessaoAsync(
             utilizadorId,
             sessao
         );
@@ -176,7 +178,7 @@ public class ChatSessaoService : IChatSessaoService
 
     private async Task ValidarSpamSimplesAsync(int sessaoId, int utilizadorId, string texto)
     {
-        var agora = DateTime.UtcNow;
+        var agora = AgoraUtc();
         var mensagensRecentes =
             await _mensagemChatSessaoRepository.ListarMensagensRecentesDoUtilizadorAsync(
                 sessaoId,
@@ -198,13 +200,12 @@ public class ChatSessaoService : IChatSessaoService
             throw new ArgumentException("Demasiadas mensagens em pouco tempo. Aguarde alguns segundos.");
     }
 
-    private static void ValidarHorarioChat(Sessao sessao)
+    private void ValidarHorarioChat(Sessao sessao)
     {
-        var agora = DateTime.UtcNow;
-        var abertura = sessao.Inicio.AddMinutes(-MinutosAntesAberturaChat);
+        var agora = AgoraUtc();
 
-        if (agora < abertura)
-            throw new InvalidOperationException("O chat ainda nao abriu para esta sessao.");
+        if (agora < sessao.Inicio)
+            throw new InvalidOperationException("Chat ainda nao disponivel.");
 
         if (agora > sessao.Fim)
             throw new InvalidOperationException("O chat ja fechou para esta sessao.");
@@ -228,4 +229,6 @@ public class ChatSessaoService : IChatSessaoService
     }
 
     private static string ObterGrupo(int sessaoId) => $"sessao-{sessaoId}";
+
+    private DateTime AgoraUtc() => _timeProvider.GetUtcNow().UtcDateTime;
 }

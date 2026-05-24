@@ -14,30 +14,11 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<IAcessoUtilizadorRepository, AcessoUtilizadorRepository>();
         services.AddScoped<IAcessoUtilizadorService, AcessoUtilizadorService>();
         services.AddScoped<IAcessoVisualizacaoService, AcessoVisualizacaoService>();
-        services.AddScoped<IValidacaoAcessoService, ValidacaoAcessoService>();
         services.AddScoped<IVisualizacaoRepository, VisualizacaoRepository>();
         services.AddScoped<IVisualizacaoService, VisualizacaoService>();
         services.AddScoped<IAcessoAutomaticoFactory, AcessoAutomaticoFactory>();
         services.AddScoped<IAcessoAutomaticoService, AcessoAutomaticoService>();
-        services.AddScoped<IAcessoFactory, AcessoFactory>();
         services.AddScoped<IValidacaoAcessoStrategyFactory, ValidacaoAcessoStrategyFactory>();
-
-        services.AddScoped<
-            OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.IEstrategiaValidacaoAcesso,
-            OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.ValidacaoBilheteSessaoStrategy
-        >();
-        services.AddScoped<
-            OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.IEstrategiaValidacaoAcesso,
-            OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.ValidacaoPasseDiarioStrategy
-        >();
-        services.AddScoped<
-            OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.IEstrategiaValidacaoAcesso,
-            OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.ValidacaoPasseCompletoStrategy
-        >();
-        services.AddScoped<
-            OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.IEstrategiaValidacaoAcesso,
-            OnlineCinemaFestival.Api.Services.VisualizacaoAcesso.ValidacaoAluguerDigitalStrategy
-        >();
 
         services.AddScoped<IEstrategiaCriacaoAcessoUtilizador, EstrategiaCriacaoBilheteSessao>();
         services.AddScoped<IEstrategiaCriacaoAcessoUtilizador, EstrategiaCriacaoPasseDiario>();

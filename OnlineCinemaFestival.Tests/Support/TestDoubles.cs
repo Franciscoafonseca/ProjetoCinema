@@ -45,6 +45,28 @@ public sealed class CompraRepositoryFalso : ICompraRepository
     public Task<List<Compra>> ObterHistoricoPorUtilizadorAsync(int utilizadorId) =>
         Task.FromResult(_compras.Values.Where(c => c.UtilizadorId == utilizadorId).ToList());
 
+    public Task<List<Compra>> ObterPagamentosMultibancoPorUtilizadorAsync(int utilizadorId) =>
+        Task.FromResult(
+            _compras.Values.Where(c =>
+                    c.UtilizadorId == utilizadorId
+                    && c.Pagamento?.Metodo
+                        == OnlineCinemaFestival.Api.Configuracao.MetodosPagamento.ReferenciaMultibanco
+                    && (c.Pagamento.Estado == EstadoPagamento.Pendente
+                        || c.Pagamento.Estado == EstadoPagamento.Expirado)
+                )
+                .ToList()
+        );
+
+    public Task<List<Compra>> ObterPagamentosMultibancoPendentesAsync() =>
+        Task.FromResult(
+            _compras.Values.Where(c =>
+                    c.Pagamento?.Metodo
+                        == OnlineCinemaFestival.Api.Configuracao.MetodosPagamento.ReferenciaMultibanco
+                    && c.Pagamento.Estado == EstadoPagamento.Pendente
+                )
+                .ToList()
+        );
+
     public Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action) => action();
 
     public Task SaveChangesAsync() => Task.CompletedTask;
@@ -63,7 +85,13 @@ public sealed class CarrinhoCheckoutServiceFalso : ICarrinhoCheckoutService
         _timeProvider = timeProvider;
     }
 
-    public Task<Carrinho> ObterCarrinhoValidadoAsync(int utilizadorId) => Task.FromResult(_carrinho);
+    public Task<Carrinho> ObterCarrinhoValidadoAsync(int utilizadorId)
+    {
+        if (!_carrinho.Itens.Any())
+            throw new InvalidOperationException("O carrinho esta vazio.");
+
+        return Task.FromResult(_carrinho);
+    }
 
     public Task LimparCarrinhoAsync(Carrinho carrinho)
     {
@@ -113,21 +141,9 @@ public sealed class AcessoUtilizadorRepositoryFalso : IAcessoUtilizadorRepositor
     public Task<bool> ExisteAcessoAtivoAsync(int utilizadorId, int acessoId, DateTime dataAtual) =>
         Task.FromResult(false);
 
-    public Task<AcessoUtilizador?> ObterAcessoValidoAsync(
-        int utilizadorId,
-        TipoAcesso tipoAcesso,
-        DateTime dataAtual,
-        int? filmeId = null,
-        int? sessaoId = null,
-        int? festivalId = null
-    ) => Task.FromResult<AcessoUtilizador?>(null);
+    public Task<bool> ExisteParaCompraAsync(int compraId) =>
+        Task.FromResult(Adicionados.Any(a => a.CompraId == compraId));
 
-    public Task<AcessoUtilizador?> ObterPasseCompletoValidoParaFilmeAsync(
-        int utilizadorId,
-        int filmeId,
-        int? festivalId,
-        DateTime dataAtual
-    ) => Task.FromResult<AcessoUtilizador?>(null);
 }
 
 public sealed class CompraObserverFalso : ICompraObserver

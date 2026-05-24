@@ -25,13 +25,28 @@ public sealed class AcessoCompraService : IAcessoCompraService
         if (compra.Pagamento?.Estado != EstadoPagamento.Aprovado)
             return 0;
 
+        if (compra.AcessosUtilizador.Any())
+            return 0;
+
+        if (compra.Id > 0 && await _acessoUtilizadorRepository.ExisteParaCompraAsync(compra.Id))
+            return 0;
+
         var agora = _timeProvider.GetUtcNow().UtcDateTime;
         var acessos = carrinho.Itens
-            .Select(item => _fabricaAcessoUtilizador.Criar(utilizadorId, compra, item, agora))
+            .SelectMany(item =>
+                Enumerable
+                    .Range(0, item.Quantidade)
+                    .Select(_ => _fabricaAcessoUtilizador.Criar(utilizadorId, compra, item, agora))
+            )
             .ToList();
 
         if (acessos.Count > 0)
+        {
+            foreach (var acesso in acessos)
+                compra.AcessosUtilizador.Add(acesso);
+
             await _acessoUtilizadorRepository.AddRangeAsync(acessos);
+        }
 
         return acessos.Count;
     }

@@ -15,10 +15,12 @@ public class FinalizacaoCompraServiceTests
 
         var resultado = await contexto.Servico.FinalizarCompraAsync(7, MetodosPagamento.CartaoCredito);
 
-        Assert.Equal(1, resultado.AcessosGerados);
-        Assert.Single(contexto.AcessoRepo.Adicionados);
+        Assert.Equal(2, resultado.AcessosGerados);
+        Assert.Equal(2, contexto.AcessoRepo.Adicionados.Count);
         Assert.Equal(EstadoCompra.Pago, contexto.CompraRepo.UltimaCompraAdicionada!.Estado);
         Assert.NotNull(contexto.CompraRepo.UltimaCompraAdicionada!.PagaEm);
+        Assert.Equal(EstadoPagamento.Aprovado, contexto.CompraRepo.UltimaCompraAdicionada!.Pagamento!.Estado);
+        Assert.True(contexto.CarrinhoCheckout.CarrinhoLimpado);
     }
 
     [Fact]
@@ -35,6 +37,36 @@ public class FinalizacaoCompraServiceTests
         Assert.Empty(contexto.AcessoRepo.Adicionados);
         Assert.Equal(EstadoCompra.Pendente, contexto.CompraRepo.UltimaCompraAdicionada!.Estado);
         Assert.Null(contexto.CompraRepo.UltimaCompraAdicionada!.PagaEm);
+        Assert.Equal(EstadoPagamento.Pendente, contexto.CompraRepo.UltimaCompraAdicionada!.Pagamento!.Estado);
+        Assert.True(contexto.CarrinhoCheckout.CarrinhoLimpado);
+    }
+
+    [Fact]
+    public async Task PagamentoRecusado_NaoDeveCriarAcessos()
+    {
+        var contexto = CriarContexto("MetodoInexistente");
+
+        var resultado = await contexto.Servico.FinalizarCompraAsync(7, "MetodoInexistente");
+
+        Assert.Equal(0, resultado.AcessosGerados);
+        Assert.Empty(contexto.AcessoRepo.Adicionados);
+        Assert.Equal(EstadoCompra.Cancelado, contexto.CompraRepo.UltimaCompraAdicionada!.Estado);
+        Assert.Null(contexto.CompraRepo.UltimaCompraAdicionada!.PagaEm);
+        Assert.Equal(EstadoPagamento.Recusado, contexto.CompraRepo.UltimaCompraAdicionada!.Pagamento!.Estado);
+        Assert.False(contexto.CarrinhoCheckout.CarrinhoLimpado);
+    }
+
+    [Fact]
+    public async Task SegundaFinalizacao_AposCompraAprovada_NaoDuplicaAcessos()
+    {
+        var contexto = CriarContexto(MetodosPagamento.CartaoCredito);
+
+        await contexto.Servico.FinalizarCompraAsync(7, MetodosPagamento.CartaoCredito);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            contexto.Servico.FinalizarCompraAsync(7, MetodosPagamento.CartaoCredito)
+        );
+
+        Assert.Equal(2, contexto.AcessoRepo.Adicionados.Count);
     }
 
     private static ContextoCheckout CriarContexto(string metodoPagamento)
@@ -76,7 +108,7 @@ public class FinalizacaoCompraServiceTests
             configuracao
         );
 
-        return new ContextoCheckout(servico, compraRepo, acessoRepo);
+        return new ContextoCheckout(servico, compraRepo, acessoRepo, carrinhoCheckout);
     }
 
     private static IPagamentoService CriarServicoPagamento(TimeProvider timeProvider)
@@ -122,7 +154,7 @@ public class FinalizacaoCompraServiceTests
                     AcessoId = acesso.Id,
                     Acesso = acesso,
                     PrecoUnitario = 10m,
-                    Quantidade = 1,
+                    Quantidade = 2,
                 },
             },
         };
@@ -133,6 +165,7 @@ public class FinalizacaoCompraServiceTests
     private sealed record ContextoCheckout(
         FinalizacaoCompraService Servico,
         CompraRepositoryFalso CompraRepo,
-        AcessoUtilizadorRepositoryFalso AcessoRepo
+        AcessoUtilizadorRepositoryFalso AcessoRepo,
+        CarrinhoCheckoutServiceFalso CarrinhoCheckout
     );
 }

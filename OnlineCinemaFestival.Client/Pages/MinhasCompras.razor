@@ -186,7 +186,7 @@
         }
         catch (Exception ex)
         {
-            _erro = ex.Message;
+            _erro = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel carregar as compras.");
         }
         finally
         {

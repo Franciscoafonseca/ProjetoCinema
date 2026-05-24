@@ -86,6 +86,8 @@ public class ComentarioDTO
     public bool Visivel { get; set; }
 
     public bool Reportado { get; set; }
+
+    public EstadoModeracaoComentario EstadoModeracao { get; set; }
 }
 
 public class ComentarioCreateDTO
@@ -95,4 +97,23 @@ public class ComentarioCreateDTO
     public string Texto { get; set; } = string.Empty;
 
     public int? FilmeId { get; set; }
+}
+
+public class ModerarComentarioDTO
+{
+    public AcaoModeracaoComentario Acao { get; set; }
+}
+
+public enum EstadoModeracaoComentario
+{
+    Visivel = 0,
+    Oculto = 1,
+    Removido = 2,
+}
+
+public enum AcaoModeracaoComentario
+{
+    Ocultar = 0,
+    Remover = 1,
+    Restaurar = 2,
 }

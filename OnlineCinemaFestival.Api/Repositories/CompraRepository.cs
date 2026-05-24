@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
 
@@ -37,6 +38,31 @@ public class CompraRepository : ICompraRepository
         return await ComprasComDetalhes(incluirPagamento: false)
             .Where(c => c.UtilizadorId == utilizadorId)
             .OrderByDescending(c => c.CriadaEm)
+            .ToListAsync();
+    }
+
+    public async Task<List<Compra>> ObterPagamentosMultibancoPorUtilizadorAsync(int utilizadorId)
+    {
+        return await ComprasComDetalhes(incluirPagamento: true)
+            .Where(c =>
+                c.UtilizadorId == utilizadorId
+                && c.Pagamento != null
+                && c.Pagamento.Metodo == MetodosPagamento.ReferenciaMultibanco
+                && (c.Pagamento.Estado == EstadoPagamento.Pendente
+                    || c.Pagamento.Estado == EstadoPagamento.Expirado)
+            )
+            .OrderByDescending(c => c.CriadaEm)
+            .ToListAsync();
+    }
+
+    public async Task<List<Compra>> ObterPagamentosMultibancoPendentesAsync()
+    {
+        return await ComprasComDetalhes(incluirPagamento: true)
+            .Where(c =>
+                c.Pagamento != null
+                && c.Pagamento.Metodo == MetodosPagamento.ReferenciaMultibanco
+                && c.Pagamento.Estado == EstadoPagamento.Pendente
+            )
             .ToListAsync();
     }
 

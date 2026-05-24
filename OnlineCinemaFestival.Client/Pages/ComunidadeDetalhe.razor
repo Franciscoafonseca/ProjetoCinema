@@ -4,6 +4,7 @@
 @inject ComentarioService ComentarioService
 @inject IConsultaFilmeService FilmeService
 @inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Comunidade - Online Cinema Festival</PageTitle>
 
@@ -167,6 +168,12 @@
                                             @NomeUtilizador(comentario.NomeUsuario)
                                         </button>
                                         <span>@comentario.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                        @if (comentario.EstadoModeracao != EstadoModeracaoComentario.Visivel)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">
+                                                @comentario.EstadoModeracao
+                                            </MudChip>
+                                        }
                                         <p>@comentario.Texto</p>
 
                                         @if (comentario.FilmeId.HasValue)
@@ -181,6 +188,39 @@
                                                 }
                                                 <span>@(comentario.TituloFilme ?? "Filme associado")</span>
                                             </button>
+                                        }
+
+                                        @if (PodeModerar)
+                                        {
+                                            <MudStack Row="true" Spacing="1" Class="comment-moderation">
+                                                @if (comentario.EstadoModeracao == EstadoModeracaoComentario.Visivel)
+                                                {
+                                                    <MudButton Size="Size.Small"
+                                                               Variant="Variant.Outlined"
+                                                               Color="Color.Warning"
+                                                               Disabled="@_aModerar"
+                                                               OnClick="() => ModerarComentarioAsync(comentario.Id, AcaoModeracaoComentario.Ocultar)">
+                                                        Ocultar
+                                                    </MudButton>
+                                                    <MudButton Size="Size.Small"
+                                                               Variant="Variant.Outlined"
+                                                               Color="Color.Error"
+                                                               Disabled="@_aModerar"
+                                                               OnClick="() => ModerarComentarioAsync(comentario.Id, AcaoModeracaoComentario.Remover)">
+                                                        Remover
+                                                    </MudButton>
+                                                }
+                                                else
+                                                {
+                                                    <MudButton Size="Size.Small"
+                                                               Variant="Variant.Outlined"
+                                                               Color="Color.Success"
+                                                               Disabled="@_aModerar"
+                                                               OnClick="() => ModerarComentarioAsync(comentario.Id, AcaoModeracaoComentario.Restaurar)">
+                                                        Restaurar
+                                                    </MudButton>
+                                                }
+                                            </MudStack>
                                         }
                                     </div>
                                 </article>
@@ -203,10 +243,16 @@
     private bool _aCarregar = true;
     private bool _aCarregarComentarios;
     private bool _aComentar;
+    private bool _aModerar;
+    private int? _utilizadorAtualId;
     private string? _erroGeral;
     private string? _mensagemComentario;
     private string? _mensagemPerfil;
     private Severity _severidadeComentario = Severity.Info;
+
+    private bool PodeModerar =>
+        _comunidade?.CreatedByUserId.HasValue == true
+        && _utilizadorAtualId == _comunidade.CreatedByUserId.Value;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -218,12 +264,13 @@
         try
         {
             _comunidade = await ComunidadeService.ObterPorIdAsync(Id);
+            _utilizadorAtualId = await ObterUtilizadorAtualIdAsync();
             _filmes = (await FilmeService.ObterFilmesAsync()).OrderBy(f => f.Titulo).ToList();
             await CarregarComentariosAsync();
         }
         catch (Exception ex)
         {
-            _erroGeral = ex.Message;
+            _erroGeral = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel carregar a comunidade.");
         }
         finally
         {
@@ -241,7 +288,7 @@
         }
         catch (Exception ex)
         {
-            _mensagemComentario = ex.Message;
+            _mensagemComentario = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel carregar os comentarios.");
             _severidadeComentario = Severity.Error;
         }
         finally
@@ -271,12 +318,40 @@
         }
         catch (Exception ex)
         {
-            _mensagemComentario = ex.Message;
+            _mensagemComentario = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel publicar o comentario.");
             _severidadeComentario = Severity.Error;
         }
         finally
         {
             _aComentar = false;
+        }
+    }
+
+    private async Task ModerarComentarioAsync(int comentarioId, AcaoModeracaoComentario acao)
+    {
+        _aModerar = true;
+        _mensagemComentario = null;
+
+        try
+        {
+            var atualizado = await ComentarioService.ModerarNaComunidadeAsync(Id, comentarioId, acao);
+            var index = _comentarios.FindIndex(c => c.Id == comentarioId);
+            if (index >= 0)
+                _comentarios[index] = atualizado;
+
+            _mensagemComentario = acao == AcaoModeracaoComentario.Restaurar
+                ? "Comentario restaurado."
+                : "Comentario moderado. Ja nao aparece publicamente.";
+            _severidadeComentario = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _mensagemComentario = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel moderar o comentario.");
+            _severidadeComentario = Severity.Error;
+        }
+        finally
+        {
+            _aModerar = false;
         }
     }
 
@@ -319,5 +394,16 @@
         return string.IsNullOrWhiteSpace(texto)
             ? "?"
             : char.ToUpperInvariant(texto[0]).ToString();
+    }
+
+    private async Task<int?> ObterUtilizadorAtualIdAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var id = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? user.FindFirst("nameid")?.Value
+            ?? user.FindFirst("sub")?.Value;
+
+        return int.TryParse(id, out var utilizadorId) ? utilizadorId : null;
     }
 }
