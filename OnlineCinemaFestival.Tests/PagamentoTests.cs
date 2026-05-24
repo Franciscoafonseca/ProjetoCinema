@@ -11,7 +11,9 @@ public class PagamentoTests
     [Fact]
     public async Task CartaoCredito_DeveFicarAprovado()
     {
-        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 5, 23, 12, 0, 0, TimeSpan.Zero));
+        var timeProvider = new FakeTimeProvider(
+            new DateTimeOffset(2026, 5, 23, 12, 0, 0, TimeSpan.Zero)
+        );
         var service = CriarServicoPagamento(timeProvider);
         var compra = CriarCompra();
 
@@ -28,7 +30,9 @@ public class PagamentoTests
     [Fact]
     public async Task ReferenciaMultibanco_DeveFicarPendenteEGerarReferencia()
     {
-        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 5, 23, 12, 0, 0, TimeSpan.Zero));
+        var timeProvider = new FakeTimeProvider(
+            new DateTimeOffset(2026, 5, 23, 12, 0, 0, TimeSpan.Zero)
+        );
         var service = CriarServicoPagamento(timeProvider);
         var compra = CriarCompra();
 
@@ -48,7 +52,9 @@ public class PagamentoTests
     [Fact]
     public async Task MetodoInvalido_DeveFicarRecusado()
     {
-        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 5, 23, 12, 0, 0, TimeSpan.Zero));
+        var timeProvider = new FakeTimeProvider(
+            new DateTimeOffset(2026, 5, 23, 12, 0, 0, TimeSpan.Zero)
+        );
         var service = CriarServicoPagamento(timeProvider);
         var compra = CriarCompra();
 
@@ -84,11 +90,6 @@ public class PagamentoTests
 
     private static Compra CriarCompra()
     {
-        return new Compra
-        {
-            Referencia = "CMP-TESTE-0001",
-            ValorTotal = 12.5m,
-        };
+        return new Compra { Referencia = "CMP-TESTE-0001", ValorTotal = 12.5m };
     }
 }
-
