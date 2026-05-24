@@ -14,21 +14,32 @@
 
 <main class="cinema-page admin-page">
     <section class="cinema-shell">
-        <header class="cinema-page-head">
+        <header class="cinema-page-head admin-hero">
             <div>
-                <span class="cinema-kicker">Administracao</span>
-                <h1>Painel de administracao</h1>
+                <span class="cinema-kicker">
+                    <span class="admin-kicker-dot"></span>
+                    Administracao
+                </span>
+                <h1>Painel de controlo</h1>
                 <p>
-                    Gestao unica de filmes, importacoes TMDB, festivais, sessoes e premios.
-                    Estas operacoes estao reservadas a administradores.
+                    Gestao centralizada de filmes, importacoes TMDB, festivais, sessoes e premios.
+                    Acesso reservado a administradores.
                 </p>
             </div>
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Movie"
-                       Href="/catalogo">
-                Catalogo
-            </MudButton>
+            <div class="admin-hero-actions">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           StartIcon="@Icons.Material.Filled.Movie"
+                           Href="/catalogo">
+                    Catalogo
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           StartIcon="@Icons.Material.Filled.Festival"
+                           Href="/festivais">
+                    Festivais
+                </MudButton>
+            </div>
         </header>
 
         @if (_aCarregar)
@@ -47,23 +58,43 @@
             <section class="admin-metricas">
                 @foreach (var metrica in _metricas)
                 {
-                    <MudCard Elevation="0" Class="cinema-panel admin-metrica">
-                        <MudCardContent>
+                    <article class="admin-metrica-card">
+                        <div class="admin-metrica-icone">
                             <MudIcon Icon="@metrica.Icone" Color="@metrica.Cor" Size="Size.Large" />
-                            <strong>@metrica.Valor</strong>
-                            <span>@metrica.Rotulo</span>
-                        </MudCardContent>
-                    </MudCard>
+                        </div>
+                        <div class="admin-metrica-dados">
+                            <strong class="admin-metrica-valor">@metrica.Valor</strong>
+                            <span class="admin-metrica-rotulo">@metrica.Rotulo</span>
+                        </div>
+                    </article>
                 }
             </section>
 
             <nav class="admin-tabs" aria-label="Seccoes de administracao">
-                <a href="#admin-geral">Visao geral</a>
-                <a href="#admin-tmdb">TMDB/importacao</a>
-                <a href="#admin-festivais">Festivais</a>
-                <a href="#admin-sessoes">Sessoes</a>
-                <a href="#admin-premios">Premios</a>
-                <a href="#admin-moderacao">Reports/moderacao</a>
+                <a href="#admin-geral">
+                    <span class="admin-tab-icon">⚡</span>
+                    Visao geral
+                </a>
+                <a href="#admin-tmdb">
+                    <span class="admin-tab-icon">🔍</span>
+                    TMDB / Importacao
+                </a>
+                <a href="#admin-festivais">
+                    <span class="admin-tab-icon">🎪</span>
+                    Festivais
+                </a>
+                <a href="#admin-sessoes">
+                    <span class="admin-tab-icon">📅</span>
+                    Sessoes
+                </a>
+                <a href="#admin-premios">
+                    <span class="admin-tab-icon">🏆</span>
+                    Premios
+                </a>
+                <a href="#admin-moderacao">
+                    <span class="admin-tab-icon">🛡️</span>
+                    Moderacao
+                </a>
             </nav>
 
             <section id="admin-moderacao" class="admin-acoes admin-acoes-wide">
@@ -165,14 +196,28 @@
                         <span class="cinema-kicker">Festival</span>
                         <h2>Criar festival</h2>
                         <div class="admin-lista">
-                            <input placeholder="Nome" @bind="_novoFestival.Name" />
-                            <textarea placeholder="Descricao curta" @bind="_novoFestival.Description"></textarea>
-                            <input type="date"
-                                   @bind-value="_novoFestival.StartDate"
-                                   @bind-value:format="yyyy-MM-dd" />
-                            <input type="date"
-                                   @bind-value="_novoFestival.EndDate"
-                                   @bind-value:format="yyyy-MM-dd" />
+                            <div class="admin-campo">
+                                <label class="admin-label">Nome do festival</label>
+                                <input class="sky-input" placeholder="Ex.: Festival de Cinema Indie 2025" @bind="_novoFestival.Name" />
+                            </div>
+                            <div class="admin-campo">
+                                <label class="admin-label">Descricao</label>
+                                <textarea class="sky-input" placeholder="Breve descricao do festival..." @bind="_novoFestival.Description"></textarea>
+                            </div>
+                            <div class="admin-campo-row">
+                                <div class="admin-campo">
+                                    <label class="admin-label">Data de inicio</label>
+                                    <input class="sky-input" type="date"
+                                           @bind-value="_novoFestival.StartDate"
+                                           @bind-value:format="yyyy-MM-dd" />
+                                </div>
+                                <div class="admin-campo">
+                                    <label class="admin-label">Data de fim</label>
+                                    <input class="sky-input" type="date"
+                                           @bind-value="_novoFestival.EndDate"
+                                           @bind-value:format="yyyy-MM-dd" />
+                                </div>
+                            </div>
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
                                        Disabled="@_aAtualizarOperacao"
@@ -188,23 +233,37 @@
                         <span class="cinema-kicker">Catalogo</span>
                         <h2>Adicionar filme ao festival</h2>
                         <div class="admin-lista">
-                            <select @bind="_festivalOperacaoId">
-                                <option value="0">Selecionar festival</option>
-                                @foreach (var festival in _festivais)
-                                {
-                                    <option value="@festival.Id">@festival.Name</option>
-                                }
-                            </select>
-                            <select @bind="_associacao.FilmeId">
-                                <option value="0">Selecionar filme</option>
-                                @foreach (var filme in _filmes)
-                                {
-                                    <option value="@filme.Id">@filme.Titulo</option>
-                                }
-                            </select>
-                            <input placeholder="Secao" @bind="_associacao.Secao" />
-                            <input placeholder="Categoria" @bind="_associacao.Categoria" />
-                            <label>
+                            <div class="admin-campo">
+                                <label class="admin-label">Festival</label>
+                                <select class="sky-input" @bind="_festivalOperacaoId">
+                                    <option value="0">Selecionar festival</option>
+                                    @foreach (var festival in _festivais)
+                                    {
+                                        <option value="@festival.Id">@festival.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="admin-campo">
+                                <label class="admin-label">Filme</label>
+                                <select class="sky-input" @bind="_associacao.FilmeId">
+                                    <option value="0">Selecionar filme</option>
+                                    @foreach (var filme in _filmes)
+                                    {
+                                        <option value="@filme.Id">@filme.Titulo</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="admin-campo-row">
+                                <div class="admin-campo">
+                                    <label class="admin-label">Seccao</label>
+                                    <input class="sky-input" placeholder="Ex.: Competicao" @bind="_associacao.Secao" />
+                                </div>
+                                <div class="admin-campo">
+                                    <label class="admin-label">Categoria</label>
+                                    <input class="sky-input" placeholder="Ex.: Curta metragem" @bind="_associacao.Categoria" />
+                                </div>
+                            </div>
+                            <label class="admin-check-label">
                                 <input type="checkbox" @bind="_associacao.ElegivelPremiosPublico" />
                                 Elegivel para premios do publico
                             </label>
@@ -225,36 +284,56 @@
                         <span class="cinema-kicker">Sessao</span>
                         <h2>Criar sessao</h2>
                         <div class="admin-lista">
-                            <select @bind="_novaSessao.FestivalId">
-                                <option value="0">Selecionar festival</option>
-                                @foreach (var festival in _festivais)
-                                {
-                                    <option value="@festival.Id">@festival.Name</option>
-                                }
-                            </select>
-                            <select @bind="_novaSessao.FilmeId">
-                                <option value="0">Selecionar filme</option>
-                                @foreach (var filme in _filmes)
-                                {
-                                    <option value="@filme.Id">@filme.Titulo</option>
-                                }
-                            </select>
-                            <select @bind="_novaSessao.Tipo">
-                                <option value="2">HorarioFixo</option>
-                                <option value="1">Estreia</option>
-                                <option value="3">JanelaAcesso</option>
-                            </select>
-                            <input type="datetime-local"
-                                   @bind-value="_novaSessao.Inicio"
-                                   @bind-value:format="yyyy-MM-ddTHH:mm" />
-                            <input type="datetime-local"
-                                   @bind-value="_novaSessao.Fim"
-                                   @bind-value:format="yyyy-MM-ddTHH:mm" />
-                            <label>
+                            <div class="admin-campo">
+                                <label class="admin-label">Festival</label>
+                                <select class="sky-input" @bind="_novaSessao.FestivalId">
+                                    <option value="0">Selecionar festival</option>
+                                    @foreach (var festival in _festivais)
+                                    {
+                                        <option value="@festival.Id">@festival.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="admin-campo">
+                                <label class="admin-label">Filme</label>
+                                <select class="sky-input" @bind="_novaSessao.FilmeId">
+                                    <option value="0">Selecionar filme</option>
+                                    @foreach (var filme in _filmes)
+                                    {
+                                        <option value="@filme.Id">@filme.Titulo</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="admin-campo">
+                                <label class="admin-label">Tipo de sessao</label>
+                                <select class="sky-input" @bind="_novaSessao.Tipo">
+                                    <option value="2">Horario fixo</option>
+                                    <option value="1">Estreia</option>
+                                    <option value="3">Janela de acesso</option>
+                                </select>
+                            </div>
+                            <div class="admin-campo-row">
+                                <div class="admin-campo">
+                                    <label class="admin-label">Inicio</label>
+                                    <input class="sky-input" type="datetime-local"
+                                           @bind-value="_novaSessao.Inicio"
+                                           @bind-value:format="yyyy-MM-ddTHH:mm" />
+                                </div>
+                                <div class="admin-campo">
+                                    <label class="admin-label">Fim</label>
+                                    <input class="sky-input" type="datetime-local"
+                                           @bind-value="_novaSessao.Fim"
+                                           @bind-value:format="yyyy-MM-ddTHH:mm" />
+                                </div>
+                            </div>
+                            <label class="admin-check-label">
                                 <input type="checkbox" @bind="_novaSessao.TemChatAoVivo" />
-                                Chat ao vivo
+                                Ativar chat ao vivo
                             </label>
-                            <textarea placeholder="Observacoes" @bind="_novaSessao.Observacoes"></textarea>
+                            <div class="admin-campo">
+                                <label class="admin-label">Observacoes</label>
+                                <textarea class="sky-input" placeholder="Notas internas sobre a sessao..." @bind="_novaSessao.Observacoes"></textarea>
+                            </div>
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
                                        Disabled="@(_novaSessao.FestivalId == 0 || _novaSessao.FilmeId == 0 || _aAtualizarOperacao)"
@@ -314,26 +393,43 @@
                         <span class="cinema-kicker">Premios</span>
                         <h2>Criar premio de festival</h2>
                         <div class="admin-lista">
-                            <select value="@_festivalPremioSelecionadoId" @onchange="SelecionarFestivalPremio">
-                                <option value="0">Selecionar festival</option>
-                                @foreach (var festival in _festivais)
-                                {
-                                    <option value="@festival.Id">@festival.Name</option>
-                                }
-                            </select>
-                            <input placeholder="Nome do premio" @bind="_novoPremio.Nome" />
-                            <textarea placeholder="Descricao" @bind="_novoPremio.Descricao"></textarea>
-                            <input type="datetime-local"
-                                   @bind-value="_novoPremio.DataAberturaVotacao"
-                                   @bind-value:format="yyyy-MM-ddTHH:mm" />
-                            <input type="datetime-local"
-                                   @bind-value="_novoPremio.DataFechoVotacao"
-                                   @bind-value:format="yyyy-MM-ddTHH:mm" />
+                            <div class="admin-campo">
+                                <label class="admin-label">Festival</label>
+                                <select class="sky-input" value="@_festivalPremioSelecionadoId" @onchange="SelecionarFestivalPremio">
+                                    <option value="0">Selecionar festival</option>
+                                    @foreach (var festival in _festivais)
+                                    {
+                                        <option value="@festival.Id">@festival.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="admin-campo">
+                                <label class="admin-label">Nome do premio</label>
+                                <input class="sky-input" placeholder="Ex.: Melhor Filme" @bind="_novoPremio.Nome" />
+                            </div>
+                            <div class="admin-campo">
+                                <label class="admin-label">Descricao</label>
+                                <textarea class="sky-input" placeholder="Descricao do premio..." @bind="_novoPremio.Descricao"></textarea>
+                            </div>
+                            <div class="admin-campo-row">
+                                <div class="admin-campo">
+                                    <label class="admin-label">Abertura de votacao</label>
+                                    <input class="sky-input" type="datetime-local"
+                                           @bind-value="_novoPremio.DataAberturaVotacao"
+                                           @bind-value:format="yyyy-MM-ddTHH:mm" />
+                                </div>
+                                <div class="admin-campo">
+                                    <label class="admin-label">Fecho de votacao</label>
+                                    <input class="sky-input" type="datetime-local"
+                                           @bind-value="_novoPremio.DataFechoVotacao"
+                                           @bind-value:format="yyyy-MM-ddTHH:mm" />
+                                </div>
+                            </div>
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
                                        Disabled="@(_festivalPremioSelecionadoId == 0 || _aAtualizarPremios)"
                                        OnClick="CriarPremio">
-                                Criar
+                                Criar premio
                             </MudButton>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(_mensagemPremios))
