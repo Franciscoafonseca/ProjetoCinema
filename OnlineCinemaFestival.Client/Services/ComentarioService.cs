@@ -91,6 +91,51 @@ public class ComentarioService
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
+    public async Task ReportarAsync(Guid comunidadeId, int comentarioId)
+    {
+        var resposta = await _http.PostAsync(
+            $"api/comunidades/{comunidadeId}/comentarios/{comentarioId}/reportar",
+            null
+        );
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel reportar o comentario.")
+            );
+    }
+
+    public async Task<List<ComentarioDTO>> ObterReportadosDaComunidadeAsync(Guid comunidadeId)
+    {
+        var resposta = await _http.GetAsync($"api/comunidades/{comunidadeId}/comentarios/reportados");
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel carregar comentarios reportados.")
+            );
+
+        var comentarios = await resposta.Content.ReadFromJsonAsync<List<ComentarioDTO>>() ?? new();
+        foreach (var comentario in comentarios)
+            NormalizarFotoAutor(comentario);
+        return comentarios;
+    }
+
+    public async Task AtualizarVisibilidadeAsync(
+        Guid comunidadeId,
+        int comentarioId,
+        ComentarioVisibilidadeDTO dto
+    )
+    {
+        var resposta = await _http.PutAsJsonAsync(
+            $"api/comunidades/{comunidadeId}/comentarios/{comentarioId}/visibilidade",
+            dto
+        );
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel atualizar a visibilidade.")
+            );
+    }
+
     private ComentarioDTO? NormalizarFotoAutor(ComentarioDTO? comentario)
     {
         if (comentario == null || string.IsNullOrWhiteSpace(comentario.UsuarioFotoUrl))

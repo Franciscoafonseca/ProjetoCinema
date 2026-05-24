@@ -9,7 +9,6 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<IPasswordHashingStrategy, PasswordHashingStrategy>();
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IAutenticacaoService, AutenticacaoService>();
-        services.AddScoped<IAutenticacaoExternaService, AutenticacaoExternaService>();
 
         return services;
     }

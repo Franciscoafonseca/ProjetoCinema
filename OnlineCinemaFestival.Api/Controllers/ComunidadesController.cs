@@ -49,10 +49,7 @@ public class ComunidadesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ComunidadeReadDTO>> CriarComunidade(ComunidadeCreateDTO dto)
     {
-        var comunidadeCriada = await _comunidadeService.CriarComunidadeAsync(
-            dto,
-            User.GetUserId()
-        );
+        var comunidadeCriada = await _comunidadeService.CriarComunidadeAsync(dto, User.GetUserId());
 
         return CreatedAtAction(
             nameof(ObterComunidadePorId),
@@ -66,8 +63,10 @@ public class ComunidadesController : ControllerBase
         string codigoConvite
     )
     {
-        var comunidade = await _comunidadeService.ObterComunidadePorConviteAsync(codigoConvite);
-
+        var comunidade = await _comunidadeService.ObterComunidadePorConviteAsync(
+            codigoConvite,
+            User.GetUserId()
+        );
         if (comunidade == null)
             return NotFound("Comunidade nao encontrada.");
 
@@ -77,18 +76,84 @@ public class ComunidadesController : ControllerBase
     [HttpPost("{id:guid}/aderir")]
     public async Task<ActionResult> AderirComunidade(Guid id)
     {
-        await _comunidadeService.AderirComunidadeAsync(id, User.GetUserId());
-        return Ok(new { mensagem = "Entraste na comunidade com sucesso!" });
+        try
+        {
+            await _comunidadeService.AderirComunidadeAsync(id, User.GetUserId());
+            return Ok(new { mensagem = "Entraste na comunidade com sucesso!" });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
     }
 
+    // Para entrar com o Código de Convite
     [HttpPost("convite/{codigoConvite}/aderir")]
     public async Task<ActionResult> AderirPorConvite(string codigoConvite)
     {
-        await _comunidadeService.AderirComunidadePorConviteAsync(
-            codigoConvite,
-            User.GetUserId()
-        );
+        try
+        {
+            await _comunidadeService.AderirComunidadePorConviteAsync(
+                codigoConvite,
+                User.GetUserId()
+            );
+            return Ok(new { mensagem = "Convite aceite! Bem-vindo à comunidade." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
 
-        return Ok(new { mensagem = "Convite aceite! Bem-vindo a comunidade." });
+    [HttpPost("{id:guid}/sair")]
+    public async Task<ActionResult> SairComunidade(Guid id)
+    {
+        try
+        {
+            await _comunidadeService.SairComunidadeAsync(id, User.GetUserId());
+            return Ok(new { mensagem = "Saíste da comunidade com sucesso!" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensagem = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> ApagarComunidade(Guid id)
+    {
+        try
+        {
+            await _comunidadeService.ApagarComunidadeAsync(id, User.GetUserId());
+            return Ok(new { mensagem = "Comunidade apagada com sucesso!" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensagem = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
     }
 }

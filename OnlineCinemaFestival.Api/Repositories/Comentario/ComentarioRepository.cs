@@ -20,18 +20,30 @@ public class ComentarioRepository : IComentarioRepository
         return comentario;
     }
 
-    public async Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(int comunidadeId)
+    public async Task<Comentario?> GetByIdAsync(int comentarioId)
     {
-        return await ObterPorComunidadeIdAsync(comunidadeId, incluirModerados: false);
+        return await ComentariosComDetalhes().FirstOrDefaultAsync(c => c.Id == comentarioId);
     }
 
     public async Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(
         int comunidadeId,
-        bool incluirModerados
+        bool incluirModerados = false
     )
     {
+        var query = ComentariosComDetalhes().Where(c => c.ComunidadeId == comunidadeId);
+
+        if (!incluirModerados)
+            query = query.Where(c => c.Visivel);
+
+        return await query
+            .OrderByDescending(c => c.CriadoEm)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Comentario>> ObterReportadosPorComunidadeIdAsync(int comunidadeId)
+    {
         return await ComentariosComDetalhes()
-            .Where(c => c.ComunidadeId == comunidadeId && (incluirModerados || c.Visivel))
+            .Where(c => c.ComunidadeId == comunidadeId && c.Reportado)
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();
     }
@@ -44,13 +56,9 @@ public class ComentarioRepository : IComentarioRepository
             .ToListAsync();
     }
 
-    public async Task<Comentario?> ObterPorIdAsync(int id)
+    public async Task UpdateAsync(Comentario comentario)
     {
-        return await ComentariosComDetalhes().FirstOrDefaultAsync(c => c.Id == id);
-    }
-
-    public async Task SaveChangesAsync()
-    {
+        _context.Comentarios.Update(comentario);
         await _context.SaveChangesAsync();
     }
 

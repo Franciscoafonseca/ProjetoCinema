@@ -5,7 +5,7 @@ using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Api.Services.PoliticasAcesso;
 using OnlineCinemaFestival.Tests.Support;
 
-namespace OnlineCinemaFestival.Tests;
+namespace OnlineCinemaFestival.Tests.Visualizacoes;
 
 public class VisualizacaoFluxoTests
 {

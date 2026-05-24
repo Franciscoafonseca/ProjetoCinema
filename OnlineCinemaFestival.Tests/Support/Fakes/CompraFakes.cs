@@ -2,7 +2,7 @@ using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
 
-namespace OnlineCinemaFestival.Tests.Support;
+namespace OnlineCinemaFestival.Tests.Support.Fakes;
 
 public sealed class GeradorReferenciaCompraFalso : IGeradorReferenciaCompra
 {

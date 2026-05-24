@@ -23,10 +23,24 @@ public interface IComentarioService
 
     Task<IEnumerable<ComentarioReadDTO>> ObterComentariosPorFilmeIdAsync(int filmeId);
 
-    Task<ComentarioReadDTO> ModerarComentarioComunidadeAsync(
+    Task ReportarComentarioAsync(Guid comunidadeId, int comentarioId, int utilizadorId);
+
+    Task<IEnumerable<ComentarioReadDTO>> ObterComentariosReportadosAsync(
+        Guid comunidadeId,
+        int utilizadorId
+    );
+
+    Task AtualizarVisibilidadeComentarioAsync(
+        Guid comunidadeId,
+        int comentarioId,
+        bool visivel,
+        int utilizadorId
+    );
+
+    Task<ComentarioReadDTO> ModerarComentarioAsync(
         Guid comunidadeId,
         int comentarioId,
         ModerarComentarioDTO dto,
-        int moderadorUtilizadorId
+        int utilizadorId
     );
 }

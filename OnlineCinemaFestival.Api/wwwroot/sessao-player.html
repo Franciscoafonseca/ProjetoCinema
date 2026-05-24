@@ -222,19 +222,6 @@
                 <h1 id="title">Sessao</h1>
                 <p id="description">A carregar conteudo...</p>
             </div>
-            <section class="panel">
-                <h2>Comentario e avaliacao</h2>
-                <p id="reviewStatus" class="status"></p>
-                <form id="reviewForm">
-                    <input id="score" type="number" min="1" max="10" value="8" aria-label="Pontuacao" />
-                    <textarea id="reviewText" maxlength="2000" placeholder="Avaliacao"></textarea>
-                    <textarea id="commentText" maxlength="600" placeholder="Comentario"></textarea>
-                    <div class="actions">
-                        <button type="button" id="sendReview">Avaliar</button>
-                        <button type="button" id="sendComment" class="secondary">Comentar</button>
-                    </div>
-                </form>
-            </section>
         </section>
 
         <aside class="side">
@@ -262,9 +249,7 @@
         const description = document.getElementById("description");
         const messages = document.getElementById("messages");
         const chatStatus = document.getElementById("chatStatus");
-        const reviewStatus = document.getElementById("reviewStatus");
 
-        let filmeAtualId = null;
         let socket = null;
         let nextInvocationId = 1;
 
@@ -331,7 +316,6 @@
                 return;
             }
 
-            filmeAtualId = conteudo.filmeId;
             title.textContent = conteudo.titulo || "Filme";
             description.textContent = sessao.mensagem || "Visualizacao registada.";
             renderizarPlayer(conteudo.urlVisualizacao);
@@ -535,41 +519,6 @@
         function limparErro(value) {
             return (value || "").trim().replace(/^"|"$/g, "");
         }
-
-        document.getElementById("sendReview").addEventListener("click", async () => {
-            if (!filmeAtualId) return;
-
-            const resposta = await fetch(`/api/filmes/${filmeAtualId}/reviews`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    pontuacao: Number(document.getElementById("score").value),
-                    texto: document.getElementById("reviewText").value,
-                }),
-            });
-
-            reviewStatus.textContent = resposta.ok ? "Avaliacao guardada." : await resposta.text();
-        });
-
-        document.getElementById("sendComment").addEventListener("click", async () => {
-            if (!filmeAtualId) return;
-
-            const resposta = await fetch(`/api/filmes/${filmeAtualId}/comentarios`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    texto: document.getElementById("commentText").value,
-                }),
-            });
-
-            reviewStatus.textContent = resposta.ok ? "Comentario guardado." : await resposta.text();
-        });
 
         function escapeHtml(value) {
             return value.replace(/[&<>"']/g, char => ({

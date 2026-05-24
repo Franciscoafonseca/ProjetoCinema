@@ -1,7 +1,7 @@
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Services.PoliticasAcesso;
 
-namespace OnlineCinemaFestival.Tests;
+namespace OnlineCinemaFestival.Tests.Acessos;
 
 public class PoliticasAcessoTests
 {

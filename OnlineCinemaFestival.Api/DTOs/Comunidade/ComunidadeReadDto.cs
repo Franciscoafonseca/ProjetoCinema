@@ -6,6 +6,7 @@ public class ComunidadeReadDTO
 {
     [JsonPropertyName("id")]
     public Guid PublicId { get; set; }
+    public bool IsOwner { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string ImageUrl { get; set; } = string.Empty;

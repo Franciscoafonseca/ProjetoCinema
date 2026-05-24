@@ -45,20 +45,119 @@ public class ComentariosController : ControllerBase
         return Ok(comentarios);
     }
 
+    [HttpPost("{comentarioId:int}/reportar")]
+    public async Task<ActionResult> ReportarComentario(Guid comunidadeId, int comentarioId)
+    {
+        try
+        {
+            await _comentarioService.ReportarComentarioAsync(
+                comunidadeId,
+                comentarioId,
+                User.GetUserId()
+            );
+            return Ok(new { mensagem = "Comentario reportado." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
+    [HttpGet("reportados")]
+    public async Task<ActionResult<IEnumerable<ComentarioReadDTO>>> ObterComentariosReportados(
+        Guid comunidadeId
+    )
+    {
+        try
+        {
+            var comentarios = await _comentarioService.ObterComentariosReportadosAsync(
+                comunidadeId,
+                User.GetUserId()
+            );
+            return Ok(comentarios);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
+    [HttpPut("{comentarioId:int}/visibilidade")]
+    public async Task<ActionResult> AtualizarVisibilidade(
+        Guid comunidadeId,
+        int comentarioId,
+        [FromBody] ComentarioVisibilidadeDTO dto
+    )
+    {
+        try
+        {
+            await _comentarioService.AtualizarVisibilidadeComentarioAsync(
+                comunidadeId,
+                comentarioId,
+                dto.Visivel,
+                User.GetUserId()
+            );
+            return Ok(new { mensagem = "Visibilidade atualizada." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
     [HttpPatch("{comentarioId:int}/moderacao")]
     public async Task<ActionResult<ComentarioReadDTO>> ModerarComentario(
         Guid comunidadeId,
         int comentarioId,
-        ModerarComentarioDTO dto
+        [FromBody] ModerarComentarioDTO dto
     )
     {
-        return Ok(
-            await _comentarioService.ModerarComentarioComunidadeAsync(
+        try
+        {
+            var comentario = await _comentarioService.ModerarComentarioAsync(
                 comunidadeId,
                 comentarioId,
                 dto,
                 User.GetUserId()
-            )
-        );
+            );
+
+            return Ok(comentario);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
     }
 }

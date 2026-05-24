@@ -50,8 +50,24 @@
                             <span>Convite @_comunidade.CodigoConvite</span>
                         }
                     </div>
+                    <div class="community-id">
+                        <span>ID da comunidade</span>
+                        <code>@_comunidade.Id</code>
+                        <p>Partilha este ID para permitir a pesquisa rapida.</p>
+                    </div>
                 </div>
-                <button class="cinema-btn secondary" @onclick="Voltar">Voltar</button>
+                <div class="community-detail-actions">
+                    @if (_comunidade.IsOwner)
+                    {
+                        <button class="cinema-btn error" disabled="@_aApagar" @onclick="ApagarComunidadeAsync">
+                            Apagar
+                        </button>
+                    }
+                    <button class="cinema-btn secondary" disabled="@_aSair" @onclick="SairComunidadeAsync">
+                        Sair
+                    </button>
+                    <button class="cinema-btn secondary" @onclick="Voltar">Voltar</button>
+                </div>
             </header>
 
             <section class="community-detail-grid">
@@ -104,7 +120,8 @@
                     <EditForm Model="_novoComentario" OnValidSubmit="PublicarComentarioAsync">
                         <DataAnnotationsValidator />
                         <div class="comment-form">
-                            <InputTextArea class="text-area" @bind-Value="_novoComentario.Texto" placeholder="Escreve um comentario" />
+                            <InputTextArea class="text-area" @bind-Value="_novoComentario.Texto"
+                                           placeholder="Escreve um comentario" />
                             <ValidationMessage For="@(() => _novoComentario.Texto)" />
 
                             <label class="field-label" for="filme-associado">Filme associado opcional</label>
@@ -145,13 +162,9 @@
                         <div class="comment-list">
                             @foreach (var comentario in _comentarios.OrderByDescending(c => c.CriadoEm))
                             {
-                                <article class="comment-card"
-                                         role="button"
-                                         tabindex="0"
+                                <article class="comment-card" role="button" tabindex="0"
                                          @onclick="() => AbrirPerfilAutor(comentario)">
-                                    <button class="comment-avatar"
-                                            type="button"
-                                            title="Abrir perfil"
+                                    <button class="comment-avatar" type="button" title="Abrir perfil"
                                             @onclick="() => AbrirPerfilAutor(comentario)">
                                         @if (string.IsNullOrWhiteSpace(comentario.UsuarioFotoUrl))
                                         {
@@ -176,11 +189,25 @@
                                         }
                                         <p>@comentario.Texto</p>
 
+                                        <div class="comment-actions">
+                                            @if (!comentario.Reportado)
+                                            {
+                                                <button class="cinema-btn ghost" type="button"
+                                                        disabled="@_aReportar"
+                                                        @onclick:stopPropagation="true"
+                                                        @onclick="() => ReportarComentarioAsync(comentario)">
+                                                    Reportar
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="comment-flag">Reportado</span>
+                                            }
+                                        </div>
+
                                         @if (comentario.FilmeId.HasValue)
                                         {
-                                            <button class="comment-movie"
-                                                    type="button"
-                                                    @onclick:stopPropagation="true"
+                                            <button class="comment-movie" type="button" @onclick:stopPropagation="true"
                                                     @onclick="() => AbrirFilme(comentario.FilmeId.Value)">
                                                 @if (!string.IsNullOrWhiteSpace(comentario.FilmeCapaUrl))
                                                 {
@@ -227,6 +254,60 @@
                             }
                         </div>
                     }
+
+                    @if (_comunidade.IsOwner)
+                    {
+                        <div class="reported-panel">
+                            <div class="cinema-section-head compact">
+                                <div>
+                                    <span class="cinema-kicker">Reportados</span>
+                                    <h2>Comentarios reportados</h2>
+                                </div>
+                            </div>
+
+                            @if (_aCarregarReportados)
+                            {
+                                <div class="cinema-state slim">A carregar reportes...</div>
+                            }
+                            else if (!string.IsNullOrWhiteSpace(_mensagemReportados))
+                            {
+                                <MudAlert Severity="Severity.Error" Variant="Variant.Filled">
+                                    @_mensagemReportados
+                                </MudAlert>
+                            }
+                            else if (_comentariosReportados.Count == 0)
+                            {
+                                <div class="cinema-state slim">Sem comentarios reportados.</div>
+                            }
+                            else
+                            {
+                                <div class="reported-list">
+                                    @foreach (var comentario in _comentariosReportados)
+                                    {
+                                        <article class="reported-card">
+                                            <div>
+                                                <strong>@NomeUtilizador(comentario.NomeUsuario)</strong>
+                                                <span>@comentario.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                                <p>@comentario.Texto</p>
+                                            </div>
+                                            <div class="reported-actions">
+                                                <button class="cinema-btn secondary" type="button"
+                                                        disabled="@_aAtualizarVisibilidade"
+                                                        @onclick="() => AtualizarVisibilidadeAsync(comentario, false)">
+                                                    Ocultar
+                                                </button>
+                                                <button class="cinema-btn ghost" type="button"
+                                                        disabled="@_aAtualizarVisibilidade"
+                                                        @onclick="() => AtualizarVisibilidadeAsync(comentario, true)">
+                                                    Manter visivel
+                                                </button>
+                                            </div>
+                                        </article>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
                 </section>
             </section>
         }
@@ -243,16 +324,26 @@
     private bool _aCarregar = true;
     private bool _aCarregarComentarios;
     private bool _aComentar;
+    private bool _aApagar;
+    private bool _aSair;
+    private bool _aReportar;
     private bool _aModerar;
+    private bool _aCarregarReportados;
+    private bool _aAtualizarVisibilidade;
     private int? _utilizadorAtualId;
     private string? _erroGeral;
     private string? _mensagemComentario;
+    private string? _mensagemReportados;
     private string? _mensagemPerfil;
     private Severity _severidadeComentario = Severity.Info;
+    private List<ComentarioDTO> _comentariosReportados = new();
 
     private bool PodeModerar =>
-        _comunidade?.CreatedByUserId.HasValue == true
-        && _utilizadorAtualId == _comunidade.CreatedByUserId.Value;
+        _comunidade?.IsOwner == true
+        || (
+            _utilizadorAtualId.HasValue
+            && _comunidade?.CreatedByUserId == _utilizadorAtualId.Value
+        );
 
     protected override async Task OnParametersSetAsync()
     {
@@ -267,6 +358,10 @@
             _utilizadorAtualId = await ObterUtilizadorAtualIdAsync();
             _filmes = (await FilmeService.ObterFilmesAsync()).OrderBy(f => f.Titulo).ToList();
             await CarregarComentariosAsync();
+            if (_comunidade?.IsOwner == true)
+            {
+                await CarregarReportadosAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -294,6 +389,25 @@
         finally
         {
             _aCarregarComentarios = false;
+        }
+    }
+
+    private async Task CarregarReportadosAsync()
+    {
+        _aCarregarReportados = true;
+        _mensagemReportados = null;
+
+        try
+        {
+            _comentariosReportados = await ComentarioService.ObterReportadosDaComunidadeAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            _mensagemReportados = ex.Message;
+        }
+        finally
+        {
+            _aCarregarReportados = false;
         }
     }
 
@@ -327,31 +441,152 @@
         }
     }
 
-    private async Task ModerarComentarioAsync(int comentarioId, AcaoModeracaoComentario acao)
+    private async Task ReportarComentarioAsync(ComentarioDTO comentario)
     {
-        _aModerar = true;
-        _mensagemComentario = null;
+        _aReportar = true;
+        _erroGeral = null;
 
         try
         {
-            var atualizado = await ComentarioService.ModerarNaComunidadeAsync(Id, comentarioId, acao);
-            var index = _comentarios.FindIndex(c => c.Id == comentarioId);
-            if (index >= 0)
-                _comentarios[index] = atualizado;
-
-            _mensagemComentario = acao == AcaoModeracaoComentario.Restaurar
-                ? "Comentario restaurado."
-                : "Comentario moderado. Ja nao aparece publicamente.";
-            _severidadeComentario = Severity.Success;
+            await ComentarioService.ReportarAsync(Id, comentario.Id);
+            comentario.Reportado = true;
+            if (_comunidade?.IsOwner == true)
+            {
+                await CarregarReportadosAsync();
+            }
         }
         catch (Exception ex)
         {
-            _mensagemComentario = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel moderar o comentario.");
-            _severidadeComentario = Severity.Error;
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aReportar = false;
+        }
+    }
+
+    private async Task AtualizarVisibilidadeAsync(ComentarioDTO comentario, bool visivel)
+    {
+        _aAtualizarVisibilidade = true;
+        _erroGeral = null;
+
+        try
+        {
+            await ComentarioService.AtualizarVisibilidadeAsync(
+                Id,
+                comentario.Id,
+                new ComentarioVisibilidadeDTO { Visivel = visivel }
+            );
+
+            comentario.Reportado = false;
+            comentario.Visivel = visivel;
+            _comentariosReportados.Remove(comentario);
+
+            if (!visivel)
+            {
+                _comentarios.RemoveAll(c => c.Id == comentario.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aAtualizarVisibilidade = false;
+        }
+    }
+
+    private async Task ModerarComentarioAsync(int comentarioId, AcaoModeracaoComentario acao)
+    {
+        _aModerar = true;
+        _erroGeral = null;
+
+        try
+        {
+            var atualizado = await ComentarioService.ModerarNaComunidadeAsync(
+                Id,
+                comentarioId,
+                acao
+            );
+
+            AtualizarComentarioLocal(atualizado);
+
+            if (acao == AcaoModeracaoComentario.Ocultar || acao == AcaoModeracaoComentario.Remover)
+                _comentariosReportados.RemoveAll(c => c.Id == comentarioId);
+
+            if (_comunidade?.IsOwner == true)
+                await CarregarReportadosAsync();
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = MensagemErroApi.Limpar(
+                ex.Message,
+                "Nao foi possivel moderar o comentario."
+            );
         }
         finally
         {
             _aModerar = false;
+        }
+    }
+
+    private void AtualizarComentarioLocal(ComentarioDTO atualizado)
+    {
+        var indice = _comentarios.FindIndex(c => c.Id == atualizado.Id);
+        if (indice >= 0)
+        {
+            _comentarios[indice] = atualizado;
+            return;
+        }
+
+        if (PodeModerar)
+            _comentarios.Insert(0, atualizado);
+    }
+
+    private async Task ApagarComunidadeAsync()
+    {
+        if (_comunidade == null)
+            return;
+
+        _aApagar = true;
+        _erroGeral = null;
+
+        try
+        {
+            await ComunidadeService.ApagarAsync(_comunidade.Id);
+            Nav.NavigateTo("/comunidades");
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aApagar = false;
+        }
+    }
+
+    private async Task SairComunidadeAsync()
+    {
+        if (_comunidade == null)
+            return;
+
+        _aSair = true;
+        _erroGeral = null;
+
+        try
+        {
+            await ComunidadeService.SairAsync(_comunidade.Id);
+            Nav.NavigateTo("/comunidades");
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aSair = false;
         }
     }
 

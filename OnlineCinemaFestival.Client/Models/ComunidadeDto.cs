@@ -14,6 +14,8 @@ public class ComunidadeDTO
 
     public bool IsPublic { get; set; }
 
+    public bool IsOwner { get; set; }
+
     public int? CreatedByUserId { get; set; }
 
     public string? CreatedByUserName { get; set; }
@@ -45,7 +47,11 @@ public class MembroComunidadeDTO
 public class ComunidadeCreateDTO
 {
     [Required(ErrorMessage = "O nome da comunidade e obrigatorio.")]
-    [StringLength(120, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 120 caracteres.")]
+    [StringLength(
+        120,
+        MinimumLength = 3,
+        ErrorMessage = "O nome deve ter entre 3 e 120 caracteres."
+    )]
     public string Name { get; set; } = string.Empty;
 
     [StringLength(500, ErrorMessage = "A descricao nao pode exceder 500 caracteres.")]
@@ -93,10 +99,19 @@ public class ComentarioDTO
 public class ComentarioCreateDTO
 {
     [Required(ErrorMessage = "Escreve um comentario.")]
-    [StringLength(600, MinimumLength = 3, ErrorMessage = "O comentario deve ter entre 3 e 600 caracteres.")]
+    [StringLength(
+        600,
+        MinimumLength = 3,
+        ErrorMessage = "O comentario deve ter entre 3 e 600 caracteres."
+    )]
     public string Texto { get; set; } = string.Empty;
 
     public int? FilmeId { get; set; }
+}
+
+public class ComentarioVisibilidadeDTO
+{
+    public bool Visivel { get; set; }
 }
 
 public class ModerarComentarioDTO

@@ -94,9 +94,11 @@
                         <div class="community-form">
                             <InputText class="text-input" @bind-Value="_novaComunidade.Name" placeholder="Nome" />
                             <ValidationMessage For="@(() => _novaComunidade.Name)" />
-                            <InputTextArea class="text-area" @bind-Value="_novaComunidade.Description" placeholder="Descricao" />
+                            <InputTextArea class="text-area" @bind-Value="_novaComunidade.Description"
+                                           placeholder="Descricao" />
                             <ValidationMessage For="@(() => _novaComunidade.Description)" />
-                            <InputText class="text-input" @bind-Value="_novaComunidade.ImageUrl" placeholder="URL da imagem opcional" />
+                            <InputText class="text-input" @bind-Value="_novaComunidade.ImageUrl"
+                                       placeholder="URL da imagem opcional" />
                             <label class="check-row">
                                 <InputCheckbox @bind-Value="_novaComunidade.IsPublic" />
                                 <span>Comunidade publica</span>
@@ -116,6 +118,39 @@
                 <section class="cinema-panel">
                     <div class="cinema-section-head compact">
                         <div>
+                            <span class="cinema-kicker">Pesquisar</span>
+                            <h2>Procurar por ID</h2>
+                        </div>
+                    </div>
+
+                    <div class="community-form">
+                        <InputText class="text-input" @bind-Value="_textoPesquisa"
+                                   placeholder="Cola aqui o ID da comunidade" />
+                        <button class="cinema-btn secondary" @onclick="PesquisarComunidadeAsync"
+                                disabled="@_aPesquisar">
+                            @(_aPesquisar ? "A procurar..." : "Procurar")
+                        </button>
+                    </div>
+
+                    @if (_comunidadeEncontrada != null)
+                    {
+                        <div class="invite-preview">
+                            <strong>@_comunidadeEncontrada.Name</strong>
+                            <span>@Resumo(_comunidadeEncontrada.Description)</span>
+                        </div>
+                        <button class="cinema-btn primary"
+                                @onclick="() => AderirAsync(_comunidadeEncontrada)">Aderir</button>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(_mensagemPesquisa))
+                    {
+                        <MudAlert Severity="@_severidadePesquisa" Variant="Variant.Filled">@_mensagemPesquisa</MudAlert>
+                    }
+                </section>
+
+                <section class="cinema-panel">
+                    <div class="cinema-section-head compact">
+                        <div>
                             <span class="cinema-kicker">Convite</span>
                             <h2>Aderir por convite</h2>
                         </div>
@@ -125,7 +160,8 @@
                         <button class="cinema-btn secondary" @onclick="ProcurarConviteAsync" disabled="@_aConvite">
                             @(_aConvite ? "A procurar..." : "Ver convite")
                         </button>
-                        <button class="cinema-btn primary" @onclick="AderirPorConviteAsync" disabled="@(_aConvite || string.IsNullOrWhiteSpace(_codigoConvite))">
+                        <button class="cinema-btn primary" @onclick="AderirPorConviteAsync"
+                                disabled="@(_aConvite || string.IsNullOrWhiteSpace(_codigoConvite))">
                             Aderir
                         </button>
                     </div>
@@ -152,17 +188,24 @@
     private List<ComunidadeDTO> _minhas = new();
     private List<ComunidadeDTO> _publicas = new();
     private ComunidadeDTO? _conviteEncontrado;
+    private ComunidadeDTO? _comunidadeEncontrada;
     private ComunidadeCreateDTO _novaComunidade = new();
     private bool _aCarregar = true;
     private bool _aCriar;
     private bool _aConvite;
     private bool _aAderir;
+    private bool _aPesquisar;
+    private bool _aApagar;
+    private bool _aSair;
     private string? _erroGeral;
     private string? _mensagemCriar;
     private string? _mensagemConvite;
+    private string? _mensagemPesquisa;
     private Severity _severidadeCriar = Severity.Info;
     private Severity _severidadeConvite = Severity.Info;
+    private Severity _severidadePesquisa = Severity.Info;
     private string _codigoConvite = string.Empty;
+    private string _textoPesquisa = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -266,6 +309,37 @@
         }
     }
 
+    private async Task PesquisarComunidadeAsync()
+    {
+        _aPesquisar = true;
+        _mensagemPesquisa = null;
+        _comunidadeEncontrada = null;
+
+        try
+        {
+            _textoPesquisa = _textoPesquisa.Trim();
+            if (!Guid.TryParse(_textoPesquisa, out var publicId))
+            {
+                _mensagemPesquisa = "Formato de ID invalido.";
+                _severidadePesquisa = Severity.Error;
+                return;
+            }
+
+            _comunidadeEncontrada = await ComunidadeService.ObterPorIdAsync(publicId);
+            _mensagemPesquisa = "Comunidade encontrada.";
+            _severidadePesquisa = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _mensagemPesquisa = ex.Message;
+            _severidadePesquisa = Severity.Error;
+        }
+        finally
+        {
+            _aPesquisar = false;
+        }
+    }
+
     private async Task AderirAsync(ComunidadeDTO comunidade)
     {
         _aAderir = true;
@@ -286,6 +360,46 @@
         finally
         {
             _aAderir = false;
+        }
+    }
+
+    private async Task ApagarComunidadeAsync(ComunidadeDTO comunidade)
+    {
+        _aApagar = true;
+        _erroGeral = null;
+
+        try
+        {
+            await ComunidadeService.ApagarAsync(comunidade.Id);
+            _minhas.Remove(comunidade);
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aApagar = false;
+        }
+    }
+
+    private async Task SairComunidadeAsync(ComunidadeDTO comunidade)
+    {
+        _aSair = true;
+        _erroGeral = null;
+
+        try
+        {
+            await ComunidadeService.SairAsync(comunidade.Id);
+            _minhas.Remove(comunidade);
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = ex.Message;
+        }
+        finally
+        {
+            _aSair = false;
         }
     }
 
@@ -321,7 +435,18 @@
                 <button class="cinema-btn secondary" @onclick="() => AbrirDetalhe(comunidade.Id)">Ver detalhes</button>
                 @if (!membro)
                 {
-                    <button class="cinema-btn primary" disabled="@_aAderir" @onclick="() => AderirAsync(comunidade)">Aderir</button>
+                    <button class="cinema-btn primary" disabled="@_aAderir"
+                            @onclick="() => AderirAsync(comunidade)">Aderir</button>
+                }
+                @if (membro && comunidade.IsOwner)
+                {
+                    <button class="cinema-btn error" disabled="@_aApagar"
+                            @onclick="() => ApagarComunidadeAsync(comunidade)">Apagar</button>
+                }
+                @if (membro)
+                {
+                    <button class="cinema-btn secondary" disabled="@_aSair"
+                            @onclick="() => SairComunidadeAsync(comunidade)">Sair</button>
                 }
             </div>
         </div>
