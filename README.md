@@ -137,3 +137,11 @@ obj/
 .env
 .env.local
 ```
+
+# Online Cinema Festival
+
+**Autores do Projeto:**
+* Francisco Afonseca - 2120622
+* Francisco Palmeira - 2109923
+* Afonso Santos - 2141823
+* Bernardo Pestana - 2107023
