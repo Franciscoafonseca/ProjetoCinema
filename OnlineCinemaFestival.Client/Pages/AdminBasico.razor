@@ -8,6 +8,7 @@
 @inject AcessoService AcessoService
 @inject PremioFestivalService PremioFestivalService
 @inject PerfilService PerfilService
+@inject IJSRuntime Js
 
 <PageTitle>Admin - Online Cinema Festival</PageTitle>
 
@@ -56,7 +57,16 @@
                 }
             </section>
 
-            <section class="admin-acoes">
+            <nav class="admin-tabs" aria-label="Seccoes de administracao">
+                <a href="#admin-geral">Visao geral</a>
+                <a href="#admin-tmdb">TMDB/importacao</a>
+                <a href="#admin-festivais">Festivais</a>
+                <a href="#admin-sessoes">Sessoes</a>
+                <a href="#admin-premios">Premios</a>
+                <a href="#admin-moderacao">Reports/moderacao</a>
+            </nav>
+
+            <section id="admin-moderacao" class="admin-acoes admin-acoes-wide">
                 <MudCard Elevation="0" Class="cinema-panel">
                     <MudCardContent>
                         <span class="cinema-kicker">Moderacao</span>
@@ -69,40 +79,50 @@
                         }
                         @if (_reportesUtilizadores.Count == 0)
                         {
-                            <p class="admin-muted">Sem reportes de utilizadores.</p>
+                            <div class="sky-empty-state admin-empty">
+                                <img src="images/illustrations/empty-state-reel.svg" alt="" />
+                                <h3>Sem reportes pendentes</h3>
+                                <p>Quando existir atividade para moderar, os casos aparecem aqui.</p>
+                            </div>
                         }
                         else
                         {
-                            <div class="admin-lista">
+                            <div class="admin-report-grid">
                                 @foreach (var reporte in _reportesUtilizadores)
                                 {
-                                    <div>
-                                        <strong>@reporte.UtilizadorReportadoNome</strong>
-                                        <span>
-                                            Reportado por @reporte.ReportadoPorUtilizadorNome -
-                                            @reporte.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm") -
-                                            @reporte.Estado
-                                        </span>
-                                        <span>@reporte.Motivo</span>
-                                        <MudStack Row="true" Spacing="1">
+                                    <article class="admin-report-card">
+                                        <header>
+                                            <div>
+                                                <strong>@reporte.UtilizadorReportadoNome</strong>
+                                                <span>Reportado por @reporte.ReportadoPorUtilizadorNome</span>
+                                            </div>
+                                            <span class="@EstadoReporteCss(reporte.Estado)">@EstadoReporteTexto(reporte.Estado)</span>
+                                        </header>
+                                        <dl>
+                                            <div><dt>Motivo</dt><dd>@reporte.Motivo</dd></div>
+                                            <div><dt>Data</dt><dd>@reporte.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd></div>
+                                            <div><dt>Tipo</dt><dd>Perfil de utilizador</dd></div>
+                                            <div><dt>Acao tomada</dt><dd>@AcaoTomadaTexto(reporte)</dd></div>
+                                        </dl>
+                                        <MudStack Row="true" Spacing="1" Class="admin-report-actions">
                                             <MudButton Size="Size.Small"
                                                        Disabled="@_aAtualizarReportes"
-                                                       OnClick="() => AtualizarReporte(reporte.Id, EstadoReporteUtilizador.Analisado)">
-                                                Analisado
+                                                       OnClick="() => ConfirmarAtualizarReporte(reporte.Id, EstadoReporteUtilizador.Analisado)">
+                                                Analisar
                                             </MudButton>
                                             <MudButton Size="Size.Small"
                                                        Disabled="@_aAtualizarReportes"
-                                                       OnClick="() => AtualizarReporte(reporte.Id, EstadoReporteUtilizador.Rejeitado)">
+                                                       OnClick="() => ConfirmarAtualizarReporte(reporte.Id, EstadoReporteUtilizador.Rejeitado)">
                                                 Rejeitar
                                             </MudButton>
                                             <MudButton Size="Size.Small"
                                                        Color="Color.Error"
                                                        Disabled="@_aAtualizarReportes"
-                                                       OnClick="() => AtualizarReporte(reporte.Id, EstadoReporteUtilizador.AcaoAplicada)">
+                                                       OnClick="() => ConfirmarAtualizarReporte(reporte.Id, EstadoReporteUtilizador.AcaoAplicada)">
                                                 Aplicar acao
                                             </MudButton>
                                         </MudStack>
-                                    </div>
+                                    </article>
                                 }
                             </div>
                         }
@@ -110,13 +130,14 @@
                 </MudCard>
             </section>
 
-            <section class="admin-acoes">
+            <section id="admin-tmdb" class="admin-acoes">
                 <MudCard Elevation="0" Class="cinema-panel">
                     <MudCardContent>
                         <span class="cinema-kicker">TMDB</span>
                         <h2>Importar/adicionar filme</h2>
                         <div class="admin-lista">
-                            <input placeholder="Pesquisar no TMDB" @bind="_pesquisaTmdb" @bind:event="oninput" />
+                            <label class="sky-label required" for="tmdb-search">Pesquisar no TMDB</label>
+                            <input id="tmdb-search" class="sky-input" placeholder="Ex.: Matrix" @bind="_pesquisaTmdb" @bind:event="oninput" />
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
                                        Disabled="@_aAtualizarOperacao"
@@ -198,7 +219,7 @@
                 </MudCard>
             </section>
 
-            <section class="admin-acoes">
+            <section id="admin-sessoes" class="admin-acoes">
                 <MudCard Elevation="0" Class="cinema-panel">
                     <MudCardContent>
                         <span class="cinema-kicker">Sessao</span>
@@ -249,7 +270,7 @@
                 </MudCard>
             </section>
 
-            <section class="admin-acoes">
+            <section id="admin-geral" class="admin-acoes">
                 <MudCard Elevation="0" Class="cinema-panel">
                     <MudCardContent>
                         <span class="cinema-kicker">Gestao</span>
@@ -287,7 +308,7 @@
                 </MudCard>
             </section>
 
-            <section class="admin-acoes">
+            <section id="admin-premios" class="admin-acoes">
                 <MudCard Elevation="0" Class="cinema-panel">
                     <MudCardContent>
                         <span class="cinema-kicker">Premios</span>
@@ -587,6 +608,19 @@
         });
     }
 
+    private async Task ConfirmarAtualizarReporte(int reporteId, EstadoReporteUtilizador estado)
+    {
+        var confirmado = await Js.InvokeAsync<bool>(
+            "confirm",
+            $"Confirmas alterar este reporte para '{EstadoReporteTexto(estado)}'?"
+        );
+
+        if (!confirmado)
+            return;
+
+        await AtualizarReporte(reporteId, estado);
+    }
+
     private async Task AtualizarReporte(int reporteId, EstadoReporteUtilizador estado)
     {
         _aAtualizarReportes = true;
@@ -598,6 +632,11 @@
             var index = _reportesUtilizadores.FindIndex(r => r.Id == reporteId);
             if (index >= 0)
                 _reportesUtilizadores[index] = atualizado;
+
+            _reportesUtilizadores = _reportesUtilizadores
+                .OrderBy(r => r.Estado == EstadoReporteUtilizador.Pendente ? 0 : 1)
+                .ThenByDescending(r => r.CriadoEm)
+                .ToList();
 
             _mensagemReportes = "Estado do reporte atualizado.";
             _severidadeReportes = Severity.Success;
@@ -626,6 +665,38 @@
     private static string _FormatarJanelaPremio(PremioFestivalDTO premio)
     {
         return $"{premio.DataAberturaVotacao.ToLocalTime():dd/MM/yyyy HH:mm} - {premio.DataFechoVotacao.ToLocalTime():dd/MM/yyyy HH:mm}";
+    }
+
+    private static string EstadoReporteTexto(EstadoReporteUtilizador estado) =>
+        estado switch
+        {
+            EstadoReporteUtilizador.Pendente => "Pendente",
+            EstadoReporteUtilizador.Analisado => "Em analise",
+            EstadoReporteUtilizador.Rejeitado => "Rejeitado",
+            EstadoReporteUtilizador.AcaoAplicada => "Resolvido",
+            _ => estado.ToString(),
+        };
+
+    private static string EstadoReporteCss(EstadoReporteUtilizador estado) =>
+        estado switch
+        {
+            EstadoReporteUtilizador.Pendente => "sky-chip report-status pending",
+            EstadoReporteUtilizador.Analisado => "sky-chip report-status reviewing",
+            EstadoReporteUtilizador.Rejeitado => "sky-chip report-status rejected",
+            EstadoReporteUtilizador.AcaoAplicada => "sky-chip report-status resolved",
+            _ => "sky-chip report-status",
+        };
+
+    private static string AcaoTomadaTexto(ReporteUtilizadorDTO reporte)
+    {
+        return reporte.Estado switch
+        {
+            EstadoReporteUtilizador.Pendente => "Ainda sem acao.",
+            EstadoReporteUtilizador.Analisado => "Marcado para analise pela equipa.",
+            EstadoReporteUtilizador.Rejeitado => "Reporte rejeitado.",
+            EstadoReporteUtilizador.AcaoAplicada => "Acao de moderacao aplicada.",
+            _ => "Estado desconhecido.",
+        };
     }
 
     private sealed record MetricaAdmin(string Rotulo, int Valor, string Icone, Color Cor);
