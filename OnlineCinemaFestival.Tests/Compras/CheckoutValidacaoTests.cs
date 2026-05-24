@@ -1,3 +1,4 @@
+using OnlineCinemaFestival.Api.Excecoes;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Tests.Support;
@@ -32,10 +33,12 @@ public class CheckoutValidacaoTests
             new AcessoUtilizadorRepositoryFalso(),
             contexto.Validators,
             new FakeTimeProvider(Agora),
-            CarrinhoServiceTests.CriarConfiguracao()
+            OpcoesTeste.Acessos()
         );
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => validador.ValidarAsync(7, carrinho));
+        await Assert.ThrowsAsync<ConflitoDominioException>(() =>
+            validador.ValidarAsync(7, carrinho)
+        );
     }
 
     [Fact]
@@ -46,10 +49,10 @@ public class CheckoutValidacaoTests
             new AcessoUtilizadorRepositoryFalso(),
             contexto.Validators,
             new FakeTimeProvider(Agora),
-            CarrinhoServiceTests.CriarConfiguracao()
+            OpcoesTeste.Acessos()
         );
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<RegraNegocioException>(() =>
             validador.ValidarAsync(7, new Carrinho { UtilizadorId = 7 })
         );
 

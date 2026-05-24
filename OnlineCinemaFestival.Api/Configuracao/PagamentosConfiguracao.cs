@@ -8,7 +8,7 @@ public static class PagamentosConfiguracao
 
         if (string.IsNullOrWhiteSpace(entidade))
             throw new InvalidOperationException(
-                "Pagamentos:Multibanco:Entidade nao configurada no appsettings.json."
+                "Pagamentos:Multibanco:Entidade nao configurada na configuracao."
             );
 
         return entidade;

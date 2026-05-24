@@ -25,5 +25,6 @@ public class ArmazenamentoToken
     public async Task RemoverAsync()
     {
         await _js.InvokeVoidAsync("localStorage.removeItem", Chave);
+        await _js.InvokeVoidAsync("sessionStorage.clear");
     }
 }

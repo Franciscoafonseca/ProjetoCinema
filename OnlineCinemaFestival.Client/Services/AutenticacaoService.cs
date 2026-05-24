@@ -8,16 +8,19 @@ public class AutenticacaoService : IAutenticacaoService
     private readonly HttpClient _http;
     private readonly ArmazenamentoToken _armazenamento;
     private readonly EstadoAutenticacaoCustomizado _estado;
+    private readonly PerfilEstadoService _perfilEstado;
 
     public AutenticacaoService(
         HttpClient http,
         ArmazenamentoToken armazenamento,
-        EstadoAutenticacaoCustomizado estado
+        EstadoAutenticacaoCustomizado estado,
+        PerfilEstadoService perfilEstado
     )
     {
         _http = http;
         _armazenamento = armazenamento;
         _estado = estado;
+        _perfilEstado = perfilEstado;
     }
 
     public async Task<AutenticacaoRespostaDTO> EntrarAsync(PedidoLoginDTO pedido)
@@ -67,6 +70,7 @@ public class AutenticacaoService : IAutenticacaoService
     public async Task TerminarSessaoAsync()
     {
         await _armazenamento.RemoverAsync();
+        _perfilEstado.Limpar();
         _estado.NotificarTerminouSessao();
     }
 }

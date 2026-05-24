@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
@@ -23,7 +24,7 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
         IAcessoCompraService acessoCompraService,
         IPagamentoService pagamentoService,
         IEnumerable<ICompraObserver> compraObservers,
-        IConfiguration configuration
+        IOptions<PagamentoOptions> pagamentoOptions
     )
     {
         _compraRepository = compraRepository;
@@ -32,9 +33,7 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
         _acessoCompraService = acessoCompraService;
         _pagamentoService = pagamentoService;
         _compraObservers = compraObservers;
-        _expiracaoMultibancoHoras = PagamentosConfiguracao.ObterExpiracaoMultibancoHoras(
-            configuration
-        );
+        _expiracaoMultibancoHoras = pagamentoOptions.Value.Multibanco.ExpiracaoHoras;
     }
 
     public async Task<ResultadoFinalizacaoCompraDTO> FinalizarCompraAsync(
@@ -50,7 +49,10 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
 
             var compra = _compraFactory.Criar(utilizadorId, carrinhoValido);
 
-            compra.Pagamento = await _pagamentoService.ProcessarPagamentoSimuladoAsync(compra, metodoPagamento);
+            compra.Pagamento = await _pagamentoService.ProcessarPagamentoSimuladoAsync(
+                compra,
+                metodoPagamento
+            );
 
             await _compraRepository.AddAsync(compra);
 
@@ -71,12 +73,12 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
             {
                 if (pagamentoAprovado)
                 {
-                var acessos = carrinhoValido.Itens.Select(item => item.Acesso).ToList();
-                await Task.WhenAll(
-                    _compraObservers.Select(observer =>
-                        observer.NotificarAsync(utilizadorId, compra.ValorTotal, acessos)
-                    )
-                );
+                    var acessos = carrinhoValido.Itens.Select(item => item.Acesso).ToList();
+                    await Task.WhenAll(
+                        _compraObservers.Select(observer =>
+                            observer.NotificarAsync(utilizadorId, compra.ValorTotal, acessos)
+                        )
+                    );
                 }
 
                 await _carrinhoCheckoutService.LimparCarrinhoAsync(carrinhoValido);

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Mappers;
@@ -21,7 +22,7 @@ public class CarrinhoService : ICarrinhoService
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
         IEnumerable<ICarrinhoItemValidator> itemValidators,
         TimeProvider timeProvider,
-        IConfiguration configuration
+        IOptions<AcessosOptions> acessosOptions
     )
     {
         _carrinhoRepository = carrinhoRepository;
@@ -29,7 +30,7 @@ public class CarrinhoService : ICarrinhoService
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
         _itemValidators = itemValidators.ToDictionary(s => s.Tipo);
         _timeProvider = timeProvider;
-        _quantidadeMaxima = AcessosConfiguracao.ObterQuantidadeMaximaCarrinho(configuration);
+        _quantidadeMaxima = acessosOptions.Value.QuantidadeMaximaCarrinho;
     }
 
     public async Task<CarrinhoReadDTO> ObterCarrinhoAsync(int utilizadorId)

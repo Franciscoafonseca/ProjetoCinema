@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Options;
 using OnlineCinemaFestival.Api.Configuracao;
+using OnlineCinemaFestival.Api.Excecoes;
 using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.Services;
@@ -7,11 +9,9 @@ public class EstrategiaCriacaoAluguerDigital : IEstrategiaCriacaoAcessoUtilizado
 {
     private readonly int _duracaoAluguerDigitalHoras;
 
-    public EstrategiaCriacaoAluguerDigital(IConfiguration configuration)
+    public EstrategiaCriacaoAluguerDigital(IOptions<AcessosOptions> acessosOptions)
     {
-        _duracaoAluguerDigitalHoras = AcessosConfiguracao.ObterDuracaoAluguerDigitalHoras(
-            configuration
-        );
+        _duracaoAluguerDigitalHoras = acessosOptions.Value.DuracaoAluguerDigitalHoras;
     }
 
     public TipoAcesso Tipo => TipoAcesso.AluguerDigital;
@@ -26,7 +26,7 @@ public class EstrategiaCriacaoAluguerDigital : IEstrategiaCriacaoAcessoUtilizado
         var acesso = item.Acesso;
 
         if (acesso.FilmeId == null)
-            throw new InvalidOperationException("Aluguer digital sem filme associado.");
+            throw new ConflitoDominioException("Aluguer digital sem filme associado.");
 
         var duracaoHoras = acesso.DuracaoHoras ?? _duracaoAluguerDigitalHoras;
 

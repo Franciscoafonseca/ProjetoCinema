@@ -193,8 +193,8 @@
     private string ApiBaseUrl()
     {
         var apiBaseUrl =
-            Configuracao["ApiBaseUrl"]
-            ?? throw new InvalidOperationException("ApiBaseUrl nao configurado.");
+            Configuracao["Api:BaseUrl"]
+            ?? throw new InvalidOperationException("Api:BaseUrl nao configurado.");
 
         return apiBaseUrl.EndsWith('/') ? apiBaseUrl : $"{apiBaseUrl}/";
     }

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using OnlineCinemaFestival.Api.Configuracao;
+using OnlineCinemaFestival.Api.Excecoes;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
@@ -46,7 +47,7 @@ public class MultibancoExpiracaoTests
         await repo.AddAsync(CriarCompraPendente(Agora.UtcDateTime));
         var service = CriarPagamentosPendentesService(repo, Agora.AddHours(4));
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        await Assert.ThrowsAsync<ConflitoDominioException>(() =>
             service.ConfirmarPagamentoAsync(1, 7)
         );
     }
@@ -97,7 +98,7 @@ public class MultibancoExpiracaoTests
             new IPagamentoStrategy[]
             {
                 new PagamentoAprovadoSimuladoStrategy(),
-                new PagamentoReferenciaMultibancoStrategy(CriarConfiguracaoPagamentos()),
+                new PagamentoReferenciaMultibancoStrategy(OpcoesTeste.Pagamentos()),
             },
             timeProvider
         );
@@ -108,7 +109,7 @@ public class MultibancoExpiracaoTests
         DateTimeOffset agora
     )
     {
-        return new PagamentosPendentesService(repo, CriarConfiguracaoPagamentos(), new FakeTimeProvider(agora));
+        return new PagamentosPendentesService(repo, OpcoesTeste.Pagamentos(), new FakeTimeProvider(agora));
     }
 
     private static IConfiguration CriarConfiguracaoPagamentos()

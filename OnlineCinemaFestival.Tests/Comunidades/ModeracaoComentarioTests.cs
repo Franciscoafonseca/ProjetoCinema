@@ -202,6 +202,8 @@ public class ModeracaoComentarioTests
         public Task ApagarComunidadeAsync(Comunidade comunidade) => Task.CompletedTask;
 
         public Task RemoverMembroAsync(ComunidadeMembro membro) => Task.CompletedTask;
+
+        public Task SaveChangesAsync() => Task.CompletedTask;
     }
 
     private sealed class FilmeRepositoryVazioFalso : IFilmeRepository

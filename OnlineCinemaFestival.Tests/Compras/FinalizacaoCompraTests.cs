@@ -89,16 +89,6 @@ public class FinalizacaoCompraTests
             timeProvider
         );
         var pagamentoService = CriarServicoPagamento(timeProvider);
-        var configuracao = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    ["Pagamentos:Multibanco:Entidade"] = "12345",
-                    ["Pagamentos:Multibanco:ExpiracaoHoras"] = "3",
-                }
-            )
-            .Build();
-
         var servico = new FinalizacaoCompraService(
             compraRepo,
             carrinhoCheckout,
@@ -106,7 +96,7 @@ public class FinalizacaoCompraTests
             acessoCompra,
             pagamentoService,
             Array.Empty<ICompraObserver>(),
-            configuracao
+            OpcoesTeste.Pagamentos()
         );
 
         return new ContextoCheckout(servico, compraRepo, acessoRepo, carrinhoCheckout);
@@ -114,21 +104,11 @@ public class FinalizacaoCompraTests
 
     private static IPagamentoService CriarServicoPagamento(TimeProvider timeProvider)
     {
-        var configuracao = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    ["Pagamentos:Multibanco:Entidade"] = "12345",
-                    ["Pagamentos:Multibanco:ExpiracaoHoras"] = "3",
-                }
-            )
-            .Build();
-
         return new PagamentoSimuladoService(
             new IPagamentoStrategy[]
             {
                 new PagamentoAprovadoSimuladoStrategy(),
-                new PagamentoReferenciaMultibancoStrategy(configuracao),
+                new PagamentoReferenciaMultibancoStrategy(OpcoesTeste.Pagamentos()),
             },
             timeProvider
         );

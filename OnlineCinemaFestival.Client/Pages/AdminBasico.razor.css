@@ -1,8 +1,42 @@
 .admin-metricas {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 18px;
+}
+
+.admin-tabs {
+  position: sticky;
+  top: 74px;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 0 0 18px;
+  padding: 10px;
+  border: 1px solid var(--sky-border);
+  border-radius: var(--sky-radius);
+  background: rgba(5, 11, 22, 0.82);
+  backdrop-filter: blur(16px);
+}
+
+.admin-tabs a {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--sky-radius-sm);
+  border: 1px solid var(--sky-border);
+  padding: 0 12px;
+  color: var(--sky-muted);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.admin-tabs a:hover {
+  color: #fff;
+  border-color: rgba(0, 245, 212, 0.45);
 }
 
 ::deep .admin-metrica .mud-card-content {
@@ -29,6 +63,11 @@
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: 18px;
+  margin-top: 18px;
+}
+
+.admin-acoes-wide {
+  grid-template-columns: 1fr;
 }
 
 .admin-acoes h2 {
@@ -47,6 +86,39 @@
 .admin-lista {
   display: grid;
   gap: 10px;
+}
+
+.admin-lista input,
+.admin-lista select,
+.admin-lista textarea {
+  width: 100%;
+  min-height: 44px;
+  border-radius: var(--sky-radius-sm);
+  border: 1px solid var(--sky-border);
+  background: rgba(5, 11, 22, 0.76);
+  color: var(--sky-text);
+  padding: 10px 12px;
+  outline: none;
+}
+
+.admin-lista textarea {
+  min-height: 108px;
+  resize: vertical;
+}
+
+.admin-lista input:focus,
+.admin-lista select:focus,
+.admin-lista textarea:focus {
+  border-color: rgba(0, 245, 212, 0.55);
+  box-shadow: var(--sky-focus);
+}
+
+.admin-lista label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sky-muted);
+  font-weight: 800;
 }
 
 .admin-lista a {
@@ -75,12 +147,102 @@
   white-space: nowrap;
 }
 
+.admin-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-report-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--sky-border);
+  border-radius: var(--sky-radius);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.admin-report-card header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-report-card header div {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-report-card strong {
+  color: var(--sky-text);
+  font-size: 1.02rem;
+}
+
+.admin-report-card span,
+.admin-report-card dd {
+  color: var(--sky-muted);
+}
+
+.admin-report-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.admin-report-card dt {
+  color: var(--sky-cyan);
+  font-size: 0.73rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-report-card dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-report-actions {
+  flex-wrap: wrap;
+}
+
+.report-status.pending {
+  border-color: rgba(255, 191, 102, 0.35);
+  color: #ffd391;
+  background: rgba(255, 191, 102, 0.1);
+}
+
+.report-status.reviewing {
+  border-color: rgba(0, 245, 212, 0.35);
+}
+
+.report-status.rejected {
+  border-color: rgba(255, 92, 122, 0.35);
+  color: #ffa4b5;
+  background: rgba(255, 92, 122, 0.1);
+}
+
+.report-status.resolved {
+  border-color: rgba(54, 231, 168, 0.35);
+  color: #9cf8ce;
+  background: rgba(54, 231, 168, 0.1);
+}
+
+.admin-empty {
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 28px;
+}
+
 @media (max-width: 1100px) {
   .admin-metricas {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .admin-acoes {
+  .admin-acoes,
+  .admin-report-grid {
     grid-template-columns: 1fr;
   }
 }

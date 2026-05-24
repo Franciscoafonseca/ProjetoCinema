@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.Services;
@@ -12,7 +14,7 @@ namespace OnlineCinemaFestival.Api.Services;
 /// </summary>
 public class JwtTokenService : ITokenService
 {
-    private readonly IConfiguration _configuration;
+    private readonly JwtOptions _options;
 
     /// <summary>
     /// Inicializa uma nova instância do serviço de geração de tokens JWT.
@@ -20,9 +22,9 @@ public class JwtTokenService : ITokenService
     /// <param name="configuration">
     /// Configuração da aplicação, usada para obter os dados necessários à criação do token.
     /// </param>
-    public JwtTokenService(IConfiguration configuration)
+    public JwtTokenService(IOptions<JwtOptions> options)
     {
-        _configuration = configuration;
+        _options = options.Value;
     }
 
     /// <summary>
@@ -35,9 +37,7 @@ public class JwtTokenService : ITokenService
     /// </exception>
     public string CreateToken(Utilizador utilizador)
     {
-        // Obtém as configurações relacionadas com JWT no ficheiro de configuração.
-        var jwtSettings = _configuration.GetSection("Jwt");
-        var key = jwtSettings["Key"];
+        var key = _options.Key;
 
         // Garante que existe uma chave configurada para assinar o token.
         if (string.IsNullOrWhiteSpace(key))
@@ -60,12 +60,10 @@ public class JwtTokenService : ITokenService
 
         // Cria o token JWT com emissor, audiência, claims, tempo de expiração e credenciais.
         var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
+            issuer: _options.Issuer,
+            audience: _options.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(
-                int.Parse(jwtSettings["ExpirationMinutes"] ?? "120")
-            ),
+            expires: DateTime.UtcNow.AddMinutes(_options.ExpirationMinutes),
             signingCredentials: credentials
         );
 

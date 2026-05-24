@@ -92,13 +92,22 @@
                     <EditForm Model="_novaComunidade" OnValidSubmit="CriarComunidadeAsync">
                         <DataAnnotationsValidator />
                         <div class="community-form">
-                            <InputText class="text-input" @bind-Value="_novaComunidade.Name" placeholder="Nome" />
-                            <ValidationMessage For="@(() => _novaComunidade.Name)" />
-                            <InputTextArea class="text-area" @bind-Value="_novaComunidade.Description"
-                                           placeholder="Descricao" />
-                            <ValidationMessage For="@(() => _novaComunidade.Description)" />
-                            <InputText class="text-input" @bind-Value="_novaComunidade.ImageUrl"
-                                       placeholder="URL da imagem opcional" />
+                            <div class="sky-input-group">
+                                <label class="sky-label required" for="community-name">Nome</label>
+                                <InputText id="community-name" class="sky-input" @bind-Value="_novaComunidade.Name" placeholder="Clube de cinema independente" />
+                                <ValidationMessage For="@(() => _novaComunidade.Name)" class="sky-field-error" />
+                            </div>
+                            <div class="sky-input-group">
+                                <label class="sky-label" for="community-description">Descricao</label>
+                                <InputTextArea id="community-description" class="sky-textarea" @bind-Value="_novaComunidade.Description"
+                                               placeholder="Tema, regras e tipo de conversa da comunidade." />
+                                <ValidationMessage For="@(() => _novaComunidade.Description)" class="sky-field-error" />
+                            </div>
+                            <div class="sky-input-group">
+                                <label class="sky-label" for="community-image">Imagem da comunidade</label>
+                                <InputFile id="community-image" class="sky-input" OnChange="SelecionarImagemComunidade" accept="image/png,image/jpeg,image/webp" />
+                                <span class="sky-helper">@(_imagemComunidadeNome ?? "JPG, PNG ou WEBP ate 2MB. Podes criar sem imagem.")</span>
+                            </div>
                             <label class="check-row">
                                 <InputCheckbox @bind-Value="_novaComunidade.IsPublic" />
                                 <span>Comunidade publica</span>
@@ -206,6 +215,8 @@
     private Severity _severidadePesquisa = Severity.Info;
     private string _codigoConvite = string.Empty;
     private string _textoPesquisa = string.Empty;
+    private IBrowserFile? _imagemComunidade;
+    private string? _imagemComunidadeNome;
 
     protected override async Task OnInitializedAsync()
     {
@@ -241,9 +252,14 @@
         {
             _novaComunidade.Name = _novaComunidade.Name.Trim();
             _novaComunidade.Description = _novaComunidade.Description.Trim();
+            _novaComunidade.ImageUrl = string.Empty;
             var comunidade = await ComunidadeService.CriarAsync(_novaComunidade);
+            if (_imagemComunidade != null)
+                comunidade = await ComunidadeService.EnviarImagemAsync(comunidade.Id, _imagemComunidade);
             _minhas.Insert(0, comunidade);
             _novaComunidade = new ComunidadeCreateDTO();
+            _imagemComunidade = null;
+            _imagemComunidadeNome = null;
             _mensagemCriar = "Comunidade criada.";
             _severidadeCriar = Severity.Success;
             Nav.NavigateTo($"/comunidades/{comunidade.Id}");
@@ -411,11 +427,39 @@
             throw new InvalidOperationException("Escreve o codigo de convite.");
     }
 
+    private void SelecionarImagemComunidade(InputFileChangeEventArgs e)
+    {
+        var ficheiro = e.File;
+        var tiposPermitidos = new[] { "image/jpeg", "image/png", "image/webp" };
+
+        if (!tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            _imagemComunidade = null;
+            _imagemComunidadeNome = null;
+            _mensagemCriar = "Formato invalido. Escolhe JPG, PNG ou WEBP.";
+            _severidadeCriar = Severity.Error;
+            return;
+        }
+
+        if (ficheiro.Size > 2 * 1024 * 1024)
+        {
+            _imagemComunidade = null;
+            _imagemComunidadeNome = null;
+            _mensagemCriar = "A imagem nao pode exceder 2MB.";
+            _severidadeCriar = Severity.Error;
+            return;
+        }
+
+        _imagemComunidade = ficheiro;
+        _imagemComunidadeNome = ficheiro.Name;
+        _mensagemCriar = null;
+    }
+
     private RenderFragment CardComunidade(ComunidadeDTO comunidade, bool membro) => @<article class="community-card">
         <div class="community-cover">
             @if (string.IsNullOrWhiteSpace(comunidade.ImageUrl))
             {
-                <span>@Inicial(comunidade.Name)</span>
+                <img src="images/placeholders/community-placeholder.svg" alt="" />
             }
             else
             {

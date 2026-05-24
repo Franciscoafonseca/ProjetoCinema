@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Configuration;
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Excecoes;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Tests.Support;
@@ -39,7 +39,7 @@ public class CarrinhoServiceTests
         var contexto = CriarContextoCarrinho();
         var validator = contexto.Validators.OfType<PasseDiarioCarrinhoItemValidator>().Single();
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<ConflitoDominioException>(() =>
             validator.ValidarAlvoAsync(
                 new CarrinhoItemCreateDTO
                 {
@@ -60,7 +60,7 @@ public class CarrinhoServiceTests
         var contexto = CriarContextoCarrinho();
         var validator = contexto.Validators.OfType<AluguerDigitalCarrinhoItemValidator>().Single();
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+        await Assert.ThrowsAsync<RecursoNaoEncontradoException>(() =>
             validator.ValidarAlvoAsync(
                 new CarrinhoItemCreateDTO
                 {
@@ -149,19 +149,10 @@ public class CarrinhoServiceTests
             new AcessoUtilizadorRepositoryFalso(),
             validators,
             timeProvider,
-            CriarConfiguracao()
+            OpcoesTeste.Acessos()
         );
 
         return new ContextoCarrinho(service, validators, acessoBilhete);
-    }
-
-    internal static IConfiguration CriarConfiguracao()
-    {
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?> { ["Acessos:QuantidadeMaximaCarrinho"] = "5" }
-            )
-            .Build();
     }
 
     internal sealed record ContextoCarrinho(

@@ -369,8 +369,23 @@ public static partial class DbSeeder
     private static string ObterConfiguracaoObrigatoria(IConfiguration configuration, string chave)
     {
         return configuration[chave]
-            ?? throw new InvalidOperationException($"{chave} nao configurado no appsettings.json.");
+            ?? throw new InvalidOperationException($"{chave} nao configurado na configuracao.");
     }
+
+    private sealed record FilmeTmdbSeed(
+        int TmdbId,
+        string Titulo,
+        string TituloOriginal,
+        string Genero,
+        string DataLancamento,
+        int DuracaoMinutos,
+        double AvaliacaoTmdb,
+        string CapaPath,
+        string Realizador
+    );
+}
+
+#if false
 
     private static async Task<Utilizador> CriarAdminAsync(
         AppDbContext db,
@@ -1958,3 +1973,4 @@ public static partial class DbSeeder
         await db.SaveChangesAsync();
     }
 }
+#endif

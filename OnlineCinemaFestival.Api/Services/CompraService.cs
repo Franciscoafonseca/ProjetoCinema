@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Mappers;
@@ -11,12 +12,13 @@ public class CompraService : ICompraService
     private readonly ICompraRepository _compraRepository;
     private readonly int _expiracaoMultibancoHoras;
 
-    public CompraService(ICompraRepository compraRepository, IConfiguration configuration)
+    public CompraService(
+        ICompraRepository compraRepository,
+        IOptions<PagamentoOptions> pagamentoOptions
+    )
     {
         _compraRepository = compraRepository;
-        _expiracaoMultibancoHoras = PagamentosConfiguracao.ObterExpiracaoMultibancoHoras(
-            configuration
-        );
+        _expiracaoMultibancoHoras = pagamentoOptions.Value.Multibanco.ExpiracaoHoras;
     }
 
     public async Task<IEnumerable<CompraReadDTO>> ObterComprasDoUtilizadorAsync(int utilizadorId)

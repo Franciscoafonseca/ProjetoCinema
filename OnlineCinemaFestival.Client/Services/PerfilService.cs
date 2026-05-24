@@ -7,10 +7,12 @@ namespace OnlineCinemaFestival.Client.Services;
 public class PerfilService
 {
     private readonly HttpClient _http;
+    private readonly PerfilEstadoService _perfilEstado;
 
-    public PerfilService(HttpClient http)
+    public PerfilService(HttpClient http, PerfilEstadoService perfilEstado)
     {
         _http = http;
+        _perfilEstado = perfilEstado;
     }
 
     public async Task<PerfilUtilizadorRespostaDTO?> ObterMeuPerfilAsync()
@@ -20,9 +22,11 @@ public class PerfilService
         if (!resposta.IsSuccessStatusCode)
             return null;
 
-        return NormalizarFoto(
+        var perfil = NormalizarFoto(
             await resposta.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>()
         );
+        _perfilEstado.Atualizar(perfil);
+        return perfil;
     }
 
     public async Task<List<PerfilPublicoDTO>> ObterPerfisPublicosAsync()
@@ -61,9 +65,11 @@ public class PerfilService
             throw new InvalidOperationException(mensagem);
         }
 
-        return NormalizarFoto(
+        var perfil = NormalizarFoto(
             await resposta.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>()
         );
+        _perfilEstado.Atualizar(perfil);
+        return perfil;
     }
 
     public async Task<PerfilUtilizadorRespostaDTO?> EnviarFotoAsync(IBrowserFile ficheiro)
@@ -91,9 +97,11 @@ public class PerfilService
             );
         }
 
-        return NormalizarFoto(
+        var perfil = NormalizarFoto(
             await response.Content.ReadFromJsonAsync<PerfilUtilizadorRespostaDTO>()
         );
+        _perfilEstado.Atualizar(perfil);
+        return perfil;
     }
 
     public async Task<PerfilOpcoesDTO> ObterOpcoesAsync()

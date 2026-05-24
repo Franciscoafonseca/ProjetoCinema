@@ -76,7 +76,7 @@ public class PagamentoSimuladoTests
             new IPagamentoStrategy[]
             {
                 new PagamentoAprovadoSimuladoStrategy(),
-                new PagamentoReferenciaMultibancoStrategy(configuracao),
+                new PagamentoReferenciaMultibancoStrategy(OpcoesTeste.Pagamentos()),
             },
             timeProvider
         );

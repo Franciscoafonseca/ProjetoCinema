@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Services;
+using OnlineCinemaFestival.Tests.Support;
 using OnlineCinemaFestival.Tests.Support.Fakes;
 
 namespace OnlineCinemaFestival.Tests.Compras;
@@ -14,7 +15,7 @@ public class CompraHistoricoTests
         await repo.AddAsync(CriarCompra(1, EstadoCompra.Pago, EstadoPagamento.Aprovado, 30m));
         await repo.AddAsync(CriarCompra(2, EstadoCompra.Pendente, EstadoPagamento.Pendente, 15m));
         await repo.AddAsync(CriarCompra(3, EstadoCompra.Cancelado, EstadoPagamento.Recusado, 20m));
-        var service = new CompraService(repo, CriarConfiguracao());
+        var service = new CompraService(repo, OpcoesTeste.Pagamentos());
 
         var historico = (await service.ObterHistoricoDoUtilizadorAsync(7)).ToList();
 
@@ -31,7 +32,7 @@ public class CompraHistoricoTests
     {
         var repo = new CompraRepositoryFalso();
         await repo.AddAsync(CriarCompra(1, EstadoCompra.Pendente, EstadoPagamento.Pendente, 15m));
-        var service = new CompraService(repo, CriarConfiguracao());
+        var service = new CompraService(repo, OpcoesTeste.Pagamentos());
 
         var compra = (await service.ObterComprasDoUtilizadorAsync(7)).Single();
 

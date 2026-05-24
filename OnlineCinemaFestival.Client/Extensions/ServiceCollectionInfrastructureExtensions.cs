@@ -11,8 +11,8 @@ public static partial class ServiceCollectionExtensions
     )
     {
         var apiBaseUrl =
-            configuration["ApiBaseUrl"]
-            ?? throw new InvalidOperationException("ApiBaseUrl nao configurado.");
+            configuration["Api:BaseUrl"]
+            ?? throw new InvalidOperationException("Api:BaseUrl nao configurado.");
 
         services
             .AddHttpClient(

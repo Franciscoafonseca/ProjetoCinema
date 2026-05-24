@@ -84,7 +84,7 @@
 ::deep .perfil-name {
   color: var(--ocf-text);
   font-weight: 950;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 ::deep .perfil-name {

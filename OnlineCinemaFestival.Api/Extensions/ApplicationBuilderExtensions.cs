@@ -4,6 +4,7 @@ using OnlineCinemaFestival.Api.Data.Seed;
 using OnlineCinemaFestival.Api.Hubs;
 using OnlineCinemaFestival.Api.Middleware;
 using OnlineCinemaFestival.Api.Services;
+using Microsoft.Extensions.FileProviders;
 
 namespace OnlineCinemaFestival.Api.Extensions;
 
@@ -16,8 +17,20 @@ public static class ApplicationBuilderExtensions
         app.UseSwaggerUI();
         app.UseCors(NomesCors.BlazorClient);
 
-        if (Directory.Exists(app.Environment.WebRootPath))
-            app.UseStaticFiles();
+        var webRoot = app.Environment.WebRootPath;
+
+        if (string.IsNullOrWhiteSpace(webRoot))
+        {
+            webRoot = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+        }
+
+        Directory.CreateDirectory(webRoot);
+        Directory.CreateDirectory(Path.Combine(webRoot, "uploads", "perfis"));
+        Directory.CreateDirectory(Path.Combine(webRoot, "uploads", "comunidades"));
+
+        app.UseStaticFiles(
+            new StaticFileOptions { FileProvider = new PhysicalFileProvider(webRoot) }
+        );
 
         app.UseAuthentication();
         app.UseAuthorization();
@@ -40,21 +53,24 @@ public static class ApplicationBuilderExtensions
 
         await DbSeeder.SeedAsync(db, passwordHashingStrategy, app.Configuration);
 
-        await scope.ServiceProvider.GetRequiredService<IPublicacaoPremiosService>()
+        await scope
+            .ServiceProvider.GetRequiredService<IPublicacaoPremiosService>()
             .PublicarResultadosPendentesAsync();
 
         try
         {
-            await scope.ServiceProvider.GetRequiredService<CatalogoTmdbSeedService>()
+            await scope
+                .ServiceProvider.GetRequiredService<CatalogoTmdbSeedService>()
                 .GarantirCatalogoPopularAsync();
         }
-        catch (Exception ex) when (
-            ex is HttpRequestException
-            || ex is TaskCanceledException
-            || ex is InvalidOperationException
-        )
+        catch (Exception ex)
+            when (ex is HttpRequestException
+                || ex is TaskCanceledException
+                || ex is InvalidOperationException
+            )
         {
-            var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
+            var logger = scope
+                .ServiceProvider.GetRequiredService<ILoggerFactory>()
                 .CreateLogger("CatalogoTmdbSeed");
             logger.LogWarning(ex, "Seed TMDB ignorado: TMDB indisponivel ou nao configurado.");
         }

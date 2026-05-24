@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Models;
 
@@ -5,15 +6,13 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public class AcessoAutomaticoFactory : IAcessoAutomaticoFactory
 {
-    private readonly IConfiguration _configuration;
+    private readonly AcessosOptions _options;
     private readonly int _duracaoAluguerDigitalHoras;
 
-    public AcessoAutomaticoFactory(IConfiguration configuration)
+    public AcessoAutomaticoFactory(IOptions<AcessosOptions> options)
     {
-        _configuration = configuration;
-        _duracaoAluguerDigitalHoras = AcessosConfiguracao.ObterDuracaoAluguerDigitalHoras(
-            configuration
-        );
+        _options = options.Value;
+        _duracaoAluguerDigitalHoras = _options.DuracaoAluguerDigitalHoras;
     }
 
     public Acesso CriarAluguerDigital(Filme filme) =>
@@ -69,5 +68,11 @@ public class AcessoAutomaticoFactory : IAcessoAutomaticoFactory
             CriadoEm = DateTime.UtcNow,
         };
 
-    private decimal ObterPreco(string chave) => AcessosConfiguracao.ObterPreco(_configuration, chave);
+    private decimal ObterPreco(string chave)
+    {
+        if (!_options.Precos.TryGetValue(chave, out var preco) || preco <= 0)
+            throw new InvalidOperationException($"Acessos:Precos:{chave} deve ser maior que zero.");
+
+        return preco;
+    }
 }

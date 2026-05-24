@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OnlineCinemaFestival.Api.Autorizacao;
+using OnlineCinemaFestival.Api.Configuracao;
 
 namespace OnlineCinemaFestival.Api.Extensions;
 
@@ -13,11 +14,12 @@ public static partial class ServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        var jwtSettings = configuration.GetSection("Jwt");
-        var jwtKey = jwtSettings["Key"];
+        var jwtOptions =
+            configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+        var jwtKey = jwtOptions.Key;
 
         if (string.IsNullOrWhiteSpace(jwtKey))
-            throw new InvalidOperationException("JWT Key nao configurada no appsettings.json.");
+            throw new InvalidOperationException("JWT Key nao configurada na configuracao.");
 
         services
             .AddAuthentication(options =>
@@ -33,8 +35,8 @@ public static partial class ServiceCollectionExtensions
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings["Issuer"],
-                    ValidAudience = jwtSettings["Audience"],
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                     RoleClaimType = ClaimTypes.Role,
                     NameClaimType = ClaimTypes.NameIdentifier,

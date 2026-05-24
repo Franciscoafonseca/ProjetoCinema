@@ -1,21 +1,24 @@
+using Microsoft.Extensions.Options;
+using OnlineCinemaFestival.Api.Configuracao;
+
 namespace OnlineCinemaFestival.Api.Services;
 
 public class CatalogoTmdbSeedService
 {
     private const int QuantidadeCatalogoInterno = 20;
-    private readonly IConfiguration _configuration;
+    private readonly TmdbOptions _tmdbOptions;
     private readonly IFilmeService _filmeService;
     private readonly ITmdbService _tmdbService;
     private readonly ILogger<CatalogoTmdbSeedService> _logger;
 
     public CatalogoTmdbSeedService(
-        IConfiguration configuration,
+        IOptions<TmdbOptions> tmdbOptions,
         IFilmeService filmeService,
         ITmdbService tmdbService,
         ILogger<CatalogoTmdbSeedService> logger
     )
     {
-        _configuration = configuration;
+        _tmdbOptions = tmdbOptions.Value;
         _filmeService = filmeService;
         _tmdbService = tmdbService;
         _logger = logger;
@@ -23,7 +26,7 @@ public class CatalogoTmdbSeedService
 
     public async Task GarantirCatalogoPopularAsync()
     {
-        if (string.IsNullOrWhiteSpace(_configuration["Tmdb:Token"]))
+        if (string.IsNullOrWhiteSpace(_tmdbOptions.Token))
             return;
 
         var existentes = (await _filmeService.ObterTodosFilmesAsync()).ToList();

@@ -16,4 +16,5 @@ public interface IComunidadeRepository
     Task<ComunidadeMembro> AdicionarMembroAsync(ComunidadeMembro membro);
     Task ApagarComunidadeAsync(Comunidade comunidade);
     Task RemoverMembroAsync(ComunidadeMembro membro);
+    Task SaveChangesAsync();
 }
