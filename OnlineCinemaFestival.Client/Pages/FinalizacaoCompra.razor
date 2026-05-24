@@ -139,7 +139,7 @@
     };
 
     private CarrinhoDTO _carrinho = new();
-    private string _metodoPagamento = MetodosPagamento.CartaoCredito;
+    private string _metodoPagamento = string.Empty;
     private bool _aCarregar = true;
     private bool _aFinalizar;
     private string? _erro;
@@ -152,6 +152,8 @@
         try
         {
             _carrinho = await CarrinhoService.ObterAsync();
+            if (string.IsNullOrWhiteSpace(_metodoPagamento) && _metodosPagamento.Count > 0)
+                _metodoPagamento = _metodosPagamento[0].Codigo;
         }
         catch (Exception ex)
         {

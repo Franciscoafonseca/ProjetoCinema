@@ -4,9 +4,5 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IPagamentoService
 {
-    Task<Pagamento> ProcessarPagamentoSimuladoAsync(
-        Compra compra,
-        DateTime dataPagamento,
-        string metodoPagamento
-    );
+    Task<Pagamento> ProcessarPagamentoSimuladoAsync(Compra compra, string metodoPagamento);
 }

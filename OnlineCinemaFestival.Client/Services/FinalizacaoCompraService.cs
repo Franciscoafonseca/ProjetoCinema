@@ -53,5 +53,5 @@ public class FinalizacaoCompraService : IFinalizacaoCompraService
 
 public class PedidoFinalizarCompraDTO
 {
-    public string MetodoPagamento { get; set; } = MetodosPagamento.CartaoCredito;
+    public string MetodoPagamento { get; set; } = string.Empty;
 }

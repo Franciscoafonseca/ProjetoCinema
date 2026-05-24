@@ -10,11 +10,7 @@ public class PagamentoReferenciaMultibancoStrategy : IPagamentoStrategy
 
     public PagamentoReferenciaMultibancoStrategy(IConfiguration configuration)
     {
-        _entidade =
-            configuration["Pagamentos:Multibanco:Entidade"]
-            ?? throw new InvalidOperationException(
-                "Pagamentos:Multibanco:Entidade nao configurada no appsettings.json."
-            );
+        _entidade = PagamentosConfiguracao.ObterEntidadeMultibanco(configuration);
 
         _expiracaoHoras = PagamentosConfiguracao.ObterExpiracaoMultibancoHoras(configuration);
     }
@@ -48,6 +44,7 @@ public class PagamentoReferenciaMultibancoStrategy : IPagamentoStrategy
                 Metodo = MetodosPagamento.ReferenciaMultibanco,
                 Estado = EstadoPagamento.Pendente,
                 CriadoEm = dataPagamento,
+                ProcessadoEm = null,
                 Mensagem =
                     $"Referencia Multibanco simulada: Entidade {_entidade}, Referencia {referenciaMb[..3]} {referenciaMb.Substring(3, 3)} {referenciaMb[6..]}, Valor {compra.ValorTotal:0.00} EUR. Expira em {_expiracaoHoras} horas.",
             }

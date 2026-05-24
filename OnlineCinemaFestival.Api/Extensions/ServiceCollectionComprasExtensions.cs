@@ -10,6 +10,9 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<ICompraRepository, CompraRepository>();
         services.AddScoped<ICompraService, CompraService>();
         services.AddScoped<ICompraHistoricoService, CompraHistoricoService>();
+        services.AddScoped<ICompraFactory, CompraFactory>();
+        services.AddScoped<ICarrinhoCheckoutService, CarrinhoCheckoutService>();
+        services.AddScoped<IAcessoCompraService, AcessoCompraService>();
         services.AddScoped<ICompraValidator, CompraValidator>();
         services.AddScoped<ICarrinhoRepository, CarrinhoRepository>();
         services.AddScoped<ICarrinhoService, CarrinhoService>();

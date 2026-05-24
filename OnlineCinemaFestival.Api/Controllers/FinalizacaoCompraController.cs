@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.Autorizacao;
-using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Services;
 
@@ -26,15 +25,12 @@ public class FinalizacaoCompraController : ControllerBase
 
     [HttpPost]
     public async Task<ActionResult<ResultadoFinalizacaoCompraDTO>> FinalizarCompra(
-        [FromBody] PedidoFinalizarCompraDTO? request
+        [FromBody] PedidoFinalizarCompraDTO request
     )
     {
         var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-        var compra = await _checkoutService.FinalizarCompraAsync(
-            utilizadorId,
-            request?.MetodoPagamento ?? MetodosPagamento.CartaoCredito
-        );
+        var compra = await _checkoutService.FinalizarCompraAsync(utilizadorId, request.MetodoPagamento);
 
         return Ok(compra);
     }
