@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Models;
 
@@ -8,11 +9,10 @@ public class PagamentoReferenciaMultibancoStrategy : IPagamentoStrategy
     private readonly string _entidade;
     private readonly int _expiracaoHoras;
 
-    public PagamentoReferenciaMultibancoStrategy(IConfiguration configuration)
+    public PagamentoReferenciaMultibancoStrategy(IOptions<PagamentoOptions> options)
     {
-        _entidade = PagamentosConfiguracao.ObterEntidadeMultibanco(configuration);
-
-        _expiracaoHoras = PagamentosConfiguracao.ObterExpiracaoMultibancoHoras(configuration);
+        _entidade = options.Value.Multibanco.Entidade;
+        _expiracaoHoras = options.Value.Multibanco.ExpiracaoHoras;
     }
 
     public bool Suporta(string metodoPagamento) =>

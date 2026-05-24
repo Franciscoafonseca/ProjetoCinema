@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Options;
 using OnlineCinemaFestival.Api.Configuracao;
+using OnlineCinemaFestival.Api.Excecoes;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
 
@@ -15,19 +17,19 @@ public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
         IEnumerable<ICarrinhoItemValidator> itemValidators,
         TimeProvider timeProvider,
-        IConfiguration configuration
+        IOptions<AcessosOptions> acessosOptions
     )
     {
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
         _itemValidators = itemValidators.ToDictionary(s => s.Tipo);
         _timeProvider = timeProvider;
-        _quantidadeMaxima = AcessosConfiguracao.ObterQuantidadeMaximaCarrinho(configuration);
+        _quantidadeMaxima = acessosOptions.Value.QuantidadeMaximaCarrinho;
     }
 
     public async Task ValidarAsync(int utilizadorId, Carrinho? carrinho)
     {
         if (carrinho == null || !carrinho.Itens.Any())
-            throw new InvalidOperationException("O carrinho esta vazio.");
+            throw new RegraNegocioException("O carrinho esta vazio.");
 
         var agora = _timeProvider.GetUtcNow().UtcDateTime;
         var acessosNoCarrinho = new HashSet<int>();
@@ -37,7 +39,7 @@ public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
             ValidarItem(item);
 
             if (!acessosNoCarrinho.Add(item.AcessoId))
-                throw new InvalidOperationException(
+                throw new ConflitoDominioException(
                     $"O acesso '{item.Acesso.Nome}' esta duplicado no carrinho."
                 );
 
@@ -49,7 +51,7 @@ public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
 
             if (jaTemAcesso)
             {
-                throw new InvalidOperationException(
+                throw new ConflitoDominioException(
                     $"O utilizador ja possui um acesso ativo para '{item.Acesso.Nome}'."
                 );
             }
@@ -59,25 +61,25 @@ public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
     private void ValidarItem(CarrinhoItem item)
     {
         if (item.Quantidade <= 0)
-            throw new InvalidOperationException("A quantidade deve ser maior que zero.");
+            throw new RegraNegocioException("A quantidade deve ser maior que zero.");
 
         if (item.Quantidade > _quantidadeMaxima)
-            throw new InvalidOperationException(
+            throw new RegraNegocioException(
                 $"A quantidade nao pode exceder {_quantidadeMaxima}."
             );
 
         if (item.Acesso == null)
-            throw new InvalidOperationException("Item de carrinho sem acesso associado.");
+            throw new ConflitoDominioException("Item de carrinho sem acesso associado.");
 
         if (!item.Acesso.IsAtivo)
-            throw new InvalidOperationException(
+            throw new ConflitoDominioException(
                 $"O acesso '{item.Acesso.Nome}' ja nao esta disponivel."
             );
 
         var validator = ObterValidator(item.Acesso.Tipo);
 
         if (!validator.PermiteQuantidadeMultipla && item.Quantidade != 1)
-            throw new InvalidOperationException(
+            throw new RegraNegocioException(
                 "Apenas bilhetes de sessao permitem quantidade superior a 1."
             );
 
@@ -88,6 +90,6 @@ public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
     {
         return _itemValidators.TryGetValue(tipo, out var validator)
             ? validator
-            : throw new InvalidOperationException("Tipo de acesso nao suportado no checkout.");
+            : throw new RegraNegocioException("Tipo de acesso nao suportado no checkout.");
     }
 }

@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Options;
 using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Excecoes;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
@@ -14,15 +16,13 @@ public class PagamentosPendentesService : IPagamentosPendentesService
 
     public PagamentosPendentesService(
         ICompraRepository compraRepository,
-        IConfiguration configuration,
+        IOptions<PagamentoOptions> pagamentoOptions,
         TimeProvider timeProvider
     )
     {
         _compraRepository = compraRepository;
         _timeProvider = timeProvider;
-        _expiracaoMultibancoHoras = PagamentosConfiguracao.ObterExpiracaoMultibancoHoras(
-            configuration
-        );
+        _expiracaoMultibancoHoras = pagamentoOptions.Value.Multibanco.ExpiracaoHoras;
     }
 
     public async Task<List<CompraReadDTO>> ObterDoUtilizadorAsync(int utilizadorId)
@@ -70,21 +70,25 @@ public class PagamentosPendentesService : IPagamentosPendentesService
 
         var compra = await _compraRepository.ObterPorIdAsync(compraId);
         if (compra == null || compra.UtilizadorId != utilizadorId)
-            throw new KeyNotFoundException("Pagamento pendente nao encontrado.");
+            throw new RecursoNaoEncontradoException("Pagamento pendente nao encontrado.");
 
         if (compra.Pagamento == null)
-            throw new InvalidOperationException("Compra sem pagamento associado.");
+            throw new ConflitoDominioException("Compra sem pagamento associado.");
 
         if (compra.Pagamento.Estado == EstadoPagamento.Expirado)
-            throw new InvalidOperationException("A referencia expirou. Cria uma nova compra para pagar.");
+            throw new ConflitoDominioException(
+                "A referencia expirou. Cria uma nova compra para pagar."
+            );
 
         if (compra.Pagamento.Estado != EstadoPagamento.Pendente)
-            throw new InvalidOperationException("Este pagamento ja nao esta pendente.");
+            throw new ConflitoDominioException("Este pagamento ja nao esta pendente.");
 
         if (ReferenciaExpirada(compra.Pagamento, AgoraUtc()))
-            throw new InvalidOperationException("A referencia expirou. Cria uma nova compra para pagar.");
+            throw new ConflitoDominioException(
+                "A referencia expirou. Cria uma nova compra para pagar."
+            );
 
-        throw new InvalidOperationException(
+        throw new RegraNegocioException(
             "A referencia Multibanco e ficticia e nao e confirmada automaticamente."
         );
     }

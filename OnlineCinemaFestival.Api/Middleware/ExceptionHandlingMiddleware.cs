@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using OnlineCinemaFestival.Api.Excecoes;
 
 namespace OnlineCinemaFestival.Api.Middleware;
 
@@ -72,6 +73,30 @@ public class ExceptionHandlingMiddleware
     {
         return exception switch
         {
+            RecursoNaoEncontradoException => (
+                StatusCodes.Status404NotFound,
+                "Recurso nao encontrado.",
+                exception.Message,
+                false
+            ),
+            RegraNegocioException => (
+                StatusCodes.Status400BadRequest,
+                "Regra de negocio violada.",
+                exception.Message,
+                false
+            ),
+            ConflitoDominioException => (
+                StatusCodes.Status409Conflict,
+                "Conflito de dominio.",
+                exception.Message,
+                false
+            ),
+            OperacaoNaoAutorizadaException => (
+                StatusCodes.Status403Forbidden,
+                "Operacao nao autorizada.",
+                exception.Message,
+                false
+            ),
             KeyNotFoundException => (
                 StatusCodes.Status404NotFound,
                 "Recurso nao encontrado.",

@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Options;
 using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Excecoes;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
@@ -16,14 +18,12 @@ public class AcessoService : IAcessoService
     public AcessoService(
         IAcessoRepository repository,
         IValidacaoAcessoStrategyFactory fabricaValidacao,
-        IConfiguration configuration
+        IOptions<AcessosOptions> acessosOptions
     )
     {
         _repository = repository;
         _fabricaValidacao = fabricaValidacao;
-        _duracaoAluguerDigitalHoras = AcessosConfiguracao.ObterDuracaoAluguerDigitalHoras(
-            configuration
-        );
+        _duracaoAluguerDigitalHoras = acessosOptions.Value.DuracaoAluguerDigitalHoras;
     }
 
     public async Task<IEnumerable<AcessoReadDTO>> ObterTodosAsync()
@@ -80,7 +80,7 @@ public class AcessoService : IAcessoService
         var acesso = await _repository.ObterPorIdAsync(id);
 
         if (acesso == null)
-            throw new KeyNotFoundException("Acesso não encontrado.");
+            throw new RecursoNaoEncontradoException("Acesso nao encontrado.");
 
         AcessoMapper.MapToExistingAcesso(dto, acesso);
 
@@ -92,7 +92,7 @@ public class AcessoService : IAcessoService
         var acesso = await _repository.ObterPorIdAsync(id);
 
         if (acesso == null)
-            throw new KeyNotFoundException("Acesso não encontrado.");
+            throw new RecursoNaoEncontradoException("Acesso nao encontrado.");
 
         _repository.Remove(acesso);
 
@@ -102,10 +102,10 @@ public class AcessoService : IAcessoService
     private static void ValidateCommonData(string nome, decimal preco)
     {
         if (string.IsNullOrWhiteSpace(nome))
-            throw new ArgumentException("O nome do acesso é obrigatório.");
+            throw new RegraNegocioException("O nome do acesso e obrigatorio.");
 
         if (preco < 0)
-            throw new ArgumentException("O preço do acesso não pode ser negativo.");
+            throw new RegraNegocioException("O preco do acesso nao pode ser negativo.");
     }
 
     // private static string GetDescricaoTipo(TipoAcesso tipo)

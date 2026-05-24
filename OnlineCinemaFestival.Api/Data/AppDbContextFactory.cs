@@ -17,7 +17,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new InvalidOperationException(
-                "ConnectionStrings:DefaultConnection nao configurada no appsettings.json."
+                "ConnectionStrings:DefaultConnection nao configurada na configuracao."
             );
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
