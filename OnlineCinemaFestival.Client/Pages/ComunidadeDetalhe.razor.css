@@ -108,6 +108,17 @@
   font-size: 0.85rem;
 }
 
+.community-image-upload {
+  display: grid;
+  gap: 8px;
+  max-width: 460px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--sky-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
 .community-detail-grid {
   display: grid;
   grid-template-columns: 330px minmax(0, 1fr);

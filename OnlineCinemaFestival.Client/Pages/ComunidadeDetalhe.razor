@@ -1,5 +1,6 @@
 @page "/comunidades/{Id:guid}"
 @attribute [Authorize]
+@using Microsoft.AspNetCore.Components.Forms
 @inject ComunidadeService ComunidadeService
 @inject ComentarioService ComentarioService
 @inject IConsultaFilmeService FilmeService
@@ -48,6 +49,26 @@
                         <code>@_comunidade.Id</code>
                         <p>Partilha este ID para permitir a pesquisa rapida.</p>
                     </div>
+                    @if (_comunidade.IsOwner)
+                    {
+                        <div class="community-image-upload">
+                            <label class="sky-label" for="community-detail-image">Imagem da comunidade</label>
+                            <InputFile id="community-detail-image"
+                                       class="sky-input"
+                                       OnChange="EnviarImagemComunidadeAsync"
+                                       accept="image/png,image/jpeg,image/webp"
+                                       disabled="@_aEnviarImagem" />
+                            <small class="sky-helper">
+                                @(_aEnviarImagem ? "A enviar imagem..." : "JPG, PNG ou WEBP ate 2MB.")
+                            </small>
+                            @if (!string.IsNullOrWhiteSpace(_mensagemImagem))
+                            {
+                                <MudAlert Severity="@_severidadeImagem" Variant="Variant.Outlined" Dense="true">
+                                    @_mensagemImagem
+                                </MudAlert>
+                            }
+                        </div>
+                    }
                 </div>
                 <div class="community-detail-actions">
                     @if (_comunidade.IsOwner)
@@ -319,6 +340,7 @@
     private bool _aComentar;
     private bool _aApagar;
     private bool _aSair;
+    private bool _aEnviarImagem;
     private bool _aReportar;
     private bool _aModerar;
     private bool _aCarregarReportados;
@@ -326,9 +348,11 @@
     private int? _utilizadorAtualId;
     private string? _erroGeral;
     private string? _mensagemComentario;
+    private string? _mensagemImagem;
     private string? _mensagemReportados;
     private string? _mensagemPerfil;
     private Severity _severidadeComentario = Severity.Info;
+    private Severity _severidadeImagem = Severity.Info;
     private List<ComentarioDTO> _comentariosReportados = new();
 
     private bool PodeModerar =>
@@ -431,6 +455,48 @@
         finally
         {
             _aComentar = false;
+        }
+    }
+
+    private async Task EnviarImagemComunidadeAsync(InputFileChangeEventArgs e)
+    {
+        if (_comunidade is null)
+            return;
+
+        var ficheiro = e.File;
+        var tiposPermitidos = new[] { "image/jpeg", "image/png", "image/webp" };
+
+        if (!tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            _mensagemImagem = "Formato invalido. Escolhe uma imagem JPG, PNG ou WEBP.";
+            _severidadeImagem = Severity.Error;
+            return;
+        }
+
+        if (ficheiro.Size > 2 * 1024 * 1024)
+        {
+            _mensagemImagem = "A imagem nao pode exceder 2MB.";
+            _severidadeImagem = Severity.Error;
+            return;
+        }
+
+        _aEnviarImagem = true;
+        _mensagemImagem = null;
+
+        try
+        {
+            _comunidade = await ComunidadeService.EnviarImagemAsync(_comunidade.Id, ficheiro);
+            _mensagemImagem = "Imagem atualizada.";
+            _severidadeImagem = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _mensagemImagem = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel enviar a imagem.");
+            _severidadeImagem = Severity.Error;
+        }
+        finally
+        {
+            _aEnviarImagem = false;
         }
     }
 

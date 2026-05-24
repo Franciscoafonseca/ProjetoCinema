@@ -60,7 +60,7 @@ public class ComunidadesController : ControllerBase
 
     [HttpPost("{id:guid}/imagem")]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<ComunidadeReadDTO>> UploadImagem(Guid id, IFormFile imagem)
+    public async Task<ActionResult<ComunidadeReadDTO>> UploadImagem(Guid id, [FromForm] IFormFile imagem)
     {
         return Ok(await _comunidadeService.EnviarImagemAsync(id, User.GetUserId(), imagem));
     }

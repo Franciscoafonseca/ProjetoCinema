@@ -36,7 +36,7 @@ public class PerfisController : ControllerBase
     [Authorize]
     [HttpPost("foto")]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<PerfilPrivadoDTO>> UploadFoto(IFormFile foto)
+    public async Task<ActionResult<PerfilPrivadoDTO>> UploadFoto([FromForm] IFormFile foto)
     {
         return Ok(await _profileService.EnviarFotoPerfilAsync(User.GetUserId(), foto));
     }
