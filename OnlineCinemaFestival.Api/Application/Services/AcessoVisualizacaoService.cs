@@ -121,17 +121,19 @@ public sealed class AcessoVisualizacaoService : IAcessoVisualizacaoService
         DateTime agora
     )
     {
-        var acessos = (
+        var candidatos = (
             await _acessoUtilizadorRepository.ObterPorUtilizadorIdAsync(utilizadorId)
-        ).ToList();
-
-        var acessoValido = acessos
+        )
             .Select(acesso => new
             {
                 Acesso = acesso,
                 Politica = _politicaAcessoResolver.Resolver(acesso.TipoAcesso),
             })
             .OrderBy(item => item.Politica.OrdemPreferencia)
+            .ToList();
+
+        // Verificar se algum acesso permite visualização
+        var acessoValido = candidatos
             .FirstOrDefault(item =>
                 item.Politica.PermiteVisualizacao(item.Acesso, contexto, agora)
             )
@@ -140,67 +142,27 @@ public sealed class AcessoVisualizacaoService : IAcessoVisualizacaoService
         if (acessoValido != null)
             return ResultadoAcessoVisualizacao.Autorizado(acessoValido);
 
-        var relacionados = acessos
-            .Where(acesso => AcessoRelacionaComContexto(acesso, contexto))
-            .OrderByDescending(a => a.FimValidade)
+        // Acessos que se relacionam com o contexto (podem estar expirados, inativos, etc.)
+        var relacionados = candidatos
+            .Where(item => item.Politica.RelacionaComContexto(item.Acesso, contexto))
+            .ToList();
+
+        if (relacionados.Count == 0)
+            return ResultadoAcessoVisualizacao.Negado("Sem acesso valido para este conteudo.");
+
+        // Delegar a mensagem na política mais específica (menor OrdemPreferencia)
+        var melhorPolitica = relacionados
+            .Select(r => r.Politica)
+            .OrderBy(p => p.OrdemPreferencia)
+            .First();
+
+        var acessosDaPolitica = relacionados
+            .Where(r => r.Politica.TipoSuportado == melhorPolitica.TipoSuportado)
+            .Select(r => r.Acesso)
             .ToList();
 
         return ResultadoAcessoVisualizacao.Negado(
-            ObterMensagemNegacao(relacionados, contexto, agora)
+            melhorPolitica.ObterMensagemNegacao(acessosDaPolitica, contexto, agora)
         );
-    }
-
-    private static bool AcessoRelacionaComContexto(
-        AcessoUtilizador acesso,
-        ContextoVisualizacao contexto
-    )
-    {
-        return acesso.TipoAcesso switch
-        {
-            TipoAcesso.BilheteSessao =>
-                contexto.SessaoId.HasValue && acesso.SessaoId == contexto.SessaoId.Value,
-            TipoAcesso.AluguerDigital =>
-                contexto.FilmeId.HasValue && acesso.FilmeId == contexto.FilmeId.Value,
-            TipoAcesso.PasseDiario =>
-                contexto.SessaoId.HasValue
-                && contexto.InicioSessao.HasValue
-                && acesso.FestivalId == contexto.FestivalId
-                && contexto.InicioSessao.Value >= acesso.InicioValidade
-                && contexto.InicioSessao.Value < acesso.FimValidade,
-            TipoAcesso.PasseCompleto =>
-                acesso.FestivalId.HasValue
-                && (
-                    acesso.FestivalId == contexto.FestivalId
-                    || contexto.FestivalIdsDoFilme.Contains(acesso.FestivalId.Value)
-                ),
-            _ => false,
-        };
-    }
-
-    private static string ObterMensagemNegacao(
-        IReadOnlyCollection<AcessoUtilizador> acessosRelacionados,
-        ContextoVisualizacao contexto,
-        DateTime agora
-    )
-    {
-        if (acessosRelacionados.Count == 0)
-            return "Sem acesso valido para este conteudo.";
-
-        if (acessosRelacionados.Any(a => !a.Ativo))
-            return "O acesso existe, mas esta inativo.";
-
-        if (contexto.SessaoId.HasValue && contexto.InicioSessao.HasValue && agora < contexto.InicioSessao.Value)
-            return "Esta sessao ainda nao comecou.";
-
-        if (contexto.SessaoId.HasValue && contexto.FimSessao.HasValue && agora > contexto.FimSessao.Value)
-            return "Esta sessao ja terminou.";
-
-        if (acessosRelacionados.All(a => a.FimValidade < agora))
-            return "O acesso expirou.";
-
-        if (acessosRelacionados.All(a => a.InicioValidade > agora))
-            return "O acesso ainda nao comecou.";
-
-        return "Sem acesso valido para este conteudo.";
     }
 }

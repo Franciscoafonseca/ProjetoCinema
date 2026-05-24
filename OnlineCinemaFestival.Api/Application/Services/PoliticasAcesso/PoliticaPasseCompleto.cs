@@ -32,5 +32,32 @@ public sealed class PoliticaPasseCompleto : IPoliticaAcesso
 
         return contexto.FestivalIdsDoFilme.Contains(acesso.FestivalId.Value);
     }
-}
 
+    public bool RelacionaComContexto(AcessoUtilizador acesso, ContextoVisualizacao contexto)
+        => acesso.FestivalId.HasValue
+           && (
+               acesso.FestivalId == contexto.FestivalId
+               || contexto.FestivalIdsDoFilme.Contains(acesso.FestivalId.Value)
+           );
+
+    public string ObterMensagemNegacao(
+        IReadOnlyList<AcessoUtilizador> acessosRelacionados,
+        ContextoVisualizacao contexto,
+        DateTime agora
+    )
+    {
+        if (acessosRelacionados.Count == 0)
+            return "Sem acesso valido para este conteudo.";
+
+        if (acessosRelacionados.Any(a => !a.Ativo))
+            return "O acesso existe, mas esta inativo.";
+
+        if (acessosRelacionados.All(a => a.FimValidade < agora))
+            return "O passe expirou.";
+
+        if (acessosRelacionados.All(a => a.InicioValidade > agora))
+            return "O passe ainda nao comecou.";
+
+        return "Sem acesso valido para este conteudo.";
+    }
+}

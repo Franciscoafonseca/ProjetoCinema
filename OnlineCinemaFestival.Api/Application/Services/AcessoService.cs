@@ -107,19 +107,4 @@ public class AcessoService : IAcessoService
         if (preco < 0)
             throw new RegraNegocioException("O preco do acesso nao pode ser negativo.");
     }
-
-    // private static string GetDescricaoTipo(TipoAcesso tipo)
-    // {
-    //     return tipo switch
-    //     {
-    //         TipoAcesso.BilheteSessao => "Bilhete válido para uma sessão específica.",
-
-    //         TipoAcesso.PasseDiario =>
-    //             "Passe que dá acesso às sessões de um festival durante um dia.",
-
-    //         TipoAcesso.PasseCompleto => "Passe que dá acesso a todas as sessões de um festival.",
-
-    //         _ => "Tipo de acesso desconhecido.",
-    //     };
-    // }
 }

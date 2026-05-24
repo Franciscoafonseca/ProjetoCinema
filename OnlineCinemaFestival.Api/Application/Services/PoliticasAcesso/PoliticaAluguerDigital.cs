@@ -19,5 +19,28 @@ public sealed class PoliticaAluguerDigital : IPoliticaAcesso
 
         return contexto.FilmeId.HasValue && acesso.FilmeId == contexto.FilmeId.Value;
     }
-}
 
+    public bool RelacionaComContexto(AcessoUtilizador acesso, ContextoVisualizacao contexto)
+        => contexto.FilmeId.HasValue && acesso.FilmeId == contexto.FilmeId.Value;
+
+    public string ObterMensagemNegacao(
+        IReadOnlyList<AcessoUtilizador> acessosRelacionados,
+        ContextoVisualizacao contexto,
+        DateTime agora
+    )
+    {
+        if (acessosRelacionados.Count == 0)
+            return "Sem acesso valido para este conteudo.";
+
+        if (acessosRelacionados.Any(a => !a.Ativo))
+            return "O acesso existe, mas esta inativo.";
+
+        if (acessosRelacionados.All(a => a.FimValidade < agora))
+            return "O aluguer expirou.";
+
+        if (acessosRelacionados.All(a => a.InicioValidade > agora))
+            return "O aluguer ainda nao comecou.";
+
+        return "Sem acesso valido para este conteudo.";
+    }
+}

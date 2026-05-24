@@ -205,15 +205,16 @@ OnlineCinemaFestival.Tests/
 
 ### Pré-requisitos
 
-- .NET 10 SDK
-- `dotnet-ef` tool: `dotnet tool install --global dotnet-ef`
+- **.NET 10 SDK** (≥ 10.0.100) — confirmar com `dotnet --version`
+- Ferramenta EF Core: `dotnet tool install --global dotnet-ef`
 
-### 1. Clonar e restaurar
+### 1. Clonar, restaurar e compilar
 
 ```bash
 git clone <url>
 cd ProjetoCinema
 dotnet restore
+dotnet build OnlineCinemaFestival.slnx
 ```
 
 ### 2. Configurar secrets locais da API
@@ -233,6 +234,10 @@ dotnet user-secrets set "Tmdb:Token" "bearer-token-do-tmdb"
 ```
 
 > `Tmdb:Token` pode ser omitido se não se pretender usar integração TMDB. Sem `Jwt:Key` ou `ConnectionStrings:DefaultConnection` a API falha no arranque.
+
+> **`appsettings.Development.json` não é versionado.** Todas as configurações sensíveis
+> (connection string, JWT key, TMDB token, admin credentials) ficam em `dotnet user-secrets`
+> ou num `appsettings.Development.json` local que está no `.gitignore`.
 
 ### 3. Configurar o Client
 
@@ -311,26 +316,51 @@ dotnet run --project OnlineCinemaFestival.Api
 
 ## Testes
 
+### Como correr
+
 ```bash
+# Compilar + correr todos os testes (sem output de build)
+dotnet test OnlineCinemaFestival.Tests
+
+# Com output detalhado
+dotnet test OnlineCinemaFestival.Tests --logger "console;verbosity=normal"
+
+# Sequência completa recomendada antes de commit
+dotnet clean
+dotnet restore
+dotnet build OnlineCinemaFestival.slnx
 dotnet test OnlineCinemaFestival.Tests
 ```
 
-**87 testes unitários** organizados por domínio, sem dependências de BD real ou TMDB.
+**110 testes unitários** organizados por domínio, sem dependências de BD real ou TMDB.
 
 | Pasta | Testes | O que cobre |
 |-------|--------|-------------|
-| `Acessos/` | 8 | Políticas de acesso por tipo; criação de acessos pós-compra |
-| `Admin/` | 4 | Reporte de utilizadores; moderação admin |
-| `Compras/` | 18 | Carrinho; checkout; validação; histórico |
-| `Comunidades/` | 3 | Moderação de comentários; permissões de dono |
-| `Listas/` | 10 | Duplicados de filme; duplicados de nome; listas predefinidas |
-| `Pagamentos/` | 7 | Cartão, Multibanco, expiração, confirmação |
-| `Perfis/` | 4 | Perfil público/privado; acesso entre utilizadores |
-| `Prémios/` | 6 | Votação única; vencedor automático |
-| `Recomendações/` | 7 | Recomendação por género/avaliação/popularidade; catálogo |
-| `Rewards/` | 3 | Pontuação por evento |
-| `Upload/` | 9 | Extensão inválida; magic bytes errados; tamanho excedido |
-| `Visualizações/` | 8 | Fluxo de visualização; chat temporal |
+| `Acessos/` | 8 | Políticas de acesso por tipo (`PermiteVisualizacao`, `RelacionaComContexto`); criação de acessos pós-compra |
+| `Admin/` | 4 | Reporte de utilizadores; permissões de moderação admin |
+| `Compras/` | 18 | Carrinho; validação de checkout; finalização de compra; histórico |
+| `Comunidades/` | 3 | Moderação de comentários; permissões de dono de comunidade |
+| `Integracao/` | 8 | `TmdbService` (Adapter) com cliente HTTP falso — mapping, cache, resiliência a falhas |
+| `Listas/` | 10 | Duplicados de filme; duplicados de nome; listas predefinidas não apagáveis |
+| `Pagamentos/` | 7 | Pagamento simulado (Cartão/Multibanco); expiração de Multibanco |
+| `Perfis/` | 4 | Perfil público/privado; visibilidade entre utilizadores |
+| `Prémios/` | 6 | Votação única por utilizador; publicação automática de vencedor |
+| `Recomendações/` | 7 | Recomendaç��o por género/avaliação/popularidade/prémios; catálogo com paginação |
+| `Rewards/` | 3 | Pontuação por evento (avaliação, comentário, lista) |
+| `Social/` | 7 | Observers de Rewards — `ComentarioObserver`, `AvaliacaoObserver`, `VisualizacaoObserver`, `VotoPremioObserver`; idempotência |
+| `Upload/` | 9 | Extensão inválida; magic bytes errados; tamanho excedido; tipos aceites |
+| `Visualizações/` | 8 | Fluxo completo de visualização (player) com acesso válido/inválido; chat temporal |
+
+**Cobertura por categoria de requisito:**
+
+| Requisito | Testes que cobrem |
+|-----------|-------------------|
+| Acessos / player | `Acessos/`, `Visualizacoes/VisualizacaoFluxoTests` |
+| Checkout | `Compras/CheckoutValidacaoTests`, `Compras/FinalizacaoCompraTests` |
+| Permissões admin | `Admin/ReporteUtilizadorTests` |
+| Reports / moderação | `Admin/ReporteUtilizadorTests`, `Comunidades/ModeracaoComentarioTests` |
+| Rewards | `Rewards/RewardsPontuacaoTests`, `Social/RewardsObserverTests` |
+| TMDB fake/mock | `Integracao/TmdbServiceAdapterTests` |
 
 **Padrões usados nos testes:**
 - `FakeTimeProvider` — controlo determinístico de datas
