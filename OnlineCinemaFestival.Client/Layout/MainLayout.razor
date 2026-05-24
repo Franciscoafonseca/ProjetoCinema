@@ -1,6 +1,9 @@
 @inherits LayoutComponentBase
 @inject IAutenticacaoService AutenticacaoService
+@inject PerfilService PerfilService
+@inject PerfilEstadoService PerfilEstado
 @inject NavigationManager Nav
+@implements IDisposable
 
 <MudThemeProvider Theme="_tema" IsDarkMode="true" />
 <MudPopoverProvider />
@@ -10,41 +13,57 @@
 <div class="layout">
     <header class="navbar-topo">
         <a class="logo" href="">
-            <img class="logo-mark" src="images/logos/cinehub-logo-branco.png" alt="CineHub" />
-            <span>CineHub</span>
+            <img class="logo-full" src="images/brand/sky-cinema-logo.svg" alt="Sky Cinema Festival" />
+            <img class="logo-mark" src="images/brand/sky-cinema-mark.svg" alt="" />
+            <span>Sky Cinema Festival</span>
         </a>
 
-        <nav class="nav-centro" aria-label="Navegacao principal">
+        <button class="nav-menu-toggle" type="button" @onclick="AlternarMenu" aria-label="Abrir menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <nav class="nav-centro @ClasseMenu" aria-label="Navegacao principal">
             <NavLink class="nav-btn" href="" Match="NavLinkMatch.All">Inicio</NavLink>
             <NavLink class="nav-btn" href="catalogo">Catalogo</NavLink>
             <NavLink class="nav-btn" href="festivais">Festivais</NavLink>
             <NavLink class="nav-btn" href="sessoes">Sessoes</NavLink>
-            <NavLink class="nav-btn" href="about">Sobre</NavLink>
-            <NavLink class="nav-btn" href="suporte">Suporte</NavLink>
+            <NavLink class="nav-btn" href="comunidades">Comunidades</NavLink>
 
             <AuthorizeView>
                 <Authorized>
                     <NavLink class="nav-btn" href="meus-acessos">Acessos</NavLink>
                     <NavLink class="nav-btn" href="compras">Compras</NavLink>
-                    <NavLink class="nav-btn" href="pagamentos-pendentes">Pagamentos Pendentes</NavLink>
                     <NavLink class="nav-btn" href="listas">Listas</NavLink>
-                    <NavLink class="nav-btn" href="comunidades">Comunidades</NavLink>
                     <NavLink class="nav-btn" href="rewards">Rewards</NavLink>
                     <AuthorizeView Roles="@NomesPapeis.Administrador" Context="adminAuth">
                         <Authorized>
-                            <NavLink class="nav-btn" href="admin">Admin</NavLink>
+                            <NavLink class="nav-btn nav-admin" href="admin">Admin</NavLink>
                         </Authorized>
                     </AuthorizeView>
                 </Authorized>
             </AuthorizeView>
         </nav>
 
-        <div class="nav-direita">
+        <div class="nav-direita @ClasseMenu">
             <AuthorizeView>
                 <Authorized Context="auth">
                     <NavLink class="nav-icon-btn" href="carrinho" title="Carrinho">Carrinho</NavLink>
-                    <NavLink class="nav-user" href="perfil">@ObterNome(auth.User.Identity?.Name)</NavLink>
-                    <button class="nav-btn nav-btn-sair" @onclick="Sair">Sair</button>
+                    <NavLink class="nav-user" href="perfil" title="Perfil">
+                        @if (MostrarAvatar)
+                        {
+                            <img src="@AvatarUrl" alt="" @onerror="AvatarFalhou" />
+                        }
+                        else
+                        {
+                            <span>@IniciaisPerfil(auth.User.Identity?.Name)</span>
+                        }
+                        <strong>@ObterNome(auth.User.Identity?.Name)</strong>
+                    </NavLink>
+                    <button class="nav-btn nav-btn-sair" disabled="@_aTerminarSessao" @onclick="Sair">
+                        @(_aTerminarSessao ? "A sair..." : "Sair")
+                    </button>
                 </Authorized>
                 <NotAuthorized>
                     <NavLink class="nav-btn" href="login">Entrar</NavLink>
@@ -60,33 +79,110 @@
 </div>
 
 @code {
+    private bool _menuAberto;
+    private bool _aTerminarSessao;
+    private bool _avatarFalhou;
+
     private readonly MudTheme _tema = new()
     {
         PaletteDark = new PaletteDark
         {
-            Primary = "#0072ce",
-            Secondary = "#ff4f6d",
-            Background = "#050913",
-            Surface = "#0d1323",
-            AppbarBackground = "#050913",
+            Primary = "#00F5D4",
+            Secondary = "#FF4D8D",
+            Tertiary = "#FF8A00",
+            Background = "#050B16",
+            Surface = "#111827",
+            AppbarBackground = "#050B16",
             TextPrimary = "#ffffff",
-            TextSecondary = "#c8c8c8",
+            TextSecondary = "#b9c3d4",
             ActionDefault = "#d8d8d8",
-            DrawerBackground = "#171717",
+            DrawerBackground = "#111827",
         }
     };
 
-    private async Task Sair()
+    private string ClasseMenu => _menuAberto ? "is-open" : string.Empty;
+
+    private bool MostrarAvatar => !string.IsNullOrWhiteSpace(PerfilEstado.FotoUrl) && !_avatarFalhou;
+
+    private string AvatarUrl =>
+        $"{PerfilEstado.FotoUrl}{(PerfilEstado.FotoUrl.Contains('?') ? "&" : "?")}v={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+
+    protected override void OnInitialized()
     {
-        await AutenticacaoService.TerminarSessaoAsync();
-        Nav.NavigateTo("/");
+        PerfilEstado.Alterado += PerfilAlterado;
     }
 
-    private static string ObterNome(string? nome)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (string.IsNullOrWhiteSpace(nome))
+        if (!firstRender || PerfilEstado.TemPerfil)
+            return;
+
+        try
+        {
+            await PerfilService.ObterMeuPerfilAsync();
+        }
+        catch
+        {
+            // Visitantes e sessoes expiradas nao devem quebrar o layout.
+        }
+    }
+
+    private async Task Sair()
+    {
+        if (_aTerminarSessao)
+            return;
+
+        _aTerminarSessao = true;
+
+        try
+        {
+            await AutenticacaoService.TerminarSessaoAsync();
+            _avatarFalhou = false;
+            _menuAberto = false;
+            Nav.NavigateTo("/", replace: true);
+        }
+        finally
+        {
+            _aTerminarSessao = false;
+        }
+    }
+
+    private string ObterNome(string? nome)
+    {
+        var valor = string.IsNullOrWhiteSpace(PerfilEstado.Nome) ? nome : PerfilEstado.Nome;
+
+        if (string.IsNullOrWhiteSpace(valor))
             return "Perfil";
 
-        return nome.Contains('@') ? nome.Split('@')[0] : nome;
+        return valor.Contains('@') ? valor.Split('@')[0] : valor;
+    }
+
+    private string IniciaisPerfil(string? nome)
+    {
+        var valor = ObterNome(nome).Trim();
+        var partes = valor.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (partes.Length == 0)
+            return "?";
+
+        return string.Concat(partes.Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    }
+
+    private void AlternarMenu() => _menuAberto = !_menuAberto;
+
+    private void AvatarFalhou()
+    {
+        _avatarFalhou = true;
+    }
+
+    private void PerfilAlterado()
+    {
+        _avatarFalhou = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        PerfilEstado.Alterado -= PerfilAlterado;
     }
 }

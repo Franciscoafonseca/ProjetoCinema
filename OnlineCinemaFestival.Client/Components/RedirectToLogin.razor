@@ -2,9 +2,14 @@
 
 @code {
     [Parameter] public string ReturnPath { get; set; } = "/";
+    private bool _redirecionado;
 
-    protected override void OnInitialized()
+    protected override void OnAfterRender(bool firstRender)
     {
+        if (!firstRender || _redirecionado)
+            return;
+
+        _redirecionado = true;
         var destino = string.IsNullOrWhiteSpace(ReturnPath) ? "/" : ReturnPath;
         Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(destino)}", replace: true);
     }

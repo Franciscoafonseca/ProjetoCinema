@@ -35,7 +35,7 @@
   font-family: "Playfair Display", Georgia, serif;
   font-size: clamp(2.6rem, 5.5vw, 5.4rem);
   line-height: 0.94;
-  letter-spacing: -0.06em;
+  letter-spacing: 0;
 }
 
 .chip-row {

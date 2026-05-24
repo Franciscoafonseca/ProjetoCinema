@@ -49,13 +49,15 @@ a,
 }
 
 #blazor-error-ui {
-  color-scheme: light only;
-  background: lightyellow;
+  color-scheme: dark;
+  background: rgba(17, 24, 39, 0.96);
   bottom: 0;
-  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.32);
   box-sizing: border-box;
   display: none;
   left: 0;
+  color: var(--sky-text);
+  border-top: 1px solid rgba(255, 92, 122, 0.38);
   padding: 0.6rem 1.25rem 0.7rem 1.25rem;
   position: fixed;
   width: 100%;
@@ -121,6 +123,29 @@ code {
 }
 
 :root {
+  --sky-cyan: #00f5d4;
+  --sky-blue: #0582ca;
+  --sky-purple: #7b2cbf;
+  --sky-pink: #ff4d8d;
+  --sky-orange: #ff8a00;
+  --sky-bg: #050b16;
+  --sky-surface: #111827;
+  --sky-surface-2: #1b2433;
+  --sky-border: rgba(255, 255, 255, 0.12);
+  --sky-text: #f8fbff;
+  --sky-muted: #b9c3d4;
+  --sky-muted-2: #7f8ca3;
+  --sky-danger: #ff5c7a;
+  --sky-success: #36e7a8;
+  --sky-warning: #ffbf66;
+  --sky-radius: 8px;
+  --sky-radius-sm: 6px;
+  --sky-shadow: 0 22px 70px rgba(0, 0, 0, 0.32);
+  --sky-shadow-soft: 0 14px 42px rgba(0, 0, 0, 0.22);
+  --sky-gradient-action: linear-gradient(135deg, var(--sky-cyan), var(--sky-blue) 38%, var(--sky-purple) 70%, var(--sky-pink));
+  --sky-gradient-warm: linear-gradient(135deg, var(--sky-pink), var(--sky-orange));
+  --sky-gradient-title: linear-gradient(90deg, var(--sky-cyan), var(--sky-blue), var(--sky-purple), var(--sky-pink), var(--sky-orange));
+  --sky-focus: 0 0 0 3px rgba(0, 245, 212, 0.24);
   --ocf-bg: #050913;
   --ocf-bg-2: #09101d;
   --ocf-panel: rgba(13, 19, 35, 0.78);
@@ -140,6 +165,264 @@ code {
   --ocf-shadow-xl: 0 30px 80px rgba(0, 0, 0, 0.38);
   --ocf-shadow-md: 0 18px 50px rgba(0, 0, 0, 0.22);
   --ocf-max-content: 1680px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--sky-bg);
+  color: var(--sky-text);
+  font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: 0;
+}
+
+.sky-section {
+  width: min(var(--ocf-max-content), calc(100vw - 48px));
+  margin: 0 auto;
+  padding: 38px 0 64px;
+}
+
+.sky-card {
+  border: 1px solid var(--sky-border);
+  border-radius: var(--sky-radius);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(17, 24, 39, 0.88);
+  box-shadow: var(--sky-shadow-soft);
+}
+
+.sky-panel,
+.sky-section-card {
+  border: 1px solid var(--sky-border);
+  border-radius: var(--sky-radius);
+  background: rgba(17, 24, 39, 0.72);
+}
+
+.sky-gradient-title {
+  color: #fff;
+  background: var(--sky-gradient-title);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sky-btn-primary,
+.sky-btn-secondary,
+.sky-btn-danger {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--sky-radius-sm);
+  padding: 0 16px;
+  border: 1px solid transparent;
+  color: #fff;
+  font: inherit;
+  font-weight: 850;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.sky-btn-primary {
+  background: var(--sky-gradient-action);
+  box-shadow: 0 14px 34px rgba(123, 44, 191, 0.24);
+}
+
+.sky-btn-secondary {
+  border-color: var(--sky-border);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--sky-text);
+}
+
+.sky-btn-danger {
+  border-color: rgba(255, 92, 122, 0.38);
+  background: rgba(255, 92, 122, 0.14);
+  color: #ffd8df;
+}
+
+.sky-btn-primary:hover,
+.sky-btn-secondary:hover,
+.sky-btn-danger:hover {
+  color: #fff;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.sky-btn-primary:disabled,
+.sky-btn-secondary:disabled,
+.sky-btn-danger:disabled {
+  opacity: 0.55;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.sky-input-group {
+  display: grid;
+  gap: 7px;
+}
+
+.sky-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sky-text);
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.sky-label.required::after {
+  content: "*";
+  color: var(--sky-pink);
+}
+
+.sky-helper {
+  color: var(--sky-muted-2);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.sky-input,
+.sky-select,
+.sky-textarea,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]).sky-control,
+select.sky-control,
+textarea.sky-control {
+  width: 100%;
+  min-height: 44px;
+  border-radius: var(--sky-radius-sm);
+  border: 1px solid var(--sky-border);
+  background: rgba(5, 11, 22, 0.76);
+  color: var(--sky-text);
+  padding: 10px 12px;
+  outline: none;
+  font: inherit;
+}
+
+.sky-textarea,
+textarea.sky-control {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.sky-input::placeholder,
+.sky-textarea::placeholder {
+  color: rgba(185, 195, 212, 0.62);
+}
+
+.sky-input:focus,
+.sky-select:focus,
+.sky-textarea:focus,
+.sky-control:focus {
+  border-color: rgba(0, 245, 212, 0.55);
+  box-shadow: var(--sky-focus);
+}
+
+.sky-input.invalid,
+.sky-select.invalid,
+.sky-textarea.invalid,
+.sky-control.invalid {
+  border-color: rgba(255, 92, 122, 0.7);
+}
+
+.sky-field-error,
+.validation-message {
+  color: #ff9caf;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.sky-alert {
+  border: 1px solid rgba(0, 245, 212, 0.22);
+  border-radius: var(--sky-radius-sm);
+  background: rgba(0, 245, 212, 0.08);
+  color: var(--sky-text);
+  padding: 12px 14px;
+}
+
+.sky-alert.error {
+  border-color: rgba(255, 92, 122, 0.35);
+  background: rgba(255, 92, 122, 0.1);
+}
+
+.sky-alert.success {
+  border-color: rgba(54, 231, 168, 0.35);
+  background: rgba(54, 231, 168, 0.1);
+}
+
+.sky-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  min-height: 28px;
+  border: 1px solid rgba(0, 245, 212, 0.26);
+  border-radius: 999px;
+  background: rgba(0, 245, 212, 0.09);
+  color: var(--sky-cyan);
+  padding: 0 10px;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.sky-empty-state {
+  width: min(720px, calc(100vw - 32px));
+  margin: 72px auto;
+  padding: 34px;
+  border: 1px solid var(--sky-border);
+  border-radius: var(--sky-radius);
+  background: rgba(17, 24, 39, 0.78);
+  text-align: center;
+  box-shadow: var(--sky-shadow-soft);
+}
+
+.sky-empty-state img {
+  width: min(160px, 45vw);
+  max-height: 150px;
+  object-fit: contain;
+  margin-bottom: 18px;
+}
+
+.sky-empty-state h1,
+.sky-empty-state h2 {
+  margin: 0 0 8px;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+}
+
+.sky-empty-state p {
+  margin: 0 auto 18px;
+  max-width: 520px;
+  color: var(--sky-muted);
+}
+
+.sky-avatar-fallback,
+.sky-image-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #06101d;
+  background: var(--sky-gradient-action);
+  font-weight: 950;
+}
+
+.sky-image-fallback {
+  width: 100%;
+  min-height: 160px;
+  color: var(--sky-muted);
+  background:
+    linear-gradient(135deg, rgba(0, 245, 212, 0.1), rgba(255, 77, 141, 0.12)),
+    rgba(255, 255, 255, 0.04);
 }
 
 .cinema-page {
@@ -170,7 +453,7 @@ code {
   margin: 10px 0 0;
   font-family: "Playfair Display", Georgia, serif;
   line-height: 0.98;
-  letter-spacing: -0.06em;
+  letter-spacing: 0;
 }
 
 .cinema-page-head h1 {
@@ -226,7 +509,7 @@ code {
 .cinema-section-head.compact h2 {
   font-family: inherit;
   font-size: 1.55rem;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 .cinema-btn,
