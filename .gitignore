@@ -60,3 +60,6 @@ CoisasProjeto/
 
 # ASP.NET DataProtection local keys
 OnlineCinemaFestival.Api/DataProtectionKeys/
+
+# Runtime uploads
+OnlineCinemaFestival.Api/wwwroot/uploads/

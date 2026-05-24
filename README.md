@@ -72,6 +72,39 @@ O Client le a API em `OnlineCinemaFestival.Client/wwwroot/appsettings.json`:
 }
 ```
 
+## Imagens, Logos e Uploads
+
+O frontend referencia estes assets locais. Se ainda nao existirem, a UI usa fallback visual e continua a funcionar:
+
+```text
+OnlineCinemaFestival.Client/wwwroot/images/brand/sky-cinema-logo.svg
+OnlineCinemaFestival.Client/wwwroot/images/brand/sky-cinema-mark.svg
+OnlineCinemaFestival.Client/wwwroot/images/placeholders/avatar-placeholder.svg
+OnlineCinemaFestival.Client/wwwroot/images/placeholders/poster-placeholder.svg
+OnlineCinemaFestival.Client/wwwroot/images/placeholders/festival-placeholder.svg
+OnlineCinemaFestival.Client/wwwroot/images/placeholders/community-placeholder.svg
+OnlineCinemaFestival.Client/wwwroot/images/illustrations/empty-state-reel.svg
+OnlineCinemaFestival.Client/wwwroot/images/brand/tmdb-logo.svg
+```
+
+Uploads locais da API ficam em:
+
+```text
+OnlineCinemaFestival.Api/wwwroot/uploads/perfis/
+OnlineCinemaFestival.Api/wwwroot/uploads/comunidades/
+```
+
+Essas pastas sao runtime data e nao devem ser commitadas. O upload valida `jpg`, `jpeg`, `png` e `webp`, limita a 2MB, gera nome com `Guid` e guarda apenas caminhos publicos seguros como `/uploads/perfis/{ficheiro}`.
+
+Perfil: o utilizador carrega a fotografia no ecrã `/perfil`; a imagem fica visivel no perfil e na navbar logo apos upload. Se a imagem nao carregar, a UI mostra iniciais. Comunidades: o proprietario pode definir imagem por upload ao criar a comunidade; URLs arbitrarios de utilizadores comuns nao sao usados pelo formulario.
+
+## Problemas comuns JWT/TMDB
+
+- `Jwt:Key` tem de existir e ter tamanho suficiente para assinar tokens.
+- Se receberes 401 no Client, termina sessao e volta a entrar; o Client limpa token expirado automaticamente.
+- `Tmdb:Token` vazio apenas desativa importacoes TMDB; nao deve quebrar paginas publicas.
+- Se o seed TMDB falhar por rede/token, o seed local continua e regista aviso no log.
+
 ## Credenciais de Demo
 
 - Admin: `admin@festival.pt` / `Admin123!`
@@ -138,8 +171,9 @@ dotnet test
 7. Pesquisar no Catalogo; abrir filme interno ou detalhe TMDB conforme o resultado.
 8. Comprar acesso no detalhe do filme/sessao, finalizar checkout e abrir o player.
 9. Depois de uma visualizacao valida, criar review de 10 estrelas e comentario.
-10. Abrir Comunidades, entrar/criar comunidade, comentar e associar opcionalmente um filme.
-11. Editar Perfil, enviar foto por ficheiro e confirmar bandeira do pais.
+10. Abrir Comunidades, criar comunidade com imagem local, entrar/criar comunidade, comentar e associar opcionalmente um filme.
+11. Editar Perfil, enviar foto por ficheiro e confirmar imagem na navbar sem refresh.
+12. Entrar como admin, abrir `/admin`, importar TMDB, criar festival/sessao/premio e analisar reportes.
 
 ## Comandos Uteis
 
