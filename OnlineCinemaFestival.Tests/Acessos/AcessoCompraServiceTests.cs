@@ -65,7 +65,7 @@ public class AcessoCompraServiceTests
         var fabrica = new FabricaAcessoUtilizador(
             new IEstrategiaCriacaoAcessoUtilizador[]
             {
-                new EstrategiaCriacaoAluguerDigital(configuracao),
+                new EstrategiaCriacaoAluguerDigital(OpcoesTeste.Acessos()),
             }
         );
         var filme = new FilmeBuilder().ComId(3).ComTitulo("Filme").Build();
