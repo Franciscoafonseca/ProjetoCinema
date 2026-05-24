@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Services;
-using OnlineCinemaFestival.Tests.Support;
+using OnlineCinemaFestival.Tests.Support.Fakes;
 
-namespace OnlineCinemaFestival.Tests;
+namespace OnlineCinemaFestival.Tests.Compras;
 
 public class CompraHistoricoTests
 {

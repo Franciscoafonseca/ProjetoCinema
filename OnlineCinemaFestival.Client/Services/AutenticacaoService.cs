@@ -64,39 +64,6 @@ public class AutenticacaoService : IAutenticacaoService
         return resultado;
     }
 
-    public async Task<AutenticacaoRespostaDTO> EntrarComExternoAsync(
-        PedidoAutenticacaoExternaDTO pedido
-    )
-    {
-        var resposta = await _http.PostAsJsonAsync(
-            "api/auth/external/login",
-            pedido
-        );
-
-        if (!resposta.IsSuccessStatusCode)
-        {
-            var mensagem = await resposta.Content.ReadAsStringAsync();
-            throw new InvalidOperationException(
-                MensagemErroApi.Limpar(mensagem, "Autenticacao externa indisponivel.")
-            );
-        }
-
-        var resultado =
-            await resposta.Content.ReadFromJsonAsync<AutenticacaoRespostaDTO>()
-            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
-
-        await _armazenamento.GuardarAsync(resultado.Token);
-        _estado.NotificarAutenticado();
-        return resultado;
-    }
-
-    public async Task<List<ProvedorAutenticacaoExternaDTO>> ObterProvedoresExternosAsync()
-    {
-        return await _http.GetFromJsonAsync<List<ProvedorAutenticacaoExternaDTO>>(
-            "api/auth/external/providers"
-        ) ?? new();
-    }
-
     public async Task TerminarSessaoAsync()
     {
         await _armazenamento.RemoverAsync();

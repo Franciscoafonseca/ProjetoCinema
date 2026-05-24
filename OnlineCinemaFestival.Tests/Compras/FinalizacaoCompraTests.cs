@@ -3,10 +3,11 @@ using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Tests.Support;
+using OnlineCinemaFestival.Tests.Support.Fakes;
 
-namespace OnlineCinemaFestival.Tests;
+namespace OnlineCinemaFestival.Tests.Compras;
 
-public class FinalizacaoCompraServiceTests
+public class FinalizacaoCompraTests
 {
     [Fact]
     public async Task PagamentoAprovado_DeveCriarAcessos()

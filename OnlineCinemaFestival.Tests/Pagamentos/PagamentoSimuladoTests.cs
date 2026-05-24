@@ -4,9 +4,9 @@ using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Tests.Support;
 
-namespace OnlineCinemaFestival.Tests;
+namespace OnlineCinemaFestival.Tests.Pagamentos;
 
-public class PagamentoTests
+public class PagamentoSimuladoTests
 {
     [Fact]
     public async Task CartaoCredito_DeveFicarAprovado()
