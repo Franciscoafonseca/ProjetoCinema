@@ -327,14 +327,23 @@
     private bool _aApagar;
     private bool _aSair;
     private bool _aReportar;
+    private bool _aModerar;
     private bool _aCarregarReportados;
     private bool _aAtualizarVisibilidade;
+    private int? _utilizadorAtualId;
     private string? _erroGeral;
     private string? _mensagemComentario;
     private string? _mensagemReportados;
     private string? _mensagemPerfil;
     private Severity _severidadeComentario = Severity.Info;
     private List<ComentarioDTO> _comentariosReportados = new();
+
+    private bool PodeModerar =>
+        _comunidade?.IsOwner == true
+        || (
+            _utilizadorAtualId.HasValue
+            && _comunidade?.CreatedByUserId == _utilizadorAtualId.Value
+        );
 
     protected override async Task OnParametersSetAsync()
     {
@@ -486,6 +495,53 @@
         {
             _aAtualizarVisibilidade = false;
         }
+    }
+
+    private async Task ModerarComentarioAsync(int comentarioId, AcaoModeracaoComentario acao)
+    {
+        _aModerar = true;
+        _erroGeral = null;
+
+        try
+        {
+            var atualizado = await ComentarioService.ModerarNaComunidadeAsync(
+                Id,
+                comentarioId,
+                acao
+            );
+
+            AtualizarComentarioLocal(atualizado);
+
+            if (acao == AcaoModeracaoComentario.Ocultar || acao == AcaoModeracaoComentario.Remover)
+                _comentariosReportados.RemoveAll(c => c.Id == comentarioId);
+
+            if (_comunidade?.IsOwner == true)
+                await CarregarReportadosAsync();
+        }
+        catch (Exception ex)
+        {
+            _erroGeral = MensagemErroApi.Limpar(
+                ex.Message,
+                "Nao foi possivel moderar o comentario."
+            );
+        }
+        finally
+        {
+            _aModerar = false;
+        }
+    }
+
+    private void AtualizarComentarioLocal(ComentarioDTO atualizado)
+    {
+        var indice = _comentarios.FindIndex(c => c.Id == atualizado.Id);
+        if (indice >= 0)
+        {
+            _comentarios[indice] = atualizado;
+            return;
+        }
+
+        if (PodeModerar)
+            _comentarios.Insert(0, atualizado);
     }
 
     private async Task ApagarComunidadeAsync()

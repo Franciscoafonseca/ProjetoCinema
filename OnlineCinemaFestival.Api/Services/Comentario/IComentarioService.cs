@@ -36,4 +36,11 @@ public interface IComentarioService
         bool visivel,
         int utilizadorId
     );
+
+    Task<ComentarioReadDTO> ModerarComentarioAsync(
+        Guid comunidadeId,
+        int comentarioId,
+        ModerarComentarioDTO dto,
+        int utilizadorId
+    );
 }

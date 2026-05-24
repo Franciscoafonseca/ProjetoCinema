@@ -113,3 +113,22 @@ public class ComentarioVisibilidadeDTO
 {
     public bool Visivel { get; set; }
 }
+
+public class ModerarComentarioDTO
+{
+    public AcaoModeracaoComentario Acao { get; set; }
+}
+
+public enum EstadoModeracaoComentario
+{
+    Visivel = 0,
+    Oculto = 1,
+    Removido = 2,
+}
+
+public enum AcaoModeracaoComentario
+{
+    Ocultar = 0,
+    Remover = 1,
+    Restaurar = 2,
+}

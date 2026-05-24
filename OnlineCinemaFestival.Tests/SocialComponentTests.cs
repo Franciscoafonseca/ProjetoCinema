@@ -136,7 +136,7 @@ public class SocialComponentTests
         var dados = CriarContextoComentario();
         var service = CriarComentarioService(dados);
 
-        var comentario = await service.ModerarComentarioComunidadeAsync(
+        var comentario = await service.ModerarComentarioAsync(
             dados.Comunidade.PublicId,
             dados.Comentario.Id,
             new ModerarComentarioDTO { Acao = AcaoModeracaoComentario.Ocultar },
@@ -154,7 +154,7 @@ public class SocialComponentTests
         var service = CriarComentarioService(dados);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            service.ModerarComentarioComunidadeAsync(
+            service.ModerarComentarioAsync(
                 dados.Comunidade.PublicId,
                 dados.Comentario.Id,
                 new ModerarComentarioDTO { Acao = AcaoModeracaoComentario.Remover },
@@ -168,7 +168,7 @@ public class SocialComponentTests
     {
         var dados = CriarContextoComentario();
         var service = CriarComentarioService(dados);
-        await service.ModerarComentarioComunidadeAsync(
+        await service.ModerarComentarioAsync(
             dados.Comunidade.PublicId,
             dados.Comentario.Id,
             new ModerarComentarioDTO { Acao = AcaoModeracaoComentario.Remover },
@@ -402,6 +402,16 @@ public class SocialComponentTests
                 _comentarios.Where(c => c.FilmeId == filmeId && c.Visivel)
             );
 
+        public Task<Comentario?> GetByIdAsync(int comentarioId) =>
+            Task.FromResult(_comentarios.FirstOrDefault(c => c.Id == comentarioId));
+
+        public Task<IEnumerable<Comentario>> ObterReportadosPorComunidadeIdAsync(int comunidadeId) =>
+            Task.FromResult<IEnumerable<Comentario>>(
+                _comentarios.Where(c => c.ComunidadeId == comunidadeId && c.Reportado)
+            );
+
+        public Task UpdateAsync(Comentario comentario) => Task.CompletedTask;
+
         public Task<Comentario?> ObterPorIdAsync(int id) =>
             Task.FromResult(_comentarios.FirstOrDefault(c => c.Id == id));
 
@@ -449,6 +459,10 @@ public class SocialComponentTests
 
         public Task<ComunidadeMembro> AdicionarMembroAsync(ComunidadeMembro membro) =>
             Task.FromResult(membro);
+
+        public Task ApagarComunidadeAsync(Comunidade comunidade) => Task.CompletedTask;
+
+        public Task RemoverMembroAsync(ComunidadeMembro membro) => Task.CompletedTask;
     }
 
     private sealed class FilmeRepositoryFalso : IFilmeRepository

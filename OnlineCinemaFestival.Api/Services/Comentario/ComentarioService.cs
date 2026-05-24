@@ -201,8 +201,37 @@ public class ComentarioService : IComentarioService
             throw new KeyNotFoundException("Comentario nao encontrado.");
 
         comentario.Visivel = visivel;
+        comentario.EstadoModeracao = visivel
+            ? EstadoModeracaoComentario.Visivel
+            : EstadoModeracaoComentario.Oculto;
+        await _comentarioRepository.UpdateAsync(comentario);
+    }
+
+    public async Task<ComentarioReadDTO> ModerarComentarioAsync(
+        Guid comunidadeId,
+        int comentarioId,
+        ModerarComentarioDTO dto,
+        int utilizadorId
+    )
+    {
+        var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(comunidadeId);
+        if (comunidade == null)
+            throw new KeyNotFoundException("Comunidade nao encontrada.");
+
+        if (!await UtilizadorPodeModerarAsync(comunidade, utilizadorId))
+            throw new UnauthorizedAccessException(
+                "Apenas o proprietario pode moderar comentarios."
+            );
+
+        var comentario = await _comentarioRepository.GetByIdAsync(comentarioId);
+        if (comentario == null || comentario.ComunidadeId != comunidade.Id)
+            throw new KeyNotFoundException("Comentario nao encontrado.");
+
+        AplicarModeracao(comentario, dto.Acao, utilizadorId);
         comentario.Reportado = false;
         await _comentarioRepository.UpdateAsync(comentario);
+
+        return ComentarioMapper.ToReadDTO(comentario);
     }
 
     private static void ValidarComentario(ComentarioCreateDTO dto)

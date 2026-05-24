@@ -128,4 +128,36 @@ public class ComentariosController : ControllerBase
             return BadRequest(new { mensagem = ex.Message });
         }
     }
+
+    [HttpPatch("{comentarioId:int}/moderacao")]
+    public async Task<ActionResult<ComentarioReadDTO>> ModerarComentario(
+        Guid comunidadeId,
+        int comentarioId,
+        [FromBody] ModerarComentarioDTO dto
+    )
+    {
+        try
+        {
+            var comentario = await _comentarioService.ModerarComentarioAsync(
+                comunidadeId,
+                comentarioId,
+                dto,
+                User.GetUserId()
+            );
+
+            return Ok(comentario);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { mensagem = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { mensagem = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { mensagem = ex.Message });
+        }
+    }
 }

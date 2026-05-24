@@ -25,10 +25,17 @@ public class ComentarioRepository : IComentarioRepository
         return await ComentariosComDetalhes().FirstOrDefaultAsync(c => c.Id == comentarioId);
     }
 
-    public async Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(int comunidadeId)
+    public async Task<IEnumerable<Comentario>> ObterPorComunidadeIdAsync(
+        int comunidadeId,
+        bool incluirModerados = false
+    )
     {
-        return await ComentariosComDetalhes()
-            .Where(c => c.ComunidadeId == comunidadeId && c.Visivel)
+        var query = ComentariosComDetalhes().Where(c => c.ComunidadeId == comunidadeId);
+
+        if (!incluirModerados)
+            query = query.Where(c => c.Visivel);
+
+        return await query
             .OrderByDescending(c => c.CriadoEm)
             .ToListAsync();
     }
