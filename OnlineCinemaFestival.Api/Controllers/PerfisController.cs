@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Extensions;
 using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Controllers;
@@ -21,12 +21,7 @@ public class PerfisController : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<PerfilPrivadoDTO>> GetMyProfile()
     {
-        var userId = ObterUtilizadorAtualId();
-
-        if (userId == null)
-            return Unauthorized();
-
-        return Ok(await _profileService.ObterMeuPerfilAsync(userId.Value));
+        return Ok(await _profileService.ObterMeuPerfilAsync(User.GetUserId()));
     }
 
     [Authorize]
@@ -35,19 +30,7 @@ public class PerfisController : ControllerBase
         PedidoAtualizarPerfilDTO request
     )
     {
-        var userId = ObterUtilizadorAtualId();
-
-        if (userId == null)
-            return Unauthorized();
-
-        try
-        {
-            return Ok(await _profileService.AtualizarMeuPerfilAsync(userId.Value, request));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(await _profileService.AtualizarMeuPerfilAsync(User.GetUserId(), request));
     }
 
     [Authorize]
@@ -55,19 +38,7 @@ public class PerfisController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<PerfilPrivadoDTO>> UploadFoto(IFormFile foto)
     {
-        var userId = ObterUtilizadorAtualId();
-
-        if (userId == null)
-            return Unauthorized();
-
-        try
-        {
-            return Ok(await _profileService.EnviarFotoPerfilAsync(userId.Value, foto));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(await _profileService.EnviarFotoPerfilAsync(User.GetUserId(), foto));
     }
 
     [HttpGet("public")]
@@ -94,23 +65,6 @@ public class PerfisController : ControllerBase
     [HttpGet("{userId:int}")]
     public async Task<ActionResult<PerfilPublicoDTO>> GetPublicProfile(int userId)
     {
-        try
-        {
-            return Ok(await _profileService.ObterPerfilPublicoAsync(userId));
-        }
-        catch (ArgumentException ex)
-        {
-            return NotFound(ex.Message);
-        }
-    }
-
-    private int? ObterUtilizadorAtualId()
-    {
-        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (int.TryParse(value, out var userId))
-            return userId;
-
-        return null;
+        return Ok(await _profileService.ObterPerfilPublicoAsync(userId));
     }
 }

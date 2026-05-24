@@ -13,17 +13,14 @@ public class FilmesController : ControllerBase
 {
     private readonly IFilmeService _service;
     private readonly IComentarioService _comentarioService;
-    private readonly IPremioFestivalService _premioFestivalService;
 
     public FilmesController(
         IFilmeService service,
-        IComentarioService comentarioService,
-        IPremioFestivalService premioFestivalService
+        IComentarioService comentarioService
     )
     {
         _service = service;
         _comentarioService = comentarioService;
-        _premioFestivalService = premioFestivalService;
     }
 
     // GET: api/filmes
@@ -39,8 +36,6 @@ public class FilmesController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<FilmeDetalheDTO>> GetFilme(int id)
     {
-        await _premioFestivalService.PublicarResultadosPendentesAsync();
-
         var utilizadorId = User.Identity?.IsAuthenticated == true ? User.GetUserId() : (int?)null;
         var filme = await _service.ObterDetalheAsync(id, utilizadorId);
 
@@ -68,30 +63,16 @@ public class FilmesController : ControllerBase
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<FilmeDetalheDTO>> Importar(int tmdbId)
     {
-        try
-        {
-            var resultado = await _service.ImportFilmeFromTmdbAsync(tmdbId);
+        var resultado = await _service.ImportFilmeFromTmdbAsync(tmdbId);
 
-            return CreatedAtAction(nameof(GetFilme), new { id = resultado.Id }, resultado);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return CreatedAtAction(nameof(GetFilme), new { id = resultado.Id }, resultado);
     }
 
     [HttpPatch("{filmeId:int}/video")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<FilmeDetalheDTO>> AtualizarVideo(int filmeId)
     {
-        try
-        {
-            return Ok(await _service.AtualizarVideoAsync(filmeId));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return Ok(await _service.AtualizarVideoAsync(filmeId));
     }
 
     [HttpPost("{filmeId:int}/reviews")]
@@ -101,27 +82,8 @@ public class FilmesController : ControllerBase
         [FromBody] CriarAvaliacaoDTO dto
     )
     {
-        try
-        {
-            var resultado = await _service.CriarReviewAsync(User.GetUserId(), filmeId, dto);
-            return Ok(resultado);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var resultado = await _service.CriarReviewAsync(User.GetUserId(), filmeId, dto);
+        return Ok(resultado);
     }
 
     [HttpPut("{filmeId:int}/reviews/minha")]
@@ -131,38 +93,16 @@ public class FilmesController : ControllerBase
         [FromBody] CriarAvaliacaoDTO dto
     )
     {
-        try
-        {
-            var resultado = await _service.AtualizarReviewAsync(User.GetUserId(), filmeId, dto);
-            return Ok(resultado);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var resultado = await _service.AtualizarReviewAsync(User.GetUserId(), filmeId, dto);
+        return Ok(resultado);
     }
 
     [HttpGet("{filmeId:int}/comentarios")]
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<ComentarioReadDTO>>> ObterComentarios(int filmeId)
     {
-        try
-        {
-            var comentarios = await _comentarioService.ObterComentariosPorFilmeIdAsync(filmeId);
-            return Ok(comentarios);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var comentarios = await _comentarioService.ObterComentariosPorFilmeIdAsync(filmeId);
+        return Ok(comentarios);
     }
 
     [HttpPost("{filmeId:int}/comentarios")]
@@ -172,27 +112,12 @@ public class FilmesController : ControllerBase
         [FromBody] ComentarioCreateDTO dto
     )
     {
-        try
-        {
-            var comentario = await _comentarioService.CriarComentarioFilmeAsync(
-                filmeId,
-                dto,
-                User.GetUserId()
-            );
+        var comentario = await _comentarioService.CriarComentarioFilmeAsync(
+            filmeId,
+            dto,
+            User.GetUserId()
+        );
 
-            return Ok(comentario);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(comentario);
     }
 }

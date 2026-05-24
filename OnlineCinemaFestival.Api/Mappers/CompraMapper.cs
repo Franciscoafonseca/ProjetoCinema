@@ -1,3 +1,4 @@
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.DTOs;
 using OnlineCinemaFestival.Api.Models;
 
@@ -8,10 +9,11 @@ public static class CompraMapper
     public static ResultadoFinalizacaoCompraDTO MapToCheckoutResultadoDTO(
         Compra compra,
         int acessosGerados,
-        string mensagem
+        string mensagem,
+        int expiracaoMultibancoHoras
     )
     {
-        var dto = MapToReadDTO(compra);
+        var dto = MapToReadDTO(compra, expiracaoMultibancoHoras);
 
         return new ResultadoFinalizacaoCompraDTO
         {
@@ -43,7 +45,7 @@ public static class CompraMapper
         };
     }
 
-    public static CompraReadDTO MapToReadDTO(Compra compra)
+    public static CompraReadDTO MapToReadDTO(Compra compra, int expiracaoMultibancoHoras)
     {
         return new CompraReadDTO
         {
@@ -71,10 +73,10 @@ public static class CompraMapper
                         ExpiraEm =
                             compra.Pagamento.Estado == EstadoPagamento.Pendente
                             && compra.Pagamento.Metodo.Equals(
-                                "ReferenciaMultibanco",
+                                MetodosPagamento.ReferenciaMultibanco,
                                 StringComparison.OrdinalIgnoreCase
                             )
-                                ? compra.Pagamento.CriadoEm.AddHours(3)
+                                ? compra.Pagamento.CriadoEm.AddHours(expiracaoMultibancoHoras)
                                 : null,
                         ProcessadoEm = compra.Pagamento.ProcessadoEm,
                         Mensagem = compra.Pagamento.Mensagem,

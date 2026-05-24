@@ -18,7 +18,6 @@ public class ComunidadesController : ControllerBase
         _comunidadeService = comunidadeService;
     }
 
-    // Para apresentar todas as comunidades
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ComunidadeReadDTO>>> ObterTodos()
     {
@@ -36,52 +35,41 @@ public class ComunidadesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ComunidadeReadDTO>> ObterComunidadePorId(Guid id)
     {
-        try
-        {
-            var comunidade = await _comunidadeService.ObterComunidadePorPublicIdAsync(
-                id,
-                User.GetUserId()
-            );
-            if (comunidade == null)
-                return NotFound("Comunidade não encontrada.");
-            return Ok(comunidade);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, new { mensagem = ex.Message });
-        }
+        var comunidade = await _comunidadeService.ObterComunidadePorPublicIdAsync(
+            id,
+            User.GetUserId()
+        );
+
+        if (comunidade == null)
+            return NotFound("Comunidade nao encontrada.");
+
+        return Ok(comunidade);
     }
 
     [HttpPost]
     public async Task<ActionResult<ComunidadeReadDTO>> CriarComunidade(ComunidadeCreateDTO dto)
     {
-        try
-        {
-            var comunidadeCriada = await _comunidadeService.CriarComunidadeAsync(
-                dto,
-                User.GetUserId()
-            );
-            return CreatedAtAction(
-                nameof(ObterComunidadePorId),
-                new { id = comunidadeCriada.PublicId },
-                comunidadeCriada
-            );
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { mensagem = ex.Message });
-        }
+        var comunidadeCriada = await _comunidadeService.CriarComunidadeAsync(dto, User.GetUserId());
+
+        return CreatedAtAction(
+            nameof(ObterComunidadePorId),
+            new { id = comunidadeCriada.PublicId },
+            comunidadeCriada
+        );
     }
 
     [HttpGet("convite/{codigoConvite}")]
-    public async Task<ActionResult<ComunidadeReadDTO>> ObterComunidadePorConvite(string codigoConvite)
+    public async Task<ActionResult<ComunidadeReadDTO>> ObterComunidadePorConvite(
+        string codigoConvite
+    )
     {
         var comunidade = await _comunidadeService.ObterComunidadePorConviteAsync(
             codigoConvite,
             User.GetUserId()
         );
         if (comunidade == null)
-            return NotFound("Comunidade não encontrada.");
+            return NotFound("Comunidade nao encontrada.");
+
         return Ok(comunidade);
     }
 
@@ -154,7 +142,7 @@ public class ComunidadesController : ControllerBase
         {
             await _comunidadeService.ApagarComunidadeAsync(id, User.GetUserId());
             return Ok(new { mensagem = "Comunidade apagada com sucesso!" });
-        } 
+        }
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { mensagem = ex.Message });

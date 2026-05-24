@@ -26,75 +26,30 @@ public class CarrinhoController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<CarrinhoDTO>> ObterCarrinho()
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
-            var carrinho = await _carrinhoService.ObterCarrinhoAsync(utilizadorId);
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var carrinho = await _carrinhoService.ObterCarrinhoAsync(utilizadorId);
 
-            return Ok(carrinho);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+        return Ok(carrinho);
     }
 
     [HttpPost("itens")]
     public async Task<ActionResult<CarrinhoDTO>> AdicionarItem(AdicionarItemCarrinhoDTO dto)
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var carrinho = await _carrinhoService.AdicionarItemAsync(utilizadorId, dto);
+        var carrinho = await _carrinhoService.AdicionarItemAsync(utilizadorId, dto);
 
-            return Ok(carrinho);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(carrinho);
     }
 
     [HttpPost("items")]
     public async Task<ActionResult<CarrinhoDTO>> AdicionarItemPorTipo(CarrinhoItemCreateDTO dto)
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var carrinho = await _carrinhoService.AdicionarItemAsync(utilizadorId, dto);
+        var carrinho = await _carrinhoService.AdicionarItemAsync(utilizadorId, dto);
 
-            return Ok(carrinho);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(carrinho);
     }
 
     [HttpPut("items/{itemId:int}")]
@@ -104,101 +59,50 @@ public class CarrinhoController : ControllerBase
         CarrinhoItemUpdateDTO dto
     )
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var carrinho = await _carrinhoService.AtualizarItemAsync(utilizadorId, itemId, dto);
+        var carrinho = await _carrinhoService.AtualizarItemAsync(utilizadorId, itemId, dto);
 
-            return Ok(carrinho);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(carrinho);
     }
 
     [HttpDelete("itens/{itemId:int}")]
     [HttpDelete("items/{itemId:int}")]
     public async Task<IActionResult> RemoverItem(int itemId)
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            await _carrinhoService.RemoverItemAsync(utilizadorId, itemId);
+        await _carrinhoService.RemoverItemAsync(utilizadorId, itemId);
 
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return NoContent();
     }
 
     [HttpDelete]
     [HttpDelete("limpar")]
     public async Task<IActionResult> LimparCarrinho()
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            await _carrinhoService.LimparCarrinhoAsync(utilizadorId);
+        await _carrinhoService.LimparCarrinhoAsync(utilizadorId);
 
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+        return NoContent();
     }
 
     [HttpPost("validar")]
     public async Task<ActionResult<CarrinhoValidacaoDTO>> ValidarCarrinho()
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
-            var resultado = await _carrinhoService.ValidarCarrinhoAsync(utilizadorId);
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var resultado = await _carrinhoService.ValidarCarrinhoAsync(utilizadorId);
 
-            return Ok(resultado);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+        return Ok(resultado);
     }
 
     [HttpGet("resumo")]
     public async Task<ActionResult<CarrinhoResumoDTO>> ObterResumo()
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
-            var resumo = await _carrinhoService.ObterResumoAsync(utilizadorId);
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var resumo = await _carrinhoService.ObterResumoAsync(utilizadorId);
 
-            return Ok(resumo);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+        return Ok(resumo);
     }
 }

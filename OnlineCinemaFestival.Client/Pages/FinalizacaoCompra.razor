@@ -1,7 +1,7 @@
 @page "/checkout"
 @attribute [Authorize]
-@inject CarrinhoService CarrinhoService
-@inject FinalizacaoCompraService FinalizacaoCompraService
+@inject ICarrinhoService CarrinhoService
+@inject IFinalizacaoCompraService FinalizacaoCompraService
 @inject NavigationManager Nav
 
 <PageTitle>Finalizacao da compra - Online Cinema Festival</PageTitle>
@@ -130,16 +130,16 @@
 @code {
     private readonly List<MetodoPagamentoOpcao> _metodosPagamento = new()
     {
-        new("CartaoCredito", "Cartao", "Cartao de credito ou debito"),
-        new("PayPal", "PayPal", "Conta PayPal"),
-        new("MBWay", "MBWay", "Pagamento movel simulado"),
-        new("Multibanco", "Referencia Multibanco", "Referencia gerada na compra"),
-        new("ApplePay", "Apple Pay", "Carteira digital Apple"),
-        new("GooglePay", "Google Pay", "Carteira digital Google"),
+        new(MetodosPagamento.CartaoCredito, "Cartao", "Cartao de credito ou debito"),
+        new(MetodosPagamento.PayPal, "PayPal", "Conta PayPal"),
+        new(MetodosPagamento.MBWay, "MBWay", "Pagamento movel simulado"),
+        new(MetodosPagamento.Multibanco, "Referencia Multibanco", "Referencia gerada na compra"),
+        new(MetodosPagamento.ApplePay, "Apple Pay", "Carteira digital Apple"),
+        new(MetodosPagamento.GooglePay, "Google Pay", "Carteira digital Google"),
     };
 
     private CarrinhoDTO _carrinho = new();
-    private string _metodoPagamento = "CartaoCredito";
+    private string _metodoPagamento = string.Empty;
     private bool _aCarregar = true;
     private bool _aFinalizar;
     private string? _erro;
@@ -152,6 +152,8 @@
         try
         {
             _carrinho = await CarrinhoService.ObterAsync();
+            if (string.IsNullOrWhiteSpace(_metodoPagamento) && _metodosPagamento.Count > 0)
+                _metodoPagamento = _metodosPagamento[0].Codigo;
         }
         catch (Exception ex)
         {
@@ -225,7 +227,11 @@
 
     private static bool EhMultibanco(PagamentoDTO pagamento)
     {
-        return string.Equals(pagamento.Metodo, "ReferenciaMultibanco", StringComparison.OrdinalIgnoreCase)
+        return string.Equals(
+                pagamento.Metodo,
+                MetodosPagamento.ReferenciaMultibanco,
+                StringComparison.OrdinalIgnoreCase
+            )
             || !string.IsNullOrWhiteSpace(pagamento.Entidade);
     }
 

@@ -12,10 +12,15 @@ namespace OnlineCinemaFestival.Api.Controllers;
 public class PremiosFestivalController : ControllerBase
 {
     private readonly IPremioFestivalService _service;
+    private readonly IPublicacaoPremiosService _publicacaoPremiosService;
 
-    public PremiosFestivalController(IPremioFestivalService service)
+    public PremiosFestivalController(
+        IPremioFestivalService service,
+        IPublicacaoPremiosService publicacaoPremiosService
+    )
     {
         _service = service;
+        _publicacaoPremiosService = publicacaoPremiosService;
     }
 
     [HttpGet("festivals/{festivalId:int}/premios")]
@@ -25,20 +30,13 @@ public class PremiosFestivalController : ControllerBase
         int festivalId
     )
     {
-        try
-        {
-            var incluirRascunhos = User.IsInRole(NomesPapeis.Administrador);
-            var premios = await _service.ObterPremiosPorFestivalAsync(
-                festivalId,
-                incluirRascunhos
-            );
+        var incluirRascunhos = User.IsInRole(NomesPapeis.Administrador);
+        var premios = await _service.ObterPremiosPorFestivalAsync(
+            festivalId,
+            incluirRascunhos
+        );
 
-            return Ok(premios);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return Ok(premios);
     }
 
     [HttpGet("festivals/{festivalId:int}/premios/resultados-publicos")]
@@ -70,74 +68,30 @@ public class PremiosFestivalController : ControllerBase
         CriarPremioFestivalDTO dto
     )
     {
-        try
-        {
-            var premio = await _service.CriarPremioAsync(festivalId, dto);
-            return CreatedAtAction(nameof(ObterPremios), new { festivalId }, premio);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var premio = await _service.CriarPremioAsync(festivalId, dto);
+        return CreatedAtAction(nameof(ObterPremios), new { festivalId }, premio);
     }
 
     [HttpPost("premios-festival/{premioFestivalId:int}/abrir")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<PremioFestivalReadDTO>> AbrirVotacao(int premioFestivalId)
     {
-        try
-        {
-            return Ok(await _service.AbrirVotacaoAsync(premioFestivalId));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        return Ok(await _service.AbrirVotacaoAsync(premioFestivalId));
     }
 
     [HttpPost("premios-festival/{premioFestivalId:int}/votos")]
     [Authorize(Policy = NomesPoliticas.UtilizadorAutenticado)]
     public async Task<IActionResult> Votar(int premioFestivalId, VotarPremioFestivalDTO dto)
     {
-        try
-        {
-            await _service.VotarAsync(premioFestivalId, dto.FilmeId, User.GetUserId());
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        await _service.VotarAsync(premioFestivalId, dto.FilmeId, User.GetUserId());
+        return NoContent();
     }
 
     [HttpPost("premios-festival/{premioFestivalId:int}/fechar")]
     [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
     public async Task<ActionResult<PremioFestivalReadDTO>> FecharVotacao(int premioFestivalId)
     {
-        try
-        {
-            return Ok(await _service.FecharVotacaoAsync(premioFestivalId));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        return Ok(await _service.FecharVotacaoAsync(premioFestivalId));
     }
 
     [HttpPost("premios-festival/{premioFestivalId:int}/publicar")]
@@ -146,17 +100,19 @@ public class PremiosFestivalController : ControllerBase
         int premioFestivalId
     )
     {
-        try
-        {
-            return Ok(await _service.PublicarResultadosAsync(premioFestivalId, User.GetUserId()));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        return Ok(await _service.PublicarResultadosAsync(premioFestivalId, User.GetUserId()));
+    }
+
+    [HttpPost("premios-festival/publicar-pendentes")]
+    [Authorize(Policy = NomesPoliticas.ApenasAdministrador)]
+    public async Task<ActionResult<int>> PublicarResultadosPendentes(
+        CancellationToken cancellationToken
+    )
+    {
+        var publicados = await _publicacaoPremiosService.PublicarResultadosPendentesAsync(
+            cancellationToken
+        );
+
+        return Ok(publicados);
     }
 }

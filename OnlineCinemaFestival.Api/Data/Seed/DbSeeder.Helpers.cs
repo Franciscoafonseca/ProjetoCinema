@@ -1,12 +1,13 @@
 using System.Globalization;
 using Bogus;
 using Microsoft.EntityFrameworkCore;
+using OnlineCinemaFestival.Api.Data;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Services;
 
-namespace OnlineCinemaFestival.Api.Data;
+namespace OnlineCinemaFestival.Api.Data.Seed;
 
-public static class DbSeeder
+public static partial class DbSeeder
 {
     private const int NumeroUtilizadores = 35;
     private const int NumeroFilmes = 20;
@@ -125,71 +126,227 @@ public static class DbSeeder
 
     private static readonly FilmeTmdbSeed[] FilmesTmdbSeed =
     {
-        new(550, "Fight Club", "Fight Club", "Drama", "1999-10-15", 139, 8.4, "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg", "David Fincher"),
-        new(155, "The Dark Knight", "The Dark Knight", "Acao, Crime, Drama", "2008-07-18", 152, 8.5, "/qJ2tW6WMUDux911r6m7haRef0WH.jpg", "Christopher Nolan"),
-        new(680, "Pulp Fiction", "Pulp Fiction", "Crime, Drama", "1994-10-14", 154, 8.5, "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg", "Quentin Tarantino"),
-        new(13, "Forrest Gump", "Forrest Gump", "Drama, Romance", "1994-07-06", 142, 8.5, "/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg", "Robert Zemeckis"),
-        new(238, "The Godfather", "The Godfather", "Crime, Drama", "1972-03-24", 175, 8.7, "/3bhkrj58Vtu7enYsRolD1fZdja1.jpg", "Francis Ford Coppola"),
-        new(278, "The Shawshank Redemption", "The Shawshank Redemption", "Drama", "1994-09-23", 142, 8.7, "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg", "Frank Darabont"),
-        new(27205, "Inception", "Inception", "Acao, Ficcao Cientifica", "2010-07-16", 148, 8.4, "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg", "Christopher Nolan"),
-        new(603, "The Matrix", "The Matrix", "Acao, Ficcao Cientifica", "1999-03-31", 136, 8.2, "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg", "Lana Wachowski, Lilly Wachowski"),
-        new(129, "Spirited Away", "Sen to Chihiro no Kamikakushi", "Animacao, Fantasia", "2001-07-20", 125, 8.5, "/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg", "Hayao Miyazaki"),
-        new(496243, "Parasite", "Gisaengchung", "Thriller, Drama", "2019-05-30", 133, 8.5, "/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg", "Bong Joon-ho"),
-        new(24428, "The Avengers", "The Avengers", "Acao, Aventura", "2012-05-04", 143, 7.7, "/RYMX2wcKCBAr24UyPD7xwmjaTn.jpg", "Joss Whedon"),
-        new(299536, "Avengers: Infinity War", "Avengers: Infinity War", "Acao, Aventura", "2018-04-27", 149, 8.2, "/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg", "Anthony Russo, Joe Russo"),
-        new(157336, "Interstellar", "Interstellar", "Aventura, Drama, Ficcao Cientifica", "2014-11-07", 169, 8.4, "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg", "Christopher Nolan"),
-        new(19404, "Dilwale Dulhania Le Jayenge", "Dilwale Dulhania Le Jayenge", "Comedia, Drama, Romance", "1995-10-20", 190, 8.5, "/ktejodbcdCPXbMMdnpI9BUxW6O8.jpg", "Aditya Chopra"),
-        new(497, "The Green Mile", "The Green Mile", "Fantasia, Drama", "1999-12-10", 189, 8.5, "/8VG8fDNiy50H4FedGwdSVUPoaJe.jpg", "Frank Darabont"),
-        new(372058, "Your Name.", "Kimi no Na wa.", "Animacao, Romance, Drama", "2016-08-26", 106, 8.5, "/vfJFJPepRKapMd5G2ro7klIRysq.jpg", "Makoto Shinkai"),
-        new(475557, "Joker", "Joker", "Crime, Thriller, Drama", "2019-10-04", 122, 8.2, "/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg", "Todd Phillips"),
-        new(324857, "Spider-Man: Into the Spider-Verse", "Spider-Man: Into the Spider-Verse", "Animacao, Acao", "2018-12-14", 117, 8.4, "/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg", "Bob Persichetti, Peter Ramsey, Rodney Rothman"),
-        new(120, "The Lord of the Rings: The Fellowship of the Ring", "The Lord of the Rings: The Fellowship of the Ring", "Aventura, Fantasia", "2001-12-19", 179, 8.4, "/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg", "Peter Jackson"),
-        new(1891, "The Empire Strikes Back", "The Empire Strikes Back", "Aventura, Acao, Ficcao Cientifica", "1980-05-21", 124, 8.4, "/nNAeTmF4CtdSgMDplXTDPOpYzsX.jpg", "Irvin Kershner"),
+        new(
+            550,
+            "Fight Club",
+            "Fight Club",
+            "Drama",
+            "1999-10-15",
+            139,
+            8.4,
+            "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+            "David Fincher"
+        ),
+        new(
+            155,
+            "The Dark Knight",
+            "The Dark Knight",
+            "Acao, Crime, Drama",
+            "2008-07-18",
+            152,
+            8.5,
+            "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+            "Christopher Nolan"
+        ),
+        new(
+            680,
+            "Pulp Fiction",
+            "Pulp Fiction",
+            "Crime, Drama",
+            "1994-10-14",
+            154,
+            8.5,
+            "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+            "Quentin Tarantino"
+        ),
+        new(
+            13,
+            "Forrest Gump",
+            "Forrest Gump",
+            "Drama, Romance",
+            "1994-07-06",
+            142,
+            8.5,
+            "/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg",
+            "Robert Zemeckis"
+        ),
+        new(
+            238,
+            "The Godfather",
+            "The Godfather",
+            "Crime, Drama",
+            "1972-03-24",
+            175,
+            8.7,
+            "/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+            "Francis Ford Coppola"
+        ),
+        new(
+            278,
+            "The Shawshank Redemption",
+            "The Shawshank Redemption",
+            "Drama",
+            "1994-09-23",
+            142,
+            8.7,
+            "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+            "Frank Darabont"
+        ),
+        new(
+            27205,
+            "Inception",
+            "Inception",
+            "Acao, Ficcao Cientifica",
+            "2010-07-16",
+            148,
+            8.4,
+            "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
+            "Christopher Nolan"
+        ),
+        new(
+            603,
+            "The Matrix",
+            "The Matrix",
+            "Acao, Ficcao Cientifica",
+            "1999-03-31",
+            136,
+            8.2,
+            "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+            "Lana Wachowski, Lilly Wachowski"
+        ),
+        new(
+            129,
+            "Spirited Away",
+            "Sen to Chihiro no Kamikakushi",
+            "Animacao, Fantasia",
+            "2001-07-20",
+            125,
+            8.5,
+            "/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg",
+            "Hayao Miyazaki"
+        ),
+        new(
+            496243,
+            "Parasite",
+            "Gisaengchung",
+            "Thriller, Drama",
+            "2019-05-30",
+            133,
+            8.5,
+            "/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
+            "Bong Joon-ho"
+        ),
+        new(
+            24428,
+            "The Avengers",
+            "The Avengers",
+            "Acao, Aventura",
+            "2012-05-04",
+            143,
+            7.7,
+            "/RYMX2wcKCBAr24UyPD7xwmjaTn.jpg",
+            "Joss Whedon"
+        ),
+        new(
+            299536,
+            "Avengers: Infinity War",
+            "Avengers: Infinity War",
+            "Acao, Aventura",
+            "2018-04-27",
+            149,
+            8.2,
+            "/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg",
+            "Anthony Russo, Joe Russo"
+        ),
+        new(
+            157336,
+            "Interstellar",
+            "Interstellar",
+            "Aventura, Drama, Ficcao Cientifica",
+            "2014-11-07",
+            169,
+            8.4,
+            "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+            "Christopher Nolan"
+        ),
+        new(
+            19404,
+            "Dilwale Dulhania Le Jayenge",
+            "Dilwale Dulhania Le Jayenge",
+            "Comedia, Drama, Romance",
+            "1995-10-20",
+            190,
+            8.5,
+            "/ktejodbcdCPXbMMdnpI9BUxW6O8.jpg",
+            "Aditya Chopra"
+        ),
+        new(
+            497,
+            "The Green Mile",
+            "The Green Mile",
+            "Fantasia, Drama",
+            "1999-12-10",
+            189,
+            8.5,
+            "/8VG8fDNiy50H4FedGwdSVUPoaJe.jpg",
+            "Frank Darabont"
+        ),
+        new(
+            372058,
+            "Your Name.",
+            "Kimi no Na wa.",
+            "Animacao, Romance, Drama",
+            "2016-08-26",
+            106,
+            8.5,
+            "/vfJFJPepRKapMd5G2ro7klIRysq.jpg",
+            "Makoto Shinkai"
+        ),
+        new(
+            475557,
+            "Joker",
+            "Joker",
+            "Crime, Thriller, Drama",
+            "2019-10-04",
+            122,
+            8.2,
+            "/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg",
+            "Todd Phillips"
+        ),
+        new(
+            324857,
+            "Spider-Man: Into the Spider-Verse",
+            "Spider-Man: Into the Spider-Verse",
+            "Animacao, Acao",
+            "2018-12-14",
+            117,
+            8.4,
+            "/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg",
+            "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+        ),
+        new(
+            120,
+            "The Lord of the Rings: The Fellowship of the Ring",
+            "The Lord of the Rings: The Fellowship of the Ring",
+            "Aventura, Fantasia",
+            "2001-12-19",
+            179,
+            8.4,
+            "/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg",
+            "Peter Jackson"
+        ),
+        new(
+            1891,
+            "The Empire Strikes Back",
+            "The Empire Strikes Back",
+            "Aventura, Acao, Ficcao Cientifica",
+            "1980-05-21",
+            124,
+            8.4,
+            "/nNAeTmF4CtdSgMDplXTDPOpYzsX.jpg",
+            "Irvin Kershner"
+        ),
     };
-
-    public static async Task SeedAsync(
-        AppDbContext db,
-        IPasswordHashingStrategy passwordHashingStrategy
-    )
-    {
-        await db.Database.MigrateAsync();
-
-        Randomizer.Seed = new Random(2120622);
-
-        var admin = await CriarAdminAsync(db, passwordHashingStrategy);
-        var utilizadores = await CriarUtilizadoresAsync(db, passwordHashingStrategy);
-        var todosUtilizadores = utilizadores.Append(admin).ToList();
-
-        var generos = await CriarGenerosAsync(db);
-        var festivais = await CriarFestivaisAsync(db);
-        var filmes = await CriarFilmesAsync(db, generos);
-
-        await AssociarFilmesAFestivaisAsync(db, festivais, filmes);
-
-        var sessoes = await CriarSessoesAsync(db, festivais, filmes);
-        var sessaoChatTeste = await CriarSessaoChatAoVivoTesteAsync(db, festivais, filmes);
-
-        sessoes = await db.Sessoes.Include(s => s.Filme).ToListAsync();
-
-        var acessos = await CriarAcessosAsync(db, festivais, filmes, sessoes);
-
-        await CriarPerfisAsync(db, todosUtilizadores);
-        await CriarGenerosFavoritosAsync(db, utilizadores, generos);
-
-        var comunidades = await CriarComunidadesAsync(db, utilizadores);
-        await CriarMembrosComunidadesAsync(db, comunidades, utilizadores);
-        await CriarComentariosAsync(db, comunidades, utilizadores);
-
-        await CriarAvaliacoesAsync(db, utilizadores, filmes);
-        await CriarListasPessoaisAsync(db, utilizadores, filmes);
-
-        await CriarCarrinhosAsync(db, utilizadores, acessos);
-        await CriarComprasEAcessosUtilizadorAsync(db, utilizadores, acessos);
-        await GarantirAcessoSessaoChatTesteAsync(db, utilizadores, sessaoChatTeste);
-        await CriarVisualizacoesAsync(db, utilizadores, filmes);
-
-        await db.SaveChangesAsync();
-    }
 
     private static List<T> EscolherAleatorio<T>(IEnumerable<T> origem, int quantidade)
     {
@@ -209,13 +366,20 @@ public static class DbSeeder
         return string.Join(":", valores.Select(v => v?.ToString() ?? ""));
     }
 
+    private static string ObterConfiguracaoObrigatoria(IConfiguration configuration, string chave)
+    {
+        return configuration[chave]
+            ?? throw new InvalidOperationException($"{chave} nao configurado no appsettings.json.");
+    }
+
     private static async Task<Utilizador> CriarAdminAsync(
         AppDbContext db,
-        IPasswordHashingStrategy passwordHashingStrategy
+        IPasswordHashingStrategy passwordHashingStrategy,
+        IConfiguration configuration
     )
     {
-        const string emailAdmin = "admin@festival.pt";
-        const string passwordAdmin = "Admin123!";
+        var emailAdmin = ObterConfiguracaoObrigatoria(configuration, "Seed:AdminEmail");
+        var passwordAdmin = ObterConfiguracaoObrigatoria(configuration, "Seed:AdminPassword");
 
         var admin = await db.Utilizadores.FirstOrDefaultAsync(u => u.Email == emailAdmin);
 
@@ -243,10 +407,15 @@ public static class DbSeeder
 
     private static async Task<List<Utilizador>> CriarUtilizadoresAsync(
         AppDbContext db,
-        IPasswordHashingStrategy passwordHashingStrategy
+        IPasswordHashingStrategy passwordHashingStrategy,
+        IConfiguration configuration
     )
     {
         var faker = new Faker("pt_PT");
+        var passwordUtilizador = ObterConfiguracaoObrigatoria(
+            configuration,
+            "Seed:UtilizadorPassword"
+        );
 
         var utilizadoresExistentes = await db
             .Utilizadores.Where(u => u.Email.EndsWith("@teste.pt"))
@@ -275,7 +444,10 @@ public static class DbSeeder
                 CreatedAt = DateTime.UtcNow.AddDays(-SeedRandom.Next(1, 180)),
             };
 
-            utilizador.PasswordHash = passwordHashingStrategy.HashPassword(utilizador, "User123!");
+            utilizador.PasswordHash = passwordHashingStrategy.HashPassword(
+                utilizador,
+                passwordUtilizador
+            );
 
             utilizadores.Add(utilizador);
         }
@@ -542,7 +714,10 @@ public static class DbSeeder
                 .OrderBy(ff => ff.FilmeId)
                 .ToListAsync();
 
-            if (associacoesFestival.Count > 0 && !associacoesFestival.Any(ff => ff.ElegivelPremiosPublico))
+            if (
+                associacoesFestival.Count > 0
+                && !associacoesFestival.Any(ff => ff.ElegivelPremiosPublico)
+            )
             {
                 foreach (var associacao in associacoesFestival.Take(8))
                     associacao.ElegivelPremiosPublico = true;
@@ -655,7 +830,9 @@ public static class DbSeeder
 
         var sessao = await db
             .Sessoes.Include(s => s.Filme)
-            .FirstOrDefaultAsync(s => s.Observacoes != null && s.Observacoes.Contains(MarcadorSessaoChatTeste));
+            .FirstOrDefaultAsync(s =>
+                s.Observacoes != null && s.Observacoes.Contains(MarcadorSessaoChatTeste)
+            );
 
         if (sessao == null)
         {
@@ -1595,15 +1772,19 @@ public static class DbSeeder
         if (utilizadorTeste == null)
             return;
 
-        var sessao = await db
-            .Sessoes.AsNoTracking()
-            .FirstAsync(s => s.Id == sessaoChatTeste.Id);
+        var sessao = await db.Sessoes.AsNoTracking().FirstAsync(s => s.Id == sessaoChatTeste.Id);
 
-        var acesso = await db.Acessos.FirstOrDefaultAsync(a => a.Nome == "Bilhete - Chat Ao Vivo Teste");
+        var acesso = await db.Acessos.FirstOrDefaultAsync(a =>
+            a.Nome == "Bilhete - Chat Ao Vivo Teste"
+        );
 
         if (acesso == null)
         {
-            acesso = new Acesso { Nome = "Bilhete - Chat Ao Vivo Teste", CriadoEm = DateTime.UtcNow };
+            acesso = new Acesso
+            {
+                Nome = "Bilhete - Chat Ao Vivo Teste",
+                CriadoEm = DateTime.UtcNow,
+            };
             await db.Acessos.AddAsync(acesso);
         }
 

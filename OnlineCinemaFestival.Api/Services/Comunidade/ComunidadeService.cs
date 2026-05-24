@@ -54,7 +54,7 @@ public class ComunidadeService : IComunidadeService
             && !await _comunidadeRepository.IsMembroAsync(comunidade.Id, utilizadorIdPedido);
 
         if (acessoProibido)
-            throw new UnauthorizedAccessException("Acesso negado à comunidade privada.");
+            throw new UnauthorizedAccessException("Acesso negado a comunidade privada.");
 
         return ComunidadeMapper.ToReadDTO(comunidade, utilizadorIdPedido);
     }
@@ -67,11 +67,11 @@ public class ComunidadeService : IComunidadeService
         var criador = await _utilizadorRepository.ObterPorIdAsync(criadorUtilizadorId);
 
         if (criador == null)
-            throw new Exception("Criador não encontrado.");
+            throw new KeyNotFoundException("Criador nao encontrado.");
 
         var comunidade = ComunidadeMapper.ToEntity(dto, criadorUtilizadorId);
 
-        comunidade.CodigoConvite = Guid.NewGuid().ToString("N")[..8].ToUpper();
+        comunidade.CodigoConvite = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
 
         comunidade.Members.Add(
             new ComunidadeMembro
@@ -201,19 +201,17 @@ public class ComunidadeService : IComunidadeService
     )
     {
         if (utilizador == null)
-            throw new Exception("Utilizador não encontrado.");
+            throw new KeyNotFoundException("Utilizador nao encontrado.");
 
         if (comunidade == null)
-            throw new Exception("Comunidade não encontrada.");
+            throw new KeyNotFoundException("Comunidade nao encontrada.");
 
         var jaEMembro = await _comunidadeRepository.IsMembroAsync(comunidade.Id, utilizador.Id);
 
         if (jaEMembro)
-            throw new Exception("Já és membro desta comunidade.");
+            throw new InvalidOperationException("Ja es membro desta comunidade.");
 
         if (!entradaPorConvite && !comunidade.IsPublic)
-            throw new UnauthorizedAccessException(
-                "Esta comunidade é privada. Precisas de um convite."
-            );
+            throw new UnauthorizedAccessException("Esta comunidade e privada. Precisas de convite.");
     }
 }

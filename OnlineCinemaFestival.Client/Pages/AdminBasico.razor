@@ -1,6 +1,7 @@
 @page "/admin"
-@attribute [Authorize(Roles = "Administrador")]
-@inject FilmeService FilmeService
+@attribute [Authorize(Roles = NomesPapeis.Administrador)]
+@inject IConsultaFilmeService FilmeService
+@inject IImportacaoFilmeService ImportacaoFilmeService
 @inject TmdbService TmdbService
 @inject FestivalService FestivalService
 @inject SessaoService SessaoService
@@ -559,7 +560,7 @@
     {
         await ExecutarOperacaoAsync(async () =>
         {
-            var filme = await FilmeService.ImportarTmdbAsync(tmdbId);
+            var filme = await ImportacaoFilmeService.ImportarTmdbAsync(tmdbId);
             _filmes = await FilmeService.ObterFilmesAsync();
             _mensagemOperacao = $"Filme adicionado ao catalogo: {filme.Titulo}.";
         });

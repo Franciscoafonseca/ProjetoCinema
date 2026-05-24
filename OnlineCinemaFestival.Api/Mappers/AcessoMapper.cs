@@ -5,7 +5,7 @@ namespace OnlineCinemaFestival.Api.Mappers;
 
 public static class AcessoMapper
 {
-    public static Acesso MapFromCreateDTO(AcessoCreateDTO dto)
+    public static Acesso MapFromCreateDTO(AcessoCreateDTO dto, int duracaoAluguerDigitalHoras)
     {
         return new Acesso
         {
@@ -18,7 +18,9 @@ public static class AcessoMapper
             FilmeId = dto.FilmeId,
             DataAcesso = dto.DataAcesso,
             DuracaoHoras =
-                dto.Tipo == TipoAcesso.AluguerDigital ? dto.DuracaoHoras ?? 48 : dto.DuracaoHoras,
+                dto.Tipo == TipoAcesso.AluguerDigital
+                    ? dto.DuracaoHoras ?? duracaoAluguerDigitalHoras
+                    : dto.DuracaoHoras,
             IsAtivo = true,
             CriadoEm = DateTime.UtcNow,
         };

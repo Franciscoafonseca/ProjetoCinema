@@ -27,7 +27,7 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         var utilizador = await _utilizadorRepository.ObterComPerfilAsync(userId);
 
         if (utilizador == null || utilizador.Perfil == null)
-            throw new ArgumentException("Perfil nao encontrado.");
+            throw new KeyNotFoundException("Perfil nao encontrado.");
 
         return ToPrivadoDTO(utilizador);
     }
@@ -40,7 +40,7 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         var utilizador = await _utilizadorRepository.ObterComPerfilAsync(userId);
 
         if (utilizador == null || utilizador.Perfil == null)
-            throw new ArgumentException("Perfil nao encontrado.");
+            throw new KeyNotFoundException("Perfil nao encontrado.");
 
         if (!string.IsNullOrWhiteSpace(request.Name))
             utilizador.Name = request.Name.Trim();
@@ -95,7 +95,7 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         var utilizador = await _utilizadorRepository.ObterComPerfilAsync(userId);
 
         if (utilizador == null || utilizador.Perfil == null)
-            throw new ArgumentException("Perfil nao encontrado.");
+            throw new KeyNotFoundException("Perfil nao encontrado.");
 
         utilizador.Perfil.ProfileImageUrl = await _fotoUploadService.GuardarAsync(ficheiro);
         utilizador.Perfil.UpdatedAt = DateTime.UtcNow;
@@ -117,7 +117,7 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         var utilizador = await _utilizadorRepository.ObterComPerfilAsync(userId);
 
         if (utilizador == null || utilizador.Perfil == null || !utilizador.Perfil.IsPublic)
-            throw new ArgumentException("Perfil publico nao encontrado.");
+            throw new KeyNotFoundException("Perfil publico nao encontrado.");
 
         return ToPublicoDTO(utilizador);
     }

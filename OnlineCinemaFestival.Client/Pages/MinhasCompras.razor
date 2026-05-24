@@ -267,7 +267,11 @@
 
     private static bool EhMultibanco(PagamentoDTO pagamento)
     {
-        return string.Equals(pagamento.Metodo, "ReferenciaMultibanco", StringComparison.OrdinalIgnoreCase)
+        return string.Equals(
+                pagamento.Metodo,
+                MetodosPagamento.ReferenciaMultibanco,
+                StringComparison.OrdinalIgnoreCase
+            )
             || !string.IsNullOrWhiteSpace(pagamento.Entidade);
     }
 

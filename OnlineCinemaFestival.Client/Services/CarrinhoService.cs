@@ -4,7 +4,7 @@ using OnlineCinemaFestival.Client.Models;
 
 namespace OnlineCinemaFestival.Client.Services;
 
-public class CarrinhoService
+public class CarrinhoService : ICarrinhoService
 {
     private readonly HttpClient _http;
 

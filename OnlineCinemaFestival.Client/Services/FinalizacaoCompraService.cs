@@ -1,10 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using OnlineCinemaFestival.Client.Configuracao;
 using OnlineCinemaFestival.Client.Models;
 
 namespace OnlineCinemaFestival.Client.Services;
 
-public class FinalizacaoCompraService
+public class FinalizacaoCompraService : IFinalizacaoCompraService
 {
     private readonly HttpClient _http;
 
@@ -52,5 +53,5 @@ public class FinalizacaoCompraService
 
 public class PedidoFinalizarCompraDTO
 {
-    public string MetodoPagamento { get; set; } = "CartaoCredito";
+    public string MetodoPagamento { get; set; } = string.Empty;
 }

@@ -1,4 +1,5 @@
 using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Mappers;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
@@ -7,24 +8,25 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public class CarrinhoService : ICarrinhoService
 {
-    private const int QuantidadeMaxima = 99;
-
     private readonly ICarrinhoRepository _carrinhoRepository;
     private readonly IAcessoRepository _acessoRepository;
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
     private readonly IReadOnlyDictionary<TipoAcesso, ICarrinhoAcessoStrategy> _acessoStrategies;
+    private readonly int _quantidadeMaxima;
 
     public CarrinhoService(
         ICarrinhoRepository carrinhoRepository,
         IAcessoRepository acessoRepository,
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
-        IEnumerable<ICarrinhoAcessoStrategy> acessoStrategies
+        IEnumerable<ICarrinhoAcessoStrategy> acessoStrategies,
+        IConfiguration configuration
     )
     {
         _carrinhoRepository = carrinhoRepository;
         _acessoRepository = acessoRepository;
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
         _acessoStrategies = acessoStrategies.ToDictionary(s => s.Tipo);
+        _quantidadeMaxima = AcessosConfiguracao.ObterQuantidadeMaximaCarrinho(configuration);
     }
 
     public async Task<CarrinhoReadDTO> ObterCarrinhoAsync(int utilizadorId)
@@ -86,8 +88,8 @@ public class CarrinhoService : ICarrinhoService
         if (dto.Quantidade <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
 
-        if (dto.Quantidade > QuantidadeMaxima)
-            throw new ArgumentException($"A quantidade nao pode exceder {QuantidadeMaxima}.");
+        if (dto.Quantidade > _quantidadeMaxima)
+            throw new ArgumentException($"A quantidade nao pode exceder {_quantidadeMaxima}.");
 
         var carrinho = await _carrinhoRepository.ObterPorUtilizadorIdAsync(utilizadorId);
 
@@ -217,9 +219,9 @@ public class CarrinhoService : ICarrinhoService
             if (!strategy.PermiteQuantidadeMultipla)
                 throw new InvalidOperationException("Este acesso ja esta no carrinho.");
 
-            if (itemExistente.Quantidade + quantidade > QuantidadeMaxima)
+            if (itemExistente.Quantidade + quantidade > _quantidadeMaxima)
                 throw new InvalidOperationException(
-                    $"A quantidade total deste bilhete nao pode exceder {QuantidadeMaxima}."
+                    $"A quantidade total deste bilhete nao pode exceder {_quantidadeMaxima}."
                 );
 
             itemExistente.Quantidade += quantidade;
@@ -264,13 +266,13 @@ public class CarrinhoService : ICarrinhoService
             throw new InvalidOperationException("O utilizador ja possui este acesso ativo.");
     }
 
-    private static void ValidarQuantidade(int quantidade)
+    private void ValidarQuantidade(int quantidade)
     {
         if (quantidade <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
 
-        if (quantidade > QuantidadeMaxima)
-            throw new ArgumentException($"A quantidade nao pode exceder {QuantidadeMaxima}.");
+        if (quantidade > _quantidadeMaxima)
+            throw new ArgumentException($"A quantidade nao pode exceder {_quantidadeMaxima}.");
     }
 
     private ICarrinhoAcessoStrategy ObterStrategy(TipoAcesso tipo)

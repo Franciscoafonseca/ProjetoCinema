@@ -1,3 +1,4 @@
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Models;
 using OnlineCinemaFestival.Api.Repositories;
 
@@ -5,17 +6,19 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
 {
-    private const int QuantidadeMaxima = 99;
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
     private readonly IReadOnlyDictionary<TipoAcesso, ICarrinhoAcessoStrategy> _acessoStrategies;
+    private readonly int _quantidadeMaxima;
 
     public ValidadorFinalizacaoCompra(
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
-        IEnumerable<ICarrinhoAcessoStrategy> acessoStrategies
+        IEnumerable<ICarrinhoAcessoStrategy> acessoStrategies,
+        IConfiguration configuration
     )
     {
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
         _acessoStrategies = acessoStrategies.ToDictionary(s => s.Tipo);
+        _quantidadeMaxima = AcessosConfiguracao.ObterQuantidadeMaximaCarrinho(configuration);
     }
 
     public async Task ValidarAsync(int utilizadorId, Carrinho? carrinho)
@@ -55,9 +58,9 @@ public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
         if (item.Quantidade <= 0)
             throw new InvalidOperationException("A quantidade deve ser maior que zero.");
 
-        if (item.Quantidade > QuantidadeMaxima)
+        if (item.Quantidade > _quantidadeMaxima)
             throw new InvalidOperationException(
-                $"A quantidade nao pode exceder {QuantidadeMaxima}."
+                $"A quantidade nao pode exceder {_quantidadeMaxima}."
             );
 
         if (item.Acesso == null)

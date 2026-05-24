@@ -30,15 +30,8 @@ public class GenerosController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<GeneroDTO>> Criar(CriarGeneroDTO dto)
     {
-        try
-        {
-            var criado = await _generoService.CriarAsync(dto);
+        var criado = await _generoService.CriarAsync(dto);
 
-            return CreatedAtAction(nameof(ObterTodos), new { id = criado.Id }, criado);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return CreatedAtAction(nameof(ObterTodos), new { id = criado.Id }, criado);
     }
 }

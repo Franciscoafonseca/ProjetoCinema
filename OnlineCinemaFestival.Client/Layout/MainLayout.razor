@@ -1,5 +1,5 @@
 @inherits LayoutComponentBase
-@inject AutenticacaoService AutenticacaoService
+@inject IAutenticacaoService AutenticacaoService
 @inject NavigationManager Nav
 
 <MudThemeProvider Theme="_tema" IsDarkMode="true" />
@@ -28,7 +28,7 @@
                     <NavLink class="nav-btn" href="compras">Compras</NavLink>
                     <NavLink class="nav-btn" href="listas">Listas</NavLink>
                     <NavLink class="nav-btn" href="comunidades">Comunidades</NavLink>
-                    <AuthorizeView Roles="Administrador" Context="adminAuth">
+                    <AuthorizeView Roles="@NomesPapeis.Administrador" Context="adminAuth">
                         <Authorized>
                             <NavLink class="nav-btn" href="admin">Admin</NavLink>
                         </Authorized>

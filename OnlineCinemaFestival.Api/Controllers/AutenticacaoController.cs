@@ -26,27 +26,13 @@ public class AutenticacaoController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<AutenticacaoRespostaDTO>> Registar(PedidoRegistoDTO request)
     {
-        try
-        {
-            return Ok(await _authService.RegistarAsync(request));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(await _authService.RegistarAsync(request));
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<AutenticacaoRespostaDTO>> Entrar(PedidoLoginDTO request)
     {
-        try
-        {
-            return Ok(await _authService.EntrarAsync(request));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(await _authService.EntrarAsync(request));
     }
 
     [HttpGet("external/providers")]
@@ -60,21 +46,6 @@ public class AutenticacaoController : ControllerBase
         PedidoAutenticacaoExternaDTO request
     )
     {
-        try
-        {
-            return Ok(await _autenticacaoExternaService.AutenticarAsync(request));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (NotSupportedException ex)
-        {
-            return StatusCode(StatusCodes.Status501NotImplemented, ex.Message);
-        }
+        return Ok(await _autenticacaoExternaService.AutenticarAsync(request));
     }
 }

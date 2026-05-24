@@ -1,3 +1,4 @@
+using OnlineCinemaFestival.Api.Configuracao;
 using OnlineCinemaFestival.Api.Models;
 
 namespace OnlineCinemaFestival.Api.Services;
@@ -6,11 +7,11 @@ public class PagamentoAprovadoSimuladoStrategy : IPagamentoStrategy
 {
     private static readonly HashSet<string> Metodos = new(StringComparer.OrdinalIgnoreCase)
     {
-        "CartaoCredito",
-        "PayPal",
-        "MBWay",
-        "ApplePay",
-        "GooglePay",
+        MetodosPagamento.CartaoCredito,
+        MetodosPagamento.PayPal,
+        MetodosPagamento.MBWay,
+        MetodosPagamento.ApplePay,
+        MetodosPagamento.GooglePay,
     };
 
     public bool Suporta(string metodoPagamento) =>
@@ -23,7 +24,7 @@ public class PagamentoAprovadoSimuladoStrategy : IPagamentoStrategy
     )
     {
         var metodo = string.IsNullOrWhiteSpace(metodoPagamento)
-            ? "CartaoCredito"
+            ? MetodosPagamento.CartaoCredito
             : metodoPagamento.Trim();
 
         return Task.FromResult(

@@ -3,7 +3,7 @@ using OnlineCinemaFestival.Client.Models;
 
 namespace OnlineCinemaFestival.Client.Services;
 
-public class FilmeService
+public class FilmeService : IConsultaFilmeService, IImportacaoFilmeService
 {
     private readonly HttpClient _http;
 

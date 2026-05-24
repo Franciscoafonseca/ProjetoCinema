@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OnlineCinemaFestival.Api.Autorizacao;
@@ -26,27 +25,13 @@ public class FinalizacaoCompraController : ControllerBase
 
     [HttpPost]
     public async Task<ActionResult<ResultadoFinalizacaoCompraDTO>> FinalizarCompra(
-        [FromBody] PedidoFinalizarCompraDTO? request
+        [FromBody] PedidoFinalizarCompraDTO request
     )
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var compra = await _checkoutService.FinalizarCompraAsync(
-                utilizadorId,
-                request?.MetodoPagamento ?? "CartaoCredito"
-            );
+        var compra = await _checkoutService.FinalizarCompraAsync(utilizadorId, request.MetodoPagamento);
 
-            return Ok(compra);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        return Ok(compra);
     }
 }

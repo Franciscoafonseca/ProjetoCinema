@@ -30,51 +30,29 @@ public class VisualizacaoController : ControllerBase
         [FromQuery] int? festivalId
     )
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var visualizacao = await _visualizacaoService.ObterVisualizacaoFilmeAsync(
-                utilizadorId,
-                filmeId,
-                festivalId
-            );
+        var visualizacao = await _visualizacaoService.ObterVisualizacaoFilmeAsync(
+            utilizadorId,
+            filmeId,
+            festivalId
+        );
 
-            return Ok(visualizacao);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return Ok(visualizacao);
     }
 
     [HttpGet("sessoes/{sessaoId:int}")]
     [HttpGet("sessao/{sessaoId:int}")]
     public async Task<ActionResult<VisualizacaoDTO>> VisualizarSessao(int sessaoId)
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var visualizacao = await _visualizacaoService.ObterVisualizacaoSessaoAsync(
-                utilizadorId,
-                sessaoId
-            );
+        var visualizacao = await _visualizacaoService.ObterVisualizacaoSessaoAsync(
+            utilizadorId,
+            sessaoId
+        );
 
-            return Ok(visualizacao);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        return Ok(visualizacao);
     }
 
     [HttpGet("historico")]

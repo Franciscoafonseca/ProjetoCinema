@@ -17,7 +17,7 @@ public class PedidoFinalizacaoCompraDTO { }
 public class PedidoFinalizarCompraDTO
 {
     [Required]
-    public string MetodoPagamento { get; set; } = "CartaoCredito";
+    public string MetodoPagamento { get; set; } = string.Empty;
 }
 
 public class ResultadoFinalizacaoCompraDTO : CompraReadDTO

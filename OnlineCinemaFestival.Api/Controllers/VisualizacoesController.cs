@@ -40,28 +40,13 @@ public class VisualizacoesController : ControllerBase
         RegistarVisualizacaoDTO dto
     )
     {
-        try
-        {
-            var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
+        var utilizadorId = _utilizadorAtualService.ObterUtilizadorId();
 
-            var visualizacao = await _visualizacaoService.RegistarVisualizacaoAsync(
-                utilizadorId,
-                dto
-            );
+        var visualizacao = await _visualizacaoService.RegistarVisualizacaoAsync(
+            utilizadorId,
+            dto
+        );
 
-            return Ok(visualizacao);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(visualizacao);
     }
 }

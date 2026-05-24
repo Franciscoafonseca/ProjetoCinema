@@ -24,24 +24,13 @@ public class ComentariosController : ControllerBase
         [FromBody] ComentarioCreateDTO dto
     )
     {
-        try
-        {
-            var resultado = await _comentarioService.CriarComentarioAsync(
-                comunidadeId,
-                dto,
-                User.GetUserId()
-            );
+        var resultado = await _comentarioService.CriarComentarioAsync(
+            comunidadeId,
+            dto,
+            User.GetUserId()
+        );
 
-            return Ok(resultado);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, new { mensagem = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { mensagem = ex.Message });
-        }
+        return Ok(resultado);
     }
 
     [HttpGet]
@@ -49,22 +38,11 @@ public class ComentariosController : ControllerBase
         Guid comunidadeId
     )
     {
-        try
-        {
-            var comentarios = await _comentarioService.ObterComentariosPorComunidadeIdAsync(
-                comunidadeId,
-                User.GetUserId()
-            );
-            return Ok(comentarios);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return StatusCode(403, new { mensagem = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { mensagem = ex.Message });
-        }
+        var comentarios = await _comentarioService.ObterComentariosPorComunidadeIdAsync(
+            comunidadeId,
+            User.GetUserId()
+        );
+        return Ok(comentarios);
     }
 
     [HttpPost("{comentarioId:int}/reportar")]

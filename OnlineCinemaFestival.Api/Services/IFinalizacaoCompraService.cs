@@ -4,8 +4,5 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public interface IFinalizacaoCompraService
 {
-    Task<ResultadoFinalizacaoCompraDTO> FinalizarCompraAsync(
-        int utilizadorId,
-        string metodoPagamento = "CartaoCredito"
-    );
+    Task<ResultadoFinalizacaoCompraDTO> FinalizarCompraAsync(int utilizadorId, string metodoPagamento);
 }
