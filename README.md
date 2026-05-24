@@ -1,3 +1,9 @@
+#Autores
+Francisco Afonseca - 2120622
+Francisco Palmeira - 2109923
+Afonso Santos - 2141823
+Bernardo Pestana - 2107023
+
 # Online Cinema Festival
 
 Plataforma académica para festivais de cinema online — backend ASP.NET Core Web API, frontend Blazor WebAssembly, EF Core com SQLite.
@@ -48,19 +54,20 @@ HTTP Request
 
 **Princípios aplicados:**
 
-| Princípio | Onde |
-|-----------|------|
-| SRP | Services com responsabilidade única; controllers finos sem lógica de negócio |
-| OCP | Novos tipos de acesso, pagamento ou ordenação entram por novas strategies |
-| DIP | Services dependem de interfaces, não de classes concretas |
-| ISP | Interfaces pequenas por domínio |
-| Repository | Acesso a dados isolado; controllers nunca acedem ao `DbContext` diretamente |
+| Princípio  | Onde                                                                         |
+| ---------- | ---------------------------------------------------------------------------- |
+| SRP        | Services com responsabilidade única; controllers finos sem lógica de negócio |
+| OCP        | Novos tipos de acesso, pagamento ou ordenação entram por novas strategies    |
+| DIP        | Services dependem de interfaces, não de classes concretas                    |
+| ISP        | Interfaces pequenas por domínio                                              |
+| Repository | Acesso a dados isolado; controllers nunca acedem ao `DbContext` diretamente  |
 
 ---
 
 ## Padrões de design aplicados
 
 ### Strategy
+
 - **Validação de acessos** (`Services/AcessoFolder/`): `BilheteSessaoValidacaoStrategy`, `EstrategiaValidacaoPasseDiario`, `ValidacaoPasseCompletoStrategy`, `AluguerDigitalValidacaoStrategy`
 - **Criação de acessos** (`Services/`): `EstrategiaCriacaoBilheteSessao`, `EstrategiaCriacaoPasseDiario`, `EstrategiaCriacaoPasseCompleto`, `EstrategiaCriacaoAluguerDigital`
 - **Ordenação de catálogo** (`Services/Catalogo/`): `OrdenarPorTituloStrategy`, `OrdenarPorClassificacaoStrategy`, `OrdenarPorPopularidadeStrategy`, `OrdenarPorDataLancamentoStrategy`, `OrdenarPorVisualizacoesStrategy`, `OrdenarPorFestivalStrategy`
@@ -68,6 +75,7 @@ HTTP Request
 - **Recomendações** (`Services/`): `RecomendacaoPorGeneroStrategy`, `RecomendacaoPorAvaliacaoStrategy`, `RecomendacaoPorPopularidadeStrategy`, `RecomendacaoPorPremiosStrategy`
 
 ### Factory
+
 - `AcessoAutomaticoFactory` — cria acessos automáticos pós-compra com base no tipo
 - `AcessoUtilizadorFactory` — instancia `AcessoUtilizador` a partir de um acesso
 - `CompraFactory` — constrói `Compra` a partir de um carrinho validado
@@ -75,16 +83,20 @@ HTTP Request
 - `ValidacaoAcessoStrategyFactory` — resolve a strategy de validação pelo tipo de acesso
 
 ### Observer
+
 - **Rewards**: `RewardsObserver`, `RewardsAvaliacaoObserver`, `RewardsComentarioObserver`, `RewardsVisualizacaoObserver`, `RewardsListaPessoalObserver`, `RewardsVotoPremioObserver` — atribuem pontos automaticamente após eventos de domínio
 - **Acessos**: `AcessoObserver` — regista acessos após compra finalizada
 
 ### Adapter / Facade
+
 - `TmdbApiClient` + `TmdbService` — isola a API TMDB; controllers e services nunca chamam TMDB diretamente
 
 ### Repository
+
 - Um repositório por domínio: `IFilmeRepository`, `IFestivalRepository`, `ISessaoRepository`, `ICompraRepository`, `ICarrinhoRepository`, `IListaPessoalRepository`, `IComunidadeRepository`, `IComentarioRepository`, `IReporteUtilizadorRepository`, etc.
 
 ### Seed (orquestrador + passos)
+
 - `DbSeeder` — orquestrador puro que delega a 11 `ISeedStep` em ordem de dependência:
   `UtilizadoresSeeder → FilmesSeeder → FestivaisSeeder → SessoesSeeder → AcessosSeeder → ComprasSeeder → ComunidadesSeeder → ReviewsSeeder → ListasSeeder → PremiosSeeder → RewardsSeeder`
 
@@ -93,6 +105,7 @@ HTTP Request
 ## Principais funcionalidades
 
 ### Autenticação e Perfil
+
 - Registo com validação de email, telefone, password forte e confirmação
 - Login JWT com expiração configurável
 - Perfil público/privado com upload de foto (jpg, jpeg, png, webp; máx. 2 MB; validação de magic bytes)
@@ -100,43 +113,51 @@ HTTP Request
 - Área pessoal: histórico de compras, acessos ativos, listas, rewards, atividade recente
 
 ### Catálogo e Filmes
+
 - Pesquisa local prioritária; TMDB aparece apenas quando não há resultados internos relevantes
 - Ordenação por título, classificação, popularidade, data, visualizações, festival
 - Detalhe com trailer TMDB/YouTube, realizador, atores, géneros, reviews internas, prémios, sessões e acessos
 - Importação de filmes TMDB restrita ao admin
 
 ### Festivais e Sessões
+
 - Festivais com datas de início/fim, filmes associados, passes, votação e resultados publicados
 - Sessões com estado (futura, em curso, terminada), tipo (normal, chat ao vivo), acesso necessário
 - Chat ao vivo em tempo real via SignalR durante sessões ativas
 
 ### Compras e Acessos
+
 - Carrinho com até 99 itens
 - Tipos de acesso: Bilhete de Sessão, Passe Diário, Passe Completo, Aluguer Digital 48h
 - Pagamentos simulados: Cartão de Crédito (aprovação imediata) e Referência Multibanco (pendente com expiração configurável)
 - Expiração automática de pagamentos Multibanco por background service
 
 ### Rewards
+
 - Sistema de pontos atribuídos por eventos: avaliação, comentário, visualização, lista pessoal, voto em prémio
 - Histórico de transações visível na área do utilizador
 
 ### Comunidades
+
 - Criação por qualquer utilizador registado
 - Código de convite para acesso restrito
 - Comentários com moderação pelo proprietário (ocultar/remover)
 - Reporte de utilizadores com gestão pelo admin
 
 ### Prémios
+
 - Prémios por festival criados pelo admin
 - Votação do público (um voto por utilizador por prémio)
 - Publicação de vencedores automática por background service quando o festival termina
 
 ### Listas Pessoais
+
 - Listas predefinidas: Quero ver, Vistos, Favoritos (não apagáveis)
 - Listas personalizadas com nome único por utilizador (3–50 caracteres)
 - Sem duplicados de filme por lista
 
 ### Admin
+
 - Dashboard em `/admin`
 - Gestão de filmes, festivais, sessões, prémios e publicação de vencedores
 - Moderação de reportes de utilizadores
@@ -267,11 +288,13 @@ O seeder corre automaticamente no primeiro arranque da API (via `MigrateAsync` +
 ### 5. Arrancar os projetos
 
 Terminal 1 — API:
+
 ```bash
 dotnet run --project OnlineCinemaFestival.Api
 ```
 
 Terminal 2 — Client:
+
 ```bash
 dotnet run --project OnlineCinemaFestival.Client
 ```
@@ -334,35 +357,36 @@ dotnet test OnlineCinemaFestival.Tests
 
 **110 testes unitários** organizados por domínio, sem dependências de BD real ou TMDB.
 
-| Pasta | Testes | O que cobre |
-|-------|--------|-------------|
-| `Acessos/` | 8 | Políticas de acesso por tipo (`PermiteVisualizacao`, `RelacionaComContexto`); criação de acessos pós-compra |
-| `Admin/` | 4 | Reporte de utilizadores; permissões de moderação admin |
-| `Compras/` | 18 | Carrinho; validação de checkout; finalização de compra; histórico |
-| `Comunidades/` | 3 | Moderação de comentários; permissões de dono de comunidade |
-| `Integracao/` | 8 | `TmdbService` (Adapter) com cliente HTTP falso — mapping, cache, resiliência a falhas |
-| `Listas/` | 10 | Duplicados de filme; duplicados de nome; listas predefinidas não apagáveis |
-| `Pagamentos/` | 7 | Pagamento simulado (Cartão/Multibanco); expiração de Multibanco |
-| `Perfis/` | 4 | Perfil público/privado; visibilidade entre utilizadores |
-| `Prémios/` | 6 | Votação única por utilizador; publicação automática de vencedor |
-| `Recomendações/` | 7 | Recomendaç��o por género/avaliação/popularidade/prémios; catálogo com paginação |
-| `Rewards/` | 3 | Pontuação por evento (avaliação, comentário, lista) |
-| `Social/` | 7 | Observers de Rewards — `ComentarioObserver`, `AvaliacaoObserver`, `VisualizacaoObserver`, `VotoPremioObserver`; idempotência |
-| `Upload/` | 9 | Extensão inválida; magic bytes errados; tamanho excedido; tipos aceites |
-| `Visualizações/` | 8 | Fluxo completo de visualização (player) com acesso válido/inválido; chat temporal |
+| Pasta            | Testes | O que cobre                                                                                                                  |
+| ---------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `Acessos/`       | 8      | Políticas de acesso por tipo (`PermiteVisualizacao`, `RelacionaComContexto`); criação de acessos pós-compra                  |
+| `Admin/`         | 4      | Reporte de utilizadores; permissões de moderação admin                                                                       |
+| `Compras/`       | 18     | Carrinho; validação de checkout; finalização de compra; histórico                                                            |
+| `Comunidades/`   | 3      | Moderação de comentários; permissões de dono de comunidade                                                                   |
+| `Integracao/`    | 8      | `TmdbService` (Adapter) com cliente HTTP falso — mapping, cache, resiliência a falhas                                        |
+| `Listas/`        | 10     | Duplicados de filme; duplicados de nome; listas predefinidas não apagáveis                                                   |
+| `Pagamentos/`    | 7      | Pagamento simulado (Cartão/Multibanco); expiração de Multibanco                                                              |
+| `Perfis/`        | 4      | Perfil público/privado; visibilidade entre utilizadores                                                                      |
+| `Prémios/`       | 6      | Votação única por utilizador; publicação automática de vencedor                                                              |
+| `Recomendações/` | 7      | Recomendaç��o por género/avaliação/popularidade/prémios; catálogo com paginação                                              |
+| `Rewards/`       | 3      | Pontuação por evento (avaliação, comentário, lista)                                                                          |
+| `Social/`        | 7      | Observers de Rewards — `ComentarioObserver`, `AvaliacaoObserver`, `VisualizacaoObserver`, `VotoPremioObserver`; idempotência |
+| `Upload/`        | 9      | Extensão inválida; magic bytes errados; tamanho excedido; tipos aceites                                                      |
+| `Visualizações/` | 8      | Fluxo completo de visualização (player) com acesso válido/inválido; chat temporal                                            |
 
 **Cobertura por categoria de requisito:**
 
-| Requisito | Testes que cobrem |
-|-----------|-------------------|
-| Acessos / player | `Acessos/`, `Visualizacoes/VisualizacaoFluxoTests` |
-| Checkout | `Compras/CheckoutValidacaoTests`, `Compras/FinalizacaoCompraTests` |
-| Permissões admin | `Admin/ReporteUtilizadorTests` |
+| Requisito           | Testes que cobrem                                                      |
+| ------------------- | ---------------------------------------------------------------------- |
+| Acessos / player    | `Acessos/`, `Visualizacoes/VisualizacaoFluxoTests`                     |
+| Checkout            | `Compras/CheckoutValidacaoTests`, `Compras/FinalizacaoCompraTests`     |
+| Permissões admin    | `Admin/ReporteUtilizadorTests`                                         |
 | Reports / moderação | `Admin/ReporteUtilizadorTests`, `Comunidades/ModeracaoComentarioTests` |
-| Rewards | `Rewards/RewardsPontuacaoTests`, `Social/RewardsObserverTests` |
-| TMDB fake/mock | `Integracao/TmdbServiceAdapterTests` |
+| Rewards             | `Rewards/RewardsPontuacaoTests`, `Social/RewardsObserverTests`         |
+| TMDB fake/mock      | `Integracao/TmdbServiceAdapterTests`                                   |
 
 **Padrões usados nos testes:**
+
 - `FakeTimeProvider` — controlo determinístico de datas
 - 13 fluent builders (`UtilizadorBuilder`, `FilmeBuilder`, `CompraBuilder`, etc.)
 - Repositórios falsos em memória por domínio
@@ -400,10 +424,10 @@ OnlineCinemaFestival.Api/wwwroot/uploads/comunidades/
 
 Criadas pelo `DbSeeder` com os valores configurados nos user-secrets:
 
-| Conta | Email | Password |
-|-------|-------|----------|
-| Administrador | `admin@festival.pt` | `Admin123!` |
-| Utilizadores demo | `utilizador1@demo.pt` … | `User123!` |
+| Conta             | Email                   | Password    |
+| ----------------- | ----------------------- | ----------- |
+| Administrador     | `admin@festival.pt`     | `Admin123!` |
+| Utilizadores demo | `utilizador1@demo.pt` … | `User123!`  |
 
 ---
 
