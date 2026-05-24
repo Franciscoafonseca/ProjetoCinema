@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using OnlineCinemaFestival.Api.Configuracao;
-using OnlineCinemaFestival.Api.Data;
+using OnlineCinemaFestival.Api.Infrastructure.Data;
 
 namespace OnlineCinemaFestival.Api.Extensions;
 

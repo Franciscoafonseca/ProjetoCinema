@@ -1,0 +1,22 @@
+@* Componente reutilizável para mensagens de erro/sucesso controladas *@
+
+@if (!string.IsNullOrWhiteSpace(Mensagem))
+{
+    <MudAlert Severity="@Severidade" Variant="Variant.Filled" Dense="@Compacto" Class="@Classe">
+        @Mensagem
+    </MudAlert>
+}
+
+@code {
+    /// <summary>Texto da mensagem. Nenhum conteúdo renderizado se vazio.</summary>
+    [Parameter] public string? Mensagem { get; set; }
+
+    /// <summary>Severidade do alerta (Error, Warning, Info, Success).</summary>
+    [Parameter] public Severity Severidade { get; set; } = Severity.Error;
+
+    /// <summary>Usa o modo compacto (Dense).</summary>
+    [Parameter] public bool Compacto { get; set; }
+
+    /// <summary>Classe CSS adicional.</summary>
+    [Parameter] public string? Classe { get; set; }
+}

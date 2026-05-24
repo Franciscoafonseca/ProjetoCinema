@@ -1,4 +1,4 @@
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Domain;
 using OnlineCinemaFestival.Api.Repositories;
 
 namespace OnlineCinemaFestival.Tests.Support.Fakes;

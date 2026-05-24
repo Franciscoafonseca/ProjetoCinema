@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Configuration;
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Domain;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Tests.Support;
 using OnlineCinemaFestival.Tests.Support.Builders;

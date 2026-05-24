@@ -1,0 +1,38 @@
+namespace OnlineCinemaFestival.Api.Application.DTOs;
+
+using OnlineCinemaFestival.Api.Domain;
+
+public class ComentarioDTO
+{
+    public int Id { get; set; }
+
+    public int UsuarioId { get; set; }
+
+    public string NomeUsuario { get; set; } = string.Empty;
+
+    public string? UsuarioFotoUrl { get; set; }
+
+    public bool UsuarioPerfilPublico { get; set; }
+
+    public int? ComunidadeId { get; set; }
+
+    public string? NomeComunidade { get; set; }
+
+    public int? FilmeId { get; set; }
+
+    public string? TituloFilme { get; set; }
+
+    public string? FilmeCapaUrl { get; set; }
+
+    public string Texto { get; set; } = string.Empty;
+
+    public DateTime CriadoEm { get; set; }
+
+    public bool Visivel { get; set; }
+
+    public bool Reportado { get; set; }
+
+    public EstadoModeracaoComentario EstadoModeracao { get; set; }
+}
+
+public class ComentarioReadDTO : ComentarioDTO { }

@@ -1,8 +1,8 @@
 using OnlineCinemaFestival.Api.Configuracao;
-using OnlineCinemaFestival.Api.Data;
-using OnlineCinemaFestival.Api.Data.Seed;
-using OnlineCinemaFestival.Api.Hubs;
-using OnlineCinemaFestival.Api.Middleware;
+using OnlineCinemaFestival.Api.Infrastructure.Data;
+using OnlineCinemaFestival.Api.Infrastructure.Data.Seed;
+using OnlineCinemaFestival.Api.Infrastructure.Hubs;
+using OnlineCinemaFestival.Api.Infrastructure.Middleware;
 using OnlineCinemaFestival.Api.Services;
 using Microsoft.Extensions.FileProviders;
 

@@ -2,7 +2,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using OnlineCinemaFestival.Api.Autorizacao;
+using OnlineCinemaFestival.Api.Common.Auth;
 using OnlineCinemaFestival.Api.Configuracao;
 
 namespace OnlineCinemaFestival.Api.Extensions;

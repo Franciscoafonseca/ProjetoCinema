@@ -1,0 +1,27 @@
+@* Componente reutilizável para listas/coleções vazias *@
+
+<div class="cinema-state @(Slim ? "slim" : "")">
+    @if (!Slim && !string.IsNullOrWhiteSpace(Icone))
+    {
+        <MudIcon Icon="@Icone" Size="Size.Large" Color="Color.Default" Class="empty-icon" />
+    }
+    <p>@Mensagem</p>
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+</div>
+
+@code {
+    /// <summary>Texto da mensagem de estado vazio.</summary>
+    [Parameter] public string Mensagem { get; set; } = "Sem resultados.";
+
+    /// <summary>Ícone MudBlazor opcional (ex: Icons.Material.Outlined.Inbox).</summary>
+    [Parameter] public string? Icone { get; set; }
+
+    /// <summary>Usa o estilo compacto (sem ícone grande).</summary>
+    [Parameter] public bool Slim { get; set; }
+
+    /// <summary>Conteúdo adicional (ex: botão de ação).</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

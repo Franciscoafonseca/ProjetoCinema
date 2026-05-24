@@ -1,0 +1,71 @@
+@* Componente reutilizável para campos de upload de imagem com validação no cliente *@
+
+<div class="sky-input-group">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <label class="sky-label" for="@_inputId">@Label</label>
+    }
+
+    <InputFile id="@_inputId"
+               class="sky-input"
+               OnChange="OnFicheiroSelecionado"
+               accept="image/png,image/jpeg,image/webp"
+               disabled="@Desativado" />
+
+    <small class="sky-helper">
+        @if (!string.IsNullOrWhiteSpace(NomeFicheiro))
+        {
+            @NomeFicheiro
+        }
+        else
+        {
+            <text>@AjudaTexto</text>
+        }
+    </small>
+
+    <ErrorAlert Mensagem="@_erroLocal" />
+</div>
+
+@code {
+    private readonly string _inputId = $"img-upload-{Guid.NewGuid():N}";
+    private string? _erroLocal;
+
+    /// <summary>Rótulo do campo.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>Texto de ajuda exibido por omissão.</summary>
+    [Parameter] public string AjudaTexto { get; set; } = "JPG, PNG ou WEBP até 2 MB.";
+
+    /// <summary>Nome do ficheiro selecionado (controlado pelo componente pai).</summary>
+    [Parameter] public string? NomeFicheiro { get; set; }
+
+    /// <summary>Desativa o campo de upload.</summary>
+    [Parameter] public bool Desativado { get; set; }
+
+    /// <summary>Tamanho máximo em bytes (padrão: 2 MB).</summary>
+    [Parameter] public long TamanhoMaximo { get; set; } = 2 * 1024 * 1024;
+
+    /// <summary>Chamado com o IBrowserFile quando a seleção é válida.</summary>
+    [Parameter] public EventCallback<IBrowserFile> OnFicheiroValido { get; set; }
+
+    private async Task OnFicheiroSelecionado(InputFileChangeEventArgs e)
+    {
+        _erroLocal = null;
+        var ficheiro = e.File;
+
+        var tiposPermitidos = new[] { "image/jpeg", "image/png", "image/webp" };
+        if (!tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            _erroLocal = "Formato inválido. Escolhe JPG, PNG ou WEBP.";
+            return;
+        }
+
+        if (ficheiro.Size > TamanhoMaximo)
+        {
+            _erroLocal = $"A imagem não pode exceder {TamanhoMaximo / (1024 * 1024)} MB.";
+            return;
+        }
+
+        await OnFicheiroValido.InvokeAsync(ficheiro);
+    }
+}

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OnlineCinemaFestival.Api.Autorizacao;
-using OnlineCinemaFestival.Api.DTOs;
+using OnlineCinemaFestival.Api.Common.Auth;
+using OnlineCinemaFestival.Api.Application.DTOs;
 using OnlineCinemaFestival.Api.Services;
 
 namespace OnlineCinemaFestival.Api.Controllers;

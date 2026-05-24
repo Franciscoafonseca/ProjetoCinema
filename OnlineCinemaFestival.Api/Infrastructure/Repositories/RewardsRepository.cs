@@ -1,0 +1,43 @@
+using Microsoft.EntityFrameworkCore;
+using OnlineCinemaFestival.Api.Infrastructure.Data;
+using OnlineCinemaFestival.Api.Domain;
+
+namespace OnlineCinemaFestival.Api.Repositories;
+
+public class RewardsRepository : IRewardsRepository
+{
+    private readonly AppDbContext _context;
+
+    public RewardsRepository(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task AddOrUpdatePointsAsync(int utilizadorId, int pontosGanhos)
+    {
+        var reward = await _context.Rewards.FirstOrDefaultAsync(r => r.UtilizadorId == utilizadorId);
+
+        if (reward == null)
+        {
+            reward = new Reward
+            {
+                UtilizadorId = utilizadorId,
+                Pontos = pontosGanhos
+            };
+            _context.Rewards.Add(reward);
+        }
+        else
+        {
+            reward.Pontos += pontosGanhos;
+            _context.Rewards.Update(reward);
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public int ObterSaldo(int utilizadorId)
+    {
+        var reward = _context.Rewards.FirstOrDefault(r => r.UtilizadorId == utilizadorId);
+        return reward?.Pontos ?? 0;
+    }
+}

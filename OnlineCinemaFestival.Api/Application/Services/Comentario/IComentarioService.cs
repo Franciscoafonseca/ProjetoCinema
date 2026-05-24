@@ -1,0 +1,46 @@
+using OnlineCinemaFestival.Api.Application.DTOs;
+
+namespace OnlineCinemaFestival.Api.Services;
+
+public interface IComentarioService
+{
+    // Usa Guid para não expor o ID interno da comunidade guardado na BD.
+    Task<ComentarioReadDTO> CriarComentarioAsync(
+        Guid comunidadeId,
+        ComentarioCreateDTO dto,
+        int utilizadorId
+    );
+    Task<IEnumerable<ComentarioReadDTO>> ObterComentariosPorComunidadeIdAsync(
+        Guid comunidadeId,
+        int utilizadorId
+    );
+
+    Task<ComentarioReadDTO> CriarComentarioFilmeAsync(
+        int filmeId,
+        ComentarioCreateDTO dto,
+        int utilizadorId
+    );
+
+    Task<IEnumerable<ComentarioReadDTO>> ObterComentariosPorFilmeIdAsync(int filmeId);
+
+    Task ReportarComentarioAsync(Guid comunidadeId, int comentarioId, int utilizadorId);
+
+    Task<IEnumerable<ComentarioReadDTO>> ObterComentariosReportadosAsync(
+        Guid comunidadeId,
+        int utilizadorId
+    );
+
+    Task AtualizarVisibilidadeComentarioAsync(
+        Guid comunidadeId,
+        int comentarioId,
+        bool visivel,
+        int utilizadorId
+    );
+
+    Task<ComentarioReadDTO> ModerarComentarioAsync(
+        Guid comunidadeId,
+        int comentarioId,
+        ModerarComentarioDTO dto,
+        int utilizadorId
+    );
+}

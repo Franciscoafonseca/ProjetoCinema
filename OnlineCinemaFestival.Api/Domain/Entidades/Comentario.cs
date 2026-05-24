@@ -1,0 +1,30 @@
+namespace OnlineCinemaFestival.Api.Domain;
+
+public class Comentario
+{
+    public int Id { get; set; }
+
+    public string Texto { get; set; } = string.Empty;
+
+    public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
+
+    public bool Reportado { get; set; } = false;
+
+    public bool Visivel { get; set; } = true;
+
+    public EstadoModeracaoComentario EstadoModeracao { get; set; } =
+        EstadoModeracaoComentario.Visivel;
+
+    public int? ModeradoPorUtilizadorId { get; set; }
+
+    public DateTime? ModeradoEm { get; set; }
+
+    public int UsuarioId { get; set; }
+    public Utilizador Usuario { get; set; } = null!;
+
+    public int? ComunidadeId { get; set; }
+    public Comunidade? Comunidade { get; set; }
+
+    public int? FilmeId { get; set; }
+    public Filme? Filme { get; set; }
+}

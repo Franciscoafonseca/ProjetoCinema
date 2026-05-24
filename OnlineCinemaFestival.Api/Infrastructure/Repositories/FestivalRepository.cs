@@ -1,0 +1,57 @@
+using Microsoft.EntityFrameworkCore;
+using OnlineCinemaFestival.Api.Infrastructure.Data;
+using OnlineCinemaFestival.Api.Domain;
+
+namespace OnlineCinemaFestival.Api.Repositories;
+
+public class FestivalRepository : IFestivalRepository
+{
+    private readonly AppDbContext _context;
+
+    public FestivalRepository(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<IEnumerable<Festival>> ObterTodosAsync()
+    {
+        return await _context.Festivals.AsNoTracking().OrderBy(f => f.StartDate).ToListAsync();
+    }
+
+    public async Task<Festival?> ObterPorIdAsync(int id)
+    {
+        return await _context.Festivals.FirstOrDefaultAsync(f => f.Id == id);
+    }
+
+    public async Task<Festival?> ObterDetalhePorIdAsync(int id)
+    {
+        return await _context
+            .Festivals.AsSplitQuery()
+            .Include(f => f.FestivalFilmes)
+                .ThenInclude(ff => ff.Filme)
+                    .ThenInclude(f => f.FilmeGeneros)
+                        .ThenInclude(fg => fg.Genero)
+            .Include(f => f.Sessoes)
+                .ThenInclude(s => s.Filme)
+            .Include(f => f.Acessos)
+            .Include(f => f.PremiosFestival)
+                .ThenInclude(p => p.Resultado)
+                    .ThenInclude(r => r!.FilmeVencedor)
+            .FirstOrDefaultAsync(f => f.Id == id);
+    }
+
+    public async Task AddAsync(Festival festival)
+    {
+        await _context.Festivals.AddAsync(festival);
+    }
+
+    public void Remove(Festival festival)
+    {
+        _context.Festivals.Remove(festival);
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
+}

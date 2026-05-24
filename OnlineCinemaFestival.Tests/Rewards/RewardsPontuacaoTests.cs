@@ -1,4 +1,4 @@
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Domain;
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Tests.Support;

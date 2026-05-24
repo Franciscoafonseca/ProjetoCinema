@@ -3,7 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OnlineCinemaFestival.Api.Data;
+using OnlineCinemaFestival.Api.Infrastructure.Data;
 
 #nullable disable
 
@@ -17,7 +17,7 @@ namespace OnlineCinemaFestival.Api.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Acesso", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Acesso", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -80,7 +80,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Acessos");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.AcessoUtilizador", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.AcessoUtilizador", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -136,7 +136,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("AcessosUtilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Avaliacao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Avaliacao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -168,7 +168,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Avaliacoes");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Carrinho", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Carrinho", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -191,7 +191,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Carrinhos");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.CarrinhoItem", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.CarrinhoItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -222,7 +222,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("ItensCarrinho", (string)null);
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comentario", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Comentario", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -273,7 +273,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Compra", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Compra", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -308,7 +308,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Compras");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comunidade", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Comunidade", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -358,7 +358,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Comunidades");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ComunidadeMembro", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ComunidadeMembro", b =>
                 {
                     b.Property<int>("ComunidadeId")
                         .HasColumnType("INTEGER");
@@ -379,7 +379,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("ComunidadeMembros");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Festival", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Festival", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -410,7 +410,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Festivals");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.FestivalFilme", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.FestivalFilme", b =>
                 {
                     b.Property<int>("FestivalId")
                         .HasColumnType("INTEGER");
@@ -439,7 +439,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("FestivalFilmes");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Filme", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Filme", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -508,7 +508,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Filmes");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.FilmeGenero", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.FilmeGenero", b =>
                 {
                     b.Property<int>("FilmeId")
                         .HasColumnType("INTEGER");
@@ -523,7 +523,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("FilmeGeneros");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.FilmePessoa", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.FilmePessoa", b =>
                 {
                     b.Property<int>("FilmeId")
                         .HasColumnType("INTEGER");
@@ -547,7 +547,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("FilmePessoas");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Genero", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Genero", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -569,7 +569,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Generos");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ItemCompra", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ItemCompra", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -606,7 +606,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("ItensCompra");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ListaPessoal", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ListaPessoal", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -644,7 +644,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("ListasPessoais");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ListaPessoalItem", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ListaPessoalItem", b =>
                 {
                     b.Property<int>("ListaPessoalId")
                         .HasColumnType("INTEGER");
@@ -662,7 +662,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("ListaPessoalItems");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.MensagemChatSessao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.MensagemChatSessao", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -696,7 +696,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("MensagensChatSessao");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Pagamento", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Pagamento", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -742,7 +742,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Pagamentos");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.PerfilUtilizador", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.PerfilUtilizador", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -793,7 +793,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("PerfisUtilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Pessoa", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Pessoa", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -818,7 +818,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Pessoas");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.PremioFestival", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.PremioFestival", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -853,7 +853,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("PremiosFestival");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ReporteUtilizador", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ReporteUtilizador", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -889,7 +889,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("ReportesUtilizadores");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ResultadoPremioFestival", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ResultadoPremioFestival", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -922,7 +922,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("ResultadosPremiosFestival");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Reward", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Reward", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -939,7 +939,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Rewards");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.RewardTransacao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.RewardTransacao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -972,7 +972,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("RewardsTransacoes");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Sessao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Sessao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1009,7 +1009,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Sessoes");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Utilizador", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Utilizador", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1066,7 +1066,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Utilizadores");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.UtilizadorGeneroFavorito", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.UtilizadorGeneroFavorito", b =>
                 {
                     b.Property<int>("UtilizadorId")
                         .HasColumnType("INTEGER");
@@ -1084,7 +1084,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("UtilizadoresGenerosFavoritos");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Visualizacao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Visualizacao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1128,7 +1128,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("Visualizacoes");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.VotoPremioFestival", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.VotoPremioFestival", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1163,19 +1163,19 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.ToTable("VotosPremiosFestival");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Acesso", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Acesso", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Festival", "Festival")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Festival", "Festival")
                         .WithMany("Acessos")
                         .HasForeignKey("FestivalId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("Acessos")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Sessao", "Sessao")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Sessao", "Sessao")
                         .WithMany("Acessos")
                         .HasForeignKey("SessaoId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1187,36 +1187,36 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Sessao");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.AcessoUtilizador", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.AcessoUtilizador", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Acesso", "Acesso")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Acesso", "Acesso")
                         .WithMany("AcessosUtilizador")
                         .HasForeignKey("AcessoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Compra", "Compra")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Compra", "Compra")
                         .WithMany("AcessosUtilizador")
                         .HasForeignKey("CompraId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Festival", "Festival")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Festival", "Festival")
                         .WithMany("AcessosUtilizador")
                         .HasForeignKey("FestivalId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("AcessosUtilizador")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Sessao", "Sessao")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Sessao", "Sessao")
                         .WithMany("AcessosUtilizador")
                         .HasForeignKey("SessaoId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithMany("AcessosUtilizador")
                         .HasForeignKey("UtilizadorId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1235,15 +1235,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Avaliacao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Avaliacao", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("Avaliacoes")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Usuario")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Usuario")
                         .WithMany("Avaliacoes")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1254,26 +1254,26 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Carrinho", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Carrinho", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithOne("Carrinho")
-                        .HasForeignKey("OnlineCinemaFestival.Api.Models.Carrinho", "UtilizadorId")
+                        .HasForeignKey("OnlineCinemaFestival.Api.Domain.Carrinho", "UtilizadorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.CarrinhoItem", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.CarrinhoItem", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Acesso", "Acesso")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Acesso", "Acesso")
                         .WithMany("CarrinhoItems")
                         .HasForeignKey("AcessoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Carrinho", "Carrinho")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Carrinho", "Carrinho")
                         .WithMany("Itens")
                         .HasForeignKey("CarrinhoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1284,19 +1284,19 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Carrinho");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comentario", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Comentario", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Comunidade", "Comunidade")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Comunidade", "Comunidade")
                         .WithMany("Comentarios")
                         .HasForeignKey("ComunidadeId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("Comentarios")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Usuario")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Usuario")
                         .WithMany("Comentarios")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1309,9 +1309,9 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Compra", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Compra", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithMany("Compras")
                         .HasForeignKey("UtilizadorId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1320,9 +1320,9 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comunidade", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Comunidade", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "CreatedByUser")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1330,15 +1330,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("CreatedByUser");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ComunidadeMembro", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ComunidadeMembro", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Comunidade", "Comunidade")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Comunidade", "Comunidade")
                         .WithMany("Members")
                         .HasForeignKey("ComunidadeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithMany("Comunidades")
                         .HasForeignKey("UtilizadorId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1349,15 +1349,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.FestivalFilme", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.FestivalFilme", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Festival", "Festival")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Festival", "Festival")
                         .WithMany("FestivalFilmes")
                         .HasForeignKey("FestivalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("FestivalFilmes")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1368,15 +1368,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Filme");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.FilmeGenero", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.FilmeGenero", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("FilmeGeneros")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Genero", "Genero")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Genero", "Genero")
                         .WithMany("Filmes")
                         .HasForeignKey("GeneroId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1387,15 +1387,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Genero");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.FilmePessoa", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.FilmePessoa", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("PessoasDoFilme")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Pessoa", "Pessoa")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Pessoa", "Pessoa")
                         .WithMany("Filmes")
                         .HasForeignKey("PessoaId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1406,15 +1406,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Pessoa");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ItemCompra", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ItemCompra", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Acesso", "Acesso")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Acesso", "Acesso")
                         .WithMany("ItensCompra")
                         .HasForeignKey("AcessoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Compra", "Compra")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Compra", "Compra")
                         .WithMany("Itens")
                         .HasForeignKey("CompraId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1425,9 +1425,9 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Compra");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ListaPessoal", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ListaPessoal", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithMany("ListasPessoais")
                         .HasForeignKey("UtilizadorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1436,15 +1436,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ListaPessoalItem", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ListaPessoalItem", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("ListaPessoalItems")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.ListaPessoal", "ListaPessoal")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.ListaPessoal", "ListaPessoal")
                         .WithMany("Items")
                         .HasForeignKey("ListaPessoalId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1455,15 +1455,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("ListaPessoal");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.MensagemChatSessao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.MensagemChatSessao", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Sessao", "Sessao")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Sessao", "Sessao")
                         .WithMany("MensagensChat")
                         .HasForeignKey("SessaoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithMany("MensagensChatSessao")
                         .HasForeignKey("UtilizadorId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1474,31 +1474,31 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Pagamento", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Pagamento", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Compra", "Compra")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Compra", "Compra")
                         .WithOne("Pagamento")
-                        .HasForeignKey("OnlineCinemaFestival.Api.Models.Pagamento", "CompraId")
+                        .HasForeignKey("OnlineCinemaFestival.Api.Domain.Pagamento", "CompraId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Compra");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.PerfilUtilizador", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.PerfilUtilizador", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithOne("Perfil")
-                        .HasForeignKey("OnlineCinemaFestival.Api.Models.PerfilUtilizador", "UtilizadorId")
+                        .HasForeignKey("OnlineCinemaFestival.Api.Domain.PerfilUtilizador", "UtilizadorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.PremioFestival", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.PremioFestival", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Festival", "Festival")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Festival", "Festival")
                         .WithMany("PremiosFestival")
                         .HasForeignKey("FestivalId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1507,15 +1507,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Festival");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ReporteUtilizador", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ReporteUtilizador", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "ReportadoPorUtilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "ReportadoPorUtilizador")
                         .WithMany()
                         .HasForeignKey("ReportadoPorUtilizadorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "UtilizadorReportado")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "UtilizadorReportado")
                         .WithMany()
                         .HasForeignKey("UtilizadorReportadoId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1526,21 +1526,21 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("UtilizadorReportado");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ResultadoPremioFestival", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ResultadoPremioFestival", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "FilmeVencedor")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "FilmeVencedor")
                         .WithMany("ResultadosPremiosFestival")
                         .HasForeignKey("FilmeIdVencedor")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.PremioFestival", "PremioFestival")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.PremioFestival", "PremioFestival")
                         .WithOne("Resultado")
-                        .HasForeignKey("OnlineCinemaFestival.Api.Models.ResultadoPremioFestival", "PremioFestivalId")
+                        .HasForeignKey("OnlineCinemaFestival.Api.Domain.ResultadoPremioFestival", "PremioFestivalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "PublicadoPorUtilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "PublicadoPorUtilizador")
                         .WithMany("ResultadosPremiosPublicados")
                         .HasForeignKey("PublicadoPorUtilizadorId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1552,15 +1552,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("PublicadoPorUtilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Sessao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Sessao", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Festival", "Festival")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Festival", "Festival")
                         .WithMany("Sessoes")
                         .HasForeignKey("FestivalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("Sessoes")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1571,15 +1571,15 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Filme");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.UtilizadorGeneroFavorito", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.UtilizadorGeneroFavorito", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Genero", "Genero")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Genero", "Genero")
                         .WithMany("UtilizadoresFavoritos")
                         .HasForeignKey("GeneroId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithMany("GenerosFavoritos")
                         .HasForeignKey("UtilizadorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1590,25 +1590,25 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Visualizacao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Visualizacao", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Festival", "Festival")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Festival", "Festival")
                         .WithMany("Visualizacoes")
                         .HasForeignKey("FestivalId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("Visualizacoes")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Sessao", "Sessao")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Sessao", "Sessao")
                         .WithMany("Visualizacoes")
                         .HasForeignKey("SessaoId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithMany("Visualizacoes")
                         .HasForeignKey("UtilizadorId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1623,27 +1623,27 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.VotoPremioFestival", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.VotoPremioFestival", b =>
                 {
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Festival", "Festival")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Festival", "Festival")
                         .WithMany("VotosPremiosFestival")
                         .HasForeignKey("FestivalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Filme", "Filme")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Filme", "Filme")
                         .WithMany("VotosPremiosFestival")
                         .HasForeignKey("FilmeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.PremioFestival", "PremioFestival")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.PremioFestival", "PremioFestival")
                         .WithMany("Votos")
                         .HasForeignKey("PremioFestivalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineCinemaFestival.Api.Models.Utilizador", "Utilizador")
+                    b.HasOne("OnlineCinemaFestival.Api.Domain.Utilizador", "Utilizador")
                         .WithMany("VotosPremiosFestival")
                         .HasForeignKey("UtilizadorId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1658,7 +1658,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Utilizador");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Acesso", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Acesso", b =>
                 {
                     b.Navigation("AcessosUtilizador");
 
@@ -1667,12 +1667,12 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("ItensCompra");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Carrinho", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Carrinho", b =>
                 {
                     b.Navigation("Itens");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Compra", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Compra", b =>
                 {
                     b.Navigation("AcessosUtilizador");
 
@@ -1681,14 +1681,14 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Pagamento");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Comunidade", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Comunidade", b =>
                 {
                     b.Navigation("Comentarios");
 
                     b.Navigation("Members");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Festival", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Festival", b =>
                 {
                     b.Navigation("Acessos");
 
@@ -1705,7 +1705,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("VotosPremiosFestival");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Filme", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Filme", b =>
                 {
                     b.Navigation("Acessos");
 
@@ -1732,31 +1732,31 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("VotosPremiosFestival");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Genero", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Genero", b =>
                 {
                     b.Navigation("Filmes");
 
                     b.Navigation("UtilizadoresFavoritos");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.ListaPessoal", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.ListaPessoal", b =>
                 {
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Pessoa", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Pessoa", b =>
                 {
                     b.Navigation("Filmes");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.PremioFestival", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.PremioFestival", b =>
                 {
                     b.Navigation("Resultado");
 
                     b.Navigation("Votos");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Sessao", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Sessao", b =>
                 {
                     b.Navigation("Acessos");
 
@@ -1767,7 +1767,7 @@ namespace OnlineCinemaFestival.Api.Migrations
                     b.Navigation("Visualizacoes");
                 });
 
-            modelBuilder.Entity("OnlineCinemaFestival.Api.Models.Utilizador", b =>
+            modelBuilder.Entity("OnlineCinemaFestival.Api.Domain.Utilizador", b =>
                 {
                     b.Navigation("AcessosUtilizador");
 

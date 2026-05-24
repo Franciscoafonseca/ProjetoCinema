@@ -1,6 +1,6 @@
-using OnlineCinemaFestival.Api.DTOs;
-using OnlineCinemaFestival.Api.Excecoes;
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Application.DTOs;
+using OnlineCinemaFestival.Api.Common.Errors;
+using OnlineCinemaFestival.Api.Domain;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Tests.Support;
 using OnlineCinemaFestival.Tests.Support.Builders;

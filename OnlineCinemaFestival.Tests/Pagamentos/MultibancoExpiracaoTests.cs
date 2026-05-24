@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using OnlineCinemaFestival.Api.Configuracao;
-using OnlineCinemaFestival.Api.Excecoes;
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Common.Errors;
+using OnlineCinemaFestival.Api.Domain;
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Tests.Support;

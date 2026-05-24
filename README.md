@@ -1,68 +1,242 @@
 # Online Cinema Festival
 
-Plataforma academica para festivais de cinema online, com ASP.NET Core Web API, Blazor WebAssembly, EF Core e SQLite.
+Plataforma académica para festivais de cinema online — backend ASP.NET Core Web API, frontend Blazor WebAssembly, EF Core com SQLite.
 
-## Funcionalidades Reais
+---
 
-- Registo e login JWT com validacoes claras para email, telefone, palavra-passe forte, confirmacao e campos obrigatorios.
-- Perfil privado/publico com upload de foto por ficheiro, bandeira por pais, localidade, bio, listas e atividade recente.
-- Home com seccoes Mais populares, Mais vistos, Em destaque e Catalogo.
-- Catalogo interno com pesquisa local primeiro; TMDB so aparece quando nao ha resultados internos relevantes.
-- Detalhe de filme com trailer TMDB/YouTube, realizador, atores, generos, reviews internas, premios vencidos, acessos e sessoes.
-- Detalhe TMDB separado: apenas Admin pode importar/adicionar ao catalogo.
-- Festivais com filmes associados, sessoes, passes, votacao do publico e resultados publicados.
-- Sessoes em `/sessoes/{id}` com festival, filme, inicio/fim, estado, acesso necessario e acoes Comprar/Entrar.
-- Carrinho e checkout com bilhete de sessao, passe diario, passe completo e aluguer digital de 48h.
-- Player para filme/sessao com validacao de acesso e registo de visualizacao.
-- Reviews de 10 estrelas com texto validado e bloqueio ate existir visualizacao valida.
-- Comunidades com pagina propria, membros, privacidade, comentarios, autor, perfil publico/privado e filme associado opcional.
-- Admin unico em `/admin` para gerir importacoes TMDB, filmes, festivais, sessoes, premios e publicacao de vencedores.
+## Índice
+
+1. [Descrição](#descrição)
+2. [Arquitetura](#arquitetura)
+3. [Padrões de design aplicados](#padrões-de-design-aplicados)
+4. [Principais funcionalidades](#principais-funcionalidades)
+5. [Estrutura de pastas](#estrutura-de-pastas)
+6. [Configuração e arranque](#configuração-e-arranque)
+7. [Migrations e base de dados](#migrations-e-base-de-dados)
+8. [Testes](#testes)
+9. [Imagens, logos e uploads](#imagens-logos-e-uploads)
+10. [Credenciais demo](#credenciais-demo)
+11. [Fluxo de demonstração](#fluxo-de-demonstração)
+12. [Limitações conhecidas](#limitações-conhecidas)
+
+---
+
+## Descrição
+
+Sistema de festivais de cinema online que permite a utilizadores registados comprar acessos a sessões, alugar filmes, votar em prémios, criar listas pessoais e participar em comunidades. Um utilizador administrador gere o catálogo, festivais, sessões e prémios.
+
+---
 
 ## Arquitetura
 
-```text
-OnlineCinemaFestival.Api/      Backend ASP.NET Core Web API
-OnlineCinemaFestival.Client/   Frontend Blazor WebAssembly
-OnlineCinemaFestival.slnx      Solution
+```
+OnlineCinemaFestival.Api      Backend ASP.NET Core Web API (.NET 10)
+OnlineCinemaFestival.Client   Frontend Blazor WebAssembly (.NET 10)
+OnlineCinemaFestival.Tests    Testes unitários xUnit (.NET 10)
+OnlineCinemaFestival.slnx     Solution
 ```
 
-Fluxo esperado no backend:
+**Fluxo no backend:**
 
-```text
-Controller -> Service -> Repository -> AppDbContext
+```
+HTTP Request
+    └─► Controller          (recebe HTTP, valida rota/auth, devolve resposta)
+            └─► Service     (regras de negócio, orquestração)
+                    └─► Repository  (queries EF Core)
+                                └─► AppDbContext / SQLite
 ```
 
-Controllers ficam finos, services concentram regras de negocio e repositories centralizam acesso a dados.
+**Princípios aplicados:**
 
-Principios aplicados:
+| Princípio | Onde |
+|-----------|------|
+| SRP | Services com responsabilidade única; controllers finos sem lógica de negócio |
+| OCP | Novos tipos de acesso, pagamento ou ordenação entram por novas strategies |
+| DIP | Services dependem de interfaces, não de classes concretas |
+| ISP | Interfaces pequenas por domínio |
+| Repository | Acesso a dados isolado; controllers nunca acedem ao `DbContext` diretamente |
 
-- O Blazor WebAssembly comunica com a API apenas via `HttpClient`; nao referencia EF Core, repositories nem modelos internos da API.
-- SRP/DIP: regras de negocio ficam em services dependentes de interfaces; controllers recebem HTTP e devolvem respostas.
-- OCP: novos tipos de acesso, pagamento ou ordenacao entram por novas strategies/factories registadas em DI.
-- Consistencia transacional: a finalizacao de compra corre dentro de transacao explicita via repository/AppDbContext.
+---
 
-## Configuracao Segura
+## Padrões de design aplicados
 
-Nao colocar tokens reais, passwords reais, ficheiros `.db`, `secrets.json` ou `appsettings.Development.json` no Git. O `appsettings.json` deve manter placeholders; valores sensiveis devem vir de user-secrets ou variaveis de ambiente.
+### Strategy
+- **Validação de acessos** (`Services/AcessoFolder/`): `BilheteSessaoValidacaoStrategy`, `EstrategiaValidacaoPasseDiario`, `ValidacaoPasseCompletoStrategy`, `AluguerDigitalValidacaoStrategy`
+- **Criação de acessos** (`Services/`): `EstrategiaCriacaoBilheteSessao`, `EstrategiaCriacaoPasseDiario`, `EstrategiaCriacaoPasseCompleto`, `EstrategiaCriacaoAluguerDigital`
+- **Ordenação de catálogo** (`Services/Catalogo/`): `OrdenarPorTituloStrategy`, `OrdenarPorClassificacaoStrategy`, `OrdenarPorPopularidadeStrategy`, `OrdenarPorDataLancamentoStrategy`, `OrdenarPorVisualizacoesStrategy`, `OrdenarPorFestivalStrategy`
+- **Pagamentos** (`Services/`): `PagamentoAprovadoSimuladoStrategy`, `PagamentoReferenciaMultibancoStrategy`
+- **Recomendações** (`Services/`): `RecomendacaoPorGeneroStrategy`, `RecomendacaoPorAvaliacaoStrategy`, `RecomendacaoPorPopularidadeStrategy`, `RecomendacaoPorPremiosStrategy`
 
-Configurar secrets locais da API:
+### Factory
+- `AcessoAutomaticoFactory` — cria acessos automáticos pós-compra com base no tipo
+- `AcessoUtilizadorFactory` — instancia `AcessoUtilizador` a partir de um acesso
+- `CompraFactory` — constrói `Compra` a partir de um carrinho validado
+- `CatalogoOrdenacaoStrategyFactory` — resolve a strategy de ordenação pelo enum `CatalogoOrdenacao`
+- `ValidacaoAcessoStrategyFactory` — resolve a strategy de validação pelo tipo de acesso
+
+### Observer
+- **Rewards**: `RewardsObserver`, `RewardsAvaliacaoObserver`, `RewardsComentarioObserver`, `RewardsVisualizacaoObserver`, `RewardsListaPessoalObserver`, `RewardsVotoPremioObserver` — atribuem pontos automaticamente após eventos de domínio
+- **Acessos**: `AcessoObserver` — regista acessos após compra finalizada
+
+### Adapter / Facade
+- `TmdbApiClient` + `TmdbService` — isola a API TMDB; controllers e services nunca chamam TMDB diretamente
+
+### Repository
+- Um repositório por domínio: `IFilmeRepository`, `IFestivalRepository`, `ISessaoRepository`, `ICompraRepository`, `ICarrinhoRepository`, `IListaPessoalRepository`, `IComunidadeRepository`, `IComentarioRepository`, `IReporteUtilizadorRepository`, etc.
+
+### Seed (orquestrador + passos)
+- `DbSeeder` — orquestrador puro que delega a 11 `ISeedStep` em ordem de dependência:
+  `UtilizadoresSeeder → FilmesSeeder → FestivaisSeeder → SessoesSeeder → AcessosSeeder → ComprasSeeder → ComunidadesSeeder → ReviewsSeeder → ListasSeeder → PremiosSeeder → RewardsSeeder`
+
+---
+
+## Principais funcionalidades
+
+### Autenticação e Perfil
+- Registo com validação de email, telefone, password forte e confirmação
+- Login JWT com expiração configurável
+- Perfil público/privado com upload de foto (jpg, jpeg, png, webp; máx. 2 MB; validação de magic bytes)
+- Bandeira por país, localidade, bio, géneros favoritos
+- Área pessoal: histórico de compras, acessos ativos, listas, rewards, atividade recente
+
+### Catálogo e Filmes
+- Pesquisa local prioritária; TMDB aparece apenas quando não há resultados internos relevantes
+- Ordenação por título, classificação, popularidade, data, visualizações, festival
+- Detalhe com trailer TMDB/YouTube, realizador, atores, géneros, reviews internas, prémios, sessões e acessos
+- Importação de filmes TMDB restrita ao admin
+
+### Festivais e Sessões
+- Festivais com datas de início/fim, filmes associados, passes, votação e resultados publicados
+- Sessões com estado (futura, em curso, terminada), tipo (normal, chat ao vivo), acesso necessário
+- Chat ao vivo em tempo real via SignalR durante sessões ativas
+
+### Compras e Acessos
+- Carrinho com até 99 itens
+- Tipos de acesso: Bilhete de Sessão, Passe Diário, Passe Completo, Aluguer Digital 48h
+- Pagamentos simulados: Cartão de Crédito (aprovação imediata) e Referência Multibanco (pendente com expiração configurável)
+- Expiração automática de pagamentos Multibanco por background service
+
+### Rewards
+- Sistema de pontos atribuídos por eventos: avaliação, comentário, visualização, lista pessoal, voto em prémio
+- Histórico de transações visível na área do utilizador
+
+### Comunidades
+- Criação por qualquer utilizador registado
+- Código de convite para acesso restrito
+- Comentários com moderação pelo proprietário (ocultar/remover)
+- Reporte de utilizadores com gestão pelo admin
+
+### Prémios
+- Prémios por festival criados pelo admin
+- Votação do público (um voto por utilizador por prémio)
+- Publicação de vencedores automática por background service quando o festival termina
+
+### Listas Pessoais
+- Listas predefinidas: Quero ver, Vistos, Favoritos (não apagáveis)
+- Listas personalizadas com nome único por utilizador (3–50 caracteres)
+- Sem duplicados de filme por lista
+
+### Admin
+- Dashboard em `/admin`
+- Gestão de filmes, festivais, sessões, prémios e publicação de vencedores
+- Moderação de reportes de utilizadores
+- Importação de filmes via TMDB
+
+---
+
+## Estrutura de pastas
+
+```
+OnlineCinemaFestival.Api/
+├── Autorizacao/              Constantes de papéis e políticas JWT
+├── Configuracao/             Options (Jwt, Cors, Acessos, Pagamentos, Tmdb, YouTube)
+├── Controllers/              Controllers finos por domínio
+├── Data/
+│   ├── AppDbContext.cs
+│   ├── AppDbContextFactory.cs   (design-time; lê user-secrets)
+│   ├── Configurations/          EF Core fluent configurations
+│   └── Seed/                    DbSeeder + 11 seeders por domínio
+├── DTOs/                     Data transfer objects de request/response
+├── Excecoes/                 Exceções de domínio personalizadas
+├── Extensions/               ServiceCollection extensions (registos DI)
+├── Hubs/                     SignalR hub do chat de sessão
+├── Mappers/                  Mapeamento Model → DTO
+├── Middleware/               Error handler global
+├── Migrations/               1 migration limpa: FinalSchemaCinemaFestival
+├── Models/                   Entidades de domínio
+├── Repositories/             Interfaces e implementações EF Core
+└── Services/                 Serviços de negócio, strategies, factories, observers
+
+OnlineCinemaFestival.Client/
+├── Components/               Componentes Blazor reutilizáveis
+├── Configuracao/             Constantes (papéis, métodos de pagamento)
+├── Extensions/               ServiceCollection extensions por domínio
+├── Layout/                   Layout principal e navbar
+├── Models/                   DTOs do lado cliente
+├── Pages/                    Páginas Blazor por funcionalidade
+├── Services/                 Clientes HTTP por domínio
+└── wwwroot/                  Ficheiros estáticos, CSS, imagens, appsettings.json
+
+OnlineCinemaFestival.Tests/
+├── Acessos/                  PoliticasAcessoTests, AcessoCompraServiceTests
+├── Admin/                    ReporteUtilizadorTests
+├── Compras/                  CarrinhoServiceTests, CheckoutValidacaoTests,
+│                             FinalizacaoCompraTests, CompraHistoricoTests
+├── Comunidades/              ModeracaoComentarioTests
+├── Listas/                   ListaSemDuplicadosTests
+├── Pagamentos/               PagamentoSimuladoTests, MultibancoExpiracaoTests
+├── Perfis/                   PerfilPublicoPrivadoTests
+├── Premios/                  VotacaoTests, VencedorAutomaticoTests
+├── Recomendacoes/            RecomendacaoTests, CatalogoTests
+├── Rewards/                  RewardsPontuacaoTests
+├── Upload/                   ImagemValidacaoTests
+├── Visualizacoes/            VisualizacaoFluxoTests, ChatTemporalTests
+└── Support/
+    ├── Builders/             13 fluent builders (Utilizador, Filme, Sessao, Compra…)
+    ├── Fakes/                Repositórios falsos por domínio
+    ├── Assertions/           Extension methods de asserção (Pagamento, Compra)
+    ├── FakeTimeProvider.cs
+    └── OpcoesTeste.cs
+```
+
+---
+
+## Configuração e arranque
+
+### Pré-requisitos
+
+- .NET 10 SDK
+- `dotnet-ef` tool: `dotnet tool install --global dotnet-ef`
+
+### 1. Clonar e restaurar
+
+```bash
+git clone <url>
+cd ProjetoCinema
+dotnet restore
+```
+
+### 2. Configurar secrets locais da API
 
 ```bash
 cd OnlineCinemaFestival.Api
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Data Source=onlinecinemafestival.db"
-dotnet user-secrets set "Jwt:Key" "chave-local-com-pelo-menos-32-caracteres"
+
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Data Source=festival.db"
+dotnet user-secrets set "Jwt:Key" "chave-local-com-pelo-menos-32-caracteres-aleatorios"
 dotnet user-secrets set "Jwt:Issuer" "OnlineCinemaFestival"
 dotnet user-secrets set "Jwt:Audience" "OnlineCinemaFestivalClient"
 dotnet user-secrets set "Cors:AllowedOrigins:0" "http://localhost:5174"
 dotnet user-secrets set "Seed:AdminEmail" "admin@festival.pt"
 dotnet user-secrets set "Seed:AdminPassword" "Admin123!"
 dotnet user-secrets set "Seed:UtilizadorPassword" "User123!"
-dotnet user-secrets set "Tmdb:Token" "token-read-access-do-tmdb"
+dotnet user-secrets set "Tmdb:Token" "bearer-token-do-tmdb"
 ```
 
-`Tmdb:Token` e `YouTube:ApiKey` podem ser omitidos quando nao se pretende usar essas integracoes. Sem `Jwt:Key`, connection string ou CORS valido, a API falha no arranque por configuracao de seguranca.
+> `Tmdb:Token` pode ser omitido se não se pretender usar integração TMDB. Sem `Jwt:Key` ou `ConnectionStrings:DefaultConnection` a API falha no arranque.
 
-O Client le a API em `OnlineCinemaFestival.Client/wwwroot/appsettings.json`:
+### 3. Configurar o Client
+
+O Client lê a URL da API em `OnlineCinemaFestival.Client/wwwroot/appsettings.json`:
 
 ```json
 {
@@ -72,138 +246,161 @@ O Client le a API em `OnlineCinemaFestival.Client/wwwroot/appsettings.json`:
 }
 ```
 
-## Imagens, Logos e Uploads
+Ajustar a porta se necessário.
 
-O frontend referencia estes assets locais. Se ainda nao existirem, a UI usa fallback visual e continua a funcionar:
+### 4. Criar a base de dados e correr o seeder
 
-```text
+```bash
+cd ..
+dotnet ef database update \
+  --project OnlineCinemaFestival.Api \
+  --startup-project OnlineCinemaFestival.Api
+```
+
+O seeder corre automaticamente no primeiro arranque da API (via `MigrateAsync` + `SeedAsync`).
+
+### 5. Arrancar os projetos
+
+Terminal 1 — API:
+```bash
+dotnet run --project OnlineCinemaFestival.Api
+```
+
+Terminal 2 — Client:
+```bash
+dotnet run --project OnlineCinemaFestival.Client
+```
+
+Abrir o browser em `http://localhost:5174`.
+
+---
+
+## Migrations e base de dados
+
+O projeto tem **uma única migration limpa**: `FinalSchemaCinemaFestival`.
+
+### Criar migration nova (após alterar modelos)
+
+```bash
+dotnet ef migrations add NomeDaMigration \
+  --project OnlineCinemaFestival.Api \
+  --startup-project OnlineCinemaFestival.Api
+```
+
+### Aplicar migrations
+
+```bash
+dotnet ef database update \
+  --project OnlineCinemaFestival.Api \
+  --startup-project OnlineCinemaFestival.Api
+```
+
+### Reset completo da base de dados
+
+```bash
+# Apagar a BD local
+rm OnlineCinemaFestival.Api/festival.db
+
+# Recriar (migration + seeder correm no primeiro arranque)
+dotnet run --project OnlineCinemaFestival.Api
+```
+
+> `*.db`, `*.db-shm`, `*.db-wal` estão no `.gitignore` e nunca devem ser commitados.
+
+---
+
+## Testes
+
+```bash
+dotnet test OnlineCinemaFestival.Tests
+```
+
+**87 testes unitários** organizados por domínio, sem dependências de BD real ou TMDB.
+
+| Pasta | Testes | O que cobre |
+|-------|--------|-------------|
+| `Acessos/` | 8 | Políticas de acesso por tipo; criação de acessos pós-compra |
+| `Admin/` | 4 | Reporte de utilizadores; moderação admin |
+| `Compras/` | 18 | Carrinho; checkout; validação; histórico |
+| `Comunidades/` | 3 | Moderação de comentários; permissões de dono |
+| `Listas/` | 10 | Duplicados de filme; duplicados de nome; listas predefinidas |
+| `Pagamentos/` | 7 | Cartão, Multibanco, expiração, confirmação |
+| `Perfis/` | 4 | Perfil público/privado; acesso entre utilizadores |
+| `Prémios/` | 6 | Votação única; vencedor automático |
+| `Recomendações/` | 7 | Recomendação por género/avaliação/popularidade; catálogo |
+| `Rewards/` | 3 | Pontuação por evento |
+| `Upload/` | 9 | Extensão inválida; magic bytes errados; tamanho excedido |
+| `Visualizações/` | 8 | Fluxo de visualização; chat temporal |
+
+**Padrões usados nos testes:**
+- `FakeTimeProvider` — controlo determinístico de datas
+- 13 fluent builders (`UtilizadorBuilder`, `FilmeBuilder`, `CompraBuilder`, etc.)
+- Repositórios falsos em memória por domínio
+- Extension methods de asserção (`DeveEstarPendente()`, `DeveEstarExpirado()`, etc.)
+
+---
+
+## Imagens, logos e uploads
+
+O frontend usa estes assets estáticos (fallback visual se não existirem):
+
+```
 OnlineCinemaFestival.Client/wwwroot/images/brand/sky-cinema-logo.svg
 OnlineCinemaFestival.Client/wwwroot/images/brand/sky-cinema-mark.svg
+OnlineCinemaFestival.Client/wwwroot/images/brand/tmdb-logo.svg
 OnlineCinemaFestival.Client/wwwroot/images/placeholders/avatar-placeholder.svg
 OnlineCinemaFestival.Client/wwwroot/images/placeholders/poster-placeholder.svg
 OnlineCinemaFestival.Client/wwwroot/images/placeholders/festival-placeholder.svg
 OnlineCinemaFestival.Client/wwwroot/images/placeholders/community-placeholder.svg
 OnlineCinemaFestival.Client/wwwroot/images/illustrations/empty-state-reel.svg
-OnlineCinemaFestival.Client/wwwroot/images/brand/tmdb-logo.svg
 ```
 
-Uploads locais da API ficam em:
+Uploads gerados em runtime (ignorados pelo Git):
 
-```text
+```
 OnlineCinemaFestival.Api/wwwroot/uploads/perfis/
 OnlineCinemaFestival.Api/wwwroot/uploads/comunidades/
 ```
 
-Essas pastas sao runtime data e nao devem ser commitadas. O upload valida `jpg`, `jpeg`, `png` e `webp`, limita a 2MB, gera nome com `Guid` e guarda apenas caminhos publicos seguros como `/uploads/perfis/{ficheiro}`.
+**Regras de upload:** formatos aceites — `jpg`, `jpeg`, `png`, `webp`; tamanho máximo — 2 MB; validação de magic bytes para garantir integridade; nome gerado com `Guid` para evitar colisões.
 
-Perfil: o utilizador carrega a fotografia no ecrã `/perfil`; a imagem fica visivel no perfil e na navbar logo apos upload. Se a imagem nao carregar, a UI mostra iniciais. Comunidades: o proprietario pode definir imagem por upload ao criar a comunidade; URLs arbitrarios de utilizadores comuns nao sao usados pelo formulario.
+---
 
-## Problemas comuns JWT/TMDB
+## Credenciais demo
 
-- `Jwt:Key` tem de existir e ter tamanho suficiente para assinar tokens.
-- Se receberes 401 no Client, termina sessao e volta a entrar; o Client limpa token expirado automaticamente.
-- `Tmdb:Token` vazio apenas desativa importacoes TMDB; nao deve quebrar paginas publicas.
-- Se o seed TMDB falhar por rede/token, o seed local continua e regista aviso no log.
+Criadas pelo `DbSeeder` com os valores configurados nos user-secrets:
 
-## Credenciais de Demo
+| Conta | Email | Password |
+|-------|-------|----------|
+| Administrador | `admin@festival.pt` | `Admin123!` |
+| Utilizadores demo | `utilizador1@demo.pt` … | `User123!` |
 
-- Admin: `admin@festival.pt` / `Admin123!`
-- Utilizador: `utilizador1@teste.pt` / `User123!`
-- Outros utilizadores seed: `utilizador2@teste.pt` ate `utilizador35@teste.pt` / `User123!`
+---
 
-## Executar
+## Fluxo de demonstração
 
-Na raiz:
+1. **Login como admin** → `/login` com `admin@festival.pt` / `Admin123!`
+2. **Importar filmes TMDB** → `/admin` → separador Filmes → Importar TMDB
+3. **Criar festival** → `/admin` → Festivais → Novo festival com datas futuras
+4. **Associar filmes e criar sessões** → dentro do festival criado
+5. **Criar prémios** → `/admin` → Prémios → adicionar categorias ao festival
+6. **Login como utilizador** → registo ou utilizador seed
+7. **Explorar catálogo** → `/catalogo` → filtrar, ordenar, abrir detalhe de filme
+8. **Comprar acesso** → carrinho → checkout → pagar com Cartão ou Multibanco
+9. **Assistir sessão** → `/sessoes/{id}` → Entrar → player com chat se aplicável
+10. **Avaliar e comentar** → detalhe do filme → submeter review (requer visualização)
+11. **Votar em prémio** → página do festival → separador Prémios
+12. **Ver rewards** → `/perfil` → separador Rewards
+13. **Criar comunidade** → `/comunidades` → Nova comunidade; convidar membros
+14. **Admin modera reporte** → `/admin` → Reportes → aceitar ou rejeitar
 
-```bash
-dotnet restore
-dotnet build
-```
+---
 
-Aplicar migrations:
+## Limitações conhecidas
 
-```bash
-cd OnlineCinemaFestival.Api
-dotnet ef database update
-```
-
-Arrancar API:
-
-```bash
-dotnet run --project OnlineCinemaFestival.Api
-```
-
-Arrancar frontend:
-
-```bash
-dotnet run --project OnlineCinemaFestival.Client
-```
-
-Em `Development`, o `DbSeeder` cria/atualiza dados de demo com as credenciais configuradas em user-secrets.
-
-Correr testes:
-
-```bash
-dotnet test
-```
-
-## Padroes de Desenho Aplicados
-
-| Padrao | Onde esta | Problema que resolve | SOLID | Beneficio | Trade-off |
-| --- | --- | --- | --- | --- | --- |
-| Repository | `Repositories/*Repository.cs` | Isola EF Core e queries | DIP, SRP | Trocar persistencia ou testar services fica mais simples | Mais interfaces e classes |
-| Service Layer | `Services/*Service.cs` | Centraliza regras de negocio fora dos controllers | SRP | Controllers finos e reutilizacao de casos de uso | Services podem crescer se nao forem divididos |
-| Strategy | validators de carrinho, pagamentos, catalogo, validacao de acesso | Varia comportamento por tipo | OCP | Novo tipo entra por nova classe e DI | Mais registos em DI |
-| Factory | `CompraFactory`, `AcessoAutomaticoFactory`, `AcessoUtilizadorFactory` | Cria objetos complexos de forma consistente | SRP, OCP | Evita construcao espalhada | Exige nomes claros para nao esconder regra |
-| Resolver | `PoliticaAcessoResolver`, factories de strategies | Escolhe implementacao correta em runtime | DIP, OCP | Reduz `switch` em services | Falhas de registo aparecem em runtime |
-| Template Method | `CarrinhoItemValidatorBase` | Fluxo comum para validar itens do carrinho | SRP | Remove duplicacao entre validators | Base class deve ficar pequena |
-| Observer/Eventos | `ICompraObserver`, `IVisualizacaoObserver`, observers de rewards | Efeitos secundarios sem acoplar fluxo principal | DIP | Rewards/acessos evoluem sem mexer no checkout | Ordem/atomicidade precisam de cuidado |
-| DTO/Mapper | `DTOs/*`, `Mappers/*Mapper.cs` | Separa contrato publico dos modelos EF | ISP, SRP | Rotas ficam estaveis mesmo com modelo interno | Mais codigo de mapping |
-
-## Fluxo de Demo
-
-1. Entrar como `admin@festival.pt`.
-2. Abrir `/admin`, pesquisar no TMDB e adicionar um filme ao catalogo.
-3. Criar festival, associar filme ao festival e criar uma sessao.
-4. Criar premio de festival, abrir votacao, fechar e publicar resultados.
-5. Confirmar o vencedor no detalhe do festival e no detalhe do filme.
-6. Entrar como `utilizador1@teste.pt`.
-7. Pesquisar no Catalogo; abrir filme interno ou detalhe TMDB conforme o resultado.
-8. Comprar acesso no detalhe do filme/sessao, finalizar checkout e abrir o player.
-9. Depois de uma visualizacao valida, criar review de 10 estrelas e comentario.
-10. Abrir Comunidades, criar comunidade com imagem local, entrar/criar comunidade, comentar e associar opcionalmente um filme.
-11. Editar Perfil, enviar foto por ficheiro e confirmar imagem na navbar sem refresh.
-12. Entrar como admin, abrir `/admin`, importar TMDB, criar festival/sessao/premio e analisar reportes.
-
-## Comandos Uteis
-
-```bash
-dotnet clean
-dotnet restore
-dotnet build OnlineCinemaFestival.slnx
-dotnet build OnlineCinemaFestival.Api/OnlineCinemaFestival.Api.csproj
-dotnet build OnlineCinemaFestival.Client/OnlineCinemaFestival.Client.csproj
-```
-
-## Dados Locais Ignorados
-
-Nao enviar para Git:
-
-```text
-bin/
-obj/
-.vs/
-*.db
-*.db-shm
-*.db-wal
-.env
-.env.local
-```
-
-# Online Cinema Festival
-
-**Autores do Projeto:**
-* Francisco Afonseca - 2120622
-* Francisco Palmeira - 2109923
-* Afonso Santos - 2141823
-* Bernardo Pestana - 2107023
+- **Pagamentos totalmente simulados** — sem integração real com serviços de pagamento.
+- **TMDB opcional** — se `Tmdb:Token` não estiver configurado, trailers e importação não funcionam; o resto da app funciona normalmente.
+- **SQLite** — adequado para desenvolvimento e demonstração; não recomendado para produção com carga elevada.
+- **SignalR em memória** — chat de sessão não escala horizontalmente sem backplane (Redis, Azure SignalR).
+- **Upload local** — imagens guardadas em `wwwroot/uploads/`; numa instalação multi-instância seria necessário armazenamento partilhado.
+- **Background services simples** — expiração de Multibanco e publicação de prémios correm in-process; num cenário real usariam Hangfire ou Azure Functions.

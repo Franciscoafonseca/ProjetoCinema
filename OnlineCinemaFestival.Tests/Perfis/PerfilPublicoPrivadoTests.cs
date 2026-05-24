@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
-using OnlineCinemaFestival.Api.DTOs;
-using OnlineCinemaFestival.Api.Models;
+using OnlineCinemaFestival.Api.Application.DTOs;
+using OnlineCinemaFestival.Api.Domain;
 using OnlineCinemaFestival.Api.Services;
 using OnlineCinemaFestival.Tests.Support.Builders;
 using OnlineCinemaFestival.Tests.Support.Fakes;

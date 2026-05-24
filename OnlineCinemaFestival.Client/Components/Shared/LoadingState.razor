@@ -1,0 +1,21 @@
+@* Componente reutilizável para estado de carregamento *@
+
+@if (Slim)
+{
+    <div class="cinema-state slim">@Mensagem</div>
+}
+else
+{
+    <div class="cinema-state">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        <p>@Mensagem</p>
+    </div>
+}
+
+@code {
+    /// <summary>Texto mostrado durante o carregamento.</summary>
+    [Parameter] public string Mensagem { get; set; } = "A carregar...";
+
+    /// <summary>Usa o estilo compacto (sem spinner).</summary>
+    [Parameter] public bool Slim { get; set; }
+}

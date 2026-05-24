@@ -1,0 +1,24 @@
+@* Componente reutilizável: mostra conteúdo apenas para administradores *@
+@attribute [Authorize(Roles = "Admin")]
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        @ChildContent
+    </Authorized>
+    <NotAuthorized>
+        @if (MostrarAvisoAcesso)
+        {
+            <div class="cinema-state error">
+                <p>Acesso reservado a administradores.</p>
+            </div>
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    /// <summary>Conteúdo mostrado quando o utilizador é Admin.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Mostra mensagem de acesso negado quando não é Admin.</summary>
+    [Parameter] public bool MostrarAvisoAcesso { get; set; }
+}
