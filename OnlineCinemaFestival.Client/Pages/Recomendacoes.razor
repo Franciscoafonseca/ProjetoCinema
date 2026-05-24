@@ -1,0 +1,85 @@
+@page "/recomendacoes"
+@attribute [Authorize]
+@inject RecomendacaoService RecomendacaoService
+
+<PageTitle>Recomendacoes - Online Cinema Festival</PageTitle>
+
+<main class="cinema-page recomendacoes-page">
+    <section class="cinema-shell">
+        <header class="cinema-page-head">
+            <div>
+                <span class="cinema-kicker">Recomendacoes</span>
+                <h1>Filmes sugeridos para ti</h1>
+                <p>Resultados combinados por generos, popularidade, avaliacao e premios.</p>
+            </div>
+        </header>
+
+        @if (_loading)
+        {
+            <div class="cinema-state">
+                <div class="spinner"></div>
+                <p>A carregar recomendacoes...</p>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_erro))
+        {
+            <div class="cinema-state error">
+                <p>@_erro</p>
+                <button class="cinema-btn secondary" @onclick="CarregarAsync">Tentar novamente</button>
+            </div>
+        }
+        else if (_recomendacoes.Count == 0)
+        {
+            <div class="cinema-state">Ainda nao existem recomendacoes disponiveis.</div>
+        }
+        else
+        {
+            <div class="recomendacoes-grid">
+                @foreach (var item in _recomendacoes)
+                {
+                    <article class="recomendacao-card">
+                        <FilmeCard Filme="item.Filme" />
+                        <div class="recomendacao-reason">
+                            <strong>Porque aparece</strong>
+                            <span>@item.Motivo</span>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+</main>
+
+@code {
+    private bool _loading = true;
+    private string? _erro;
+    private List<FilmeRecomendadoDTO> _recomendacoes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarAsync();
+    }
+
+    private async Task CarregarAsync()
+    {
+        _loading = true;
+        _erro = null;
+
+        try
+        {
+            _recomendacoes = await RecomendacaoService.ObterAsync();
+        }
+        catch (Exception ex)
+        {
+            _erro = MensagemErroApi.Limpar(
+                ex.Message,
+                "Nao foi possivel carregar recomendacoes."
+            );
+            _recomendacoes.Clear();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

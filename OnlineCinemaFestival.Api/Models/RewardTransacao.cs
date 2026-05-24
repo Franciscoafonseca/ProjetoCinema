@@ -11,4 +11,6 @@ public class RewardTransacao
     public DateTime Data { get; set; } = DateTime.UtcNow;
 
     public string Motivo { get; set; } = string.Empty;
+
+    public string ChaveAcao { get; set; } = string.Empty;
 }

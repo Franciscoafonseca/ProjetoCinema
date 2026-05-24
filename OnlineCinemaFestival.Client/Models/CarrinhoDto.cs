@@ -59,6 +59,8 @@ public class AdicionarItemCarrinhoDTO
 
 public class CarrinhoItemCreateDTO
 {
+    private DateTime? _dataAcesso;
+
     public int TipoAcesso { get; set; }
 
     public int? FestivalId { get; set; }
@@ -67,7 +69,17 @@ public class CarrinhoItemCreateDTO
 
     public int? SessaoId { get; set; }
 
-    public DateTime? DataPasse { get; set; }
+    public DateTime? DataAcesso
+    {
+        get => _dataAcesso;
+        set => _dataAcesso = value;
+    }
+
+    public DateTime? DataPasse
+    {
+        get => _dataAcesso;
+        set => _dataAcesso = value;
+    }
 
     public int Quantidade { get; set; } = 1;
 }

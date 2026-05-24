@@ -8,13 +8,13 @@ public interface IAcessoRepository
 
     Task<Acesso?> ObterPorIdAsync(int id);
 
-    Task<Acesso?> GetAtivoParaCarrinhoAsync(
-        TipoAcesso tipo,
-        int? festivalId,
-        int? filmeId,
-        int? sessaoId,
-        DateTime? dataPasse
-    );
+    Task<Acesso?> ObterBilheteSessaoAtivoAsync(int sessaoId);
+
+    Task<Acesso?> ObterPasseDiarioAtivoAsync(int festivalId, DateTime dataAcesso);
+
+    Task<Acesso?> ObterPasseCompletoAtivoAsync(int festivalId);
+
+    Task<Acesso?> ObterAluguerDigitalAtivoAsync(int filmeId);
 
     Task AddAsync(Acesso acesso);
 

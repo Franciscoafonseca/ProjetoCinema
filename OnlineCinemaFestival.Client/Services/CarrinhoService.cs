@@ -64,7 +64,7 @@ public class CarrinhoService : ICarrinhoService
             {
                 TipoAcesso = TiposAcesso.PasseDiario,
                 FestivalId = festivalId,
-                DataPasse = dataPasse.Date,
+                DataAcesso = dataPasse.Date,
                 Quantidade = 1,
             }
         );

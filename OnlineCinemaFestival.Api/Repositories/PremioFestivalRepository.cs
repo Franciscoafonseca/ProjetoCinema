@@ -49,6 +49,36 @@ public class PremioFestivalRepository : IPremioFestivalRepository
         );
     }
 
+    public async Task<bool> UtilizadorViuTodosFilmesElegiveisAsync(
+        int festivalId,
+        int utilizadorId
+    )
+    {
+        var filmesElegiveis = await _context
+            .FestivalFilmes.Where(ff =>
+                ff.FestivalId == festivalId && ff.ElegivelPremiosPublico
+            )
+            .Select(ff => ff.FilmeId)
+            .Distinct()
+            .ToListAsync();
+
+        if (filmesElegiveis.Count == 0)
+            return false;
+
+        var filmesVistosEmSessao = await _context
+            .Visualizacoes.Where(v =>
+                v.UtilizadorId == utilizadorId
+                && v.FestivalId == festivalId
+                && v.SessaoId != null
+                && filmesElegiveis.Contains(v.FilmeId)
+            )
+            .Select(v => v.FilmeId)
+            .Distinct()
+            .CountAsync();
+
+        return filmesVistosEmSessao == filmesElegiveis.Count;
+    }
+
     public async Task AddVotoAsync(VotoPremioFestival voto)
     {
         await _context.VotosPremiosFestival.AddAsync(voto);
@@ -131,7 +161,7 @@ public class PremioFestivalRepository : IPremioFestivalRepository
             .Include(p => p.Resultado)
             .Where(p =>
                 p.Resultado == null
-                && p.Festival.EndDate <= dataAtual
+                && p.DataFechoVotacao <= dataAtual
                 && (p.EstadoPremio == EstadoPremio.Aberto || p.EstadoPremio == EstadoPremio.Fechado)
             )
             .ToListAsync();

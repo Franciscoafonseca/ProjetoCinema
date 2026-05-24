@@ -1,0 +1,128 @@
+@page "/pagamentos-pendentes"
+@attribute [Authorize]
+@inject CompraService CompraService
+
+<PageTitle>Pagamentos Pendentes - Online Cinema Festival</PageTitle>
+
+<main class="cinema-page">
+    <section class="cinema-shell">
+        <header class="cinema-page-head">
+            <div>
+                <span class="cinema-kicker">Pagamentos</span>
+                <h1>Pagamentos Pendentes</h1>
+                <p>Referencias Multibanco ficticias geradas no checkout.</p>
+            </div>
+        </header>
+
+        @if (_aCarregar)
+        {
+            <div class="cinema-state">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <p>A carregar pagamentos...</p>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_erro))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@_erro</MudAlert>
+        }
+        else if (_pagamentos.Count == 0)
+        {
+            <div class="cinema-state">Nao existem pagamentos pendentes.</div>
+        }
+        else
+        {
+            <section class="admin-lista">
+                @foreach (var compra in _pagamentos)
+                {
+                    var pagamento = compra.Pagamento;
+                    if (pagamento is null)
+                    {
+                        continue;
+                    }
+
+                    <MudCard Elevation="0" Class="cinema-panel">
+                        <MudCardContent>
+                            <MudStack Spacing="2">
+                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                                    <div>
+                                        <MudText Typo="Typo.h6">@compra.Referencia</MudText>
+                                        <MudText Color="Color.Secondary">@Moeda(compra.ValorTotal)</MudText>
+                                    </div>
+                                    <MudChip T="string"
+                                             Color="@(PagamentoExpirado(pagamento) ? Color.Error : Color.Warning)"
+                                             Variant="Variant.Filled">
+                                        @EstadoPagamento(pagamento)
+                                    </MudChip>
+                                </MudStack>
+
+                                <dl class="checkout-reference">
+                                    <dt>Entidade</dt>
+                                    <dd>@pagamento.Entidade</dd>
+                                    <dt>Referencia</dt>
+                                    <dd>@FormatarReferenciaMb(pagamento.Referencia)</dd>
+                                    <dt>Expira</dt>
+                                    <dd>@(pagamento.ExpiraEm?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")</dd>
+                                    <dt>Tempo restante</dt>
+                                    <dd>@TempoRestante(pagamento)</dd>
+                                </dl>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                }
+            </section>
+        }
+    </section>
+</main>
+
+@code {
+    private List<CompraDTO> _pagamentos = new();
+    private bool _aCarregar = true;
+    private string? _erro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _pagamentos = await CompraService.ObterPagamentosPendentesAsync();
+        }
+        catch (Exception ex)
+        {
+            _erro = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel carregar pagamentos pendentes.");
+        }
+        finally
+        {
+            _aCarregar = false;
+        }
+    }
+
+    private static bool PagamentoExpirado(PagamentoDTO pagamento)
+    {
+        return pagamento.EstadoNome.Equals("Expirado", StringComparison.OrdinalIgnoreCase)
+            || (pagamento.ExpiraEm.HasValue && pagamento.ExpiraEm.Value <= DateTime.UtcNow);
+    }
+
+    private static string EstadoPagamento(PagamentoDTO pagamento)
+    {
+        return PagamentoExpirado(pagamento) ? "Expirado" : pagamento.EstadoNome;
+    }
+
+    private static string TempoRestante(PagamentoDTO pagamento)
+    {
+        if (!pagamento.ExpiraEm.HasValue)
+            return "-";
+
+        var restante = pagamento.ExpiraEm.Value - DateTime.UtcNow;
+        if (restante <= TimeSpan.Zero)
+            return "Expirado";
+
+        return $"{(int)restante.TotalHours}h {restante.Minutes:D2}m";
+    }
+
+    private static string Moeda(decimal valor) => valor.ToString("C2");
+
+    private static string FormatarReferenciaMb(string referencia)
+    {
+        var digitos = new string(referencia.Where(char.IsDigit).ToArray()).PadLeft(9, '0');
+        return $"{digitos[..3]} {digitos.Substring(3, 3)} {digitos[6..]}";
+    }
+}

@@ -10,7 +10,7 @@
 <div class="layout">
     <header class="navbar-topo">
         <a class="logo" href="">
-            <img class="logo-mark" src="images/logos/cinehub-icon-branco.png" alt="" />
+            <img class="logo-mark" src="images/logos/cinehub-logo-branco.png" alt="CineHub" />
             <span>CineHub</span>
         </a>
 
@@ -24,10 +24,12 @@
 
             <AuthorizeView>
                 <Authorized>
-                    <NavLink class="nav-btn" href="acessos">Acessos</NavLink>
+                    <NavLink class="nav-btn" href="meus-acessos">Acessos</NavLink>
                     <NavLink class="nav-btn" href="compras">Compras</NavLink>
+                    <NavLink class="nav-btn" href="pagamentos-pendentes">Pagamentos Pendentes</NavLink>
                     <NavLink class="nav-btn" href="listas">Listas</NavLink>
                     <NavLink class="nav-btn" href="comunidades">Comunidades</NavLink>
+                    <NavLink class="nav-btn" href="rewards">Rewards</NavLink>
                     <AuthorizeView Roles="@NomesPapeis.Administrador" Context="adminAuth">
                         <Authorized>
                             <NavLink class="nav-btn" href="admin">Admin</NavLink>

@@ -13,6 +13,7 @@ public class FestivalService : IFestivalService
 {
     private readonly IFestivalRepository _repository;
     private readonly IAcessoAutomaticoService _acessoAutomaticoService;
+    private readonly TimeProvider _timeProvider;
 
     /// <summary>
     /// Inicializa uma nova instância do serviço de festivais.
@@ -22,11 +23,13 @@ public class FestivalService : IFestivalService
     /// </param>
     public FestivalService(
         IFestivalRepository repository,
-        IAcessoAutomaticoService acessoAutomaticoService
+        IAcessoAutomaticoService acessoAutomaticoService,
+        TimeProvider timeProvider
     )
     {
         _repository = repository;
         _acessoAutomaticoService = acessoAutomaticoService;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -39,7 +42,8 @@ public class FestivalService : IFestivalService
         var festivals = await _repository.ObterTodosAsync();
 
         // Converte as entidades Festival para DTOs antes de devolver a resposta.
-        return festivals.Select(FestivalMapper.MapToReadDTO);
+        var agora = _timeProvider.GetUtcNow().UtcDateTime;
+        return festivals.Select(festival => FestivalMapper.MapToReadDTO(festival, agora));
     }
 
     /// <summary>
@@ -58,7 +62,7 @@ public class FestivalService : IFestivalService
             return null;
 
         // Converte a entidade encontrada para DTO de leitura.
-        return FestivalMapper.MapToReadDTO(festival);
+        return FestivalMapper.MapToReadDTO(festival, _timeProvider.GetUtcNow().UtcDateTime);
     }
 
     /// <summary>
@@ -83,7 +87,7 @@ public class FestivalService : IFestivalService
         await _acessoAutomaticoService.GarantirParaFestivalAsync(festival);
 
         // Devolve o festival criado em formato DTO.
-        return FestivalMapper.MapToReadDTO(festival);
+        return FestivalMapper.MapToReadDTO(festival, _timeProvider.GetUtcNow().UtcDateTime);
     }
 
     /// <summary>

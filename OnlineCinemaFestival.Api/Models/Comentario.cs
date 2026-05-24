@@ -12,6 +12,13 @@ public class Comentario
 
     public bool Visivel { get; set; } = true;
 
+    public EstadoModeracaoComentario EstadoModeracao { get; set; } =
+        EstadoModeracaoComentario.Visivel;
+
+    public int? ModeradoPorUtilizadorId { get; set; }
+
+    public DateTime? ModeradoEm { get; set; }
+
     public int UsuarioId { get; set; }
     public Utilizador Usuario { get; set; } = null!;
 

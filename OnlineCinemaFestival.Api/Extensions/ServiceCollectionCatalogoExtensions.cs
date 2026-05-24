@@ -24,6 +24,7 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorClassificacaoStrategy>();
         services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorDataLancamentoStrategy>();
         services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorVisualizacoesStrategy>();
+        services.AddScoped<ICatalogoOrdenacaoStrategy, OrdenarPorFestivalStrategy>();
         services.AddScoped<ICatalogoOrdenacaoStrategyFactory, CatalogoOrdenacaoStrategyFactory>();
 
         return services;

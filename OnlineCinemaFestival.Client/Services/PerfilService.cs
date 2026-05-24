@@ -102,6 +102,47 @@ public class PerfilService
             ?? new PerfilOpcoesDTO();
     }
 
+    public async Task ReportarUtilizadorAsync(int utilizadorId, CriarReporteUtilizadorDTO dto)
+    {
+        var resposta = await _http.PostAsJsonAsync($"api/profiles/{utilizadorId}/reportes", dto);
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel enviar o reporte.")
+            );
+    }
+
+    public async Task<List<ReporteUtilizadorDTO>> ObterReportesUtilizadoresAsync()
+    {
+        var resposta = await _http.GetAsync("api/admin/reportes-utilizadores");
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel carregar reportes.")
+            );
+
+        return await resposta.Content.ReadFromJsonAsync<List<ReporteUtilizadorDTO>>() ?? new();
+    }
+
+    public async Task<ReporteUtilizadorDTO> AtualizarEstadoReporteAsync(
+        int reporteId,
+        EstadoReporteUtilizador estado
+    )
+    {
+        var resposta = await _http.PatchAsJsonAsync(
+            $"api/admin/reportes-utilizadores/{reporteId}/estado",
+            new AtualizarEstadoReporteUtilizadorDTO { Estado = estado }
+        );
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel atualizar o reporte.")
+            );
+
+        return await resposta.Content.ReadFromJsonAsync<ReporteUtilizadorDTO>()
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
+    }
+
     private T? NormalizarFoto<T>(T? perfil)
         where T : PerfilPublicoDTO
     {

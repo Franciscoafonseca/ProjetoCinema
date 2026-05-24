@@ -18,6 +18,13 @@ public class RewardTransacaoRepository : IRewardTransacaoRepository
         await _context.RewardsTransacoes.AddAsync(transacao);
     }
 
+    public async Task<bool> ExisteChaveAcaoAsync(int utilizadorId, string chaveAcao)
+    {
+        return await _context.RewardsTransacoes.AnyAsync(t =>
+            t.UtilizadorId == utilizadorId && t.ChaveAcao == chaveAcao
+        );
+    }
+
     public List<RewardTransacao> ObterHistorico(int utilizadorId)
     {
         return _context

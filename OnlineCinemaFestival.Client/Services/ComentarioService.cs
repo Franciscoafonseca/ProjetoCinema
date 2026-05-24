@@ -43,6 +43,26 @@ public class ComentarioService
             ?? throw new InvalidOperationException("Resposta invalida do servidor.");
     }
 
+    public async Task<ComentarioDTO> ModerarNaComunidadeAsync(
+        Guid comunidadeId,
+        int comentarioId,
+        AcaoModeracaoComentario acao
+    )
+    {
+        var resposta = await _http.PatchAsJsonAsync(
+            $"api/comunidades/{comunidadeId}/comentarios/{comentarioId}/moderacao",
+            new ModerarComentarioDTO { Acao = acao }
+        );
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel moderar o comentario.")
+            );
+
+        return NormalizarFotoAutor(await resposta.Content.ReadFromJsonAsync<ComentarioDTO>())
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
+    }
+
     public async Task<List<ComentarioDTO>> ObterDoFilmeAsync(int filmeId)
     {
         var resposta = await _http.GetAsync($"api/filmes/{filmeId}/comentarios");

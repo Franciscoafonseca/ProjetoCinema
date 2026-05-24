@@ -37,7 +37,52 @@
                            OnClick="Voltar">
                     Voltar
                 </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Report"
+                           Disabled="@_aReportar"
+                           OnClick="AbrirReporte">
+                    Reportar utilizador
+                </MudButton>
             </header>
+
+            @if (!string.IsNullOrWhiteSpace(_mensagemReporte))
+            {
+                <MudAlert Severity="@_severidadeReporte" Variant="Variant.Filled">
+                    @_mensagemReporte
+                </MudAlert>
+            }
+
+            @if (_mostrarReporte)
+            {
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Reportar perfil</MudText>
+                        <EditForm Model="_reporte" OnValidSubmit="EnviarReporteAsync">
+                            <DataAnnotationsValidator />
+                            <MudTextField T="string"
+                                          Label="Motivo"
+                                          Lines="4"
+                                          Variant="Variant.Outlined"
+                                          @bind-Value="_reporte.Motivo" />
+                            <ValidationMessage For="@(() => _reporte.Motivo)" />
+                            <MudStack Row="true" Spacing="2" Class="perfil-publico-report-actions">
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Default"
+                                           OnClick="CancelarReporte">
+                                    Cancelar
+                                </MudButton>
+                                <MudButton ButtonType="ButtonType.Submit"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Error"
+                                           Disabled="@_aReportar">
+                                    @(_aReportar ? "A enviar..." : "Enviar reporte")
+                                </MudButton>
+                            </MudStack>
+                        </EditForm>
+                    </MudCardContent>
+                </MudCard>
+            }
 
             <section class="perfil-publico-grid">
                 <MudCard Elevation="0" Class="cinema-panel perfil-publico-avatar">
@@ -109,6 +154,78 @@
                     </MudCardContent>
                 </MudCard>
             </section>
+
+            <section class="perfil-publico-grid">
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Listas publicas</MudText>
+                        @if (_perfil.PublicLists.Count == 0)
+                        {
+                            <MudText Color="Color.Secondary">Sem listas publicas.</MudText>
+                        }
+                        else
+                        {
+                            <MudStack Spacing="2">
+                                @foreach (var lista in _perfil.PublicLists)
+                                {
+                                    <MudPaper Elevation="0" Class="perfil-publico-item">
+                                        <strong>@lista.Name</strong>
+                                        <span>@(lista.TotalFilmes == 1 ? "1 filme" : $"{lista.TotalFilmes} filmes")</span>
+                                    </MudPaper>
+                                }
+                            </MudStack>
+                        }
+                    </MudCardContent>
+                </MudCard>
+
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Reviews publicas</MudText>
+                        @if (_perfil.PublicReviews.Count == 0)
+                        {
+                            <MudText Color="Color.Secondary">Sem reviews publicas.</MudText>
+                        }
+                        else
+                        {
+                            <MudStack Spacing="2">
+                                @foreach (var review in _perfil.PublicReviews.Take(5))
+                                {
+                                    <button class="perfil-publico-item link"
+                                            type="button"
+                                            @onclick="() => AbrirFilme(review.FilmeId)">
+                                        <strong>@review.FilmeTitulo</strong>
+                                        <span>@review.Pontuacao/10 - @review.Texto</span>
+                                    </button>
+                                }
+                            </MudStack>
+                        }
+                    </MudCardContent>
+                </MudCard>
+
+                <MudCard Elevation="0" Class="cinema-panel">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Comunidades publicas</MudText>
+                        @if (_perfil.PublicCommunities.Count == 0)
+                        {
+                            <MudText Color="Color.Secondary">Sem comunidades publicas.</MudText>
+                        }
+                        else
+                        {
+                            <MudStack Spacing="2">
+                                @foreach (var comunidade in _perfil.PublicCommunities)
+                                {
+                                    <button class="perfil-publico-item link"
+                                            type="button"
+                                            @onclick="() => AbrirComunidade(comunidade.Id)">
+                                        <strong>@comunidade.Name</strong>
+                                        <span>@comunidade.MembersCount membros</span>
+                                    </button>
+                                }
+                            </MudStack>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </section>
         }
     </section>
 </main>
@@ -117,9 +234,14 @@
     [Parameter] public int UtilizadorId { get; set; }
 
     private PerfilPublicoDTO? _perfil;
+    private CriarReporteUtilizadorDTO _reporte = new();
     private bool _aCarregar = true;
+    private bool _aReportar;
+    private bool _mostrarReporte;
     private bool _fotoPerfilFalhou;
     private string? _erro;
+    private string? _mensagemReporte;
+    private Severity _severidadeReporte = Severity.Info;
 
     private string DescricaoPerfil =>
         string.IsNullOrWhiteSpace(_perfil?.Bio)
@@ -151,6 +273,8 @@
     {
         _aCarregar = true;
         _erro = null;
+        _mensagemReporte = null;
+        _mostrarReporte = false;
 
         try
         {
@@ -173,6 +297,52 @@
     private void Voltar()
     {
         Nav.NavigateTo("/catalogo");
+    }
+
+    private void AbrirReporte()
+    {
+        _reporte = new CriarReporteUtilizadorDTO();
+        _mensagemReporte = null;
+        _mostrarReporte = true;
+    }
+
+    private void CancelarReporte()
+    {
+        _mostrarReporte = false;
+        _mensagemReporte = null;
+    }
+
+    private async Task EnviarReporteAsync()
+    {
+        _aReportar = true;
+        _mensagemReporte = null;
+
+        try
+        {
+            await PerfilService.ReportarUtilizadorAsync(UtilizadorId, _reporte);
+            _mostrarReporte = false;
+            _mensagemReporte = "Reporte enviado. A equipa de administracao vai analisar o caso.";
+            _severidadeReporte = Severity.Success;
+        }
+        catch (Exception ex)
+        {
+            _mensagemReporte = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel enviar o reporte.");
+            _severidadeReporte = Severity.Error;
+        }
+        finally
+        {
+            _aReportar = false;
+        }
+    }
+
+    private void AbrirFilme(int filmeId)
+    {
+        Nav.NavigateTo($"/filmes/{filmeId}");
+    }
+
+    private void AbrirComunidade(Guid comunidadeId)
+    {
+        Nav.NavigateTo($"/comunidades/{comunidadeId}");
     }
 
     private void MarcarFotoPerfilFalhada()

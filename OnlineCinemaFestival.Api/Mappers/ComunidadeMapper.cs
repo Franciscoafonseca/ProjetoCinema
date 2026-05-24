@@ -38,7 +38,7 @@ public static class ComunidadeMapper
             CreatedByUserName = comunidade.CreatedByUser?.Name,
             CreatedAt = comunidade.CreatedAt,
             MembersCount = comunidade.Members?.Count ?? 0,
-            ComentariosCount = comunidade.Comentarios?.Count ?? 0,
+            ComentariosCount = comunidade.Comentarios?.Count(c => c.Visivel) ?? 0,
             Members = (comunidade.Members ?? new List<ComunidadeMembro>())
                 .OrderBy(m => m.JoinedAt)
                 .Select(m => new MembroComunidadeRespostaDTO

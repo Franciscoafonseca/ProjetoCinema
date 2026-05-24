@@ -12,13 +12,13 @@ public class RewardsService
         _http = http;
     }
 
-    public async Task<int> GetSaldoAsync(string utilizadorId)
+    public async Task<int> GetSaldoAsync()
     {
         var response = await _http.GetFromJsonAsync<RewardsSaldoDto>("api/rewards");
         return response?.Pontos ?? 0;
     }
 
-    public async Task<List<RewardTransacaoDto>> GetHistoricoAsync(string utilizadorId)
+    public async Task<List<RewardTransacaoDto>> GetHistoricoAsync()
     {
         var response = await _http.GetFromJsonAsync<List<RewardTransacaoDto>>(
             "api/rewards/historico");

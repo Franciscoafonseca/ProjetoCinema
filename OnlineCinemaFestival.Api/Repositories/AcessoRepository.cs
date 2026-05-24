@@ -28,36 +28,44 @@ public class AcessoRepository : IAcessoRepository
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
-    public async Task<Acesso?> GetAtivoParaCarrinhoAsync(
-        TipoAcesso tipo,
-        int? festivalId,
-        int? filmeId,
-        int? sessaoId,
-        DateTime? dataPasse
-    )
+    public async Task<Acesso?> ObterBilheteSessaoAtivoAsync(int sessaoId)
     {
-        var query = AcessosComDetalhes().Where(a => a.IsAtivo && a.Tipo == tipo);
+        return await ObterAcessosAtivos(TipoAcesso.BilheteSessao)
+            .Where(a => a.SessaoId == sessaoId)
+            .OrderBy(a => a.Preco)
+            .FirstOrDefaultAsync();
+    }
 
-        var inicioDataPasse = dataPasse?.Date ?? DateTime.MinValue;
-        var fimDataPasse = inicioDataPasse.AddDays(1);
+    public async Task<Acesso?> ObterPasseDiarioAtivoAsync(int festivalId, DateTime dataAcesso)
+    {
+        var inicio = dataAcesso.Date;
+        var fim = inicio.AddDays(1);
 
-        query = tipo switch
-        {
-            TipoAcesso.BilheteSessao => query.Where(a => a.SessaoId == sessaoId),
-            TipoAcesso.PasseDiario when dataPasse.HasValue =>
-                query.Where(a =>
-                    a.FestivalId == festivalId
-                    && a.DataAcesso.HasValue
-                    && a.DataAcesso.Value >= inicioDataPasse
-                    && a.DataAcesso.Value < fimDataPasse
-                ),
-            TipoAcesso.PasseDiario => query.Where(_ => false),
-            TipoAcesso.PasseCompleto => query.Where(a => a.FestivalId == festivalId),
-            TipoAcesso.AluguerDigital => query.Where(a => a.FilmeId == filmeId),
-            _ => query.Where(_ => false),
-        };
+        return await ObterAcessosAtivos(TipoAcesso.PasseDiario)
+            .Where(a =>
+                a.FestivalId == festivalId
+                && a.DataAcesso.HasValue
+                && a.DataAcesso.Value >= inicio
+                && a.DataAcesso.Value < fim
+            )
+            .OrderBy(a => a.Preco)
+            .FirstOrDefaultAsync();
+    }
 
-        return await query.OrderBy(a => a.Preco).FirstOrDefaultAsync();
+    public async Task<Acesso?> ObterPasseCompletoAtivoAsync(int festivalId)
+    {
+        return await ObterAcessosAtivos(TipoAcesso.PasseCompleto)
+            .Where(a => a.FestivalId == festivalId)
+            .OrderBy(a => a.Preco)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<Acesso?> ObterAluguerDigitalAtivoAsync(int filmeId)
+    {
+        return await ObterAcessosAtivos(TipoAcesso.AluguerDigital)
+            .Where(a => a.FilmeId == filmeId)
+            .OrderBy(a => a.Preco)
+            .FirstOrDefaultAsync();
     }
 
     public async Task AddAsync(Acesso acesso)
@@ -90,5 +98,10 @@ public class AcessoRepository : IAcessoRepository
                 .ThenInclude(s => s!.Filme)
             .Include(a => a.Festival)
             .Include(a => a.Filme);
+    }
+
+    private IQueryable<Acesso> ObterAcessosAtivos(TipoAcesso tipo)
+    {
+        return AcessosComDetalhes().Where(a => a.IsAtivo && a.Tipo == tipo);
     }
 }

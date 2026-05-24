@@ -114,20 +114,12 @@
 
     private static bool SessaoTerminada(SessaoDTO sessao)
     {
-        return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase)
-            || sessao.Fim.ToUniversalTime() <= DateTime.UtcNow;
+        return string.Equals(EstadoTexto(sessao), "Terminada", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string EstadoTexto(SessaoDTO sessao)
     {
-        if (!string.IsNullOrWhiteSpace(sessao.Estado))
-            return sessao.Estado;
-
-        var agora = DateTime.UtcNow;
-        if (sessao.Inicio.ToUniversalTime() > agora)
-            return "Agendada";
-
-        return sessao.Fim.ToUniversalTime() >= agora ? "ADecorrer" : "Terminada";
+        return string.IsNullOrWhiteSpace(sessao.Estado) ? "Desconhecido" : sessao.Estado;
     }
 
     private static string EstadoCss(string? estado)

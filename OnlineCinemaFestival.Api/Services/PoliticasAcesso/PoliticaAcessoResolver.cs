@@ -17,7 +17,7 @@ public sealed class PoliticaAcessoResolver : IPoliticaAcessoResolver
             return politica;
 
         throw new ArgumentException(
-            $"Nao existe politica de acesso registada para o tipo {tipoAcesso}.",
+            $"Nao existe politica de visualizacao registada para o tipo de acesso '{tipoAcesso}'.",
             nameof(tipoAcesso)
         );
     }

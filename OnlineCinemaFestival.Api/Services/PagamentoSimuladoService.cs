@@ -16,11 +16,27 @@ public class PagamentoSimuladoService : IPagamentoService
     public Task<Pagamento> ProcessarPagamentoSimuladoAsync(Compra compra, string metodoPagamento)
     {
         var strategy = _strategies.FirstOrDefault(s => s.Suporta(metodoPagamento));
+        var agora = _timeProvider.GetUtcNow().UtcDateTime;
 
         if (strategy == null)
-            throw new InvalidOperationException("Metodo de pagamento invalido.");
+        {
+            return Task.FromResult(
+                new Pagamento
+                {
+                    Compra = compra,
+                    Referencia = $"PG-RECUSADO-{compra.Referencia}",
+                    Valor = compra.ValorTotal,
+                    Metodo = string.IsNullOrWhiteSpace(metodoPagamento)
+                        ? "Invalido"
+                        : metodoPagamento.Trim(),
+                    Estado = EstadoPagamento.Recusado,
+                    CriadoEm = agora,
+                    ProcessadoEm = agora,
+                    Mensagem = "Metodo de pagamento invalido ou recusado.",
+                }
+            );
+        }
 
-        var agora = _timeProvider.GetUtcNow().UtcDateTime;
         return strategy.ProcessarAsync(compra, agora, metodoPagamento);
     }
 }

@@ -6,10 +6,12 @@ namespace OnlineCinemaFestival.Api.Services;
 public class PublicacaoPremiosService : IPublicacaoPremiosService
 {
     private readonly IPremioFestivalRepository _repository;
+    private readonly TimeProvider _timeProvider;
 
-    public PublicacaoPremiosService(IPremioFestivalRepository repository)
+    public PublicacaoPremiosService(IPremioFestivalRepository repository, TimeProvider timeProvider)
     {
         _repository = repository;
+        _timeProvider = timeProvider;
     }
 
     public async Task<int> PublicarResultadosPendentesAsync(
@@ -18,7 +20,8 @@ public class PublicacaoPremiosService : IPublicacaoPremiosService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var premios = await _repository.ObterPremiosPendentesPublicacaoAsync(DateTime.UtcNow);
+        var agora = _timeProvider.GetUtcNow().UtcDateTime;
+        var premios = await _repository.ObterPremiosPendentesPublicacaoAsync(agora);
         var publicados = 0;
 
         foreach (var premio in premios)
@@ -38,7 +41,7 @@ public class PublicacaoPremiosService : IPublicacaoPremiosService
                 PremioFestivalId = premio.Id,
                 FilmeIdVencedor = vencedor.Value.FilmeId,
                 TotalVotos = vencedor.Value.TotalVotos,
-                PublicadoEm = DateTime.UtcNow,
+                PublicadoEm = agora,
                 PublicadoPorUtilizadorId = null,
             };
 

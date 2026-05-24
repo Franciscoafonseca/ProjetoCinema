@@ -165,6 +165,7 @@
                             <MudSelectItem T="int" Value="3">Classificacao</MudSelectItem>
                             <MudSelectItem T="int" Value="1">Titulo</MudSelectItem>
                             <MudSelectItem T="int" Value="4">Lancamento</MudSelectItem>
+                            <MudSelectItem T="int" Value="6">Festival</MudSelectItem>
                         </MudSelect>
                         <MudSelect T="int?"
                                    Value="_festivalSelecionadoId"
@@ -190,7 +191,7 @@
                             @foreach (var genero in _generos)
                             {
                                 <MudMenuItem OnClick="() => AlternarGenero(genero)" AutoClose="false">
-                                    @(_generosSelecionados.Contains(genero) ? $"* {genero}" : genero)
+                                    @(_generosSelecionados.Contains(genero) ? $"Selecionado - {genero}" : genero)
                                 </MudMenuItem>
                             }
                         </MudMenu>
@@ -372,11 +373,23 @@
         if (_generosSelecionados.Count == 0)
             return filmes;
 
-        return filmes.Where(f =>
-        {
-            var generos = GenerosDoFilme(f).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            return _generosSelecionados.All(g => generos.Contains(g));
-        });
+        return filmes
+            .Select((filme, indice) => new
+            {
+                Filme = filme,
+                Indice = indice,
+                Correspondencias = ContarGenerosEmComum(filme),
+            })
+            .Where(item => item.Correspondencias > 0)
+            .OrderByDescending(item => item.Correspondencias)
+            .ThenBy(item => item.Indice)
+            .Select(item => item.Filme);
+    }
+
+    private int ContarGenerosEmComum(FilmeDTO filme)
+    {
+        var generos = GenerosDoFilme(filme).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return _generosSelecionados.Count(generos.Contains);
     }
 
     private bool FilmeJaExiste(FilmeDTO filme)

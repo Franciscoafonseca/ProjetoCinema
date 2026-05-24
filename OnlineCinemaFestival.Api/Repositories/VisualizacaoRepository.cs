@@ -35,66 +35,12 @@ public class VisualizacaoRepository : IVisualizacaoRepository
         );
     }
 
-    public async Task<bool> TemAcessoAtivoParaFilmeAsync(
-        int utilizadorId,
-        int filmeId,
-        DateTime agora
-    )
+    public async Task<IReadOnlySet<int>> ObterFestivalIdsDoFilmeAsync(int filmeId)
     {
-        return await _context.AcessosUtilizador.AnyAsync(a =>
-            a.UtilizadorId == utilizadorId
-            && a.Ativo
-            && a.FilmeId == filmeId
-            && a.TipoAcesso == TipoAcesso.AluguerDigital
-            && a.InicioValidade <= agora
-            && a.FimValidade >= agora
-        );
-    }
-
-    public async Task<bool> TemPasseAtivoParaFilmeNoFestivalAsync(
-        int utilizadorId,
-        int filmeId,
-        int festivalId,
-        DateTime agora
-    )
-    {
-        var filmePertenceAoFestival = await FilmePertenceAoFestivalAsync(filmeId, festivalId);
-
-        if (!filmePertenceAoFestival)
-            return false;
-
-        return await _context.AcessosUtilizador.AnyAsync(a =>
-            a.UtilizadorId == utilizadorId
-            && a.Ativo
-            && a.FestivalId == festivalId
-            && (a.TipoAcesso == TipoAcesso.PasseDiario || a.TipoAcesso == TipoAcesso.PasseCompleto)
-            && a.InicioValidade <= agora
-            && a.FimValidade >= agora
-        );
-    }
-
-    public async Task<bool> TemAcessoAtivoParaSessaoAsync(
-        int utilizadorId,
-        Sessao sessao,
-        DateTime agora
-    )
-    {
-        return await _context.AcessosUtilizador.AnyAsync(a =>
-            a.UtilizadorId == utilizadorId
-            && a.Ativo
-            && a.InicioValidade <= agora
-            && a.FimValidade >= agora
-            && (
-                (a.TipoAcesso == TipoAcesso.BilheteSessao && a.SessaoId == sessao.Id)
-                || (
-                    a.TipoAcesso == TipoAcesso.PasseDiario
-                    && a.FestivalId == sessao.FestivalId
-                    && sessao.Inicio >= a.InicioValidade
-                    && sessao.Inicio < a.FimValidade
-                )
-                || (a.TipoAcesso == TipoAcesso.PasseCompleto && a.FestivalId == sessao.FestivalId)
-            )
-        );
+        return await _context.FestivalFilmes.AsNoTracking()
+            .Where(ff => ff.FilmeId == filmeId)
+            .Select(ff => ff.FestivalId)
+            .ToHashSetAsync();
     }
 
     public async Task AddAsync(Visualizacao visualizacao)

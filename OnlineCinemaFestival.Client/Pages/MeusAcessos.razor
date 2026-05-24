@@ -1,5 +1,4 @@
 @page "/meus-acessos"
-@page "/acessos"
 @attribute [Authorize]
 @inject AcessoService AcessoService
 @inject NavigationManager Nav
@@ -59,7 +58,7 @@
                     <div class="access-top">
                         <span class="access-type">@acesso.TipoAcessoNome</span>
                         <span class="access-state @(AcessoValido(acesso) ? "active" : "ended")">
-                            @(AcessoValido(acesso) ? "Ativo" : "Expirado")
+                            @EstadoAcesso(acesso)
                         </span>
                     </div>
 
@@ -112,7 +111,7 @@
         }
         catch (Exception ex)
         {
-            _erro = ex.Message;
+            _erro = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel carregar os acessos.");
         }
         finally
         {
@@ -163,7 +162,14 @@
 
     private static bool AcessoValido(AcessoUtilizadorDTO acesso)
     {
-        return acesso.Ativo && acesso.InicioValidade <= DateTime.UtcNow && acesso.FimValidade >= DateTime.UtcNow;
+        return acesso.PodeVisualizarAgora;
+    }
+
+    private static string EstadoAcesso(AcessoUtilizadorDTO acesso)
+    {
+        return string.IsNullOrWhiteSpace(acesso.EstadoAcesso)
+            ? (acesso.PodeVisualizarAgora ? "Ativo" : "Indisponivel")
+            : acesso.EstadoAcesso;
     }
 
     private static string FormatarPeriodo(DateTime inicio, DateTime fim)

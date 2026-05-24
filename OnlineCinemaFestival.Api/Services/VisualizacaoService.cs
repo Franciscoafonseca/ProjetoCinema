@@ -7,18 +7,21 @@ namespace OnlineCinemaFestival.Api.Services;
 public class VisualizacaoService : IVisualizacaoService
 {
     private readonly IVisualizacaoRepository _visualizacaoRepository;
-    private readonly IValidacaoAcessoService _validacaoAcessoService;
+    private readonly IAcessoVisualizacaoService _acessoVisualizacaoService;
     private readonly IEnumerable<IVisualizacaoObserver> _observers;
+    private readonly TimeProvider _timeProvider;
 
     public VisualizacaoService(
         IVisualizacaoRepository visualizacaoRepository,
-        IValidacaoAcessoService validacaoAcessoService,
-        IEnumerable<IVisualizacaoObserver> observers
+        IAcessoVisualizacaoService acessoVisualizacaoService,
+        IEnumerable<IVisualizacaoObserver> observers,
+        TimeProvider timeProvider
     )
     {
         _visualizacaoRepository = visualizacaoRepository;
-        _validacaoAcessoService = validacaoAcessoService;
+        _acessoVisualizacaoService = acessoVisualizacaoService;
         _observers = observers;
+        _timeProvider = timeProvider;
     }
 
     public async Task<VisualizacaoReadDTO> ObterVisualizacaoFilmeAsync(
@@ -32,16 +35,16 @@ public class VisualizacaoService : IVisualizacaoService
         if (filme == null)
             throw new KeyNotFoundException("Filme nao encontrado.");
 
-        var acesso = await _validacaoAcessoService.ObterAcessoValidoParaFilmeAsync(
+        var resultadoAcesso = await _acessoVisualizacaoService.ObterResultadoParaFilmeAsync(
             utilizadorId,
             filme,
             festivalId
         );
 
-        if (acesso == null)
-            throw new UnauthorizedAccessException(
-                "Nao possui acesso valido para visualizar este filme."
-            );
+        if (!resultadoAcesso.Permitido || resultadoAcesso.Acesso == null)
+            throw new UnauthorizedAccessException(resultadoAcesso.Mensagem);
+
+        var acesso = resultadoAcesso.Acesso;
 
         var url = await ObterUrlVisualizacaoAsync(filme);
 
@@ -86,15 +89,15 @@ public class VisualizacaoService : IVisualizacaoService
         if (sessao == null)
             throw new KeyNotFoundException("Sessao nao encontrada.");
 
-        var acesso = await _validacaoAcessoService.ObterAcessoValidoParaSessaoAsync(
+        var resultadoAcesso = await _acessoVisualizacaoService.ObterResultadoParaSessaoAsync(
             utilizadorId,
             sessao
         );
 
-        if (acesso == null)
-            throw new UnauthorizedAccessException(
-                "Nao possui acesso valido para visualizar esta sessao."
-            );
+        if (!resultadoAcesso.Permitido || resultadoAcesso.Acesso == null)
+            throw new UnauthorizedAccessException(resultadoAcesso.Mensagem);
+
+        var acesso = resultadoAcesso.Acesso;
 
         var url = await ObterUrlVisualizacaoAsync(sessao.Filme);
         var conteudos = new List<ConteudoVisualizacaoDTO>
@@ -123,6 +126,8 @@ public class VisualizacaoService : IVisualizacaoService
             FilmeId = null,
             SessaoId = sessao.Id,
             TemChatAoVivo = sessao.TemChatAoVivo,
+            SessaoInicio = sessao.Inicio,
+            SessaoFim = sessao.Fim,
             Mensagem = "Acesso autorizado a sessao.",
             Conteudos = conteudos,
         };
@@ -161,31 +166,31 @@ public class VisualizacaoService : IVisualizacaoService
             if (sessao.FilmeId != dto.FilmeId)
                 throw new InvalidOperationException("O filme nao pertence a esta sessao.");
 
-            var acesso = await _validacaoAcessoService.ObterAcessoValidoParaSessaoAsync(
+            var resultadoAcesso = await _acessoVisualizacaoService.ObterResultadoParaSessaoAsync(
                 utilizadorId,
                 sessao
             );
 
-            if (acesso == null)
-                throw new UnauthorizedAccessException("Sem acesso valido para esta sessao.");
+            if (!resultadoAcesso.Permitido || resultadoAcesso.Acesso == null)
+                throw new UnauthorizedAccessException(resultadoAcesso.Mensagem);
 
             tipoConteudo = "Sessao";
             festivalId = sessao.FestivalId;
-            tipoAcessoUsado = acesso.TipoAcesso;
+            tipoAcessoUsado = resultadoAcesso.Acesso.TipoAcesso;
         }
         else
         {
-            var acesso = await _validacaoAcessoService.ObterAcessoValidoParaFilmeAsync(
+            var resultadoAcesso = await _acessoVisualizacaoService.ObterResultadoParaFilmeAsync(
                 utilizadorId,
                 filme,
                 dto.FestivalId
             );
 
-            if (acesso == null)
-                throw new UnauthorizedAccessException("Sem acesso valido para este filme.");
+            if (!resultadoAcesso.Permitido || resultadoAcesso.Acesso == null)
+                throw new UnauthorizedAccessException(resultadoAcesso.Mensagem);
 
-            festivalId = acesso.FestivalId ?? festivalId;
-            tipoAcessoUsado = acesso.TipoAcesso;
+            festivalId = resultadoAcesso.Acesso.FestivalId ?? festivalId;
+            tipoAcessoUsado = resultadoAcesso.Acesso.TipoAcesso;
         }
 
         var url = await ObterUrlVisualizacaoAsync(filme);
@@ -199,7 +204,7 @@ public class VisualizacaoService : IVisualizacaoService
             TipoConteudo = tipoConteudo,
             TipoAcessoUsado = tipoAcessoUsado,
             UrlVisualizacao = url,
-            VisualizadoEm = DateTime.UtcNow,
+            VisualizadoEm = Agora(),
         };
 
         await _visualizacaoRepository.AddAsync(visualizacao);
@@ -221,13 +226,13 @@ public class VisualizacaoService : IVisualizacaoService
         };
     }
 
-    private async Task<string> ObterUrlVisualizacaoAsync(Filme filme)
+    private Task<string> ObterUrlVisualizacaoAsync(Filme filme)
     {
-        if (!string.IsNullOrWhiteSpace(filme.TrailerUrl))
-            return filme.TrailerUrl;
-
         if (!string.IsNullOrWhiteSpace(filme.VideoUrl))
-            return filme.VideoUrl;
+            return Task.FromResult(filme.VideoUrl);
+
+        if (!string.IsNullOrWhiteSpace(filme.TrailerUrl))
+            return Task.FromResult(filme.TrailerUrl);
 
         throw new InvalidOperationException("Trailer TMDB/YouTube indisponivel para este filme.");
     }
@@ -251,7 +256,7 @@ public class VisualizacaoService : IVisualizacaoService
             TipoConteudo = tipoConteudo,
             TipoAcessoUsado = tipoAcessoUsado,
             UrlVisualizacao = urlVisualizacao,
-            VisualizadoEm = DateTime.UtcNow,
+            VisualizadoEm = Agora(),
         };
 
         await _visualizacaoRepository.AddAsync(visualizacao);
@@ -268,7 +273,7 @@ public class VisualizacaoService : IVisualizacaoService
         IEnumerable<ConteudoVisualizacaoDTO> conteudos
     )
     {
-        var agora = DateTime.UtcNow;
+        var agora = Agora();
         var visualizacoes = conteudos.Select(conteudo => new Visualizacao
         {
             UtilizadorId = utilizadorId,
@@ -317,5 +322,10 @@ public class VisualizacaoService : IVisualizacaoService
         return visualizacao.SessaoId.HasValue
             ? $"/visualizar/sessao/{visualizacao.SessaoId.Value}"
             : $"/visualizar/filme/{visualizacao.FilmeId}";
+    }
+
+    private DateTime Agora()
+    {
+        return _timeProvider.GetUtcNow().UtcDateTime;
     }
 }

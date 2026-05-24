@@ -138,7 +138,10 @@
         catch (Exception ex)
         {
             _mensagemSeveridade = Severity.Error;
-            _mensagem = ex.Message;
+            _mensagem = MensagemErroApi.Limpar(
+                ex.Message,
+                "Nao foi possivel carregar este filme do TMDB no momento."
+            );
         }
         finally
         {

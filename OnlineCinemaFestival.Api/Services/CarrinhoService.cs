@@ -11,21 +11,24 @@ public class CarrinhoService : ICarrinhoService
     private readonly ICarrinhoRepository _carrinhoRepository;
     private readonly IAcessoRepository _acessoRepository;
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
-    private readonly IReadOnlyDictionary<TipoAcesso, ICarrinhoAcessoStrategy> _acessoStrategies;
+    private readonly IReadOnlyDictionary<TipoAcesso, ICarrinhoItemValidator> _itemValidators;
+    private readonly TimeProvider _timeProvider;
     private readonly int _quantidadeMaxima;
 
     public CarrinhoService(
         ICarrinhoRepository carrinhoRepository,
         IAcessoRepository acessoRepository,
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
-        IEnumerable<ICarrinhoAcessoStrategy> acessoStrategies,
+        IEnumerable<ICarrinhoItemValidator> itemValidators,
+        TimeProvider timeProvider,
         IConfiguration configuration
     )
     {
         _carrinhoRepository = carrinhoRepository;
         _acessoRepository = acessoRepository;
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
-        _acessoStrategies = acessoStrategies.ToDictionary(s => s.Tipo);
+        _itemValidators = itemValidators.ToDictionary(s => s.Tipo);
+        _timeProvider = timeProvider;
         _quantidadeMaxima = AcessosConfiguracao.ObterQuantidadeMaximaCarrinho(configuration);
     }
 
@@ -59,17 +62,11 @@ public class CarrinhoService : ICarrinhoService
     {
         ValidarQuantidade(dto.Quantidade);
 
-        var strategy = ObterStrategy(dto.TipoAcesso);
-        strategy.ValidarPedido(dto);
-        await strategy.ValidarAlvoAsync(dto);
+        var validator = ObterValidator(dto.TipoAcesso);
+        validator.ValidarPedido(dto);
+        await validator.ValidarAlvoAsync(dto);
 
-        var acesso = await _acessoRepository.GetAtivoParaCarrinhoAsync(
-            dto.TipoAcesso,
-            dto.FestivalId,
-            dto.FilmeId,
-            dto.SessaoId,
-            dto.DataPasse
-        );
+        var acesso = await validator.ObterAcessoAtivoAsync(dto);
 
         if (acesso == null)
             throw new KeyNotFoundException(
@@ -101,15 +98,15 @@ public class CarrinhoService : ICarrinhoService
         if (item == null)
             throw new KeyNotFoundException("Item nao encontrado no carrinho.");
 
-        var strategy = ObterStrategy(item.Acesso.Tipo);
+        var validator = ObterValidator(item.Acesso.Tipo);
 
-        if (!strategy.PermiteQuantidadeMultipla && dto.Quantidade != 1)
+        if (!validator.PermiteQuantidadeMultipla && dto.Quantidade != 1)
             throw new InvalidOperationException(
                 "Apenas bilhetes de sessao permitem quantidade superior a 1."
             );
 
         item.Quantidade = dto.Quantidade;
-        carrinho.AtualizadoEm = DateTime.UtcNow;
+        carrinho.AtualizadoEm = Agora();
 
         await _carrinhoRepository.SaveChangesAsync();
 
@@ -131,7 +128,7 @@ public class CarrinhoService : ICarrinhoService
 
         _carrinhoRepository.RemoveItem(item);
 
-        carrinho.AtualizadoEm = DateTime.UtcNow;
+        carrinho.AtualizadoEm = Agora();
 
         await _carrinhoRepository.SaveChangesAsync();
     }
@@ -145,7 +142,7 @@ public class CarrinhoService : ICarrinhoService
 
         _carrinhoRepository.RemoveItems(carrinho.Itens);
 
-        carrinho.AtualizadoEm = DateTime.UtcNow;
+        carrinho.AtualizadoEm = Agora();
 
         await _carrinhoRepository.SaveChangesAsync();
     }
@@ -214,9 +211,9 @@ public class CarrinhoService : ICarrinhoService
 
         if (itemExistente != null)
         {
-            var strategy = ObterStrategy(acesso.Tipo);
+            var validator = ObterValidator(acesso.Tipo);
 
-            if (!strategy.PermiteQuantidadeMultipla)
+            if (!validator.PermiteQuantidadeMultipla)
                 throw new InvalidOperationException("Este acesso ja esta no carrinho.");
 
             if (itemExistente.Quantidade + quantidade > _quantidadeMaxima)
@@ -225,7 +222,7 @@ public class CarrinhoService : ICarrinhoService
                 );
 
             itemExistente.Quantidade += quantidade;
-            carrinho.AtualizadoEm = DateTime.UtcNow;
+            carrinho.AtualizadoEm = Agora();
             await _carrinhoRepository.SaveChangesAsync();
 
             var carrinhoComItemAtualizado = await _carrinhoRepository.ObterPorUtilizadorIdAsync(
@@ -240,12 +237,12 @@ public class CarrinhoService : ICarrinhoService
             AcessoId = acesso.Id,
             PrecoUnitario = acesso.Preco,
             Quantidade = quantidade,
-            DataAdicao = DateTime.UtcNow,
+            DataAdicao = Agora(),
         };
 
         await _carrinhoRepository.AddItemAsync(item);
 
-        carrinho.AtualizadoEm = DateTime.UtcNow;
+        carrinho.AtualizadoEm = Agora();
 
         await _carrinhoRepository.SaveChangesAsync();
 
@@ -259,7 +256,7 @@ public class CarrinhoService : ICarrinhoService
         var jaPossuiAcesso = await _acessoUtilizadorRepository.ExisteAcessoAtivoAsync(
             utilizadorId,
             acesso.Id,
-            DateTime.UtcNow
+            Agora()
         );
 
         if (jaPossuiAcesso)
@@ -275,10 +272,10 @@ public class CarrinhoService : ICarrinhoService
             throw new ArgumentException($"A quantidade nao pode exceder {_quantidadeMaxima}.");
     }
 
-    private ICarrinhoAcessoStrategy ObterStrategy(TipoAcesso tipo)
+    private ICarrinhoItemValidator ObterValidator(TipoAcesso tipo)
     {
-        return _acessoStrategies.TryGetValue(tipo, out var strategy)
-            ? strategy
+        return _itemValidators.TryGetValue(tipo, out var validator)
+            ? validator
             : throw new InvalidOperationException("Tipo de acesso nao suportado pelo carrinho.");
     }
 
@@ -289,13 +286,18 @@ public class CarrinhoService : ICarrinhoService
 
         ValidarQuantidade(quantidade);
 
-        var strategy = ObterStrategy(acesso.Tipo);
+        var validator = ObterValidator(acesso.Tipo);
 
-        if (!strategy.PermiteQuantidadeMultipla && quantidade != 1)
+        if (!validator.PermiteQuantidadeMultipla && quantidade != 1)
             throw new InvalidOperationException(
                 "Apenas bilhetes de sessao permitem quantidade superior a 1."
             );
 
-        strategy.ValidarAcesso(acesso);
+        validator.ValidarAcesso(acesso);
+    }
+
+    private DateTime Agora()
+    {
+        return _timeProvider.GetUtcNow().UtcDateTime;
     }
 }

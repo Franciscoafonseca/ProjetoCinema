@@ -9,21 +9,21 @@ public class FilmeService : IFilmeService
 {
     private readonly IFilmeRepository _filmeRepository;
     private readonly ITmdbService _tmdbService;
-    private readonly IValidacaoAcessoService _validacaoAcessoService;
+    private readonly IAcessoVisualizacaoService _acessoVisualizacaoService;
     private readonly IAcessoAutomaticoService _acessoAutomaticoService;
     private readonly IEnumerable<IAvaliacaoObserver> _avaliacaoObservers;
 
     public FilmeService(
         IFilmeRepository filmeRepository,
         ITmdbService tmdbService,
-        IValidacaoAcessoService validacaoAcessoService,
+        IAcessoVisualizacaoService acessoVisualizacaoService,
         IAcessoAutomaticoService acessoAutomaticoService,
         IEnumerable<IAvaliacaoObserver> avaliacaoObservers
     )
     {
         _filmeRepository = filmeRepository;
         _tmdbService = tmdbService;
-        _validacaoAcessoService = validacaoAcessoService;
+        _acessoVisualizacaoService = acessoVisualizacaoService;
         _acessoAutomaticoService = acessoAutomaticoService;
         _avaliacaoObservers = avaliacaoObservers;
     }
@@ -128,7 +128,7 @@ public class FilmeService : IFilmeService
                 filmeId
             );
             dto.PodeVer =
-                await _validacaoAcessoService.ObterAcessoValidoParaFilmeAsync(
+                await _acessoVisualizacaoService.ObterAcessoValidoParaFilmeAsync(
                     utilizadorId.Value,
                     filme,
                     null

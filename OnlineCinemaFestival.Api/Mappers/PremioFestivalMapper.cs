@@ -7,6 +7,11 @@ public static class PremioFestivalMapper
 {
     public static PremioFestivalReadDTO MapToReadDTO(PremioFestival premio)
     {
+        return MapToReadDTO(premio, DateTime.UtcNow);
+    }
+
+    public static PremioFestivalReadDTO MapToReadDTO(PremioFestival premio, DateTime agoraUtc)
+    {
         return new PremioFestivalReadDTO
         {
             Id = premio.Id,
@@ -15,7 +20,7 @@ public static class PremioFestivalMapper
             Descricao = premio.Descricao,
             DataAberturaVotacao = premio.DataAberturaVotacao,
             DataFechoVotacao = premio.DataFechoVotacao,
-            EstadoPremio = premio.EstadoPremio.ToString(),
+            EstadoPremio = ObterEstadoVotacao(premio, agoraUtc),
         };
     }
 
@@ -34,5 +39,19 @@ public static class PremioFestivalMapper
             PublicadoEm = resultado.PublicadoEm,
             PublicadoPorUtilizadorId = resultado.PublicadoPorUtilizadorId,
         };
+    }
+
+    private static string ObterEstadoVotacao(PremioFestival premio, DateTime agoraUtc)
+    {
+        if (premio.EstadoPremio == EstadoPremio.Publicado || premio.Resultado != null)
+            return "Vencedor publicado";
+
+        if (agoraUtc < premio.DataAberturaVotacao)
+            return "Nao iniciada";
+
+        if (agoraUtc <= premio.DataFechoVotacao)
+            return "Aberta";
+
+        return "Encerrada";
     }
 }

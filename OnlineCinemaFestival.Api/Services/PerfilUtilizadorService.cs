@@ -144,6 +144,41 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
             ReviewsCount = utilizador.Avaliacoes.Count,
             CommunitiesCount = utilizador.Comunidades.Count,
             PublicListsCount = utilizador.ListasPessoais.Count(l => l.IsPublic),
+            PublicLists = utilizador
+                .ListasPessoais.Where(l => l.IsPublic)
+                .OrderBy(l => l.Name)
+                .Select(l => new ListaPessoalPublicaDTO
+                {
+                    Id = l.Id,
+                    Name = l.Name,
+                    Description = l.Description,
+                    TotalFilmes = l.Items?.Count ?? 0,
+                })
+                .ToList(),
+            PublicReviews = utilizador
+                .Avaliacoes.OrderByDescending(a => a.Data)
+                .Select(a => new ReviewPublicaDTO
+                {
+                    Id = a.Id,
+                    FilmeId = a.FilmeId,
+                    FilmeTitulo = a.Filme?.Titulo ?? string.Empty,
+                    Pontuacao = a.Pontuacao,
+                    Texto = a.Texto,
+                    Data = a.Data,
+                })
+                .ToList(),
+            PublicCommunities = utilizador
+                .Comunidades.Where(m => m.Comunidade.IsPublic)
+                .OrderBy(m => m.Comunidade.Name)
+                .Select(m => new ComunidadePublicaPerfilDTO
+                {
+                    Id = m.Comunidade.PublicId,
+                    Name = m.Comunidade.Name,
+                    Description = m.Comunidade.Description,
+                    ImageUrl = m.Comunidade.ImageUrl,
+                    MembersCount = m.Comunidade.Members?.Count ?? 0,
+                })
+                .ToList(),
         };
     }
 

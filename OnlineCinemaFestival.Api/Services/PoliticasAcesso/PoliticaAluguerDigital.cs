@@ -1,5 +1,4 @@
 using OnlineCinemaFestival.Api.Models;
-using ModelAcesso = OnlineCinemaFestival.Api.Models.Acesso;
 
 namespace OnlineCinemaFestival.Api.Services.PoliticasAcesso;
 
@@ -7,19 +6,18 @@ public sealed class PoliticaAluguerDigital : IPoliticaAcesso
 {
     public TipoAcesso TipoSuportado => TipoAcesso.AluguerDigital;
 
-    public bool TemAcesso(ModelAcesso acesso, DateTime agora)
+    public int OrdemPreferencia => 1;
+
+    public bool PermiteVisualizacao(
+        AcessoUtilizador acesso,
+        ContextoVisualizacao contexto,
+        DateTime agora
+    )
     {
-        if (acesso.Tipo != TipoSuportado || !acesso.FilmeId.HasValue)
+        if (acesso.TipoAcesso != TipoSuportado || !ValidadeAcessoUtilizador.EstaAtivo(acesso, agora))
             return false;
 
-        var limiteValidade = acesso.Validade
-            ?? (acesso.DuracaoHoras.HasValue
-                ? acesso.CriadoEm.AddHours(acesso.DuracaoHoras.Value)
-                : null);
-
-        return limiteValidade.HasValue
-            && acesso.CriadoEm <= agora
-            && agora <= limiteValidade.Value;
+        return contexto.FilmeId.HasValue && acesso.FilmeId == contexto.FilmeId.Value;
     }
 }
 

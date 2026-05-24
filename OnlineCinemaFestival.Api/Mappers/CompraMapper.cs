@@ -71,7 +71,10 @@ public static class CompraMapper
                         EstadoNome = compra.Pagamento.Estado.ToString(),
                         CriadoEm = compra.Pagamento.CriadoEm,
                         ExpiraEm =
-                            compra.Pagamento.Estado == EstadoPagamento.Pendente
+                            (
+                                compra.Pagamento.Estado == EstadoPagamento.Pendente
+                                || compra.Pagamento.Estado == EstadoPagamento.Expirado
+                            )
                             && compra.Pagamento.Metodo.Equals(
                                 MetodosPagamento.ReferenciaMultibanco,
                                 StringComparison.OrdinalIgnoreCase

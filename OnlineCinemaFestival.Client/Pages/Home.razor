@@ -458,15 +458,7 @@
 
     private static string EstadoFestival(FestivalDTO festival)
     {
-        var hoje = DateTime.Now.Date;
-
-        if (hoje < festival.StartDate.Date)
-            return "Em breve";
-
-        if (hoje <= festival.EndDate.Date)
-            return "A decorrer";
-
-        return "Terminado";
+        return festival.EstadoFestival;
     }
 
     private static string ClasseEstadoFestival(FestivalDTO festival)
@@ -481,21 +473,17 @@
 
     private static bool EstaFestivalADecorrer(FestivalDTO festival)
     {
-        var hoje = DateTime.Now.Date;
-        return festival.StartDate.Date <= hoje && hoje <= festival.EndDate.Date;
+        return string.Equals(festival.EstadoFestival, "A decorrer", StringComparison.OrdinalIgnoreCase);
     }
 
     private static int OrdemFestival(FestivalDTO festival)
     {
-        var hoje = DateTime.Now.Date;
-
-        if (festival.StartDate.Date <= hoje && hoje <= festival.EndDate.Date)
-            return 0;
-
-        if (hoje < festival.StartDate.Date)
-            return 1;
-
-        return 2;
+        return festival.EstadoFestival switch
+        {
+            "A decorrer" => 0,
+            "Em breve" => 1,
+            _ => 2
+        };
     }
 
     private static string EstadoSessao(SessaoDTO sessao)

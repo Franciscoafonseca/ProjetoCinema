@@ -45,6 +45,21 @@ public class PagamentoTests
         Assert.Null(pagamento.ProcessadoEm);
     }
 
+    [Fact]
+    public async Task MetodoInvalido_DeveFicarRecusado()
+    {
+        var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 5, 23, 12, 0, 0, TimeSpan.Zero));
+        var service = CriarServicoPagamento(timeProvider);
+        var compra = CriarCompra();
+
+        var pagamento = await service.ProcessarPagamentoSimuladoAsync(compra, "MetodoInexistente");
+
+        Assert.Equal(EstadoPagamento.Recusado, pagamento.Estado);
+        Assert.Equal("MetodoInexistente", pagamento.Metodo);
+        Assert.NotNull(pagamento.ProcessadoEm);
+        Assert.Contains("recusado", pagamento.Mensagem);
+    }
+
     private static IPagamentoService CriarServicoPagamento(TimeProvider timeProvider)
     {
         var configuracao = new ConfigurationBuilder()

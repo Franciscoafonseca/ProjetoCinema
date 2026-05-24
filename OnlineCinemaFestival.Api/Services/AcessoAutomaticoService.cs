@@ -69,13 +69,7 @@ public class AcessoAutomaticoService : IAcessoAutomaticoService
 
     private async Task AdicionarAluguerSeNecessarioAsync(List<Acesso> acessos, Filme filme)
     {
-        var existente = await _acessoRepository.GetAtivoParaCarrinhoAsync(
-            TipoAcesso.AluguerDigital,
-            null,
-            filme.Id,
-            null,
-            null
-        );
+        var existente = await _acessoRepository.ObterAluguerDigitalAtivoAsync(filme.Id);
 
         if (existente == null)
             acessos.Add(_factory.CriarAluguerDigital(filme));
@@ -86,24 +80,15 @@ public class AcessoAutomaticoService : IAcessoAutomaticoService
         Festival festival
     )
     {
-        var passeCompleto = await _acessoRepository.GetAtivoParaCarrinhoAsync(
-            TipoAcesso.PasseCompleto,
-            festival.Id,
-            null,
-            null,
-            null
-        );
+        var passeCompleto = await _acessoRepository.ObterPasseCompletoAtivoAsync(festival.Id);
 
         if (passeCompleto == null)
             acessos.Add(_factory.CriarPasseCompleto(festival));
 
         foreach (var dia in DiasDoFestival(festival))
         {
-            var passeDiario = await _acessoRepository.GetAtivoParaCarrinhoAsync(
-                TipoAcesso.PasseDiario,
+            var passeDiario = await _acessoRepository.ObterPasseDiarioAtivoAsync(
                 festival.Id,
-                null,
-                null,
                 dia
             );
 
@@ -117,13 +102,7 @@ public class AcessoAutomaticoService : IAcessoAutomaticoService
         Sessao sessao
     )
     {
-        var existente = await _acessoRepository.GetAtivoParaCarrinhoAsync(
-            TipoAcesso.BilheteSessao,
-            null,
-            null,
-            sessao.Id,
-            null
-        );
+        var existente = await _acessoRepository.ObterBilheteSessaoAtivoAsync(sessao.Id);
 
         if (existente == null)
             acessos.Add(_factory.CriarBilheteSessao(sessao));

@@ -107,7 +107,7 @@
         }
         catch (Exception ex)
         {
-            _erro = ex.Message;
+            _erro = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel iniciar sessao.");
         }
         finally
         {
@@ -146,7 +146,7 @@
         }
         catch (Exception ex)
         {
-            _erro = ex.Message;
+            _erro = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel autenticar com o provider externo.");
         }
         finally
         {

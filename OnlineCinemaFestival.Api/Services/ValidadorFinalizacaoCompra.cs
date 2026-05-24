@@ -7,17 +7,20 @@ namespace OnlineCinemaFestival.Api.Services;
 public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
 {
     private readonly IAcessoUtilizadorRepository _acessoUtilizadorRepository;
-    private readonly IReadOnlyDictionary<TipoAcesso, ICarrinhoAcessoStrategy> _acessoStrategies;
+    private readonly IReadOnlyDictionary<TipoAcesso, ICarrinhoItemValidator> _itemValidators;
+    private readonly TimeProvider _timeProvider;
     private readonly int _quantidadeMaxima;
 
     public ValidadorFinalizacaoCompra(
         IAcessoUtilizadorRepository acessoUtilizadorRepository,
-        IEnumerable<ICarrinhoAcessoStrategy> acessoStrategies,
+        IEnumerable<ICarrinhoItemValidator> itemValidators,
+        TimeProvider timeProvider,
         IConfiguration configuration
     )
     {
         _acessoUtilizadorRepository = acessoUtilizadorRepository;
-        _acessoStrategies = acessoStrategies.ToDictionary(s => s.Tipo);
+        _itemValidators = itemValidators.ToDictionary(s => s.Tipo);
+        _timeProvider = timeProvider;
         _quantidadeMaxima = AcessosConfiguracao.ObterQuantidadeMaximaCarrinho(configuration);
     }
 
@@ -26,7 +29,7 @@ public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
         if (carrinho == null || !carrinho.Itens.Any())
             throw new InvalidOperationException("O carrinho esta vazio.");
 
-        var agora = DateTime.UtcNow;
+        var agora = _timeProvider.GetUtcNow().UtcDateTime;
         var acessosNoCarrinho = new HashSet<int>();
 
         foreach (var item in carrinho.Itens)
@@ -71,20 +74,20 @@ public class ValidadorFinalizacaoCompra : IValidadorFinalizacaoCompra
                 $"O acesso '{item.Acesso.Nome}' ja nao esta disponivel."
             );
 
-        var strategy = ObterStrategy(item.Acesso.Tipo);
+        var validator = ObterValidator(item.Acesso.Tipo);
 
-        if (!strategy.PermiteQuantidadeMultipla && item.Quantidade != 1)
+        if (!validator.PermiteQuantidadeMultipla && item.Quantidade != 1)
             throw new InvalidOperationException(
                 "Apenas bilhetes de sessao permitem quantidade superior a 1."
             );
 
-        strategy.ValidarAcesso(item.Acesso);
+        validator.ValidarAcesso(item.Acesso);
     }
 
-    private ICarrinhoAcessoStrategy ObterStrategy(TipoAcesso tipo)
+    private ICarrinhoItemValidator ObterValidator(TipoAcesso tipo)
     {
-        return _acessoStrategies.TryGetValue(tipo, out var strategy)
-            ? strategy
+        return _itemValidators.TryGetValue(tipo, out var validator)
+            ? validator
             : throw new InvalidOperationException("Tipo de acesso nao suportado no checkout.");
     }
 }

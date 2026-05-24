@@ -1,5 +1,7 @@
 namespace OnlineCinemaFestival.Api.DTOs;
 
+using OnlineCinemaFestival.Api.Models;
+
 public class ComentarioDTO
 {
     public int Id { get; set; }
@@ -29,6 +31,8 @@ public class ComentarioDTO
     public bool Visivel { get; set; }
 
     public bool Reportado { get; set; }
+
+    public EstadoModeracaoComentario EstadoModeracao { get; set; }
 }
 
 public class ComentarioReadDTO : ComentarioDTO { }

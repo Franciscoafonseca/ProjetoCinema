@@ -4,6 +4,7 @@
 @inject ComentarioService ComentarioService
 @inject IConsultaFilmeService FilmeService
 @inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Comunidade - Online Cinema Festival</PageTitle>
 
@@ -180,6 +181,12 @@
                                             @NomeUtilizador(comentario.NomeUsuario)
                                         </button>
                                         <span>@comentario.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                        @if (comentario.EstadoModeracao != EstadoModeracaoComentario.Visivel)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">
+                                                @comentario.EstadoModeracao
+                                            </MudChip>
+                                        }
                                         <p>@comentario.Texto</p>
 
                                         <div class="comment-actions">
@@ -208,6 +215,39 @@
                                                 }
                                                 <span>@(comentario.TituloFilme ?? "Filme associado")</span>
                                             </button>
+                                        }
+
+                                        @if (PodeModerar)
+                                        {
+                                            <MudStack Row="true" Spacing="1" Class="comment-moderation">
+                                                @if (comentario.EstadoModeracao == EstadoModeracaoComentario.Visivel)
+                                                {
+                                                    <MudButton Size="Size.Small"
+                                                               Variant="Variant.Outlined"
+                                                               Color="Color.Warning"
+                                                               Disabled="@_aModerar"
+                                                               OnClick="() => ModerarComentarioAsync(comentario.Id, AcaoModeracaoComentario.Ocultar)">
+                                                        Ocultar
+                                                    </MudButton>
+                                                    <MudButton Size="Size.Small"
+                                                               Variant="Variant.Outlined"
+                                                               Color="Color.Error"
+                                                               Disabled="@_aModerar"
+                                                               OnClick="() => ModerarComentarioAsync(comentario.Id, AcaoModeracaoComentario.Remover)">
+                                                        Remover
+                                                    </MudButton>
+                                                }
+                                                else
+                                                {
+                                                    <MudButton Size="Size.Small"
+                                                               Variant="Variant.Outlined"
+                                                               Color="Color.Success"
+                                                               Disabled="@_aModerar"
+                                                               OnClick="() => ModerarComentarioAsync(comentario.Id, AcaoModeracaoComentario.Restaurar)">
+                                                        Restaurar
+                                                    </MudButton>
+                                                }
+                                            </MudStack>
                                         }
                                     </div>
                                 </article>
@@ -306,6 +346,7 @@
         try
         {
             _comunidade = await ComunidadeService.ObterPorIdAsync(Id);
+            _utilizadorAtualId = await ObterUtilizadorAtualIdAsync();
             _filmes = (await FilmeService.ObterFilmesAsync()).OrderBy(f => f.Titulo).ToList();
             await CarregarComentariosAsync();
             if (_comunidade?.IsOwner == true)
@@ -315,7 +356,7 @@
         }
         catch (Exception ex)
         {
-            _erroGeral = ex.Message;
+            _erroGeral = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel carregar a comunidade.");
         }
         finally
         {
@@ -333,7 +374,7 @@
         }
         catch (Exception ex)
         {
-            _mensagemComentario = ex.Message;
+            _mensagemComentario = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel carregar os comentarios.");
             _severidadeComentario = Severity.Error;
         }
         finally
@@ -382,7 +423,7 @@
         }
         catch (Exception ex)
         {
-            _mensagemComentario = ex.Message;
+            _mensagemComentario = MensagemErroApi.Limpar(ex.Message, "Nao foi possivel publicar o comentario.");
             _severidadeComentario = Severity.Error;
         }
         finally
@@ -532,5 +573,16 @@
         return string.IsNullOrWhiteSpace(texto)
             ? "?"
             : char.ToUpperInvariant(texto[0]).ToString();
+    }
+
+    private async Task<int?> ObterUtilizadorAtualIdAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var id = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? user.FindFirst("nameid")?.Value
+            ?? user.FindFirst("sub")?.Value;
+
+        return int.TryParse(id, out var utilizadorId) ? utilizadorId : null;
     }
 }

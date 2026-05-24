@@ -5,29 +5,24 @@ namespace OnlineCinemaFestival.Api.Services;
 
 public class RewardsVisualizacaoObserver : IVisualizacaoObserver
 {
-    private readonly IRewardsRepository _rewardsRepository;
-    private readonly IRewardTransacaoRepository _transacaoRepository;
+    private readonly IRewardsPontuacaoService _rewardsPontuacaoService;
 
-    public RewardsVisualizacaoObserver(
-        IRewardsRepository rewardsRepository,
-        IRewardTransacaoRepository transacaoRepository
-    )
+    public RewardsVisualizacaoObserver(IRewardsPontuacaoService rewardsPontuacaoService)
     {
-        _rewardsRepository = rewardsRepository;
-        _transacaoRepository = transacaoRepository;
+        _rewardsPontuacaoService = rewardsPontuacaoService;
     }
 
     public async Task NotificarAsync(Visualizacao visualizacao)
     {
-        await _rewardsRepository.AddOrUpdatePointsAsync(visualizacao.UtilizadorId, 1);
-        await _transacaoRepository.AddAsync(
-            new RewardTransacao
-            {
-                UtilizadorId = visualizacao.UtilizadorId,
-                Pontos = 1,
-                Motivo = "Visualizacao",
-            }
+        var alvo = visualizacao.SessaoId.HasValue
+            ? $"sessao:{visualizacao.SessaoId.Value}"
+            : $"filme:{visualizacao.FilmeId}";
+
+        await _rewardsPontuacaoService.AtribuirSeAindaNaoAtribuidoAsync(
+            visualizacao.UtilizadorId,
+            1,
+            "Visualizacao",
+            $"visualizacao:{alvo}"
         );
-        await _transacaoRepository.SaveChangesAsync();
     }
 }

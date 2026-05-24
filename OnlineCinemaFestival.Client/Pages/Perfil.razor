@@ -3,12 +3,13 @@
 @inject ListaService ListaService
 @inject VisualizacaoService VisualizacaoService
 @inject NavigationManager Nav
+@attribute [Authorize]
 
 <PageTitle>Perfil - Online Cinema Festival</PageTitle>
 
 <AuthorizeView>
     <NotAuthorized>
-        @{ Nav.NavigateTo("/login?returnUrl=/perfil", forceLoad: false); }
+        <RedirectToLogin ReturnPath="/perfil" />
     </NotAuthorized>
     <Authorized Context="auth">
         <main class="cinema-page perfil-page">
@@ -182,7 +183,7 @@
                                     @if (MostrarFotoPerfil)
                                     {
                                         <img class="perfil-avatar-img"
-                                             src="@_perfil.ProfileImageUrl"
+                                             src="@ImagemPerfilExibida"
                                              alt="@_perfil.Name"
                                              @onerror="MarcarFotoPerfilFalhada" />
                                     }
@@ -485,6 +486,7 @@
     private IBrowserFile? _fotoSelecionada;
     private string? _nomeFotoSelecionada;
     private bool _fotoPerfilFalhou;
+    private string _fotoPerfilStamp = DateTime.UtcNow.Ticks.ToString();
     private string? _erro;
     private string? _erroEdicao;
     private string? _erroListas;
@@ -646,6 +648,7 @@
             {
                 _perfil = atualizado;
                 _fotoPerfilFalhou = false;
+                _fotoPerfilStamp = DateTime.UtcNow.Ticks.ToString();
             }
             _emEdicao = false;
         }
@@ -753,6 +756,11 @@
         _perfil is not null
         && !string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl)
         && !_fotoPerfilFalhou;
+
+    private string ImagemPerfilExibida =>
+        _perfil is null || string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl)
+            ? string.Empty
+            : $"{_perfil.ProfileImageUrl}{(_perfil.ProfileImageUrl.Contains('?') ? "&" : "?")}v={_fotoPerfilStamp}";
 
     private void MarcarFotoPerfilFalhada()
     {
