@@ -34,34 +34,43 @@ Controller -> Service -> Repository -> AppDbContext
 
 Controllers ficam finos, services concentram regras de negocio e repositories centralizam acesso a dados.
 
-Principios e padroes aplicados:
+Principios aplicados:
 
-- Caminho B: o Blazor WebAssembly comunica com a API apenas via `HttpClient`; nao referencia EF Core, repositories nem modelos internos da API.
-- SRP/DIP: regras de negocio ficam em services dependentes de interfaces; controllers so recebem HTTP e devolvem respostas.
-- Repository: queries EF Core ficam em repositories, com `AsSplitQuery` nas leituras com multiplos `Include`.
-- Strategy/OCP: validacao de tipos de acesso, ordenacao de catalogo e pagamentos usam strategies extensiveis.
-- Factory: acessos automaticos de catalogo sao criados por `IAcessoAutomaticoFactory`.
-- Adapter/Facade: chamadas TMDB passam por `ITmdbApiClient` e `ITmdbService`.
-- Observer: compras, visualizacoes e avaliacoes notificam observers para rewards/acessos sem acoplar os fluxos principais.
+- O Blazor WebAssembly comunica com a API apenas via `HttpClient`; nao referencia EF Core, repositories nem modelos internos da API.
+- SRP/DIP: regras de negocio ficam em services dependentes de interfaces; controllers recebem HTTP e devolvem respostas.
+- OCP: novos tipos de acesso, pagamento ou ordenacao entram por novas strategies/factories registadas em DI.
+- Consistencia transacional: a finalizacao de compra corre dentro de transacao explicita via repository/AppDbContext.
 
-## Configuracao
+## Configuracao Segura
 
-Preencher `OnlineCinemaFestival.Api/appsettings.json` antes de arrancar a API:
+Nao colocar tokens reais, passwords reais, ficheiros `.db`, `secrets.json` ou `appsettings.Development.json` no Git. O `appsettings.json` deve manter placeholders; valores sensiveis devem vir de user-secrets ou variaveis de ambiente.
+
+Configurar secrets locais da API:
+
+```bash
+cd OnlineCinemaFestival.Api
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Data Source=onlinecinemafestival.db"
+dotnet user-secrets set "Jwt:Key" "chave-local-com-pelo-menos-32-caracteres"
+dotnet user-secrets set "Jwt:Issuer" "OnlineCinemaFestival"
+dotnet user-secrets set "Jwt:Audience" "OnlineCinemaFestivalClient"
+dotnet user-secrets set "Cors:AllowedOrigins:0" "http://localhost:5174"
+dotnet user-secrets set "Seed:AdminEmail" "admin@festival.pt"
+dotnet user-secrets set "Seed:AdminPassword" "Admin123!"
+dotnet user-secrets set "Seed:UtilizadorPassword" "User123!"
+dotnet user-secrets set "Tmdb:Token" "token-read-access-do-tmdb"
+```
+
+`Tmdb:Token` e `YouTube:ApiKey` podem ser omitidos quando nao se pretende usar essas integracoes. Sem `Jwt:Key`, connection string ou CORS valido, a API falha no arranque por configuracao de seguranca.
+
+O Client le a API em `OnlineCinemaFestival.Client/wwwroot/appsettings.json`:
 
 ```json
 {
-  "Jwt": {
-    "Key": "chave-local-com-pelo-menos-32-caracteres",
-    "Issuer": "OnlineCinemaFestival",
-    "Audience": "OnlineCinemaFestivalClient"
-  },
-  "Tmdb": {
-    "Token": "token-read-access-do-tmdb"
+  "Api": {
+    "BaseUrl": "http://localhost:5152/"
   }
 }
 ```
-
-Sem `Jwt:Key`, a API falha no arranque por configuracao de seguranca.
 
 ## Credenciais de Demo
 
@@ -97,7 +106,26 @@ Arrancar frontend:
 dotnet run --project OnlineCinemaFestival.Client
 ```
 
-Confirmar o URL da API em `OnlineCinemaFestival.Client/Program.cs`. Em `Development`, o `DbSeeder` cria/atualiza dados de demo.
+Em `Development`, o `DbSeeder` cria/atualiza dados de demo com as credenciais configuradas em user-secrets.
+
+Correr testes:
+
+```bash
+dotnet test
+```
+
+## Padroes de Desenho Aplicados
+
+| Padrao | Onde esta | Problema que resolve | SOLID | Beneficio | Trade-off |
+| --- | --- | --- | --- | --- | --- |
+| Repository | `Repositories/*Repository.cs` | Isola EF Core e queries | DIP, SRP | Trocar persistencia ou testar services fica mais simples | Mais interfaces e classes |
+| Service Layer | `Services/*Service.cs` | Centraliza regras de negocio fora dos controllers | SRP | Controllers finos e reutilizacao de casos de uso | Services podem crescer se nao forem divididos |
+| Strategy | validators de carrinho, pagamentos, catalogo, validacao de acesso | Varia comportamento por tipo | OCP | Novo tipo entra por nova classe e DI | Mais registos em DI |
+| Factory | `CompraFactory`, `AcessoAutomaticoFactory`, `AcessoUtilizadorFactory` | Cria objetos complexos de forma consistente | SRP, OCP | Evita construcao espalhada | Exige nomes claros para nao esconder regra |
+| Resolver | `PoliticaAcessoResolver`, factories de strategies | Escolhe implementacao correta em runtime | DIP, OCP | Reduz `switch` em services | Falhas de registo aparecem em runtime |
+| Template Method | `CarrinhoItemValidatorBase` | Fluxo comum para validar itens do carrinho | SRP | Remove duplicacao entre validators | Base class deve ficar pequena |
+| Observer/Eventos | `ICompraObserver`, `IVisualizacaoObserver`, observers de rewards | Efeitos secundarios sem acoplar fluxo principal | DIP | Rewards/acessos evoluem sem mexer no checkout | Ordem/atomicidade precisam de cuidado |
+| DTO/Mapper | `DTOs/*`, `Mappers/*Mapper.cs` | Separa contrato publico dos modelos EF | ISP, SRP | Rotas ficam estaveis mesmo com modelo interno | Mais codigo de mapping |
 
 ## Fluxo de Demo
 
