@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components.Forms;
 using OnlineCinemaFestival.Client.Models;
 
 namespace OnlineCinemaFestival.Client.Services;
@@ -68,6 +69,30 @@ public class ComunidadeService
         if (!resposta.IsSuccessStatusCode)
             throw new InvalidOperationException(
                 await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel criar a comunidade.")
+            );
+
+        return NormalizarFotosMembros(await resposta.Content.ReadFromJsonAsync<ComunidadeDTO>())
+            ?? throw new InvalidOperationException("Resposta invalida do servidor.");
+    }
+
+    public async Task<ComunidadeDTO> EnviarImagemAsync(Guid id, IBrowserFile ficheiro)
+    {
+        const long tamanhoMaximo = 2 * 1024 * 1024;
+
+        using var content = new MultipartFormDataContent();
+        var stream = ficheiro.OpenReadStream(tamanhoMaximo);
+        var fileContent = new StreamContent(stream);
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+            ficheiro.ContentType
+        );
+
+        content.Add(fileContent, "imagem", ficheiro.Name);
+
+        var resposta = await _http.PostAsync($"api/comunidades/{id}/imagem", content);
+
+        if (!resposta.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                await MensagemErroApi.ObterAsync(resposta, "Nao foi possivel enviar a imagem.")
             );
 
         return NormalizarFotosMembros(await resposta.Content.ReadFromJsonAsync<ComunidadeDTO>())
@@ -147,6 +172,13 @@ public class ComunidadeService
 
             var baseUri = _http.BaseAddress?.GetLeftPart(UriPartial.Authority) ?? string.Empty;
             membro.ProfileImageUrl = $"{baseUri}{membro.ProfileImageUrl}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(comunidade.ImageUrl)
+            && !Uri.TryCreate(comunidade.ImageUrl, UriKind.Absolute, out _))
+        {
+            var baseUri = _http.BaseAddress?.GetLeftPart(UriPartial.Authority) ?? string.Empty;
+            comunidade.ImageUrl = $"{baseUri}{comunidade.ImageUrl}";
         }
 
         return comunidade;

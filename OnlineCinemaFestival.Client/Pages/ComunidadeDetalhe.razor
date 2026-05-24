@@ -28,14 +28,7 @@
         {
             <header class="community-detail-hero cinema-panel">
                 <div class="community-detail-cover">
-                    @if (string.IsNullOrWhiteSpace(_comunidade.ImageUrl))
-                    {
-                        <span>@Inicial(_comunidade.Name)</span>
-                    }
-                    else
-                    {
-                        <img src="@_comunidade.ImageUrl" alt="@_comunidade.Name" />
-                    }
+                    <img src="@(string.IsNullOrWhiteSpace(_comunidade.ImageUrl) ? "images/placeholders/community-placeholder.svg" : _comunidade.ImageUrl)" alt="@_comunidade.Name" />
                 </div>
                 <div class="community-detail-copy">
                     <span class="cinema-kicker">Comunidade</span>

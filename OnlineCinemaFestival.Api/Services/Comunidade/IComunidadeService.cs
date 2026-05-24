@@ -23,4 +23,5 @@ public interface IComunidadeService
 
     Task ApagarComunidadeAsync(Guid comunidadePublicId, int utilizadorId);
     Task SairComunidadeAsync(Guid comunidadePublicId, int utilizadorId);
+    Task<ComunidadeReadDTO> EnviarImagemAsync(Guid comunidadePublicId, int utilizadorId, IFormFile ficheiro);
 }

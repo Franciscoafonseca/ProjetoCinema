@@ -9,6 +9,7 @@ public static partial class ServiceCollectionExtensions
     {
         services.AddScoped<IUtilizadorAtualService, UtilizadorAtualService>();
         services.AddScoped<IUtilizadorRepository, UtilizadorRepository>();
+        services.AddScoped<IImagemUploadService, ImagemUploadService>();
         services.AddScoped<IPerfilFotoUploadService, PerfilFotoUploadService>();
         services.AddScoped<IPerfilUtilizadorService, PerfilUtilizadorService>();
         services.AddScoped<IListaPessoalRepository, ListaPessoalRepository>();

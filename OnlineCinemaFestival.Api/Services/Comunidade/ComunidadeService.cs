@@ -9,14 +9,17 @@ public class ComunidadeService : IComunidadeService
 {
     private readonly IComunidadeRepository _comunidadeRepository;
     private readonly IUtilizadorRepository _utilizadorRepository;
+    private readonly IImagemUploadService _imagemUploadService;
 
     public ComunidadeService(
         IComunidadeRepository comunidadeRepository,
-        IUtilizadorRepository utilizadorRepository
+        IUtilizadorRepository utilizadorRepository,
+        IImagemUploadService imagemUploadService
     )
     {
         _comunidadeRepository = comunidadeRepository;
         _utilizadorRepository = utilizadorRepository;
+        _imagemUploadService = imagemUploadService;
     }
 
     public async Task<IEnumerable<ComunidadeReadDTO>> ObterTodasComunidadesAsync(
@@ -192,6 +195,35 @@ public class ComunidadeService : IComunidadeService
             }
         }
         await _comunidadeRepository.RemoverMembroAsync(membro);
+    }
+
+    public async Task<ComunidadeReadDTO> EnviarImagemAsync(
+        Guid comunidadePublicId,
+        int utilizadorId,
+        IFormFile ficheiro
+    )
+    {
+        var comunidade = await _comunidadeRepository.GetComunidadeByPublicIdAsync(
+            comunidadePublicId
+        );
+
+        if (comunidade == null)
+            throw new KeyNotFoundException("Comunidade nao encontrada.");
+
+        var isProprietario = await _comunidadeRepository.IsProprietarioAsync(
+            comunidade.Id,
+            utilizadorId
+        );
+
+        if (!isProprietario)
+            throw new UnauthorizedAccessException("Apenas o proprietario pode alterar a imagem.");
+
+        comunidade.ImageUrl = await _imagemUploadService.GuardarAsync(ficheiro, "comunidades");
+        comunidade.UpdatedAt = DateTime.UtcNow;
+
+        await _comunidadeRepository.SaveChangesAsync();
+
+        return ComunidadeMapper.ToReadDTO(comunidade, utilizadorId);
     }
 
     private async Task ValidarRegrasDeAdesaoAsync(
