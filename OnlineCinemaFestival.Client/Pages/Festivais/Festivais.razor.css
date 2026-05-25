@@ -1,135 +1,397 @@
 .festivais-container {
-  max-width: 1200px;
+  width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 42px 0 78px;
 }
 
-.festivais-cabecalho {
-  margin-bottom: 2rem;
+.festivais-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 430px);
+  gap: 30px;
+  align-items: stretch;
+  overflow: hidden;
+  margin-bottom: 30px;
+  padding: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: var(--sky-radius);
+  background:
+    linear-gradient(135deg, rgba(0, 245, 212, 0.16), rgba(5, 130, 202, 0.05) 34%, transparent 58%),
+    linear-gradient(110deg, transparent 0%, rgba(255, 138, 0, 0.12) 72%, rgba(255, 77, 141, 0.12)),
+    rgba(255, 255, 255, 0.06);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.26);
+}
+
+.festivais-hero::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: calc(var(--sky-radius) - 2px);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.9), transparent 74%);
+  pointer-events: none;
+}
+
+.festivais-hero::after {
+  content: "";
+  position: absolute;
+  left: 36px;
+  right: 36px;
+  bottom: 0;
+  height: 4px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, var(--sky-cyan), #82e7ff, #ffd782, var(--sky-pink));
+}
+
+.festivais-hero > * {
+  position: relative;
+}
+
+.festivais-kicker {
+  width: fit-content;
+  margin: 0 0 12px;
+  padding: 7px 10px;
+  border: 1px solid rgba(0, 245, 212, 0.22);
+  border-radius: 999px;
+  background: rgba(0, 245, 212, 0.07);
+  color: #a8fff0;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 .festivais-titulo {
+  max-width: 720px;
+  margin: 0;
   color: #fff;
-  margin: 0 0 0.5rem;
-  font-size: 2.25rem;
+  font-size: 5.1rem;
+  font-weight: 950;
+  line-height: 0.92;
 }
 
 .festivais-subtitulo {
-  color: #a0a0a0;
-  margin: 0;
+  max-width: 680px;
+  margin: 18px 0 0;
+  color: var(--sky-muted);
   font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.festivais-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.festival-action,
+.festival-card-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sky-radius-sm);
+  padding: 0 16px;
+  color: #fff;
+  font-weight: 900;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.festival-action:hover,
+.festival-card-link:hover {
+  transform: translateY(-1px);
+  color: #fff;
+  text-decoration: none;
+}
+
+.festival-action.primary {
+  color: #04101b;
+  background: linear-gradient(135deg, var(--sky-cyan), #8cecff 54%, #ffd782);
+  box-shadow: 0 16px 34px rgba(0, 245, 212, 0.18);
+}
+
+.festival-action.secondary {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.075);
+  color: var(--sky-text);
+}
+
+.festivais-metricas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-self: end;
+}
+
+.festivais-metricas span {
+  min-height: 104px;
+  display: grid;
+  align-content: end;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--sky-radius-sm);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.03)),
+    rgba(5, 11, 22, 0.66);
+}
+
+.festivais-metricas strong {
+  color: #fff;
+  font-size: 2.18rem;
+  line-height: 1;
+}
+
+.festivais-metricas small {
+  color: var(--sky-muted);
+  font-size: 0.75rem;
+  font-weight: 860;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .festivais-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(305px, 1fr));
+  gap: 18px;
 }
 
 .festival-card {
-  background: #1f1f1f;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 1.5rem;
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    border-color 0.2s,
-    box-shadow 0.2s;
+  position: relative;
+  min-height: 286px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.105);
+  border-radius: var(--sky-radius);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.078), rgba(255, 255, 255, 0.032)),
+    var(--sky-surface);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.festival-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(0, 245, 212, 0.08), transparent 42%),
+    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.12) 100%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
 }
 
 .festival-card:hover {
-  transform: translateY(-3px);
-  border-color: #e50914;
-  box-shadow: 0 8px 24px rgba(229, 9, 20, 0.15);
+  transform: translateY(-5px);
+  border-color: rgba(0, 245, 212, 0.44);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.34);
 }
 
-.festival-card-cabecalho {
+.festival-card:hover::before {
+  opacity: 1;
+}
+
+.festival-card-topline {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: linear-gradient(90deg, var(--sky-cyan), #8cecff, #ffd782);
+}
+
+.festival-card.is-upcoming .festival-card-topline {
+  background: linear-gradient(90deg, #ffd782, var(--sky-orange), var(--sky-pink));
+}
+
+.festival-card.is-ended .festival-card-topline {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.26), rgba(185, 195, 212, 0.1));
+}
+
+.festival-card-cabecalho,
+.festival-card-rodape {
+  position: relative;
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 0.75rem;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .festival-card-data {
-  color: #a0a0a0;
-  font-size: 0.85rem;
-  font-weight: 500;
+  color: var(--sky-muted);
+  font-size: 0.84rem;
+  font-weight: 780;
 }
 
 .festival-card-badge {
-  padding: 0.2rem 0.7rem;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
   border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  padding: 0 10px;
+  font-size: 0.69rem;
+  font-weight: 950;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .festival-card-badge.ativo {
-  background: rgba(40, 167, 69, 0.2);
-  color: #4ade80;
+  border-color: rgba(54, 231, 168, 0.2);
+  background: rgba(54, 231, 168, 0.15);
+  color: #a7ffd9;
 }
 
 .festival-card-badge.futuro {
-  background: rgba(229, 9, 20, 0.2);
-  color: #ff6b6b;
+  border-color: rgba(255, 138, 0, 0.22);
+  background: rgba(255, 138, 0, 0.16);
+  color: #ffd29a;
 }
 
 .festival-card-badge.terminado {
-  background: rgba(108, 117, 125, 0.25);
-  color: #adb5bd;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--sky-muted);
 }
 
 .festival-card-nome {
+  position: relative;
+  margin: 34px 0 12px;
   color: #fff;
-  margin: 0 0 0.5rem;
-  font-size: 1.35rem;
+  font-size: 1.52rem;
+  font-weight: 950;
+  line-height: 1.12;
 }
 
 .festival-card-descricao {
-  color: #c0c0c0;
-  margin: 0 0 1rem;
-  flex: 1;
-  line-height: 1.5;
+  position: relative;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  flex: 1;
   overflow: hidden;
+  margin: 0 0 20px;
+  color: var(--sky-muted);
+  line-height: 1.58;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.festival-card-rodape {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.085);
+  color: var(--sky-muted-2);
+  font-size: 0.86rem;
+  font-weight: 820;
 }
 
 .festival-card-link {
-  color: #e50914;
-  font-weight: 600;
-  font-size: 0.9rem;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 0.84rem;
 }
 
 .loading-state,
 .erro-state,
 .empty-state {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: 38px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--sky-radius);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--sky-muted);
   text-align: center;
-  padding: 4rem 1rem;
-  color: #a0a0a0;
+}
+
+.empty-state h2 {
+  margin: 0;
+  color: #fff;
+}
+
+.empty-state p {
+  margin: 0;
 }
 
 .erro-state {
-  color: #ff8585;
+  color: #ffb4c0;
+  border-color: rgba(255, 92, 122, 0.42);
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #2a2a2a;
-  border-top-color: #e50914;
+  width: 42px;
+  height: 42px;
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-top-color: var(--sky-cyan);
   border-radius: 50%;
-  margin: 0 auto 1rem;
   animation: girar 0.8s linear infinite;
 }
 
 @keyframes girar {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 860px) {
+  .festivais-titulo {
+    font-size: 3.6rem;
+  }
+
+  .festivais-hero {
+    grid-template-columns: 1fr;
+    padding: 28px;
+  }
+
+  .festivais-metricas {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .festivais-metricas span {
+    min-height: 86px;
+  }
+}
+
+@media (max-width: 620px) {
+  .festivais-container {
+    width: min(100% - 24px, 1240px);
+    padding-top: 24px;
+  }
+
+  .festivais-hero {
+    padding: 22px;
+  }
+
+  .festivais-titulo {
+    font-size: 2.75rem;
+  }
+
+  .festivais-metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .festival-action {
+    width: 100%;
   }
 }

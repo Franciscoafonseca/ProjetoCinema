@@ -729,9 +729,7 @@
     private void SelecionarFoto(InputFileChangeEventArgs e)
     {
         var ficheiro = e.File;
-        var tiposPermitidos = new[] { "image/jpeg", "image/png", "image/webp" };
-
-        if (!tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase))
+        if (!ImagemValida(ficheiro))
         {
             _fotoSelecionada = null;
             _nomeFotoSelecionada = null;
@@ -765,6 +763,20 @@
     private void MarcarFotoPerfilFalhada()
     {
         _fotoPerfilFalhou = true;
+    }
+
+    private static bool ImagemValida(IBrowserFile ficheiro)
+    {
+        var tiposPermitidos = new[] { "image/jpeg", "image/jpg", "image/png", "image/webp" };
+
+        if (!string.IsNullOrWhiteSpace(ficheiro.ContentType))
+            return tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase);
+
+        var extensoesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        return extensoesPermitidas.Contains(
+            Path.GetExtension(ficheiro.Name),
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
     private static string BandeiraPerfil(PerfilPublicoDTO perfil)

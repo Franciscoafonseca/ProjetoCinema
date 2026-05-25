@@ -430,9 +430,7 @@
     private void SelecionarImagemComunidade(InputFileChangeEventArgs e)
     {
         var ficheiro = e.File;
-        var tiposPermitidos = new[] { "image/jpeg", "image/png", "image/webp" };
-
-        if (!tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase))
+        if (!ImagemValida(ficheiro))
         {
             _imagemComunidade = null;
             _imagemComunidadeNome = null;
@@ -459,7 +457,7 @@
         <div class="community-cover">
             @if (string.IsNullOrWhiteSpace(comunidade.ImageUrl))
             {
-                <img src="images/placeholders/community-placeholder.svg" alt="" />
+                <img src="images/logos/cinehub-icon-cor.png" alt="" />
             }
             else
             {
@@ -515,5 +513,19 @@
         return string.IsNullOrWhiteSpace(texto)
             ? "?"
             : char.ToUpperInvariant(texto[0]).ToString();
+    }
+
+    private static bool ImagemValida(IBrowserFile ficheiro)
+    {
+        var tiposPermitidos = new[] { "image/jpeg", "image/jpg", "image/png", "image/webp" };
+
+        if (!string.IsNullOrWhiteSpace(ficheiro.ContentType))
+            return tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase);
+
+        var extensoesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        return extensoesPermitidas.Contains(
+            Path.GetExtension(ficheiro.Name),
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 }

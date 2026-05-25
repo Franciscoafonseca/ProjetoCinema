@@ -9,8 +9,8 @@ public class ImagemUploadService : IImagemUploadService
         StringComparer.OrdinalIgnoreCase
     )
     {
-        [".jpg"] = ["image/jpeg", "image/pjpeg"],
-        [".jpeg"] = ["image/jpeg", "image/pjpeg"],
+        [".jpg"] = ["image/jpeg", "image/jpg", "image/pjpeg"],
+        [".jpeg"] = ["image/jpeg", "image/jpg", "image/pjpeg"],
         [".png"] = ["image/png", "image/x-png"],
         [".webp"] = ["image/webp"],
     };

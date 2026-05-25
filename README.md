@@ -368,7 +368,7 @@ dotnet test OnlineCinemaFestival.Tests
 | `Pagamentos/`    | 7      | Pagamento simulado (Cartão/Multibanco); expiração de Multibanco                                                              |
 | `Perfis/`        | 4      | Perfil público/privado; visibilidade entre utilizadores                                                                      |
 | `Prémios/`       | 6      | Votação única por utilizador; publicação automática de vencedor                                                              |
-| `Recomendações/` | 7      | Recomendaç��o por género/avaliação/popularidade/prémios; catálogo com paginação                                              |
+| `Recomendações/` | 7      | Recomendação por género/avaliação/popularidade/prémios; catálogo com paginação                                               |
 | `Rewards/`       | 3      | Pontuação por evento (avaliação, comentário, lista)                                                                          |
 | `Social/`        | 7      | Observers de Rewards — `ComentarioObserver`, `AvaliacaoObserver`, `VisualizacaoObserver`, `VotoPremioObserver`; idempotência |
 | `Upload/`        | 9      | Extensão inválida; magic bytes errados; tamanho excedido; tipos aceites                                                      |
@@ -396,7 +396,7 @@ dotnet test OnlineCinemaFestival.Tests
 
 ## Imagens, logos e uploads
 
-O frontend usa estes assets estáticos (fallback visual se não existirem):
+O frontend usa estes assets estáticos versionados:
 
 ```
 OnlineCinemaFestival.Client/wwwroot/images/brand/sky-cinema-logo.svg
@@ -445,8 +445,9 @@ Criadas pelo `DbSeeder` com os valores configurados nos user-secrets:
 10. **Avaliar e comentar** → detalhe do filme → submeter review (requer visualização)
 11. **Votar em prémio** → página do festival → separador Prémios
 12. **Ver rewards** → `/perfil` → separador Rewards
-13. **Criar comunidade** → `/comunidades` → Nova comunidade; convidar membros
-14. **Admin modera reporte** → `/admin` → Reportes → aceitar ou rejeitar
+13. **Criar comunidade** → `/comunidades` → No
+
+va comunidade; convidar membros 14. **Admin modera reporte** → `/admin` → Reportes → aceitar ou rejeitar
 
 ---
 

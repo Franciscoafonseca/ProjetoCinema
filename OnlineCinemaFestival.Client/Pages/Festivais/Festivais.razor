@@ -3,17 +3,33 @@
 @inject FestivalService FestivalService
 @inject NavigationManager Nav
 
-<PageTitle>Festivais — Online Cinema Festival</PageTitle>
+<PageTitle>Festivais - Online Cinema Festival</PageTitle>
 
 <div class="festivais-container">
-    <div class="festivais-cabecalho">
-        <h1 class="festivais-titulo">Festivais</h1>
-        <p class="festivais-subtitulo">Explora os festivais de cinema online disponíveis.</p>
-    </div>
+    <section class="festivais-hero" aria-labelledby="festivais-titulo">
+        <div>
+            <p class="festivais-kicker">Circuito digital</p>
+            <h1 id="festivais-titulo" class="festivais-titulo">Festivais</h1>
+            <p class="festivais-subtitulo">
+                Descobre programacoes curatoriais, passes e votacoes do publico num so lugar.
+            </p>
+            <div class="festivais-acoes">
+                <a class="festival-action primary" href="/sessoes">Ver sessoes</a>
+                <a class="festival-action secondary" href="/catalogo">Explorar catalogo</a>
+            </div>
+        </div>
+
+        <div class="festivais-metricas" aria-label="Resumo dos festivais">
+            <span><strong>@_festivais.Count</strong><small>Total</small></span>
+            <span><strong>@FestivaisAtivos</strong><small>A decorrer</small></span>
+            <span><strong>@FestivaisEmBreve</strong><small>Em breve</small></span>
+            <span><strong>@TotalFilmesEmFestivais</strong><small>Filmes</small></span>
+        </div>
+    </section>
 
     @if (_loading)
     {
-        <div class="loading-state">
+        <div class="loading-state" role="status">
             <div class="spinner"></div>
             <p>A carregar festivais...</p>
         </div>
@@ -24,14 +40,18 @@
     }
     else if (_festivais.Count == 0)
     {
-        <p class="empty-state">Não há festivais disponíveis de momento.</p>
+        <div class="empty-state">
+            <h2>Nao ha festivais disponiveis</h2>
+            <p>Quando a equipa publicar novos festivais, eles vao aparecer aqui.</p>
+        </div>
     }
     else
     {
         <div class="festivais-grid">
             @foreach (var f in _festivais)
             {
-                <div class="festival-card" @onclick="() => AbrirFestival(f.Id)">
+                <article class="festival-card @EstadoCardCss(f)" @onclick="() => AbrirFestival(f.Id)">
+                    <div class="festival-card-topline"></div>
                     <div class="festival-card-cabecalho">
                         <span class="festival-card-data">@FormatarPeriodo(f.StartDate, f.EndDate)</span>
                         @if (EstaAtivo(f))
@@ -47,13 +67,18 @@
                             <span class="festival-card-badge terminado">Terminado</span>
                         }
                     </div>
-                    <h3 class="festival-card-nome">@f.Name</h3>
+
+                    <h2 class="festival-card-nome">@f.Name</h2>
                     @if (!string.IsNullOrWhiteSpace(f.Description))
                     {
                         <p class="festival-card-descricao">@f.Description</p>
                     }
-                    <span class="festival-card-link">Ver detalhes →</span>
-                </div>
+
+                    <div class="festival-card-rodape">
+                        <span>@f.FilmesDoFestival.Count filmes</span>
+                        <span class="festival-card-link">Abrir festival</span>
+                    </div>
+                </article>
             }
         </div>
     }
@@ -61,6 +86,13 @@
 
 @code {
     private List<FestivalDTO> _festivais = new();
+
+    private int FestivaisAtivos => _festivais.Count(EstaAtivo);
+
+    private int FestivaisEmBreve =>
+        _festivais.Count(f => string.Equals(f.EstadoFestival, "Em breve", StringComparison.OrdinalIgnoreCase));
+
+    private int TotalFilmesEmFestivais => _festivais.Sum(f => f.FilmesDoFestival.Count);
 
     protected override async Task CarregarDadosAsync()
     {
@@ -75,10 +107,22 @@
     private static bool EstaAtivo(FestivalDTO f) =>
         string.Equals(f.EstadoFestival, "A decorrer", StringComparison.OrdinalIgnoreCase);
 
+    private static string EstadoCardCss(FestivalDTO f)
+    {
+        if (EstaAtivo(f))
+            return "is-active";
+
+        if (string.Equals(f.EstadoFestival, "Em breve", StringComparison.OrdinalIgnoreCase))
+            return "is-upcoming";
+
+        return "is-ended";
+    }
+
     private static string FormatarPeriodo(DateTime inicio, DateTime fim)
     {
         if (inicio.Year == fim.Year && inicio.Month == fim.Month)
-            return $"{inicio:dd} – {fim:dd MMM yyyy}";
-        return $"{inicio:dd/MM/yyyy} – {fim:dd/MM/yyyy}";
+            return $"{inicio:dd} - {fim:dd MMM yyyy}";
+
+        return $"{inicio:dd/MM/yyyy} - {fim:dd/MM/yyyy}";
     }
 }

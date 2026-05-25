@@ -142,9 +142,26 @@ code {
   --sky-radius-sm: 6px;
   --sky-shadow: 0 22px 70px rgba(0, 0, 0, 0.32);
   --sky-shadow-soft: 0 14px 42px rgba(0, 0, 0, 0.22);
-  --sky-gradient-action: linear-gradient(135deg, var(--sky-cyan), var(--sky-blue) 38%, var(--sky-purple) 70%, var(--sky-pink));
-  --sky-gradient-warm: linear-gradient(135deg, var(--sky-pink), var(--sky-orange));
-  --sky-gradient-title: linear-gradient(90deg, var(--sky-cyan), var(--sky-blue), var(--sky-purple), var(--sky-pink), var(--sky-orange));
+  --sky-gradient-action: linear-gradient(
+    135deg,
+    var(--sky-cyan),
+    var(--sky-blue) 38%,
+    var(--sky-purple) 70%,
+    var(--sky-pink)
+  );
+  --sky-gradient-warm: linear-gradient(
+    135deg,
+    var(--sky-pink),
+    var(--sky-orange)
+  );
+  --sky-gradient-title: linear-gradient(
+    90deg,
+    var(--sky-cyan),
+    var(--sky-blue),
+    var(--sky-purple),
+    var(--sky-pink),
+    var(--sky-orange)
+  );
   --sky-focus: 0 0 0 3px rgba(0, 245, 212, 0.24);
   --ocf-bg: #050913;
   --ocf-bg-2: #09101d;
@@ -196,7 +213,11 @@ h6 {
   border: 1px solid var(--sky-border);
   border-radius: var(--sky-radius);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.03)
+    ),
     rgba(17, 24, 39, 0.88);
   box-shadow: var(--sky-shadow-soft);
 }
@@ -232,7 +253,10 @@ h6 {
   font-weight: 850;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
 }
 
 .sky-btn-primary {
@@ -429,8 +453,16 @@ textarea.sky-control {
   min-height: 100vh;
   color: var(--ocf-text);
   background:
-    radial-gradient(circle at 0% 10%, rgba(31, 211, 198, 0.12), transparent 32%),
-    radial-gradient(circle at 100% 0%, rgba(255, 126, 95, 0.18), transparent 34%),
+    radial-gradient(
+      circle at 0% 10%,
+      rgba(31, 211, 198, 0.12),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(255, 126, 95, 0.18),
+      transparent 34%
+    ),
     linear-gradient(180deg, #040811 0%, #07101f 35%, #050913 100%);
 }
 
@@ -485,7 +517,11 @@ textarea.sky-control {
   border-radius: 30px;
   border: 1px solid var(--ocf-line);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.035)
+    ),
     var(--ocf-panel);
   box-shadow: var(--ocf-shadow-md);
 }
@@ -646,4 +682,60 @@ textarea.sky-control {
 .form-floating > .form-control-plaintext:focus::placeholder,
 .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+body {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(0, 245, 212, 0.1), transparent 30%),
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(255, 77, 141, 0.12),
+      transparent 34%
+    ),
+    linear-gradient(180deg, #030712 0%, #050b16 42%, #030712 100%);
+}
+
+button,
+a,
+.card,
+.sky-card,
+.cinema-panel,
+.perfil-stat-card,
+.acesso-card {
+  -webkit-tap-highlight-color: transparent;
+}
+
+select,
+input,
+textarea,
+.form-control,
+.form-select {
+  color-scheme: dark;
+}
+
+select:focus,
+input:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(0, 245, 212, 0.55) !important;
+  box-shadow: 0 0 0 4px rgba(0, 245, 212, 0.16) !important;
+}
+
+::selection {
+  color: #06101d;
+  background: #00f5d4;
+}
+
+.sky-card,
+.cinema-panel {
+  border-radius: 28px !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.085),
+      rgba(255, 255, 255, 0.035)
+    ),
+    rgba(17, 24, 39, 0.82) !important;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.3) !important;
 }

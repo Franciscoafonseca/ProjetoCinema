@@ -80,10 +80,11 @@ public class PerfilService
 
         var stream = ficheiro.OpenReadStream(tamanhoMaximo);
         var fileContent = new StreamContent(stream);
-
-        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
-            ficheiro.ContentType
-        );
+        var contentType = ObterContentTypeImagem(ficheiro);
+        if (!string.IsNullOrWhiteSpace(contentType))
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+                contentType
+            );
 
         content.Add(fileContent, "foto", ficheiro.Name);
 
@@ -154,14 +155,41 @@ public class PerfilService
     private T? NormalizarFoto<T>(T? perfil)
         where T : PerfilPublicoDTO
     {
-        if (perfil == null || string.IsNullOrWhiteSpace(perfil.ProfileImageUrl))
+        if (perfil == null)
             return perfil;
 
-        if (Uri.TryCreate(perfil.ProfileImageUrl, UriKind.Absolute, out _))
-            return perfil;
+        perfil.ProfileImageUrl = NormalizarUrl(perfil.ProfileImageUrl);
 
-        var baseUri = _http.BaseAddress?.GetLeftPart(UriPartial.Authority) ?? string.Empty;
-        perfil.ProfileImageUrl = $"{baseUri}{perfil.ProfileImageUrl}";
+        foreach (var comunidade in perfil.PublicCommunities)
+            comunidade.ImageUrl = NormalizarUrl(comunidade.ImageUrl);
+
         return perfil;
+    }
+
+    private string NormalizarUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out _))
+            return url;
+
+        return _http.BaseAddress is null ? url : new Uri(_http.BaseAddress, url).ToString();
+    }
+
+    private static string? ObterContentTypeImagem(IBrowserFile ficheiro)
+    {
+        if (!string.IsNullOrWhiteSpace(ficheiro.ContentType))
+            return ficheiro.ContentType.Equals("image/jpg", StringComparison.OrdinalIgnoreCase)
+                ? "image/jpeg"
+                : ficheiro.ContentType;
+
+        return Path.GetExtension(ficheiro.Name).ToLowerInvariant() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => null,
+        };
     }
 }

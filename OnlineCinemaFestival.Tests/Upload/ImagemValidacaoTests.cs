@@ -112,6 +112,16 @@ public class ImagemValidacaoTests
         Assert.IsNotType<ArgumentException>(ex);
     }
 
+    [Fact]
+    public async Task ContentTypeImageJpg_MagicBytesCorretos_PassaValidacao()
+    {
+        var service = CriarServico();
+        var ficheiro = new FakeFormFile("foto.jpg", "image/jpg", JpegBytes);
+
+        var ex = await Record.ExceptionAsync(() => service.GuardarAsync(ficheiro, "perfis"));
+        Assert.IsNotType<ArgumentException>(ex);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static ImagemUploadService CriarServico() =>

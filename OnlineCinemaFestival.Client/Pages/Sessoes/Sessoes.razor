@@ -8,36 +8,53 @@
 
 <div class="sessoes-page">
     <header class="page-heading">
-        <div>
+        <div class="heading-copy">
             <p class="eyebrow">Programacao digital</p>
             <h1>Sessoes</h1>
             <p class="lead">Escolhe uma exibicao, compra o bilhete e entra no player quando tiveres acesso.</p>
+            <div class="heading-actions">
+                <a class="heading-action primary" href="/carrinho">Ver carrinho</a>
+                <a class="heading-action secondary" href="/festivais">Festivais</a>
+            </div>
         </div>
-        <a class="heading-action" href="/carrinho">Ver carrinho</a>
+
+        <div class="schedule-summary" aria-label="Resumo das sessoes">
+            <span><strong>@_sessoes.Count</strong><small>Total</small></span>
+            <span><strong>@SessoesAoVivo</strong><small>A decorrer</small></span>
+            <span><strong>@SessoesDisponiveis</strong><small>Disponiveis</small></span>
+        </div>
     </header>
 
-    <section class="toolbar">
-        <input class="search"
-               placeholder="Pesquisar filme ou festival"
-               value="@_pesquisa"
-               @oninput="OnPesquisaAlterada" />
+    <section class="toolbar" aria-label="Filtros de sessoes">
+        <label>
+            <span>Pesquisa</span>
+            <input class="search"
+                   placeholder="Filme ou festival"
+                   value="@_pesquisa"
+                   @oninput="OnPesquisaAlterada" />
+        </label>
 
-        <select class="select" @bind="_estado">
-            <option value="">Todos os estados</option>
-            <option value="Agendada">Agendada</option>
-            <option value="ADecorrer">A decorrer</option>
-            <option value="Terminada">Terminada</option>
-        </select>
+        <label>
+            <span>Estado</span>
+            <select class="select" @bind="_estado">
+                <option value="">Todos os estados</option>
+                <option value="Agendada">Agendada</option>
+                <option value="ADecorrer">A decorrer</option>
+                <option value="Terminada">Terminada</option>
+            </select>
+        </label>
 
         <label class="check">
             <input type="checkbox" @bind="_apenasDisponiveis" />
             Futuras/ativas
         </label>
+
+        <button class="toolbar-clear" type="button" @onclick="LimparFiltros">Limpar</button>
     </section>
 
     @if (_loading)
     {
-        <div class="state-panel">A carregar sessoes...</div>
+        <div class="state-panel" role="status">A carregar sessoes...</div>
     }
     else if (_erro != null)
     {
@@ -52,7 +69,7 @@
         <section class="sessions-grid">
             @foreach (var sessao in SessoesFiltradas)
             {
-                <article class="session-row">
+                <article class="session-row @EstadoCss(EstadoTexto(sessao))">
                     <div class="date-box">
                         <span>@sessao.Inicio.ToLocalTime().ToString("dd")</span>
                         <small>@sessao.Inicio.ToLocalTime().ToString("MMM").ToUpperInvariant()</small>
@@ -60,21 +77,18 @@
 
                     <div class="session-main">
                         <div class="session-titleline">
-                            <h2><a href="@($"/sessoes/{sessao.Id}")">@TituloSessao(sessao)</a></h2>
-                            <span class="status @EstadoCss(EstadoTexto(sessao))">@EstadoTexto(sessao)</span>
+                            <p>@sessao.Festival</p>
+                            <span class="status @EstadoCss(EstadoTexto(sessao))">@EstadoRotulo(sessao)</span>
                         </div>
+                        <h2><a href="@($"/sessoes/{sessao.Id}")">@TituloSessao(sessao)</a></h2>
+
                         <div class="meta-panel">
-                            <span><strong>Filme</strong> @TituloSessao(sessao)</span>
+                            <span><strong>Horario</strong> @sessao.Inicio.ToLocalTime().ToString("dd/MM HH:mm") - @sessao.Fim.ToLocalTime().ToString("HH:mm")</span>
                             <span><strong>Bilhete</strong> @Preco(sessao)</span>
+                            <span><strong>Tipo</strong> @sessao.TipoNome</span>
                             <span><strong>Acesso</strong> @AcessoNecessario(sessao)</span>
-                            <span><strong>Sessao</strong> @sessao.TipoNome</span>
-                            <span><strong>Estado</strong> @EstadoRotulo(sessao)</span>
                         </div>
-                        <div class="meta">
-                            <span>@sessao.Festival</span>
-                            <span>@sessao.Inicio.ToLocalTime().ToString("dd/MM HH:mm") - @sessao.Fim.ToLocalTime().ToString("HH:mm")</span>
-                            <span>@sessao.TipoNome</span>
-                        </div>
+
                         @if (!string.IsNullOrWhiteSpace(sessao.Observacoes))
                         {
                             <p class="obs">@sessao.Observacoes</p>
@@ -82,17 +96,17 @@
                     </div>
 
                     <div class="session-actions">
-                        <button class="secondary" @onclick="() => AbrirDetalhe(sessao.Id)">Ver detalhes</button>
+                        <button class="secondary" @onclick="() => AbrirDetalhe(sessao.Id)">Detalhes</button>
                         <button class="primary"
                                 disabled="@(_aAtualizar || SessaoTerminada(sessao))"
                                 @onclick="() => AdicionarBilhete(sessao.Id)">
-                            Comprar bilhete
+                            Comprar
                         </button>
-                        <button class="secondary" @onclick="() => AbrirPlayer(sessao.Id)">Entrar no player</button>
+                        <button class="secondary" @onclick="() => AbrirPlayer(sessao.Id)">Player</button>
                         <button class="secondary"
                                 disabled="@(!sessao.TemChatAoVivo)"
                                 @onclick="() => AbrirChat(sessao.Id)">
-                            Chat ao vivo
+                            Chat
                         </button>
                     </div>
                 </article>
@@ -115,6 +129,11 @@
     private string? _feedback;
     private bool _feedbackErro;
 
+    private int SessoesAoVivo =>
+        _sessoes.Count(s => string.Equals(EstadoTexto(s), "ADecorrer", StringComparison.OrdinalIgnoreCase));
+
+    private int SessoesDisponiveis => _sessoes.Count(s => !SessaoTerminada(s));
+
     private List<SessaoDTO> SessoesFiltradas =>
         _sessoes
             .Where(s => !_apenasDisponiveis || !SessaoTerminada(s))
@@ -135,6 +154,13 @@
     private void OnPesquisaAlterada(ChangeEventArgs e)
     {
         _pesquisa = e.Value?.ToString();
+    }
+
+    private void LimparFiltros()
+    {
+        _pesquisa = null;
+        _estado = string.Empty;
+        _apenasDisponiveis = true;
     }
 
     private async Task AdicionarBilhete(int sessaoId)
@@ -190,7 +216,7 @@
     {
         return sessao.PrecoBilhete.HasValue
             ? sessao.PrecoBilhete.Value.ToString("C", new System.Globalization.CultureInfo("pt-PT"))
-            : "Bilhete disponivel no carrinho";
+            : "Bilhete disponivel";
     }
 
     private static string AcessoNecessario(SessaoDTO sessao)
@@ -198,11 +224,6 @@
         return string.IsNullOrWhiteSpace(sessao.AcessoNecessario)
             ? "Bilhete, passe diario ou passe completo"
             : sessao.AcessoNecessario;
-    }
-
-    private static string TextoPlayer(SessaoDTO sessao)
-    {
-        return SessaoTerminada(sessao) ? "Sessao terminada" : "Disponivel com acesso valido";
     }
 
     private static string EstadoRotulo(SessaoDTO sessao)
@@ -219,6 +240,4 @@
     private void AbrirPlayer(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
 
     private void AbrirChat(int sessaoId) => Nav.NavigateTo($"/visualizar/sessao/{sessaoId}");
-
-    private void AbrirFilme(int filmeId) => Nav.NavigateTo($"/filmes/{filmeId}");
 }

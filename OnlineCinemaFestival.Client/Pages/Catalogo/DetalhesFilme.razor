@@ -221,27 +221,28 @@
                 </section>
             }
 
-            <section id="acessos" class="access-section">
-                <div class="cinema-section-head">
-                    <div>
-                        <span class="cinema-kicker">Acessos</span>
-                        <h2>Escolhe como queres ver</h2>
-                    </div>
+            <section id="acessos" class="acessos-premium">
+                <div class="acessos-head">
+                    <span class="acessos-kicker">Acessos</span>
+                    <h2>Escolhe como queres ver</h2>
+                    <p>Compra uma sessão, desbloqueia um dia do festival, garante o passe completo ou aluga o filme durante @DuracaoAluguerDigitalHoras() horas.</p>
                 </div>
 
-                <div class="access-choice-grid">
-                    <article class="access-choice cinema-panel">
-                        <span>Bilhete de sessao</span>
+                <div class="acessos-grid">
+                    <article class="acesso-card">
+                        <div class="acesso-icon">🎟️</div>
+                        <span class="acesso-label">Bilhete de sessão</span>
                         <h3>Comprar bilhete</h3>
-                        <p>Seleciona uma sessao programada para este filme.</p>
+                        <p>Seleciona uma sessão programada para este filme.</p>
+
                         @if (_sessoes.Count == 0)
                         {
-                            <small>Sem sessoes disponiveis.</small>
+                            <small>Sem sessões disponíveis.</small>
                         }
                         else
                         {
                             <select @bind="_sessaoSelecionadaId">
-                                <option value="">Selecionar sessao</option>
+                                <option value="">Selecionar sessão</option>
                                 @foreach (var sessao in _sessoes)
                                 {
                                     <option value="@sessao.Id">@TituloSessao(sessao) - @FormatarDataHora(sessao.Inicio)</option>
@@ -253,10 +254,12 @@
                         }
                     </article>
 
-                    <article class="access-choice cinema-panel">
-                        <span>Passe diario</span>
+                    <article class="acesso-card">
+                        <div class="acesso-icon">📅</div>
+                        <span class="acesso-label">Passe diário</span>
                         <h3>Acesso de um dia</h3>
                         <p>Escolhe uma data dentro do festival associado.</p>
+
                         <select @bind="_festivalSelecionadoId">
                             <option value="">Selecionar festival</option>
                             @foreach (var festival in _filme.Festivais)
@@ -266,14 +269,16 @@
                         </select>
                         <InputDate class="date-input" @bind-Value="_dataPasseDiario" />
                         <button class="cinema-btn secondary" disabled="@(!_festivalSelecionadoId.HasValue || _aAtualizarCarrinho)" @onclick="AdicionarPasseDiario">
-                            Adicionar passe diario
+                            Adicionar passe diário
                         </button>
                     </article>
 
-                    <article class="access-choice cinema-panel">
-                        <span>Passe completo</span>
+                    <article class="acesso-card acesso-card-destaque">
+                        <div class="acesso-icon">🌌</div>
+                        <span class="acesso-label">Passe completo</span>
                         <h3>Festival inteiro</h3>
                         <p>Compra acesso completo ao festival selecionado.</p>
+
                         <select @bind="_festivalSelecionadoId">
                             <option value="">Selecionar festival</option>
                             @foreach (var festival in _filme.Festivais)
@@ -286,10 +291,11 @@
                         </button>
                     </article>
 
-                    <article class="access-choice cinema-panel">
-                        <span>Aluguer @DuracaoAluguerDigitalHoras()h</span>
+                    <article class="acesso-card acesso-card-aluguer">
+                        <div class="acesso-icon">▶️</div>
+                        <span class="acesso-label">Aluguer @DuracaoAluguerDigitalHoras()h</span>
                         <h3>Alugar filme</h3>
-                        <p>Depois da compra, o aluguer fica valido durante @DuracaoAluguerDigitalHoras() horas.</p>
+                        <p>Depois da compra, o aluguer fica válido durante @DuracaoAluguerDigitalHoras() horas.</p>
                         <button class="cinema-btn primary" disabled="@_aAtualizarCarrinho" @onclick="AdicionarAluguer">
                             Alugar por @DuracaoAluguerDigitalHoras()h
                         </button>

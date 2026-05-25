@@ -29,7 +29,7 @@
         {
             <header class="community-detail-hero cinema-panel">
                 <div class="community-detail-cover">
-                    <img src="@(string.IsNullOrWhiteSpace(_comunidade.ImageUrl) ? "images/placeholders/community-placeholder.svg" : _comunidade.ImageUrl)" alt="@_comunidade.Name" />
+                    <img src="@(string.IsNullOrWhiteSpace(_comunidade.ImageUrl) ? "images/logos/cinehub-icon-cor.png" : _comunidade.ImageUrl)" alt="@_comunidade.Name" />
                 </div>
                 <div class="community-detail-copy">
                     <span class="cinema-kicker">Comunidade</span>
@@ -464,9 +464,7 @@
             return;
 
         var ficheiro = e.File;
-        var tiposPermitidos = new[] { "image/jpeg", "image/png", "image/webp" };
-
-        if (!tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase))
+        if (!ImagemValida(ficheiro))
         {
             _mensagemImagem = "Formato invalido. Escolhe uma imagem JPG, PNG ou WEBP.";
             _severidadeImagem = Severity.Error;
@@ -688,6 +686,20 @@
         return string.IsNullOrWhiteSpace(texto)
             ? "?"
             : char.ToUpperInvariant(texto[0]).ToString();
+    }
+
+    private static bool ImagemValida(IBrowserFile ficheiro)
+    {
+        var tiposPermitidos = new[] { "image/jpeg", "image/jpg", "image/png", "image/webp" };
+
+        if (!string.IsNullOrWhiteSpace(ficheiro.ContentType))
+            return tiposPermitidos.Contains(ficheiro.ContentType, StringComparer.OrdinalIgnoreCase);
+
+        var extensoesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        return extensoesPermitidas.Contains(
+            Path.GetExtension(ficheiro.Name),
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
     private async Task<int?> ObterUtilizadorAtualIdAsync()

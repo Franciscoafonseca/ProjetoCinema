@@ -1,6 +1,6 @@
 using OnlineCinemaFestival.Api.Repositories;
 using OnlineCinemaFestival.Api.Services;
-using OnlineCinemaFestival.Api.Services.AcessosFolder;
+using OnlineCinemaFestival.Api.Services.ValidacaoAcesso;
 using OnlineCinemaFestival.Api.Services.PoliticasAcesso;
 
 namespace OnlineCinemaFestival.Api.Extensions;
