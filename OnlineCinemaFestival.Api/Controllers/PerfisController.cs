@@ -36,9 +36,18 @@ public class PerfisController : ControllerBase
     [Authorize]
     [HttpPost("foto")]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<PerfilPrivadoDTO>> UploadFoto([FromForm] IFormFile foto)
+    public async Task<ActionResult<PerfilPublicoDTO>> UploadFoto(
+        [FromForm] UploadFotoPerfilRequest request)
     {
-        return Ok(await _profileService.EnviarFotoPerfilAsync(User.GetUserId(), foto));
+        if (request.Foto is null || request.Foto.Length == 0)
+            return BadRequest(new { mensagem = "Seleciona uma foto válida." });
+
+        var perfil = await _profileService.EnviarFotoPerfilAsync(
+            User.GetUserId(),
+            request.Foto
+        );
+
+        return Ok(perfil);
     }
 
     [HttpGet("public")]

@@ -60,9 +60,20 @@ public class ComunidadesController : ControllerBase
 
     [HttpPost("{id:guid}/imagem")]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<ComunidadeReadDTO>> UploadImagem(Guid id, [FromForm] IFormFile imagem)
+    public async Task<ActionResult> UploadImagem(
+        Guid id,
+        [FromForm] UploadImagemComunidadeRequest request)
     {
-        return Ok(await _comunidadeService.EnviarImagemAsync(id, User.GetUserId(), imagem));
+        if (request.Imagem is null || request.Imagem.Length == 0)
+            return BadRequest(new { mensagem = "Seleciona uma imagem válida." });
+
+        var resultado = await _comunidadeService.EnviarImagemAsync(
+            id,
+            User.GetUserId(),
+            request.Imagem
+        );
+
+        return Ok(resultado);
     }
 
     [HttpGet("convite/{codigoConvite}")]
