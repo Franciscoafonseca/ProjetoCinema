@@ -25,6 +25,7 @@ public static partial class ServiceCollectionExtensions
             .AddHttpMessageHandler<ManipuladorTokenHttp>();
 
         services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
+        services.AddScoped<ImagemUrlService>();
         services.AddMudServices();
 
         return services;

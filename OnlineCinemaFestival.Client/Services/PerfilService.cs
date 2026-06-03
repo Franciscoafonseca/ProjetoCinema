@@ -8,11 +8,17 @@ public class PerfilService
 {
     private readonly HttpClient _http;
     private readonly PerfilEstadoService _perfilEstado;
+    private readonly ImagemUrlService _imagemUrlService;
 
-    public PerfilService(HttpClient http, PerfilEstadoService perfilEstado)
+    public PerfilService(
+        HttpClient http,
+        PerfilEstadoService perfilEstado,
+        ImagemUrlService imagemUrlService
+    )
     {
         _http = http;
         _perfilEstado = perfilEstado;
+        _imagemUrlService = imagemUrlService;
     }
 
     public async Task<PerfilUtilizadorRespostaDTO?> ObterMeuPerfilAsync()
@@ -154,14 +160,14 @@ public class PerfilService
     private T? NormalizarFoto<T>(T? perfil)
         where T : PerfilPublicoDTO
     {
-        if (perfil == null || string.IsNullOrWhiteSpace(perfil.ProfileImageUrl))
+        if (perfil == null)
             return perfil;
 
-        if (Uri.TryCreate(perfil.ProfileImageUrl, UriKind.Absolute, out _))
-            return perfil;
+        perfil.ProfileImageUrl = _imagemUrlService.Resolver(perfil.ProfileImageUrl);
 
-        var baseUri = _http.BaseAddress?.GetLeftPart(UriPartial.Authority) ?? string.Empty;
-        perfil.ProfileImageUrl = $"{baseUri}{perfil.ProfileImageUrl}";
+        foreach (var comunidade in perfil.PublicCommunities)
+            comunidade.ImageUrl = _imagemUrlService.Resolver(comunidade.ImageUrl);
+
         return perfil;
     }
 }

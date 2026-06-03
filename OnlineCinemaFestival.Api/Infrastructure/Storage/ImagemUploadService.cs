@@ -4,6 +4,7 @@ public class ImagemUploadService : IImagemUploadService
 {
     private const long MaxBytes = 2 * 1024 * 1024;
     private readonly IWebHostEnvironment _environment;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     private static readonly Dictionary<string, string[]> ContentTypesValidos = new(
         StringComparer.OrdinalIgnoreCase
@@ -15,9 +16,13 @@ public class ImagemUploadService : IImagemUploadService
         [".webp"] = ["image/webp"],
     };
 
-    public ImagemUploadService(IWebHostEnvironment environment)
+    public ImagemUploadService(
+        IWebHostEnvironment environment,
+        IHttpContextAccessor? httpContextAccessor = null
+    )
     {
         _environment = environment;
+        _httpContextAccessor = httpContextAccessor ?? new HttpContextAccessor();
     }
 
     public async Task<string> GuardarAsync(IFormFile ficheiro, string subpasta)
@@ -45,7 +50,17 @@ public class ImagemUploadService : IImagemUploadService
             await ficheiro.CopyToAsync(stream);
         }
 
-        return $"/uploads/{string.Join('/', pastaSegura)}/{nomeFicheiro}";
+        return CriarUrlPublica($"/uploads/{string.Join('/', pastaSegura)}/{nomeFicheiro}");
+    }
+
+    private string CriarUrlPublica(string caminhoRelativo)
+    {
+        var request = _httpContextAccessor.HttpContext?.Request;
+
+        if (request == null)
+            return caminhoRelativo;
+
+        return $"{request.Scheme}://{request.Host}{request.PathBase}{caminhoRelativo}";
     }
 
     private static async Task ValidarAsync(IFormFile ficheiro)

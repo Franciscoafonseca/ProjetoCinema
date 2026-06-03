@@ -6,10 +6,12 @@ namespace OnlineCinemaFestival.Client.Services;
 public class ComentarioService
 {
     private readonly HttpClient _http;
+    private readonly ImagemUrlService _imagemUrlService;
 
-    public ComentarioService(HttpClient http)
+    public ComentarioService(HttpClient http, ImagemUrlService imagemUrlService)
     {
         _http = http;
+        _imagemUrlService = imagemUrlService;
     }
 
     public async Task<List<ComentarioDTO>> ObterDaComunidadeAsync(Guid comunidadeId)
@@ -138,14 +140,10 @@ public class ComentarioService
 
     private ComentarioDTO? NormalizarFotoAutor(ComentarioDTO? comentario)
     {
-        if (comentario == null || string.IsNullOrWhiteSpace(comentario.UsuarioFotoUrl))
+        if (comentario == null)
             return comentario;
 
-        if (Uri.TryCreate(comentario.UsuarioFotoUrl, UriKind.Absolute, out _))
-            return comentario;
-
-        var baseUri = _http.BaseAddress?.GetLeftPart(UriPartial.Authority) ?? string.Empty;
-        comentario.UsuarioFotoUrl = $"{baseUri}{comentario.UsuarioFotoUrl}";
+        comentario.UsuarioFotoUrl = _imagemUrlService.Resolver(comentario.UsuarioFotoUrl);
         return comentario;
     }
 }

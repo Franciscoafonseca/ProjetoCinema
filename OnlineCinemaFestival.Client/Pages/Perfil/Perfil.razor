@@ -2,6 +2,7 @@
 @inject PerfilService PerfilService
 @inject ListaService ListaService
 @inject VisualizacaoService VisualizacaoService
+@inject ImagemUrlService ImagemUrlService
 @inject NavigationManager Nav
 @attribute [Authorize]
 
@@ -486,6 +487,7 @@
     private IBrowserFile? _fotoSelecionada;
     private string? _nomeFotoSelecionada;
     private bool _fotoPerfilFalhou;
+    private bool _fotoPerfilUsarUrlOriginal;
     private string _fotoPerfilStamp = DateTime.UtcNow.Ticks.ToString();
     private string? _erro;
     private string? _erroEdicao;
@@ -558,6 +560,7 @@
         {
             _perfil = await PerfilService.ObterMeuPerfilAsync();
             _fotoPerfilFalhou = false;
+            _fotoPerfilUsarUrlOriginal = false;
 
             if (_perfil == null)
             {
@@ -648,6 +651,7 @@
             {
                 _perfil = atualizado;
                 _fotoPerfilFalhou = false;
+                _fotoPerfilUsarUrlOriginal = false;
                 _fotoPerfilStamp = DateTime.UtcNow.Ticks.ToString();
             }
             _emEdicao = false;
@@ -760,10 +764,37 @@
     private string ImagemPerfilExibida =>
         _perfil is null || string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl)
             ? string.Empty
-            : $"{_perfil.ProfileImageUrl}{(_perfil.ProfileImageUrl.Contains('?') ? "&" : "?")}v={_fotoPerfilStamp}";
+            : AnexarVersao(
+                _fotoPerfilUsarUrlOriginal
+                    ? _perfil.ProfileImageUrl
+                    : ImagemUrlService.Resolver(_perfil.ProfileImageUrl),
+                _fotoPerfilStamp
+            );
+
+    private static string AnexarVersao(string url, string versao)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        return $"{url}{(url.Contains('?') ? "&" : "?")}v={versao}";
+    }
 
     private void MarcarFotoPerfilFalhada()
     {
+        if (_perfil is null)
+            return;
+
+        var urlResolvida = ImagemUrlService.Resolver(_perfil.ProfileImageUrl);
+        if (
+            !_fotoPerfilUsarUrlOriginal
+            && !string.IsNullOrWhiteSpace(_perfil.ProfileImageUrl)
+            && !_perfil.ProfileImageUrl.Equals(urlResolvida, StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            _fotoPerfilUsarUrlOriginal = true;
+            return;
+        }
+
         _fotoPerfilFalhou = true;
     }
 

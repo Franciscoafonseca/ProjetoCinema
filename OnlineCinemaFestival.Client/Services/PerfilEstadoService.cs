@@ -4,6 +4,13 @@ namespace OnlineCinemaFestival.Client.Services;
 
 public class PerfilEstadoService
 {
+    private readonly ImagemUrlService _imagemUrlService;
+
+    public PerfilEstadoService(ImagemUrlService imagemUrlService)
+    {
+        _imagemUrlService = imagemUrlService;
+    }
+
     public event Action? Alterado;
 
     public string Nome { get; private set; } = string.Empty;
@@ -15,7 +22,7 @@ public class PerfilEstadoService
     public void Atualizar(PerfilPublicoDTO? perfil)
     {
         Nome = perfil?.Name ?? string.Empty;
-        FotoUrl = perfil?.ProfileImageUrl ?? string.Empty;
+        FotoUrl = _imagemUrlService.Resolver(perfil?.ProfileImageUrl);
         Alterado?.Invoke();
     }
 

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" role="img" aria-label="Poster indisponivel">
+  <rect width="300" height="450" fill="#111827"/>
+  <rect x="24" y="24" width="252" height="402" rx="12" fill="#172033" stroke="#334155"/>
+  <circle cx="150" cy="178" r="54" fill="#243047"/>
+  <path d="M135 150v56l48-28z" fill="#00f5d4"/>
+  <text x="150" y="285" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="22" text-anchor="middle">Sem poster</text>
+</svg>

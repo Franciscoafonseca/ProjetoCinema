@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" role="img" aria-label="Imagem da comunidade indisponivel">
+  <rect width="600" height="300" fill="#0f172a"/>
+  <rect x="32" y="32" width="536" height="236" rx="14" fill="#182235" stroke="#334155"/>
+  <circle cx="246" cy="128" r="36" fill="#00f5d4"/>
+  <circle cx="318" cy="116" r="46" fill="#ff4d8d"/>
+  <circle cx="382" cy="132" r="34" fill="#ff8a00"/>
+  <path d="M188 220c22-46 94-58 130-18 28-34 90-30 116 18z" fill="#26344f"/>
+  <text x="300" y="262" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="24" text-anchor="middle">Comunidade</text>
+</svg>

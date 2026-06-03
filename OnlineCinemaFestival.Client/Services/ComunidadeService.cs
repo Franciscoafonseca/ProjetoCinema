@@ -7,10 +7,12 @@ namespace OnlineCinemaFestival.Client.Services;
 public class ComunidadeService
 {
     private readonly HttpClient _http;
+    private readonly ImagemUrlService _imagemUrlService;
 
-    public ComunidadeService(HttpClient http)
+    public ComunidadeService(HttpClient http, ImagemUrlService imagemUrlService)
     {
         _http = http;
+        _imagemUrlService = imagemUrlService;
     }
 
     public async Task<List<ComunidadeDTO>> ObterPublicasAsync()
@@ -164,22 +166,10 @@ public class ComunidadeService
 
         foreach (var membro in comunidade.Members)
         {
-            if (string.IsNullOrWhiteSpace(membro.ProfileImageUrl))
-                continue;
-
-            if (Uri.TryCreate(membro.ProfileImageUrl, UriKind.Absolute, out _))
-                continue;
-
-            var baseUri = _http.BaseAddress?.GetLeftPart(UriPartial.Authority) ?? string.Empty;
-            membro.ProfileImageUrl = $"{baseUri}{membro.ProfileImageUrl}";
+            membro.ProfileImageUrl = _imagemUrlService.Resolver(membro.ProfileImageUrl);
         }
 
-        if (!string.IsNullOrWhiteSpace(comunidade.ImageUrl)
-            && !Uri.TryCreate(comunidade.ImageUrl, UriKind.Absolute, out _))
-        {
-            var baseUri = _http.BaseAddress?.GetLeftPart(UriPartial.Authority) ?? string.Empty;
-            comunidade.ImageUrl = $"{baseUri}{comunidade.ImageUrl}";
-        }
+        comunidade.ImageUrl = _imagemUrlService.Resolver(comunidade.ImageUrl);
 
         return comunidade;
     }

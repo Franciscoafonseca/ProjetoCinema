@@ -2,6 +2,7 @@
 @inject IAutenticacaoService AutenticacaoService
 @inject PerfilService PerfilService
 @inject PerfilEstadoService PerfilEstado
+@inject ImagemUrlService ImagemUrlService
 @inject NavigationManager Nav
 @implements IDisposable
 
@@ -13,8 +14,8 @@
 <div class="layout">
     <header class="navbar-topo">
         <a class="logo" href="">
-            <img class="logo-full" src="images/brand/sky-cinema-logo.svg" alt="Sky Cinema Festival" />
-            <img class="logo-mark" src="images/brand/sky-cinema-mark.svg" alt="" />
+            <img class="logo-full" src="images/logos/cinehub-logo-branco.png" alt="Sky Cinema Festival" />
+            <img class="logo-mark" src="images/logos/cinehub-icon-branco.png" alt="" />
             <span>Sky Cinema Festival</span>
         </a>
 
@@ -82,6 +83,7 @@
     private bool _menuAberto;
     private bool _aTerminarSessao;
     private bool _avatarFalhou;
+    private bool _avatarUsarUrlOriginal;
 
     private readonly MudTheme _tema = new()
     {
@@ -105,7 +107,7 @@
     private bool MostrarAvatar => !string.IsNullOrWhiteSpace(PerfilEstado.FotoUrl) && !_avatarFalhou;
 
     private string AvatarUrl =>
-        $"{PerfilEstado.FotoUrl}{(PerfilEstado.FotoUrl.Contains('?') ? "&" : "?")}v={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+        AnexarVersao(_avatarUsarUrlOriginal ? PerfilEstado.FotoUrl : ImagemUrlService.Resolver(PerfilEstado.FotoUrl));
 
     protected override void OnInitialized()
     {
@@ -172,13 +174,33 @@
 
     private void AvatarFalhou()
     {
+        var urlResolvida = ImagemUrlService.Resolver(PerfilEstado.FotoUrl);
+        if (
+            !_avatarUsarUrlOriginal
+            && !string.IsNullOrWhiteSpace(PerfilEstado.FotoUrl)
+            && !PerfilEstado.FotoUrl.Equals(urlResolvida, StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            _avatarUsarUrlOriginal = true;
+            return;
+        }
+
         _avatarFalhou = true;
     }
 
     private void PerfilAlterado()
     {
         _avatarFalhou = false;
+        _avatarUsarUrlOriginal = false;
         InvokeAsync(StateHasChanged);
+    }
+
+    private static string AnexarVersao(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        return $"{url}{(url.Contains('?') ? "&" : "?")}v={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
     }
 
     public void Dispose()

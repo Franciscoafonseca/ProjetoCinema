@@ -10,16 +10,19 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
     private readonly IUtilizadorRepository _utilizadorRepository;
     private readonly IGeneroRepository _generoRepository;
     private readonly IPerfilFotoUploadService _fotoUploadService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public PerfilUtilizadorService(
         IUtilizadorRepository utilizadorRepository,
         IGeneroRepository generoRepository,
-        IPerfilFotoUploadService fotoUploadService
+        IPerfilFotoUploadService fotoUploadService,
+        IHttpContextAccessor? httpContextAccessor = null
     )
     {
         _utilizadorRepository = utilizadorRepository;
         _generoRepository = generoRepository;
         _fotoUploadService = fotoUploadService;
+        _httpContextAccessor = httpContextAccessor ?? new HttpContextAccessor();
     }
 
     public async Task<PerfilPrivadoDTO> ObterMeuPerfilAsync(int userId)
@@ -122,7 +125,7 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
         return ToPublicoDTO(utilizador);
     }
 
-    private static PerfilPublicoDTO ToPublicoDTO(Utilizador utilizador)
+    private PerfilPublicoDTO ToPublicoDTO(Utilizador utilizador)
     {
         var countryCode = ObterCountryCodePerfil(utilizador);
 
@@ -134,7 +137,7 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
             CountryCode = countryCode,
             CountryFlag = PerfilOpcoes.ObterBandeira(countryCode),
             Bio = utilizador.Perfil?.Bio ?? string.Empty,
-            ProfileImageUrl = utilizador.Perfil?.ProfileImageUrl ?? string.Empty,
+            ProfileImageUrl = ResolverUrlPublica(utilizador.Perfil?.ProfileImageUrl),
             Location = utilizador.Perfil?.Location ?? string.Empty,
             IsPublic = utilizador.Perfil?.IsPublic ?? false,
             FavoriteGenres = utilizador
@@ -175,14 +178,14 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
                     Id = m.Comunidade.PublicId,
                     Name = m.Comunidade.Name,
                     Description = m.Comunidade.Description,
-                    ImageUrl = m.Comunidade.ImageUrl,
+                    ImageUrl = ResolverUrlPublica(m.Comunidade.ImageUrl),
                     MembersCount = m.Comunidade.Members?.Count ?? 0,
                 })
                 .ToList(),
         };
     }
 
-    private static PerfilPrivadoDTO ToPrivadoDTO(Utilizador utilizador)
+    private PerfilPrivadoDTO ToPrivadoDTO(Utilizador utilizador)
     {
         var publico = ToPublicoDTO(utilizador);
 
@@ -203,7 +206,32 @@ public class PerfilUtilizadorService : IPerfilUtilizadorService
             ReviewsCount = publico.ReviewsCount,
             CommunitiesCount = publico.CommunitiesCount,
             PublicListsCount = publico.PublicListsCount,
+            PublicCommunities = publico.PublicCommunities,
         };
+    }
+
+    private string ResolverUrlPublica(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        var valor = url.Trim();
+
+        if (Uri.TryCreate(valor, UriKind.Absolute, out _))
+            return valor;
+
+        if (valor.StartsWith("//", StringComparison.Ordinal))
+        {
+            var scheme = _httpContextAccessor.HttpContext?.Request.Scheme ?? "http";
+            return $"{scheme}:{valor}";
+        }
+
+        var request = _httpContextAccessor.HttpContext?.Request;
+
+        if (request == null)
+            return valor;
+
+        return $"{request.Scheme}://{request.Host}{request.PathBase}/{valor.TrimStart('/')}";
     }
 
     private static string ObterNacionalidadePerfil(Utilizador utilizador)
